@@ -21,6 +21,7 @@
  ********************************/
 
 void setup();
+void synchronisation();
 
 
 typedef Serial<0> serial_t_;
@@ -40,9 +41,15 @@ int main()
 
 	#define COMPARE_BUFFER(string,len) strncmp(buffer, string, len) == 0 && len>0
 	//Ping
+	if(COMPARE_BUFFER("?",1))
+	{
+		Serial<0>::print("Hello World!");
+	}
+	
 	if(COMPARE_BUFFER("a",1))
 	{
-		Serial<0>::print("Coucou");
+		Serial<0>::print("Synchronisation...");
+		synchronisation();
 	}
 	
 	
@@ -59,5 +66,11 @@ void setup()
 	Serial<0>::init();
 	Serial<0>::change_baudrate(9600);
 
+}
+
+void synchronisation()
+{
+    
+  
 }
 

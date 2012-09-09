@@ -15,6 +15,7 @@
  ********************************/
 
 #define BAUD_RATE_SERIE         9600
+#define COMPARE_BUFFER(string,len) strncmp(buffer, string, len) == 0 && len>0
 
 /******************************** 
  *   MODES DE CONFIGURATION     *   
@@ -38,11 +39,11 @@ int main()
 	char buffer[17];
 	Serial<0>::read(buffer,17);
 
-	#define COMPARE_BUFFER(string,len) strncmp(buffer, string, len) == 0 && len>0
+	
 	//Ping
-	if(COMPARE_BUFFER("a",1))
+	if(COMPARE_BUFFER("?",1))
 	{
-		Serial<0>::print("Coucou");
+		Serial<0>::print("Hello World !x");
 	}
 	
 	
