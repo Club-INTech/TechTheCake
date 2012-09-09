@@ -101,7 +101,9 @@ int main() {
 			
 			// Envoi du ping à la balise
 			Balise::serial_radio::print_noln('?');
-			Balise::serial_pc::print(Balise::serial_radio::read_int());
+			int32_t buf;
+			Balise::serial_radio::read(buf);
+			Balise::serial_pc::print(buf);
 			
 			// Désactivation du watchdog
 			WDT_off();
@@ -117,7 +119,10 @@ int main() {
 			
 			// Envoi du ping à la balise
 			Balise::serial_radio::print_noln('t');
-			Balise::serial_pc::print(Balise::serial_radio::read_int());
+			
+			int32_t buf;
+			Balise::serial_radio::read(buf);
+			Balise::serial_pc::print(buf);
 			
 			// Désactivation du watchdog
 			WDT_off();
@@ -143,9 +148,9 @@ int main() {
 				
 				//Calcul du temps des read pour correction de l'offset
 				int32_t t1 = Balise::T_TopTour::value();
-				distance = Balise::serial_radio::read_int();
-				offset = Balise::serial_radio::read_int();
-				crc = Balise::serial_radio::read_int();
+				Balise::serial_radio::read(distance);
+				Balise::serial_radio::read(offset);
+				Balise::serial_radio::read(crc);
 				int32_t t2 = Balise::T_TopTour::value();			
 				
 				if(t2 < t1){

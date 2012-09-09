@@ -11,7 +11,9 @@ int main()
 	sei();
 	
 	while(1){
-		Serial<0>::print(Serial<0>::read_int());
+		int32_t buf;
+		Serial<0>::read(buf);
+		Serial<0>::print(buf);
 	}
 	
 	return 0;
