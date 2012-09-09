@@ -25,7 +25,9 @@ int main()
  	setup();
 	
 	while(1){
-		unsigned char order= Serial<0>::read_char();
+		char buffer[10];
+		unsigned char order;
+		Serial<0>::read(order);
 		if(order=='v'){
 
 			uint16_t offset=timeout_timer::value();
