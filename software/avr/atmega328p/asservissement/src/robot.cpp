@@ -106,10 +106,10 @@ void Robot::communiquer_pc(){
 		BASCULE_ = not BASCULE_;
 	}
 	else if(COMPARE_BUFFER("pwmG",4)){
-		pwmG_ = ((int32_t) serial_t_::read_float());
+		 serial_t_::read(pwmG_);
 	}
 	else if(COMPARE_BUFFER("pwmD",4)){
-		pwmD_ = ((int32_t) serial_t_::read_float());
+		serial_t_::read(pwmD_);
 	}
 	
 	//couleur du robot (utile pour l'angle_origine et le recalage)
@@ -125,30 +125,46 @@ void Robot::communiquer_pc(){
 	
 	//maj des constantes d'asservissement en rotation
 	else if(COMPARE_BUFFER("crp",3)){
-		rotation.kp(serial_t_::read_float());
+		int32_t buf;
+		serial_t_::read(buf);
+		rotation.kp(buf);
 	}
 	else if(COMPARE_BUFFER("crd",3)){
-		rotation.kd(serial_t_::read_float());
+		int32_t buf;
+		serial_t_::read(buf);
+		rotation.kd(buf);
 	}
 	else if(COMPARE_BUFFER("cri",3)){
-		rotation.ki(serial_t_::read_float());
+		int32_t buf;
+		serial_t_::read(buf);
+		rotation.ki(buf);
 	}
 	else if(COMPARE_BUFFER("crm",3)){
-		rotation.valeur_bridage(serial_t_::read_float());
+		int32_t buf;
+		serial_t_::read(buf);
+		rotation.valeur_bridage(buf);
 	}
 
 	//maj des constantes d'asservissement en translation
 	else if(COMPARE_BUFFER("ctp",3)){
-		translation.kp(serial_t_::read_float());
+		int32_t buf;
+		serial_t_::read(buf);
+		translation.kp(buf);
 	}
 	else if(COMPARE_BUFFER("ctd",3)){
-		translation.kd(serial_t_::read_float());
+		int32_t buf;
+		serial_t_::read(buf);
+		translation.kd(buf);
 	}
 	else if(COMPARE_BUFFER("cti",3)){
-		translation.ki(serial_t_::read_float());
+		int32_t buf;
+		serial_t_::read(buf);
+		translation.ki(buf);
 	}
 	else if(COMPARE_BUFFER("ctm",3)){
-		translation.valeur_bridage(serial_t_::read_float());
+		int32_t buf;
+		serial_t_::read(buf);
+		translation.valeur_bridage(buf);
 	}
 
 	//renvoi des constantes d'asservissement en rotation
@@ -181,13 +197,15 @@ void Robot::communiquer_pc(){
 
 	//maj de la position absolue du robot
 	else if(COMPARE_BUFFER("cx",2)){
-		x_ = serial_t_::read_float();
+		serial_t_::read(x_);
 	}
 	else if(COMPARE_BUFFER("cy",2)){
-		y_ =serial_t_::read_float();
+		serial_t_::read(y_);
 	}
 	else if(COMPARE_BUFFER("co",2)){
-		changer_orientation(serial_t_::read_float());
+		int32_t buf;
+		serial_t_::read(buf);
+		changer_orientation(buf);
 	}
 	
 	//renvoi de la position absolue du robot
@@ -203,12 +221,16 @@ void Robot::communiquer_pc(){
 
 	//ordre de translation
 	else if(COMPARE_BUFFER("d",1)){
-		translater(serial_t_::read_float());
+		int32_t buf;
+		serial_t_::read(buf);
+		translater(buf);
 	}
 
 	//ordre de rotation
 	else if(COMPARE_BUFFER("t",1)){
-		tourner(serial_t_::read_float());
+		int32_t buf;
+		serial_t_::read(buf);
+		tourner(buf);
 	}
 
 	//ordre d'arret (asservissement aux angle et position courants)
