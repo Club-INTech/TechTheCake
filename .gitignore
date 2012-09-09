@@ -1,9 +1,4 @@
 *~
 *.pyc
 software/build/*
-/software/avr/atmega1280/CMakeLists.txt
-/software/avr/atmega2560/CMakeLists.txt
-/software/avr/atmega324p/CMakeLists.txt
-/software/avr/atmega328p/CMakeLists.txt
-/software/avr/CMakeLists.txt
 /software/software.kdev4
