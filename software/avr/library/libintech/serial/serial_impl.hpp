@@ -125,26 +125,47 @@ public:
         send_char('\n');
     }
     
-    // READ INT
-    static inline void read(int& valeur){
+    // READ INT8_t
+    static inline void read(int8_t& valeur){
         static char buffer[20];
         buffer[read(buffer,20)] = '\0';
         valeur = atol(buffer);
     }
 
-    // READ U_INT
-    static inline void read(uint& valeur){
+    // READ UINT8_t
+    static inline void read(uint8_t& valeur){
         static char buffer[20];
         buffer[read(buffer,20)] = '\0';
         valeur = atol(buffer);
     }
     
-    // READ UINT16_T
+    // READ INT16_t
+    static inline void read(int16_t& valeur){
+        static char buffer[20];
+        buffer[read(buffer,20)] = '\0';
+        valeur = atol(buffer);
+    }
+    
+    // READ UINT16_t
     static inline void read(uint16_t& valeur){
         static char buffer[20];
         buffer[read(buffer,20)] = '\0';
         valeur = atol(buffer);
     }
+    
+    // READ INT32_t
+    static inline void read(int32_t& valeur){
+        static char buffer[20];
+        buffer[read(buffer,20)] = '\0';
+        valeur = atol(buffer);
+    }
+    
+    // READ UINT32_t
+    static inline void read(uint32_t& valeur){
+        static char buffer[20];
+        buffer[read(buffer,20)] = '\0';
+        valeur = atol(buffer);
+    }    
 
     // READ FLOAT
     static inline void read(float& valeur){
@@ -153,14 +174,6 @@ public:
         valeur = atof(buffer);
     }
     
-    // READ U_CHAR
-    static inline void read(unsigned char& valeur){
-        unsigned char res = read_single_char();
-        //Lecture \r
-        read_single_char();
-        valeur =  res;
-    }
-
     static inline uint8_t read(unsigned char* string, uint8_t length)
     {
     	uint8_t i = 0;
