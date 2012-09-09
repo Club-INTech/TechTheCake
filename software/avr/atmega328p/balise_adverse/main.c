@@ -18,7 +18,6 @@ int main()
  	setup();
 	
 	while(1){
-		char buffer[10];
 		unsigned char order;
 		Serial<0>::read(order);
 		if(order=='v'){

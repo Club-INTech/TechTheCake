@@ -20,7 +20,8 @@ int main()
  	setup();
 	
 	while(1){
-		unsigned char order= Serial<0>::read_char();
+		unsigned char order;
+		Serial<0>::read(order);
 		if(order=='v'){
 
 			uint16_t offset=timeout_timer::value();
@@ -46,10 +47,10 @@ int main()
 		    
 		    Serial<0>::print_noln(timestamp);
 		    
-		    t2prime=Serial<0>::read_int();
+		    Serial<0>::read(t2prime);
 		    t2=timestamp;//timesptamp devrait être mis dans t2 avant même la lecture de t2prime
-		    t1=Serial<0>::read_int();
-		    t1prime=Serial<0>::read_int();
+		    Serial<0>::read(t1);
+		    Serial<0>::read(t1prime);
 		    //Update du timestamp local
 		    timestamp+=(t1prime+t2prime-t1-t2)/2;
 		    
