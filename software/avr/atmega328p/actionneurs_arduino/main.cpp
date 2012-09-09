@@ -107,8 +107,11 @@ int main()
             // GoTo angle
             else if (COMPARE_BUFFER("GOTO", 4))
             {
-                int8_t id = serial_t_::read_int();
-                int16_t angle = serial_t_::read_int();
+                int8_t id;
+                int16_t angle;
+                
+                serial_t_::read(id);
+                serial_t_::read(angle);
 
                 AX12GoTo(id, AX_ANGLECW + (int16_t)(600.*angle/180.));
             }
@@ -116,7 +119,8 @@ int main()
             // Goto Broadcast
             else if (COMPARE_BUFFER("g", 1))
             {
-                int16_t angle = serial_t_::read_int();
+                int16_t angle;
+                serial_t_::read(angle);
                 
                 AX12GoTo(0xFE, AX_ANGLECW + (int16_t)(600.*angle/180.));
             }
@@ -124,8 +128,10 @@ int main()
             // Goto brut
             else if (COMPARE_BUFFER("a", 1))
             {
-                int8_t id = serial_t_::read_int();
-                int16_t angle = serial_t_::read_int();
+                int8_t id;
+                int16_t angle;
+                serial_t_::read(id);
+                serial_t_::read(angle);
                 AX12GoTo(id, angle);
             }
             
@@ -146,28 +152,33 @@ int main()
             // Changement de vitesse
             else if (COMPARE_BUFFER("CH_VIT", 6))
             {
-                int8_t  id    = serial_t_::read_int();
-                int16_t speed = serial_t_::read_int();
+                int8_t  id;
+                int16_t speed;
+                serial_t_::read(id);
+                serial_t_::read(speed);
                 AX12ChangeSpeed(id, speed);
             }
             
             // Changement de vitesse broadcast
             else if (COMPARE_BUFFER("c", 1))
             {
-                int16_t speed = serial_t_::read_int();
+                int16_t speed;
+                serial_t_::read(speed);
                 AX12ChangeSpeed(0xFE, speed);
             }
             
             // Changement de l'angleCW (min)
             else if (COMPARE_BUFFER("m", 1))
             {
-                int16_t angle = serial_t_::read_int();
+                int16_t angle;
+                serial_t_::read(angle);
                 AX12ChangeAngleMIN(0xFE, angle);
             }
             
             else if (COMPARE_BUFFER("M", 1))
             {
-                int16_t angle = serial_t_::read_int();
+                int16_t angle;
+                serial_t_::read(angle);
                 AX12ChangeAngleMAX(0xFE, angle);
             }
                
@@ -175,7 +186,8 @@ int main()
             // Reflashage de tous les servos branchés
             else if (COMPARE_BUFFER("f", 8))
             {
-                int8_t id = serial_t_::read_int();
+                int8_t id;
+                serial_t_::read(id);
                 AX12InitID(id);
             }
             
@@ -185,7 +197,8 @@ int main()
             
             else if (COMPARE_BUFFER("U", 1))
             {
-                uint8_t id = serial_t_::read_int();
+                uint8_t id;
+                serial_t_::read(id);
                 AX12Unasserv(id);
             }
             
@@ -200,7 +213,8 @@ int main()
             // LEDs d'alarme.
             else if (COMPARE_BUFFER("LED", 3))
             {
-                uint8_t type = serial_t_::read_int();
+                uint8_t type;
+                serial_t_::read(type);
                 
                 writeData(0xFE, AX_ALARM_LED, 1, type);
                 serial_t_::print("ok");
@@ -210,16 +224,21 @@ int main()
             else if (COMPARE_BUFFER("MESS", 4))
             {
                 // On lit l'id
-                uint8_t id = serial_t_::read_int();
+                uint8_t id;
                 
                 // On lit l'adresse de début
-                uint8_t adresse = serial_t_::read_int();
+                uint8_t adresse;
                 
                 // On lit le nombre d'octets
-                uint8_t n = serial_t_::read_int();
+                uint8_t n;
                 
                 // On lit la valeur à écrire
-                uint16_t val = serial_t_::read_int();
+                uint16_t val;
+                
+                serial_t_::read(id);
+                serial_t_::read(adresse);
+                serial_t_::read(n);
+                serial_t_::read(val);
                 
                 writeData(id, adresse, n, val);
                 
