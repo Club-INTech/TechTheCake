@@ -17,8 +17,6 @@
  ********************************/
 
 #define BAUD_RATE_SERIE         9600
-#define COMPARE_BUFFER(string,len) strncmp(buffer, string, len) == 0 && len>0
-#define COMPARE_BUFFER1(string,len) strncmp(buffer1, string, len) == 0 && len>0
 
 
 /******************************** 
@@ -40,16 +38,16 @@ int main()
     {
 
 	char buffer[17];
-	Serial<0>::read(buffer,17);
+	Serial<0>::read(buffer);
 
 	
 	//Ping
-	if(COMPARE_BUFFER("?",1))
+	if( strcmp(buffer, "?") == 0 )
 	{
 		Serial<0>::print("Hello World!");
 	}
 	
-	if(COMPARE_BUFFER("a",1))
+	if( strcmp(buffer, "a") == 0 )
 	{
 		Serial<0>::print("Synchronisation");
 		synchronisation();
@@ -78,8 +76,8 @@ void synchronisation()
 {
     char buffer1[17];
     Serial<1>::print_noln("?");
-    Serial<1>::read(buffer1,17);
-    if(COMPARE_BUFFER1("O",1))
+    Serial<1>::read(buffer1);
+    if(strcmp(buffer1, "O") == 0)
     {
 	Serial<0>::print("Success");
     }
