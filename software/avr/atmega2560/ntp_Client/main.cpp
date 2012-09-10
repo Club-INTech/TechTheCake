@@ -35,7 +35,8 @@ int main()
     while (1)
         
     {
-
+	Serial<0>::print("Hello World!");
+	/*
 	char buffer[17];
 	Serial<0>::read(buffer,17);
 
@@ -43,8 +44,9 @@ int main()
 	//Ping
 	if(COMPARE_BUFFER("?",1))
 	{
-		Serial<0>::print("Hello World !x");
+		Serial<0>::print("Hello World!");
 	}
+	*/
 	
 	
     }
