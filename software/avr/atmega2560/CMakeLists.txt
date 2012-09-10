@@ -1,3 +1,3 @@
 include(atmega2560.cmake)
-set(MICROCONTROLEURS balise_robot_2560 ntp_Client)
+set(MICROCONTROLEURS balise_robot_2560 )
 add_microcontrolers(m2560 "${MICROCONTROLEURS}")
