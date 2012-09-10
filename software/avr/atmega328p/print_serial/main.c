@@ -21,11 +21,46 @@ int main()
         
     _delay_ms(500);
 
-    // Envoie un uint8_t
-    // Envoie le caractère ASCI correspondant
-    uint8_t uint8 = 123;
-    Serial<0>::print(uint8);
+    // Envoie un char (code ASCII 97)
+    unsigned char uint8 = 'a';
+    Serial<0>::send_char(uint8);
+    Serial<0>::send_ln();
         
+    _delay_ms(500);
+    
+    // Envoie un uint8_t
+    Serial<0>::print(uint8);
+    
+    _delay_ms(500);
+    
+    // Envoie un int 8 bit négatif
+    int8_t int8 = -8;
+    Serial<0>::print(int8);
+        
+    _delay_ms(500);
+    
+    // Envoie un int 16 bits
+    uint16_t uint16 = 1616;
+    Serial<0>::print(uint16);
+    
+    _delay_ms(500);
+    
+    // Envoie un int 16 bits négatif
+    int16_t int16 = -1616;
+    Serial<0>::print(int16);
+    
+    _delay_ms(500);
+    
+    // Envoie un int 32 bits
+    uint32_t uint32 = 32323232;
+    Serial<0>::print(uint32);
+    
+    _delay_ms(500);
+    
+    // Envoie un int 32 bits négatif
+    int32_t int32 = -32323232;
+    Serial<0>::print(int32);
+    
     _delay_ms(500);
         
     // Envoie un booléen
@@ -55,16 +90,34 @@ int main()
         Serial<0>::print(buffer);
         
         // Réception d'un float
-        Serial<0>::print("float:");
+        Serial<0>::print("float (renvoie x1000):");
         float float_val;
         Serial<0>::read(float_val);
-        Serial<0>::print(float_val);
+        Serial<0>::print(float_val * 1000);
         
-        // Réception d'un int
-        Serial<0>::print("int:");
-        uint8_t uint8_val;
-        Serial<0>::read(uint8_val);
-        Serial<0>::print(uint8_val);
+        // Réception d'un int8
+        Serial<0>::print("int 8 bits:");
+        int8_t int8_val;
+        Serial<0>::read(int8_val);
+        Serial<0>::print(int8_val);
+        
+        // Réception d'un int16
+        Serial<0>::print("int 16 bits:");
+        int16_t int16_val;
+        Serial<0>::read(int16_val);
+        Serial<0>::print(int16_val);
+        
+        // Réception d'un int32
+        Serial<0>::print("int 32 bits:");
+        int32_t int32_val;
+        Serial<0>::read(int32_val);
+        Serial<0>::print(int32_val);
+        
+        // Réception d'un octet brut
+        Serial<0>::print("octet:");
+        unsigned char octet = Serial<0>::read_char();
+        Serial<0>::send_char(octet);
+        Serial<0>::send_ln();
     }
     
     return 0;

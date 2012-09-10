@@ -41,20 +41,6 @@ private:
         return (rx_buffer__SIZE + rx_buffer_.head - rx_buffer_.tail) % rx_buffer__SIZE;
     }
 
-    static inline void send_ln()
-    {
-        send_char('\r');
-        send_char('\n');
-    }
-
-    static inline unsigned char read_single_char()
-    {
-        while(!available()) {}
-        unsigned char c = rx_buffer_.buffer[rx_buffer_.tail];
-        rx_buffer_.tail = (rx_buffer_.tail + 1) % rx_buffer__SIZE;
-        return c;
-    }
-
 public:
 
     /**
@@ -70,10 +56,23 @@ public:
     static inline void change_baudrate(uint32_t BAUD_RATE);
 
     /**
-     * Envoie un caractère sur TX
+     * Envoie un caractère sur TX (pas de conversion ASCII)
      * 
      */
     static inline void send_char(unsigned char byte);
+    
+    /**
+     * Récupère un caractère sur RX (pas de conversion ASCII)
+     * 
+     */
+    static inline unsigned char read_char()
+    {
+        while(!available()) {}
+        unsigned char c = rx_buffer_.buffer[rx_buffer_.tail];
+        rx_buffer_.tail = (rx_buffer_.tail + 1) % rx_buffer__SIZE;
+        
+        return c;
+    }
 
     /**
      * Enregistre un caractère dans le buffer, appelée par les interruptions sur RX
@@ -87,6 +86,16 @@ public:
             rx_buffer_.buffer[rx_buffer_.head] = c;
             rx_buffer_.head = i;
         }
+    }
+    
+    /**
+     * Affiche un retour à la ligne
+     * 
+     */
+    static inline void send_ln()
+    {
+        send_char('\r');
+        send_char('\n');
     }
 
     /**
@@ -129,18 +138,6 @@ public:
         ltoa(val,buffer,10);
         print_noln((const char *)buffer);
     }
-
-    static inline void print_noln(char val)
-    {
-        send_char(val);
-        send_char('\r');
-    }
-
-    static inline void print_noln(unsigned char val)
-    {
-        send_char(val);
-        send_char('\r');
-    }
     
     static inline void print_noln(bool val)
     {
@@ -178,42 +175,42 @@ public:
     }
     
     // READ INT8_t
-    static inline void read(int8_t& valeur){
+    static inline void read(int8_t &valeur){
         static char buffer[20];
         read(buffer);
         valeur = atol(buffer);
     }
 
     // READ UINT8_t
-    static inline void read(uint8_t& valeur){
+    static inline void read(uint8_t &valeur){
         static char buffer[20];
         read(buffer);
         valeur = atol(buffer);
     }
     
     // READ INT16_t
-    static inline void read(int16_t& valeur){
+    static inline void read(int16_t &valeur){
         static char buffer[20];
         read(buffer);
         valeur = atol(buffer);
     }
     
     // READ UINT16_t
-    static inline void read(uint16_t& valeur){
+    static inline void read(uint16_t &valeur){
         static char buffer[20];
         read(buffer);
         valeur = atol(buffer);
     }
     
     // READ INT32_t
-    static inline void read(int32_t& valeur){
+    static inline void read(int32_t &valeur){
         static char buffer[20];
         read(buffer);
         valeur = atol(buffer);
     }
     
     // READ UINT32_t
-    static inline void read(uint32_t& valeur){
+    static inline void read(uint32_t &valeur){
         static char buffer[20];
         read(buffer);
         valeur = atol(buffer);
@@ -238,7 +235,7 @@ public:
         // Ecoute jusqu'à réception du délimiteur \r
         do
         {
-            string[i] = static_cast<char>(read_single_char());
+            string[i] = static_cast<char>(read_char());
             i++;
         }
         while(string[i-1] != '\r');
@@ -250,36 +247,6 @@ public:
         return i-1;
     }
     
-    static inline uint8_t read(unsigned char* string, uint8_t length)
-    {
-        uint8_t i = 0;
-        for (; i < length; i++)
-        {
-            unsigned char tmp = read_single_char();
-            if(tmp == '\r')
-            {
-                return i;
-            }
-            
-            string[i] = tmp;
-        }
-        
-        return i;
-    }
-
-    // READ STRING
-    static inline uint8_t read(char* string, uint8_t length){
-        uint8_t i = 0;
-        for (; i < length; i++){
-            while(!available()){ asm("nop"); }
-            char tmp = static_cast<char>(read_single_char());
-            if(tmp == '\r'){
-                return i;
-        }
-            string[i] = tmp;
-        }
-        return i;
-    }
 };
 
 
