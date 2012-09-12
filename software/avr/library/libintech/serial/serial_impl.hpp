@@ -43,6 +43,8 @@ private:
 
 public:
 
+    enum { READ_TIMEOUT = 0, READ_SUCCESS = 1 };
+    
     /**
      * Initialise la liaison série (registres)
      * 
@@ -64,14 +66,34 @@ public:
     /**
      * Récupère un caractère sur RX (pas de conversion ASCII)
      * 
+     * @param   byte    Char récupéré sur RX
+     * @param   timeout Timeout en ms (approximatif)
+     * @return  READ_SUCCESS si caractère récupéré ou READ_TIMEOUT si timeout écoulé
+     * 
      */
-    static inline unsigned char read_char()
+    static inline uint8_t read_char(unsigned char &byte, uint16_t timeout = 0)
     {
-        while(!available()) {}
-        unsigned char c = rx_buffer_.buffer[rx_buffer_.tail];
+        uint16_t i = 0;
+        uint8_t j = 0;
+        
+        // Ajuste le timeout pour faire correspondre approximativement à des ms
+        if (timeout > 0) timeout *= 2.5;
+        
+        // Attente jusqu'à réception d'un caractère
+        while(!available())
+        {
+            if (timeout > 0)
+            {
+                if (i > timeout) return READ_TIMEOUT;
+                if (j == 0) i++;
+                j++;
+            }
+        }
+        
+        byte = rx_buffer_.buffer[rx_buffer_.tail];
         rx_buffer_.tail = (rx_buffer_.tail + 1) % rx_buffer__SIZE;
         
-        return c;
+        return READ_SUCCESS;
     }
 
     /**
@@ -119,7 +141,7 @@ public:
         print((const char *)buff);
     }
 
-    static inline void print_binary(unsigned char * val, int16_t len)
+    static inline void print_binary(unsigned char *val, int16_t len)
     {
         for(int16_t i = 0 ; i<len ; ++i)
         {
@@ -174,68 +196,48 @@ public:
         send_char('\n');
     }
     
-    // READ INT8_t
-    static inline void read(int8_t &valeur){
+    /**
+     * Lecture d'un int
+     * 
+     */
+    template<class T>
+    static inline uint8_t read(T &val, uint16_t timeout = 0){
         static char buffer[20];
-        read(buffer);
-        valeur = atol(buffer);
-    }
-
-    // READ UINT8_t
-    static inline void read(uint8_t &valeur){
-        static char buffer[20];
-        read(buffer);
-        valeur = atol(buffer);
-    }
-    
-    // READ INT16_t
-    static inline void read(int16_t &valeur){
-        static char buffer[20];
-        read(buffer);
-        valeur = atol(buffer);
+        uint8_t status = read(buffer, timeout);
+        val = atol(buffer);
+        
+        return status;
     }
     
-    // READ UINT16_t
-    static inline void read(uint16_t &valeur){
-        static char buffer[20];
-        read(buffer);
-        valeur = atol(buffer);
-    }
-    
-    // READ INT32_t
-    static inline void read(int32_t &valeur){
-        static char buffer[20];
-        read(buffer);
-        valeur = atol(buffer);
-    }
-    
-    // READ UINT32_t
-    static inline void read(uint32_t &valeur){
-        static char buffer[20];
-        read(buffer);
-        valeur = atol(buffer);
-    }    
-
-    // READ FLOAT
-    static inline void read(float &valeur)
+    /**
+     * Lecture d'un float
+     * 
+     */
+    static inline uint8_t read(float &val, uint16_t timeout = 0)
     {
         static char buffer[20];
-        read(buffer);
-        valeur = atof(buffer);
+        uint8_t status = read(buffer, timeout);
+        val = atof(buffer);
+        
+        return status;
     }
     
     /**
      * Ecoute sur la liaison série, l'appel est bloquant jusqu'à la réception du délimiteur \r
      * 
      */
-    static inline uint8_t read(char* string)
+    static inline uint8_t read(char* string, uint16_t timeout = 0)
     {
+        static unsigned char buffer;
         uint8_t i = 0;
         
         // Ecoute jusqu'à réception du délimiteur \r
         do
         {
-            string[i] = static_cast<char>(read_char());
+            // Tentative de lecture, abandonne si timeout
+            if (read_char(buffer, timeout) == READ_TIMEOUT) return READ_TIMEOUT;
+            
+            string[i] = static_cast<char>(buffer);
             i++;
         }
         while(string[i-1] != '\r');
@@ -243,8 +245,7 @@ public:
         // Remplace le délimiteur par une fin de chaine
         string[i-1] = '\0';
         
-        // Retourne la taille de la chaine lue
-        return i-1;
+        return READ_SUCCESS;
     }
     
 };

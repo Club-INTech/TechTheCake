@@ -14,7 +14,7 @@ int main()
     // ------------------
     // Test des print
     // ------------------
-    /*
+    
     // Envoie une chaine
     char string[10] = "char*";
     Serial<0>::print(string);
@@ -69,13 +69,19 @@ int main()
         
     _delay_ms(500);
 
-    // Envoie un int
-    Serial<0>::print(123);
+    // Envoie un entier en binaire
+    uint8_t binary = 0;
+    Serial<0>::print_binary(binary);
+    
+    _delay_ms(500);
+    
+    // Envoie un entier en binaire
+    binary = 255;
+    Serial<0>::print_binary(binary);
         
     _delay_ms(500);
     Serial<0>::print("-----------");
     _delay_ms(500);
-    */
     
     // ------------------
     // Test des read
@@ -86,8 +92,8 @@ int main()
         // Réception d'une chaine
         Serial<0>::print("string:");
         char buffer[10];
-        Serial<0>::read(buffer);
-        Serial<0>::print(buffer);
+        if (Serial<0>::read(buffer, 3000) == Serial<0>::READ_TIMEOUT) Serial<0>::print("timeout");
+        else Serial<0>::print(buffer);
         
         // Réception d'un float
         Serial<0>::print("float (renvoie x1000):");
@@ -98,8 +104,8 @@ int main()
         // Réception d'un int8
         Serial<0>::print("int 8 bits:");
         int8_t int8_val;
-        Serial<0>::read(int8_val);
-        Serial<0>::print(int8_val);
+        if (Serial<0>::read(int8_val, 3000) == Serial<0>::READ_TIMEOUT) Serial<0>::print("timeout");
+        else Serial<0>::print(int8_val);
         
         // Réception d'un int16
         Serial<0>::print("int 16 bits:");
@@ -115,7 +121,8 @@ int main()
         
         // Réception d'un octet brut
         Serial<0>::print("octet:");
-        unsigned char octet = Serial<0>::read_char();
+        unsigned char octet;
+        Serial<0>::read_char(octet);
         Serial<0>::send_char(octet);
         Serial<0>::send_ln();
     }
