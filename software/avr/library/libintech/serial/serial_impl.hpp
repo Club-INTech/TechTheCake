@@ -129,8 +129,8 @@ public:
     {
         static char buff[sizeof(T) * 8 + 1];
         buff[sizeof(T) * 8]='\0';
-        int16_t j = sizeof(T) * 8 - 1;
-        for(int16_t i=0 ; i<sizeof(T)*8 ; ++i)
+        uint16_t j = sizeof(T) * 8 - 1;
+        for(uint16_t i = 0; i < sizeof(T) * 8; ++i)
         {
             if(val & ((T)1 << i))
                buff[j] = '1';
@@ -143,7 +143,7 @@ public:
 
     static inline void print_binary(unsigned char *val, int16_t len)
     {
-        for(int16_t i = 0 ; i<len ; ++i)
+        for(int16_t i = 0 ; i < len ; ++i)
         {
             print_binary(val[i]);
         }
@@ -236,6 +236,13 @@ public:
         {
             // Tentative de lecture, abandonne si timeout
             if (read_char(buffer, timeout) == READ_TIMEOUT) return READ_TIMEOUT;
+            
+            // Ignore le premier caractère si \n
+            // Permet de faire des print entre AVR
+            if (i == 0 && buffer == '\n')
+            {
+                continue;
+            }
             
             string[i] = static_cast<char>(buffer);
             i++;
