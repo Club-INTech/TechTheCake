@@ -25,8 +25,14 @@
  ********************************/
 
 
-typedef Timer<1,ModeCounter,256> clock;
-
+typedef Timer<0,ModeCounter,1> timer;
+volatile uint32_t clock=0;
+uint32_t t1;
+uint32_t tp;
+uint32_t t4;
+uint32_t teta;
+    
+    
 void setup();
 void synchronisation();
 
@@ -49,11 +55,55 @@ int main()
 		Serial<0>::print("Hello World!");
 	}
 	
+	//Ping du deuxieme avr
+	if( strcmp(buffer, "??") == 0 )
+	{
+	    Serial<0>::print("Ping du second arduino");
+	    Serial<1>::print_noln("?");
+	    Serial<1>::read(buffer);
+	    if( strcmp(buffer, "!") == 0 )
+	    {
+		Serial<0>::print("Ping arduino 2 réussi");
+	    }
+	}
+	
+	
+	
 	//Demande de synchronisation
 	if( strcmp(buffer, "a") == 0 )
 	{
 		Serial<0>::print("Test de Synchronisation");
 		synchronisation();
+	}
+	
+	//Recuperation de l'horloge
+	if( strcmp(buffer, "t") == 0 )
+	{
+		Serial<0>::print(clock);
+	}
+	
+	//Recuperation des 2 horloges
+	if( strcmp(buffer, "tt") == 0 )
+	{
+		Serial<0>::print("Timers local et distant:");
+		Serial<1>::print_noln("t");
+		Serial<1>::read(buffer);
+		Serial<0>::print(clock);
+		Serial<0>::print(buffer);
+	}
+	
+	//Recuperation des 2 horloges en ms
+	if( strcmp(buffer, "mm") == 0 )
+	{
+		float r;
+		float t;
+		Serial<0>::print("Timers local et distant:");
+		Serial<1>::print_noln("t");
+		Serial<1>::read(t);
+		r = clock / 64.0;
+		Serial<0>::print(r);
+		r = t / 64.0;
+		Serial<0>::print(r);
 	}
 	
     }
@@ -73,29 +123,49 @@ void setup()
 	Serial<1>::change_baudrate(9600);
 	
 	//Timers
-	clock::init();
+	timer::init();
 
 }
 
 void synchronisation()
 {
-    char buffer1[17];
-    Serial<0>::print("Tentative de ping...");
-    Serial<1>::print_noln("?");
-    Serial<1>::read(buffer1);
-    if(strcmp(buffer1, "!") == 0)
+    //Declaration des variables
+    char buffer[17];
+    
+    
+    // Prépare le Client à effectuer une synchronisation
+    Serial<0>::print("Tentative de synchro...");
+    t1 = clock;
+    Serial<1>::print_noln("!");
+    Serial<1>::read(buffer);
+    t4 = clock;
+    
+    if(strcmp(buffer, "!") == 0)
     {
-	Serial<0>::print("ping succeed");
-	Serial<1>::print_noln(clock::value());
-	Serial<1>::read(buffer1);
-	Serial<0>::print(buffer1);
+	//Recuperation de la valeur de t2'
+	Serial<1>::print_noln("tp?");
+	Serial<1>::read(tp);
+
+	
+	//Calcul de l'écart teta entre les deux horloges
+	teta = tp - (t1 + t4)/2;
+	
+	clock = clock + teta;
+	
+	Serial<0>::print("Synchro réussie");
+	Serial<0>::print(t1);
+	Serial<0>::print(tp);
+	Serial<0>::print(t4);
+	Serial<0>::print("Fin");
     }
-    else Serial<0>::print("Erreur, réponse incorrecte!");
+    else Serial<0>::print("Erreur: réponse incorrecte. Echec synchro.");
+
+    
     
 }
 
 
-ISR(TIMER1_OVF_vect)
+ISR(TIMER0_OVF_vect)
 {
-	//Rien
+  clock++;
 }
