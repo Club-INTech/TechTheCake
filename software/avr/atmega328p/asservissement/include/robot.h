@@ -23,6 +23,10 @@
 #define LARGEUR_ROBOT 200.0
 #define LONGUEUR_TABLE 3000.0
 
+
+#define CONVERSION_TIC_MM 0.10360
+#define CONVERSION_TIC_RADIAN 0.0007117
+
 class Robot : public Singleton<Robot>{
 // Par défaut les attributs sont publics dans une struct
 
@@ -43,15 +47,10 @@ private:
 	
 	typedef Serial<0> serial_t_;
 	
-	//kit pour borne d'arcade
-	bool BASCULE_;
-	int32_t pwmG_;
-	int32_t pwmD_;
 	
 	unsigned char couleur_;
 	float x_;
 	float y_;
-	float angle_serie_;
 	float angle_origine_;
 	
 	bool etat_rot_;
@@ -63,17 +62,10 @@ private:
 	
 	Asservissement translation;
 	Asservissement rotation;
-
-	float CONVERSION_TIC_MM_;
-	float CONVERSION_TIC_RADIAN_;
 	
 public:
 	
 	Robot();
-	
-	//kit pour borne d'arcade
-	void bandeArcade();
-	bool BASCULE();
 	
 	//gestion des mesures courantes
 	void mesure_angle(int32_t); 
@@ -89,6 +81,7 @@ public:
 	void communiquer_pc();
 	
 	int32_t angle_optimal(int32_t angle, int32_t angleBkp);
+	float get_angle();
 	
 	void tourner(float angle);
 	void translater(float distance);
