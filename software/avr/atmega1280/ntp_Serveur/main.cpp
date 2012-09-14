@@ -59,7 +59,7 @@ int main()
 	if( strcmp(buffer, "??") == 0 )
 	{
 	    Serial<0>::print("Ping du second arduino");
-	    Serial<1>::print_noln("?");
+	    Serial<1>::print("?");
 	    Serial<1>::read(buffer);
 	    if( strcmp(buffer, "!") == 0 )
 	    {
@@ -86,7 +86,7 @@ int main()
 	if( strcmp(buffer, "tt") == 0 )
 	{
 		Serial<0>::print("Timers local et distant:");
-		Serial<1>::print_noln("t");
+		Serial<1>::print("t");
 		Serial<1>::read(buffer);
 		Serial<0>::print(clock);
 		Serial<0>::print(buffer);
@@ -98,7 +98,7 @@ int main()
 		float r;
 		float t;
 		Serial<0>::print("Timers local et distant:");
-		Serial<1>::print_noln("t");
+		Serial<1>::print("t");
 		Serial<1>::read(t);
 		r = clock / 64.0;
 		Serial<0>::print(r);
