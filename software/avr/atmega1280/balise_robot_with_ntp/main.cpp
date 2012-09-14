@@ -89,7 +89,7 @@ int main() {
 		if(COMPARE_BUFFER("lon",3)){
             if(balise.max_counter()>0){
                 balise.laser_on();
-            }
+            }1
             else{
                 Balise::serial_pc::print("Le moteur n'est pas allumé");
             }
