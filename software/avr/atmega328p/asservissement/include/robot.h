@@ -70,6 +70,7 @@ public:
 	//gestion des mesures courantes
 	void mesure_angle(int32_t); 
 	void mesure_distance(int32_t); 
+	float get_angle();
 	
 	void changer_orientation(float new_angle);
 	
@@ -81,7 +82,6 @@ public:
 	void communiquer_pc();
 	
 	int32_t angle_optimal(int32_t angle, int32_t angleBkp);
-	float get_angle();
 	
 	void tourner(float angle);
 	void translater(float distance);

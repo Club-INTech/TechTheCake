@@ -42,6 +42,7 @@ void Robot::asservir()
 	
 }
 
+//calcul de la nouvelle position courante du robot, en absolu sur la table (mm et radians)
 void Robot::update_position()
 {
 	static int32_t last_distance = 0;
@@ -150,10 +151,12 @@ void Robot::communiquer_pc(){
 	//renvoi de la position absolue du robot
 	else if(strcmp(buffer,"ex") == 0)
 	{
+		update_position();
 		serial_t_::print((int32_t)x_);
 	}
 	else if(strcmp(buffer,"ey") == 0)
 	{
+		update_position();
 		serial_t_::print((int32_t)y_);
 	}
 	else if(strcmp(buffer,"eo") == 0)
@@ -226,6 +229,7 @@ void Robot::communiquer_pc(){
 	//demande de la position courante
 	else if(strcmp(buffer,"pos") == 0)
 	{
+		update_position();
 		serial_t_::print((int32_t)x_);
 		serial_t_::print((int32_t)y_);
 	}
@@ -277,7 +281,7 @@ void Robot::mesure_distance(int32_t new_distance)
 }
 float Robot::get_angle()
 {
-	float angle_radian = mesure_angle_ * CONVERSION_TIC_RADIAN - angle_origine_;
+	float angle_radian = mesure_angle_ * CONVERSION_TIC_RADIAN + angle_origine_;
 	
 	while (angle_radian > PI)
 		angle_radian -= 2*PI;
