@@ -1,12 +1,7 @@
 # -*- coding: utf-8 -*-
-
 import serial
-import threading
-import sys, os
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
 import time
+import threading
 from threading import Lock
 
 class TimeoutError(Exception): pass
