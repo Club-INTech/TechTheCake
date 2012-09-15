@@ -2,13 +2,11 @@
 
 // Constructeur avec assignation des attributs
 Robot::Robot() : 	
-			couleur_('v')
-			,x_(0)
+			x_(0)
 			,y_(0)
 			,angle_origine_(0.0)
 			,etat_rot_(true)
 			,etat_tra_(true)
-			,est_bloque_(false)
 			,translation(0.75,3.5,0.0)
 			,rotation(0.9,3.5,0.0)
 {
@@ -65,19 +63,6 @@ void Robot::communiquer_pc(){
 	if(strcmp(buffer,"?") == 0)
 	{
 		serial_t_::print(0);
-	}
-	
-	//couleur du robot (utile pour l'angle_origine et le recalage)
-	else if(strcmp(buffer,"ccr") == 0){
-		couleur_ = 'r';
-	}
-	else if(strcmp(buffer,"ccv") == 0)
-	{
-		couleur_ = 'v';
-	}
-	else if(strcmp(buffer,"ec") == 0)
-	{
-		serial_t_::print((char)couleur_);
 	}
 	
 	//maj des constantes d'asservissement en rotation
@@ -206,26 +191,6 @@ void Robot::communiquer_pc(){
 		etat_tra_ = true;
 	}
 
-	//recalage de la position
-	else if(strcmp(buffer,"recal") == 0)
-	{
-		recalage();
-	}
-
-	//demande d'acquittement
-	else if(strcmp(buffer,"acq") == 0)
-	{
-		if(est_stoppe())
-		{
-			if(est_bloque_)
-				serial_t_::print("STOPPE");
-			else
-				serial_t_::print("FIN_MVT");
-		}
-		else
-			serial_t_::print("EN_MVT");
-	}
-
 	//demande de la position courante
 	else if(strcmp(buffer,"pos") == 0)
 	{
@@ -247,7 +212,24 @@ void Robot::communiquer_pc(){
 		serial_t_::read(valeur);
 		changerVitesseRot(valeur);
 	}
-
+	
+	//envoi des paramètres pour l'évaluation des conditions de blocage
+	else if(strcmp(buffer,"?bloc") == 0)
+	{
+		serial_t_::print((int16_t)abs(moteurGauche.pwm()));
+		serial_t_::print((int16_t)abs(moteurDroit.pwm()));
+		serial_t_::print((int16_t)rotation.erreur_d());
+		serial_t_::print((int16_t)translation.erreur_d());
+	}
+	
+	//envoi des paramètres pour l'évaluation des conditions d'arret
+	else if(strcmp(buffer,"?arret") == 0)
+	{
+		serial_t_::print((int16_t)abs(rotation.erreur()));
+		serial_t_::print((int16_t)abs(translation.erreur()));
+		serial_t_::print((int16_t)rotation.erreur_d());
+		serial_t_::print((int16_t)translation.erreur_d());
+	}
 }
 ////////////////////////////// VITESSES /////////////////////////////
 void Robot::changerVitesseTra(int16_t valeur)
@@ -310,18 +292,8 @@ void Robot::changer_orientation(float new_angle)
 	angle_origine_ = new_angle - (get_angle() - angle_origine_);
 }
 
-//le robot est considéré stoppé si les vitesses sont nulles et les écarts à la consigne négligeables
-bool Robot::est_stoppe()
-{
-	volatile bool rotation_stoppe = abs(rotation.erreur()) < 105;
-	volatile bool translation_stoppe = abs(translation.erreur()) < 100;
-	bool bouge_pas = rotation.erreur_d()==0 && translation.erreur_d()==0;
-	return rotation_stoppe && translation_stoppe && bouge_pas;
-}
-
 void Robot::tourner(float angle)
 {
-	est_bloque_ = false;
 	float angle_tic = (angle - angle_origine_)/CONVERSION_TIC_RADIAN;
 	rotation.consigne(angle_optimal( angle_tic, mesure_angle_ ));
 	//attendre un tour de timer avant de continuer (éventuel problème avec attribut volatile)
@@ -330,7 +302,6 @@ void Robot::tourner(float angle)
 
 void Robot::translater(float distance)
 {
-	est_bloque_ = false;
 	translation.consigne(translation.consigne()+distance/CONVERSION_TIC_MM);
 	//attendre un tour de timer avant de continuer (éventuel problème avec attribut volatile)
 	while(compteur.value()>0){ asm("nop"); }
@@ -339,79 +310,6 @@ void Robot::translater(float distance)
 //pour stopper le robot on l'asservit sur sa position courante
 void Robot::stopper()
 {
-	if (not est_stoppe())
-	{
-		rotation.consigne(mesure_angle_);
-		translation.consigne(mesure_distance_);
-	}
-}
-
-void Robot::gestion_blocage()
-{
-	static float compteurBlocage=0;
-	bool moteur_force = abs(moteurGauche.pwm()) > 45 || abs(moteurDroit.pwm()) > 45;
-	bool bouge_pas = rotation.erreur_d()==0 && translation.erreur_d()==0;
-	
-	if (bouge_pas && moteur_force)
-	{
-		if(compteurBlocage==100){
-			stopper();
-			est_bloque_ = true;
-			compteurBlocage=0;
-		}
-		else
-			compteurBlocage++;
-	}
-	else
-		compteurBlocage=0;
-}
-
-/////////////////////////// FONCTIONS BLOQUANTES POUR LE RECALAGE ///////////////////////
-
-void Robot::recalage()
-{
-	changerVitesseTra(1);
-	changerVitesseRot(1);
-	translater_bloc(-1000.0);
-	etat_rot_ = false;
-	changerVitesseTra(2);
-	translater_bloc(-300.0);
-	if (couleur_ == 'r') x_ = (-LONGUEUR_TABLE/2+LARGEUR_ROBOT/2); else x_ = (LONGUEUR_TABLE/2-LARGEUR_ROBOT/2);
-	if (couleur_ == 'r') changer_orientation(0.0); else changer_orientation(PI);
-	etat_rot_ = true;
-	_delay_ms(500);
-	changerVitesseTra(1);
-	translater_bloc(220.0);
-	tourner_bloc(PI/2);
-	translater_bloc(-1000.0);
-	etat_rot_ = false;
-	changerVitesseTra(2);
-	translater_bloc(-300.0);
-	y_ = (LARGEUR_ROBOT/2);
-	changer_orientation(PI/2);
-	etat_rot_ = true;
-	_delay_ms(500);
-	changerVitesseTra(1);
-	translater_bloc(150.0);
-	if (couleur_ == 'r') tourner_bloc(0.0); else tourner_bloc(PI);
-	changerVitesseTra(2);
-	changerVitesseRot(1);
-	_delay_ms(200);
-	serial_t_::print("FIN_REC");
-}
-
-void Robot::translater_bloc(float distance)
-{
-	translater(distance);
-	while(not est_stoppe() && not est_bloque_){
-		asm("nop");
-	}
-}
-
-void Robot::tourner_bloc(float angle)
-{
-	tourner(angle);
-	while(not est_stoppe() && not est_bloque_){
-		asm("nop");
-	}
+	rotation.consigne(mesure_angle_);
+	translation.consigne(mesure_distance_);
 }

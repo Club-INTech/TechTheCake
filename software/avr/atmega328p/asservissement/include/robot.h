@@ -47,15 +47,12 @@ private:
 	
 	typedef Serial<0> serial_t_;
 	
-	
-	unsigned char couleur_;
 	float x_;
 	float y_;
 	float angle_origine_;
 	
 	bool etat_rot_;
 	bool etat_tra_;
-	volatile bool est_bloque_;
 	
 	int32_t mesure_distance_;
 	int32_t mesure_angle_;
@@ -87,12 +84,6 @@ public:
 	void translater(float distance);
 
 	void stopper();
-	bool est_stoppe();
-	void gestion_blocage();
-	
-	void recalage(void);
-	void translater_bloc(float distance);
-	void tourner_bloc(float angle);
 };
 
 #endif

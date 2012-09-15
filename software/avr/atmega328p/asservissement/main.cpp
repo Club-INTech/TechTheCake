@@ -35,7 +35,4 @@ ISR(TIMER1_OVF_vect, ISR_NOBLOCK){
 	
 	//mise à jour du pwm envoyé aux moteurs pour l'asservissement
 	robot.asservir();
-	
-	//vérification des conditions de bloquage du robot
-	robot.gestion_blocage();
 }
