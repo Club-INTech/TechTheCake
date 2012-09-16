@@ -35,4 +35,7 @@ ISR(TIMER1_OVF_vect, ISR_NOBLOCK){
 	
 	//mise à jour du pwm envoyé aux moteurs pour l'asservissement
 	robot.asservir();
+	
+	//calcul de la nouvelle position courante du robot, en absolu sur la table (mm et radians)
+	robot.update_position();
 }

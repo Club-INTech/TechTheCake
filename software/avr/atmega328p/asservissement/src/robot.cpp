@@ -43,15 +43,22 @@ void Robot::asservir()
 //calcul de la nouvelle position courante du robot, en absolu sur la table (mm et radians)
 void Robot::update_position()
 {
-	static int32_t last_distance = 0;
-	int16_t delta_distance_tic = mesure_distance_ - last_distance;
+	static int32_t last_mesure_distance = 0;
+	static int32_t last_mesure_angle = 0;
+	
+	int16_t delta_distance_tic = mesure_distance_ - last_mesure_distance;
+	int16_t delta_angle_tic = mesure_angle_ - last_mesure_angle;
+	
 	float delta_distance_mm = delta_distance_tic * CONVERSION_TIC_MM;
-	float angle = get_angle();
-
-	x_ += ( delta_distance_mm * cos_table(angle) );
-	y_ += ( delta_distance_mm * sin_table(angle) );
-
-	last_distance = mesure_distance_;
+	float delta_angle_rad = delta_angle_tic * CONVERSION_TIC_RADIAN;
+	
+	x_ += ( delta_distance_mm * cos_table(angle()) );
+	y_ += ( delta_distance_mm * sin_table(angle()) );
+	
+	angle(delta_angle_rad);
+	
+	last_mesure_distance = mesure_distance_;
+	last_mesure_angle = mesure_angle_;
 }
 
 ////////////////////////////// PROTOCOLE SERIE ///////////////////////////////////
@@ -136,17 +143,15 @@ void Robot::communiquer_pc(){
 	//renvoi de la position absolue du robot
 	else if(strcmp(buffer,"ex") == 0)
 	{
-		update_position();
 		serial_t_::print((int32_t)x_);
 	}
 	else if(strcmp(buffer,"ey") == 0)
 	{
-		update_position();
 		serial_t_::print((int32_t)y_);
 	}
 	else if(strcmp(buffer,"eo") == 0)
 	{
-		serial_t_::print((int32_t)(get_angle() * 1000));
+		serial_t_::print((int32_t)(angle() * 1000));
 	}
 
 	//ordre de translation
@@ -194,7 +199,6 @@ void Robot::communiquer_pc(){
 	//demande de la position courante
 	else if(strcmp(buffer,"pos") == 0)
 	{
-		update_position();
 		serial_t_::print((int32_t)x_);
 		serial_t_::print((int32_t)y_);
 	}
@@ -261,18 +265,13 @@ void Robot::mesure_distance(int32_t new_distance)
 {
 	mesure_distance_ = new_distance;
 }
-float Robot::get_angle()
+float Robot::angle(float delta_angle_rad)
 {
-	float angle_radian = mesure_angle_ * CONVERSION_TIC_RADIAN + angle_origine_;
-	
-	while (angle_radian > PI)
-		angle_radian -= 2*PI;
-	while (angle_radian <= -PI)
-		angle_radian += 2*PI;
+	static float angle_radian = angle_origine_;
+	angle_radian += delta_angle_rad;
 	return angle_radian;
 }
 ////////////////////////// MÉTHODES DE CALCUL ET DE DÉPLACEMENT ////////////////////////////
-
 //calcule l'angle le plus court pour atteindre angle à partir de angleBkp (ie sans faire plusieurs tours)
 // le déplacement DOIT etre relatif à angleBkp, et non pas sur un intervalle défini genre [0,2*PI[, 
 // puisque angleBkp a enregistré les tours du robot sur lui meme, depuis l'initialisation.
@@ -289,7 +288,8 @@ int32_t Robot::angle_optimal(int32_t angle, int32_t angleBkp)
 // Les valeurs en tic (mesure_angle_) ne sont pas modifiées, car liées aux déplacement des codeuses.
 void Robot::changer_orientation(float new_angle)
 {
-	angle_origine_ = new_angle - (get_angle() - angle_origine_);
+	angle_origine_ = new_angle - (angle() - angle_origine_);
+	angle(new_angle - angle());
 }
 
 void Robot::tourner(float angle)
