@@ -41,3 +41,11 @@ Ordres :
  'pos' equivalent à 'x' puis 'y' : coordonnées du robot séparées d'un retour à la ligne
  'ctv' suivi de 1,2,3 : changer la vitesse de translation
  'crv' suivi de 1,2,3 : changer la vitesse de rotation
+
+Position des variables dans l'EEPROM :
+    0  -> translation.kp    (float)
+    1  -> translation.kd    (float)
+    2  -> rotation.kp       (float)
+    3  -> rotation.kd       (float)
+    4  -> translation.valeur_bridage (uint32_t)
+    5  -> rotation.valeur_bridage    (uint32_t)

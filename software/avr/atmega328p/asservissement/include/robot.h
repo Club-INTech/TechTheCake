@@ -27,6 +27,14 @@
 #define CONVERSION_TIC_MM 0.10360
 #define CONVERSION_TIC_RADIAN 0.0007117
 
+#define EEPROM_KP_TRA   0
+#define EEPROM_KD_TRA   1
+#define EEPROM_KP_ROT   2
+#define EEPROM_KD_ROT   3
+#define EEPROM_BRID_TRA 4
+#define EEPROM_BRID_ROT 5
+
+
 class Robot : public Singleton<Robot>{
 // Par défaut les attributs sont publics dans une struct
 
@@ -67,12 +75,12 @@ public:
 	//gestion des mesures courantes
 	void mesure_angle(int32_t); 
 	void mesure_distance(int32_t); 
-	float get_angle();
-	
+	float angle(float delta_angle_rad = 0.);
+
 	void changer_orientation(float new_angle);
 	
-	void changerVitesseTra(int16_t valeur);
-	void changerVitesseRot(int16_t valeur);
+	void changerVitesseTra(float kp, float kd, uint32_t brid);
+	void changerVitesseRot(float kp, float kd, uint32_t brid);
 	
 	void asservir();
 	void update_position();

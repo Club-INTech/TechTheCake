@@ -1,4 +1,5 @@
 #include "robot.h"
+#include <avr/eeprom.h>
 
 // Constructeur avec assignation des attributs
 Robot::Robot() : 	
@@ -16,8 +17,14 @@ Robot::Robot() :
 	serial_t_::change_baudrate(9600);
 
 	changer_orientation(PI);
-	changerVitesseRot(2);
-	changerVitesseTra(2);
+    
+    // Chargement en mémoire des valeurs dans l'EEPROM
+    translation.kp(eeprom_read_float((float*)(EEPROM_KP_TRA)));
+    translation.kd(eeprom_read_float((float*)(EEPROM_KD_TRA)));
+    rotation.kp   (eeprom_read_float((float*)(EEPROM_KP_ROT)));
+    rotation.kd   (eeprom_read_float((float*)(EEPROM_KD_ROT)));
+    translation.valeur_bridage(eeprom_read_dword((uint32_t*)(EEPROM_BRID_TRA)));
+    rotation.valeur_bridage   (eeprom_read_dword((uint32_t*)(EEPROM_BRID_ROT)));
 }
 
 void Robot::asservir()
@@ -43,15 +50,22 @@ void Robot::asservir()
 //calcul de la nouvelle position courante du robot, en absolu sur la table (mm et radians)
 void Robot::update_position()
 {
-	static int32_t last_distance = 0;
-	int16_t delta_distance_tic = mesure_distance_ - last_distance;
+	static int32_t last_mesure_distance = 0;
+	static int32_t last_mesure_angle = 0;
+	
+	int16_t delta_distance_tic = mesure_distance_ - last_mesure_distance;
+	int16_t delta_angle_tic = mesure_angle_ - last_mesure_angle;
+	
 	float delta_distance_mm = delta_distance_tic * CONVERSION_TIC_MM;
-	float angle = get_angle();
-
-	x_ += ( delta_distance_mm * cos_table(angle) );
-	y_ += ( delta_distance_mm * sin_table(angle) );
-
-	last_distance = mesure_distance_;
+	float delta_angle_rad = delta_angle_tic * CONVERSION_TIC_RADIAN;
+	
+	x_ += ( delta_distance_mm * cos_table(angle()) );
+	y_ += ( delta_distance_mm * sin_table(angle()) );
+	
+	angle(delta_angle_rad);
+	
+	last_mesure_distance = mesure_distance_;
+	last_mesure_angle = mesure_angle_;
 }
 
 ////////////////////////////// PROTOCOLE SERIE ///////////////////////////////////
@@ -136,17 +150,15 @@ void Robot::communiquer_pc(){
 	//renvoi de la position absolue du robot
 	else if(strcmp(buffer,"ex") == 0)
 	{
-		update_position();
 		serial_t_::print((int32_t)x_);
 	}
 	else if(strcmp(buffer,"ey") == 0)
 	{
-		update_position();
 		serial_t_::print((int32_t)y_);
 	}
 	else if(strcmp(buffer,"eo") == 0)
 	{
-		serial_t_::print((int32_t)(get_angle() * 1000));
+		serial_t_::print((int32_t)(angle() * 1000));
 	}
 
 	//ordre de translation
@@ -194,23 +206,34 @@ void Robot::communiquer_pc(){
 	//demande de la position courante
 	else if(strcmp(buffer,"pos") == 0)
 	{
-		update_position();
 		serial_t_::print((int32_t)x_);
 		serial_t_::print((int32_t)y_);
 	}
 
-	//vitesses prédéfinies
+	// Changement de la vitesse de translation
 	else if(strcmp(buffer,"ctv") == 0)
 	{
-		int16_t valeur;
-		serial_t_::read(valeur);
-		changerVitesseTra(valeur);
+        float kp, kd;
+        uint32_t brid;
+        
+        serial_t_::read(kp);
+        serial_t_::read(kd);
+        serial_t_::read(brid);
+        
+        changerVitesseTra(kp, kd, brid);
 	}
+	
+	// Changement de la vitesse de rotation
 	else if(strcmp(buffer,"crv") == 0)
 	{
-		int16_t valeur;
-		serial_t_::read(valeur);
-		changerVitesseRot(valeur);
+        float kp, kd;
+        uint32_t brid;
+        
+        serial_t_::read(kp);
+        serial_t_::read(kd);
+        serial_t_::read(brid);
+        
+        changerVitesseRot(kp, kd, brid);
 	}
 	
 	//envoi des paramètres pour l'évaluation des conditions de blocage
@@ -230,27 +253,33 @@ void Robot::communiquer_pc(){
 		serial_t_::print((int16_t)rotation.erreur_d());
 		serial_t_::print((int16_t)translation.erreur_d());
 	}
+	
 }
 ////////////////////////////// VITESSES /////////////////////////////
-void Robot::changerVitesseTra(int16_t valeur)
+
+// Changement de la vitesse de translation
+void Robot::changerVitesseTra(float kp, float kd, uint32_t brid)
 {
-	float vb_translation[] = {60.0,100.0,200.0};
-	float kp_translation[] = {0.75,0.75,0.5};
-	float kd_translation[] = {2.0,2.5,4.0};
-	
-	translation.valeur_bridage(vb_translation[valeur-1]);
-	translation.kp(kp_translation[valeur-1]);
-	translation.kd(kd_translation[valeur-1]);
+    translation.valeur_bridage(brid);
+    translation.kp(kp);
+    translation.kd(kd);
+    
+    // Enregistrement dans l'EEPROM
+    eeprom_write_float((float*)(EEPROM_KP_TRA), kp);
+    eeprom_write_float((float*)(EEPROM_KD_TRA), kd);
+    eeprom_write_dword((uint32_t*)(EEPROM_BRID_TRA), brid);
+    
 }
-void Robot::changerVitesseRot(int16_t valeur)
+void Robot::changerVitesseRot(float kp, float kd, uint32_t brid)
 {
-	float vb_rotation[] = {80.0,100.0,200.0};
-	float kp_rotation[] = {1.5,1.2,0.9};
-	float kd_rotation[] = {2.0,3.5,3.5};
-	
-	rotation.valeur_bridage(vb_rotation[valeur-1]);
-	rotation.kp(kp_rotation[valeur-1]);
-	rotation.kd(kd_rotation[valeur-1]);
+	rotation.valeur_bridage(brid);
+	rotation.kp(kp);
+	rotation.kd(kd);
+    
+    // Enregistrement dans l'EEPROM
+    eeprom_write_float((float*)(EEPROM_KP_ROT), kp);
+    eeprom_write_float((float*)(EEPROM_KD_ROT), kd);
+    eeprom_write_dword((uint32_t*)(EEPROM_BRID_ROT), brid);
 }
 ////////////////////////////// ACCESSEURS /////////////////////////////////
 void Robot::mesure_angle(int32_t new_angle)
@@ -261,18 +290,13 @@ void Robot::mesure_distance(int32_t new_distance)
 {
 	mesure_distance_ = new_distance;
 }
-float Robot::get_angle()
+float Robot::angle(float delta_angle_rad)
 {
-	float angle_radian = mesure_angle_ * CONVERSION_TIC_RADIAN + angle_origine_;
-	
-	while (angle_radian > PI)
-		angle_radian -= 2*PI;
-	while (angle_radian <= -PI)
-		angle_radian += 2*PI;
+	static float angle_radian = angle_origine_;
+	angle_radian += delta_angle_rad;
 	return angle_radian;
 }
 ////////////////////////// MÉTHODES DE CALCUL ET DE DÉPLACEMENT ////////////////////////////
-
 //calcule l'angle le plus court pour atteindre angle à partir de angleBkp (ie sans faire plusieurs tours)
 // le déplacement DOIT etre relatif à angleBkp, et non pas sur un intervalle défini genre [0,2*PI[, 
 // puisque angleBkp a enregistré les tours du robot sur lui meme, depuis l'initialisation.
@@ -289,7 +313,8 @@ int32_t Robot::angle_optimal(int32_t angle, int32_t angleBkp)
 // Les valeurs en tic (mesure_angle_) ne sont pas modifiées, car liées aux déplacement des codeuses.
 void Robot::changer_orientation(float new_angle)
 {
-	angle_origine_ = new_angle - (get_angle() - angle_origine_);
+	angle_origine_ = new_angle - (angle() - angle_origine_);
+	angle(new_angle - angle());
 }
 
 void Robot::tourner(float angle)
