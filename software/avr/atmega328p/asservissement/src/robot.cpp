@@ -19,12 +19,12 @@ Robot::Robot() :
 	changer_orientation(PI);
     
     // Chargement en mémoire des valeurs dans l'EEPROM
-    translation.kp(eeprom_read_float((float*)(0)));
-    translation.kd(eeprom_read_float((float*)(1)));
-    rotation.kp   (eeprom_read_float((float*)(2)));
-    rotation.kd   (eeprom_read_float((float*)(3)));
-    translation.valeur_bridage(eeprom_read_dword((uint32_t*)(4)));
-    rotation.valeur_bridage   (eeprom_read_dword((uint32_t*)(5)));
+    translation.kp(eeprom_read_float((float*)(EEPROM_KP_TRA)));
+    translation.kd(eeprom_read_float((float*)(EEPROM_KD_TRA)));
+    rotation.kp   (eeprom_read_float((float*)(EEPROM_KP_ROT)));
+    rotation.kd   (eeprom_read_float((float*)(EEPROM_KD_ROT)));
+    translation.valeur_bridage(eeprom_read_dword((uint32_t*)(EEPROM_BRID_TRA)));
+    rotation.valeur_bridage   (eeprom_read_dword((uint32_t*)(EEPROM_BRID_ROT)));
 }
 
 void Robot::asservir()
@@ -254,36 +254,6 @@ void Robot::communiquer_pc(){
 		serial_t_::print((int16_t)translation.erreur_d());
 	}
 	
-	// Réécriture dans l'eeprom
-	else if (strcmp(buffer, "eeprom") == 0)
-    {
-        float kp_rot, kd_rot, kp_tra, kd_tra;
-        uint32_t val_brid_tra, val_brid_rot;
-       
-        // Acquisition
-        serial_t_::read(kp_tra);
-        serial_t_::read(kd_tra);
-        serial_t_::read(kp_rot);
-        serial_t_::read(kd_rot);
-        serial_t_::read(val_brid_tra);
-        serial_t_::read(val_brid_rot);
-        
-        // Enregistrement en local
-        translation.kp(kp_tra);
-        translation.kd(kd_tra);
-        rotation.kp   (kp_rot);
-        rotation.kd   (kd_rot);
-        translation.valeur_bridage(val_brid_tra);
-        rotation.valeur_bridage(val_brid_rot);
-        
-        // Enregistrement dans l'EEPROM
-        eeprom_write_float((float*)(0), kp_tra);
-        eeprom_write_float((float*)(1), kd_tra);
-        eeprom_write_float((float*)(2), kp_rot);
-        eeprom_write_float((float*)(3), kd_rot);
-        eeprom_write_dword((uint32_t*)(4), val_brid_tra);
-        eeprom_write_dword((uint32_t*)(5), val_brid_rot);
-    }
 }
 ////////////////////////////// VITESSES /////////////////////////////
 
@@ -295,9 +265,9 @@ void Robot::changerVitesseTra(float kp, float kd, uint32_t brid)
     translation.kd(kd);
     
     // Enregistrement dans l'EEPROM
-    eeprom_write_float((float*)(0), kp);
-    eeprom_write_float((float*)(1), kd);
-    eeprom_write_dword((uint32_t*)(4), brid);
+    eeprom_write_float((float*)(EEPROM_KP_TRA), kp);
+    eeprom_write_float((float*)(EEPROM_KD_TRA), kd);
+    eeprom_write_dword((uint32_t*)(EEPROM_BRID_TRA), brid);
     
 }
 void Robot::changerVitesseRot(float kp, float kd, uint32_t brid)
@@ -307,9 +277,9 @@ void Robot::changerVitesseRot(float kp, float kd, uint32_t brid)
 	rotation.kd(kd);
     
     // Enregistrement dans l'EEPROM
-    eeprom_write_float((float*)(2), kp);
-    eeprom_write_float((float*)(3), kd);
-    eeprom_write_dword((uint32_t*)(5), brid);
+    eeprom_write_float((float*)(EEPROM_KP_ROT), kp);
+    eeprom_write_float((float*)(EEPROM_KD_ROT), kd);
+    eeprom_write_dword((uint32_t*)(EEPROM_BRID_ROT), brid);
 }
 ////////////////////////////// ACCESSEURS /////////////////////////////////
 void Robot::mesure_angle(int32_t new_angle)
