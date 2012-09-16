@@ -28,11 +28,11 @@
 #define CONVERSION_TIC_RADIAN 0.0007117
 
 #define EEPROM_KP_TRA   0
-#define EEPROM_KD_TRA   1
-#define EEPROM_KP_ROT   2
-#define EEPROM_KD_ROT   3
-#define EEPROM_BRID_TRA 4
-#define EEPROM_BRID_ROT 5
+#define EEPROM_KD_TRA   4
+#define EEPROM_KP_ROT   8
+#define EEPROM_KD_ROT   12
+#define EEPROM_BRID_TRA 16
+#define EEPROM_BRID_ROT 20
 
 
 class Robot : public Singleton<Robot>{
