@@ -71,8 +71,8 @@ public:
 
 	void changer_orientation(float new_angle);
 	
-	void changerVitesseTra(int16_t valeur);
-	void changerVitesseRot(int16_t valeur);
+	void changerVitesseTra(float kp, float kd, uint32_t brid);
+	void changerVitesseRot(float kp, float kd, uint32_t brid);
 	
 	void asservir();
 	void update_position();

@@ -1,4 +1,5 @@
 #include "robot.h"
+#include <avr/eeprom.h>
 
 // Constructeur avec assignation des attributs
 Robot::Robot() : 	
@@ -16,8 +17,14 @@ Robot::Robot() :
 	serial_t_::change_baudrate(9600);
 
 	changer_orientation(PI);
-	changerVitesseRot(2);
-	changerVitesseTra(2);
+    
+    // Chargement en mémoire des valeurs dans l'EEPROM
+    translation.kp(eeprom_read_float((float*)(0)));
+    translation.kd(eeprom_read_float((float*)(1)));
+    rotation.kp   (eeprom_read_float((float*)(2)));
+    rotation.kd   (eeprom_read_float((float*)(3)));
+    translation.valeur_bridage(eeprom_read_dword((uint32_t*)(4)));
+    rotation.valeur_bridage   (eeprom_read_dword((uint32_t*)(5)));
 }
 
 void Robot::asservir()
@@ -203,18 +210,30 @@ void Robot::communiquer_pc(){
 		serial_t_::print((int32_t)y_);
 	}
 
-	//vitesses prédéfinies
+	// Changement de la vitesse de translation
 	else if(strcmp(buffer,"ctv") == 0)
 	{
-		int16_t valeur;
-		serial_t_::read(valeur);
-		changerVitesseTra(valeur);
+        float kp, kd;
+        uint32_t brid;
+        
+        serial_t_::read(kp);
+        serial_t_::read(kd);
+        serial_t_::read(brid);
+        
+        changerVitesseTra(kp, kd, brid);
 	}
+	
+	// Changement de la vitesse de rotation
 	else if(strcmp(buffer,"crv") == 0)
 	{
-		int16_t valeur;
-		serial_t_::read(valeur);
-		changerVitesseRot(valeur);
+        float kp, kd;
+        uint32_t brid;
+        
+        serial_t_::read(kp);
+        serial_t_::read(kd);
+        serial_t_::read(brid);
+        
+        changerVitesseRot(kp, kd, brid);
 	}
 	
 	//envoi des paramètres pour l'évaluation des conditions de blocage
@@ -234,27 +253,63 @@ void Robot::communiquer_pc(){
 		serial_t_::print((int16_t)rotation.erreur_d());
 		serial_t_::print((int16_t)translation.erreur_d());
 	}
+	
+	// Réécriture dans l'eeprom
+	else if (strcmp(buffer, "eeprom") == 0)
+    {
+        float kp_rot, kd_rot, kp_tra, kd_tra;
+        uint32_t val_brid_tra, val_brid_rot;
+       
+        // Acquisition
+        serial_t_::read(kp_tra);
+        serial_t_::read(kd_tra);
+        serial_t_::read(kp_rot);
+        serial_t_::read(kd_rot);
+        serial_t_::read(val_brid_tra);
+        serial_t_::read(val_brid_rot);
+        
+        // Enregistrement en local
+        translation.kp(kp_tra);
+        translation.kd(kd_tra);
+        rotation.kp   (kp_rot);
+        rotation.kd   (kd_rot);
+        translation.valeur_bridage(val_brid_tra);
+        rotation.valeur_bridage(val_brid_rot);
+        
+        // Enregistrement dans l'EEPROM
+        eeprom_write_float((float*)(0), kp_tra);
+        eeprom_write_float((float*)(1), kd_tra);
+        eeprom_write_float((float*)(2), kp_rot);
+        eeprom_write_float((float*)(3), kd_rot);
+        eeprom_write_dword((uint32_t*)(4), val_brid_tra);
+        eeprom_write_dword((uint32_t*)(5), val_brid_rot);
+    }
 }
 ////////////////////////////// VITESSES /////////////////////////////
-void Robot::changerVitesseTra(int16_t valeur)
+
+// Changement de la vitesse de translation
+void Robot::changerVitesseTra(float kp, float kd, uint32_t brid)
 {
-	float vb_translation[] = {60.0,100.0,200.0};
-	float kp_translation[] = {0.75,0.75,0.5};
-	float kd_translation[] = {2.0,2.5,4.0};
-	
-	translation.valeur_bridage(vb_translation[valeur-1]);
-	translation.kp(kp_translation[valeur-1]);
-	translation.kd(kd_translation[valeur-1]);
+    translation.valeur_bridage(brid);
+    translation.kp(kp);
+    translation.kd(kd);
+    
+    // Enregistrement dans l'EEPROM
+    eeprom_write_float((float*)(0), kp);
+    eeprom_write_float((float*)(1), kd);
+    eeprom_write_dword((uint32_t*)(4), brid);
+    
 }
-void Robot::changerVitesseRot(int16_t valeur)
+void Robot::changerVitesseRot(float kp, float kd, uint32_t brid)
 {
-	float vb_rotation[] = {80.0,100.0,200.0};
-	float kp_rotation[] = {1.5,1.2,0.9};
-	float kd_rotation[] = {2.0,3.5,3.5};
-	
-	rotation.valeur_bridage(vb_rotation[valeur-1]);
-	rotation.kp(kp_rotation[valeur-1]);
-	rotation.kd(kd_rotation[valeur-1]);
+	rotation.valeur_bridage(brid);
+	rotation.kp(kp);
+	rotation.kd(kd);
+    
+    // Enregistrement dans l'EEPROM
+    eeprom_write_float((float*)(2), kp);
+    eeprom_write_float((float*)(3), kd);
+    eeprom_write_dword((uint32_t*)(5), brid);
 }
 ////////////////////////////// ACCESSEURS /////////////////////////////////
 void Robot::mesure_angle(int32_t new_angle)
