@@ -75,7 +75,7 @@ public:
 	//gestion des mesures courantes
 	void mesure_angle(int32_t); 
 	void mesure_distance(int32_t); 
-	float angle(float delta_angle_rad = 0.);
+	float get_angle_radian();
 
 	void changer_orientation(float new_angle);
 	

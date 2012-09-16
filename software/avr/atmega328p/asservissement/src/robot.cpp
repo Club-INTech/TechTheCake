@@ -16,15 +16,24 @@ Robot::Robot() :
 	TimerCounter_t::init();
 	serial_t_::change_baudrate(9600);
 
+	
+// 	translation.kp(0.75);
+// 	translation.kd(2.0);
+// 	rotation.kp   (0.75);
+// 	rotation.kd   (2.0);
+// 	translation.valeur_bridage(60);
+// 	rotation.valeur_bridage   (60);
+	
 	changer_orientation(PI);
-    
-    // Chargement en mémoire des valeurs dans l'EEPROM
-    translation.kp(eeprom_read_float((float*)(EEPROM_KP_TRA)));
-    translation.kd(eeprom_read_float((float*)(EEPROM_KD_TRA)));
-    rotation.kp   (eeprom_read_float((float*)(EEPROM_KP_ROT)));
-    rotation.kd   (eeprom_read_float((float*)(EEPROM_KD_ROT)));
-    translation.valeur_bridage(eeprom_read_dword((uint32_t*)(EEPROM_BRID_TRA)));
-    rotation.valeur_bridage   (eeprom_read_dword((uint32_t*)(EEPROM_BRID_ROT)));
+	
+	
+	// Chargement en mémoire des valeurs dans l'EEPROM
+	translation.kp(eeprom_read_float((float*)(EEPROM_KP_TRA)));
+	translation.kd(eeprom_read_float((float*)(EEPROM_KD_TRA)));
+	rotation.kp   (eeprom_read_float((float*)(EEPROM_KP_ROT)));
+	rotation.kd   (eeprom_read_float((float*)(EEPROM_KD_ROT)));
+	translation.valeur_bridage(eeprom_read_dword((uint32_t*)(EEPROM_BRID_TRA)));
+	rotation.valeur_bridage   (eeprom_read_dword((uint32_t*)(EEPROM_BRID_ROT)));
 }
 
 void Robot::asservir()
@@ -51,21 +60,16 @@ void Robot::asservir()
 void Robot::update_position()
 {
 	static int32_t last_mesure_distance = 0;
-	static int32_t last_mesure_angle = 0;
 	
 	int16_t delta_distance_tic = mesure_distance_ - last_mesure_distance;
-	int16_t delta_angle_tic = mesure_angle_ - last_mesure_angle;
 	
 	float delta_distance_mm = delta_distance_tic * CONVERSION_TIC_MM;
-	float delta_angle_rad = delta_angle_tic * CONVERSION_TIC_RADIAN;
+	float angle_radian = get_angle_radian();
 	
-	x_ += ( delta_distance_mm * cos_table(angle()) );
-	y_ += ( delta_distance_mm * sin_table(angle()) );
-	
-	angle(delta_angle_rad);
+	x_ += ( delta_distance_mm * cos_table(angle_radian) );
+	y_ += ( delta_distance_mm * sin_table(angle_radian) );
 	
 	last_mesure_distance = mesure_distance_;
-	last_mesure_angle = mesure_angle_;
 }
 
 ////////////////////////////// PROTOCOLE SERIE ///////////////////////////////////
@@ -158,7 +162,7 @@ void Robot::communiquer_pc(){
 	}
 	else if(strcmp(buffer,"eo") == 0)
 	{
-		serial_t_::print((int32_t)(angle() * 1000));
+		serial_t_::print((int32_t)(get_angle_radian() * 1000));
 	}
 
 	//ordre de translation
@@ -260,14 +264,14 @@ void Robot::communiquer_pc(){
 // Changement de la vitesse de translation
 void Robot::changerVitesseTra(float kp, float kd, uint32_t brid)
 {
-    translation.valeur_bridage(brid);
-    translation.kp(kp);
-    translation.kd(kd);
-    
-    // Enregistrement dans l'EEPROM
-    eeprom_write_float((float*)(EEPROM_KP_TRA), kp);
-    eeprom_write_float((float*)(EEPROM_KD_TRA), kd);
-    eeprom_write_dword((uint32_t*)(EEPROM_BRID_TRA), brid);
+	translation.valeur_bridage(brid);
+	translation.kp(kp);
+	translation.kd(kd);
+
+	// Enregistrement dans l'EEPROM
+	eeprom_write_float((float*)(EEPROM_KP_TRA), kp);
+	eeprom_write_float((float*)(EEPROM_KD_TRA), kd);
+	eeprom_write_dword((uint32_t*)(EEPROM_BRID_TRA), brid);
     
 }
 void Robot::changerVitesseRot(float kp, float kd, uint32_t brid)
@@ -275,11 +279,11 @@ void Robot::changerVitesseRot(float kp, float kd, uint32_t brid)
 	rotation.valeur_bridage(brid);
 	rotation.kp(kp);
 	rotation.kd(kd);
-    
-    // Enregistrement dans l'EEPROM
-    eeprom_write_float((float*)(EEPROM_KP_ROT), kp);
-    eeprom_write_float((float*)(EEPROM_KD_ROT), kd);
-    eeprom_write_dword((uint32_t*)(EEPROM_BRID_ROT), brid);
+
+	// Enregistrement dans l'EEPROM
+	eeprom_write_float((float*)(EEPROM_KP_ROT), kp);
+	eeprom_write_float((float*)(EEPROM_KD_ROT), kd);
+	eeprom_write_dword((uint32_t*)(EEPROM_BRID_ROT), brid);
 }
 ////////////////////////////// ACCESSEURS /////////////////////////////////
 void Robot::mesure_angle(int32_t new_angle)
@@ -290,11 +294,9 @@ void Robot::mesure_distance(int32_t new_distance)
 {
 	mesure_distance_ = new_distance;
 }
-float Robot::angle(float delta_angle_rad)
+float Robot::get_angle_radian()
 {
-	static float angle_radian = angle_origine_;
-	angle_radian += delta_angle_rad;
-	return angle_radian;
+	return mesure_angle_ * CONVERSION_TIC_RADIAN + angle_origine_;
 }
 ////////////////////////// MÉTHODES DE CALCUL ET DE DÉPLACEMENT ////////////////////////////
 //calcule l'angle le plus court pour atteindre angle à partir de angleBkp (ie sans faire plusieurs tours)
@@ -313,8 +315,7 @@ int32_t Robot::angle_optimal(int32_t angle, int32_t angleBkp)
 // Les valeurs en tic (mesure_angle_) ne sont pas modifiées, car liées aux déplacement des codeuses.
 void Robot::changer_orientation(float new_angle)
 {
-	angle_origine_ = new_angle - (angle() - angle_origine_);
-	angle(new_angle - angle());
+	angle_origine_ = new_angle - (get_angle_radian() - angle_origine_);
 }
 
 void Robot::tourner(float angle)

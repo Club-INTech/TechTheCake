@@ -69,6 +69,29 @@ class Asservissement():
                 return "robot arrivé"
         else:
             return "robot en mouvement"
+       
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+    ###########################################################################################
+    ##FONCTIONS DE DEPLACEMENTS ( != de l'asservissement. à migrer vers une autre classe ?) ###
+    ###########################################################################################
             
     def changer_vitesse_translation(self, valeur):
         """
@@ -129,3 +152,5 @@ class Asservissement():
         self.serieAsserInstance.ecrire("d")
         self.serieAsserInstance.ecrire(float(distance))
         self.mutex_serie_asservissement.release()
+        
+        
