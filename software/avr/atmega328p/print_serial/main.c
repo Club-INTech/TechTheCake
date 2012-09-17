@@ -12,34 +12,6 @@ int main()
     Serial<0>::change_baudrate(9600);
     sei();
     
-    
-    // ------------------
-    // Renvoi
-    // ------------------
-    sbi(DDRB,DDB5);
-    while(1)
-    {
-        char string[20];
-        Serial<0>::read(string);
-        if (strcmp(string,"test") == 0)
-        {
-            sbi(PORTB,PORTB5);
-        }
-        else
-        {
-            cbi(PORTB,PORTB5);
-        }
-    }
-    
-    
-    while(1)
-    {
-        Serial<0>::print("ok");
-        _delay_ms(500);
-        Serial<0>::print("test");
-        _delay_ms(500);
-    }
-    
     // ------------------
     // Test des print
     // ------------------
