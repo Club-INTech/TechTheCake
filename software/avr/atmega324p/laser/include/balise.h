@@ -22,7 +22,7 @@ class Balise : public Singleton<Balise>
         typedef Timer<1,ModeCounter,64> timer_toptour;
         
     private:
-        volatile uint32_t max_counter_;
+        volatile uint16_t max_counter_;
 
 //        typedef Timer<2,ModeFastPwm,1> T_2;
 //      Moteur< T_2, AVR_PORTD<PORTD4> > moteur_;

@@ -33,13 +33,22 @@ ISR(TIMER0_OVF_vect)
 // Overflow timer top-tour
 ISR(TIMER1_OVF_vect)
 {
+    Balise &balise = Balise::Instance();
     
+    // Remise à zéro de la vitesse
+    balise.max_counter(0);
+    
+    // Désactivation du timer
+    Balise::timer_toptour::disable();
+    Balise::timer_toptour::value(0);
 }
 
 // Interruption top-tour
 ISR(INT2_vect)
 {
     Balise &balise = Balise::Instance();
+    
+    Balise::timer_toptour::enable();
     
     // On ignore les impulsions quand l'aimant est encore trop proche du capteur
     if (Balise::timer_toptour::value() >= balise.max_counter() / 3)

@@ -1,6 +1,7 @@
 #include "balise.h"
 
-Balise::Balise()  
+Balise::Balise():
+        max_counter_(0)
 {
     // -----------------------
     // Liaison série
