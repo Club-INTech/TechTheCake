@@ -237,6 +237,12 @@ public:
             // Tentative de lecture, abandonne si timeout
             if (read_char(buffer, timeout) == READ_TIMEOUT) return READ_TIMEOUT;
             
+            // Uniquement \r (= entrée), renvoie le message précédent
+            if (i == 0 && buffer == '\r')
+            {
+                return READ_SUCCESS;
+            }
+            
             // Ignore le premier caractère si \n
             // Permet de faire des print entre AVR
             if (i == 0 && buffer == '\n')
