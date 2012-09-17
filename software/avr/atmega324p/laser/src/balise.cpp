@@ -21,10 +21,17 @@ Balise::Balise()
     // Initialisation du timer
     timer_toptour::init();
     
+    // Input sur INT2 = PB2
+    cbi(DDRB,PORTB2);
+    
+    // Pull-up activée sur INT2
+    sbi(PORTB,PORTB2);
+    
     // Interruption sur front montant
-    sbi(EICRA,ISC01);
-    sbi(EICRA,ISC00);
-    sbi(EIMSK,INT0);
+    sbi(EICRA,ISC21);
+    sbi(EICRA,ISC20);
+    sbi(EIMSK,INT2);
+    
     
     // -----------------------
     // Moteur

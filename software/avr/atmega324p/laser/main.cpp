@@ -12,14 +12,13 @@ int main() {
 
     Balise &balise = Balise::Instance();
     
-    balise.laser_on();
     balise.diode_blink();
     
     while(1)
     {
         char buffer[20];
         Balise::serial_pc::read(buffer);
-        balise.execute(buffer);
+        balise.execute(buffer);    
     }
 }
 
@@ -38,7 +37,7 @@ ISR(TIMER1_OVF_vect)
 }
 
 // Interruption top-tour
-ISR(INT0_vect)
+ISR(INT2_vect)
 {
     Balise &balise = Balise::Instance();
     
