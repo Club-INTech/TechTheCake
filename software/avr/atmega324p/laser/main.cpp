@@ -18,12 +18,19 @@ int main() {
     {
         char buffer[20];
         Balise::serial_pc::read(buffer);
-        balise.execute(buffer);    
+        balise.execute(buffer);
     }
 }
 
 
 ISR(TIMER0_OVF_vect)
+{
+    //Serial<0>::print(codeur - last_codeur);
+//  Balise::Instance().asservir(codeur - last_codeur);
+//  last_codeur = codeur;
+}
+
+ISR(TIMER2_OVF_vect)
 {
     //Serial<0>::print(codeur - last_codeur);
 //  Balise::Instance().asservir(codeur - last_codeur);

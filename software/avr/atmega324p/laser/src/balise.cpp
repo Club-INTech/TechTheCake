@@ -38,7 +38,13 @@ Balise::Balise():
     // Moteur
     // -----------------------
     
+    //sbi(DDRD,PORTD6);
+    //sbi(DDRD,PORTD7);
+    DDRD |= ( 1 << PORTD6 );
+    DDRD |= ( 1 << PORTD7 );
     
+    pwm_moteur::init();
+    pwm_moteur::value(20);
     
     // -----------------------
     // Alimentation des lasers
@@ -85,6 +91,14 @@ void Balise::execute(char *order)
     if (strcmp(order, "?") == 0)
     {
         serial_pc::print(PING_ID);
+    }
+    
+    else if (strcmp(order, "pwm") == 0)
+    {
+        uint16_t pwm;
+        serial_pc::print("valeur du pwm:");
+        serial_pc::read(pwm);
+        pwm_moteur::value(pwm);
     }
     
     // Ping des balises
