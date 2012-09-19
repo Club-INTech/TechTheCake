@@ -75,11 +75,11 @@ struct TimerRegisters<4, ModeCounter<4> >{
 template<>
 struct TimerRegisters<5, ModeCounter<5> >{
     static uint16_t get_TCNT(){
-        return TCNT4;
+        return TCNT5;
     }
 
     static void set_TCNT( uint16_t new_tcnt){
-       TCNT4 = new_tcnt;
+       TCNT5 = new_tcnt;
     }
 };
 
