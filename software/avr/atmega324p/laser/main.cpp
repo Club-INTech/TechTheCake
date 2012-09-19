@@ -18,12 +18,19 @@ int main() {
     {
         char buffer[20];
         Balise::serial_pc::read(buffer);
-        balise.execute(buffer);    
+        balise.execute(buffer);
     }
 }
 
 
 ISR(TIMER0_OVF_vect)
+{
+    //Serial<0>::print(codeur - last_codeur);
+//  Balise::Instance().asservir(codeur - last_codeur);
+//  last_codeur = codeur;
+}
+
+ISR(TIMER2_OVF_vect)
 {
     //Serial<0>::print(codeur - last_codeur);
 //  Balise::Instance().asservir(codeur - last_codeur);
@@ -37,7 +44,7 @@ ISR(TIMER1_OVF_vect)
     
     // Remise à zéro de la vitesse
     balise.max_counter(0);
-    
+
     // Désactivation du timer
     Balise::timer_toptour::disable();
     Balise::timer_toptour::value(0);

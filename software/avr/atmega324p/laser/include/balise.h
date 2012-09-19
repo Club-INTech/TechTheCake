@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include <libintech/singleton.hpp>
+#include <libintech/timer.hpp>
+#include <libintech/pwm.hpp>
 #include <libintech/moteur.hpp>
 #include <libintech/asservissement.hpp>
 #include <libintech/register.hpp>
@@ -19,7 +21,11 @@ class Balise : public Singleton<Balise>
         
         // Utilisé pour calculer l'angle des lasers
         // Doit être le plus précis possible (16 bits), mais ne doit pas faire d'overflow
-        typedef Timer<1,ModeCounter,64> timer_toptour;
+        typedef Timer<1,64> timer_toptour;
+        
+        // Moteur sur le Timer 2 en FastPWM . Pont en H sur le PORTD4
+        typedef PWM<2,ModeFastPwm,1,'B'> pwm_moteur;
+        //Moteur< timer_moteur, AVR_PORTD<PORTD7> > moteur;
         
     private:
         volatile uint16_t max_counter_;
