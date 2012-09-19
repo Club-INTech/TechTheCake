@@ -21,7 +21,7 @@ struct ModeFastPwm<0,'A'>
         // Pin OC0A en output
         #if defined (__AVR_ATmega328P__)
         DDRD |= ( 1 << PORTD6 );
-        #elseif defined (__AVR_ATmega324P__)
+        #elif defined (__AVR_ATmega324P__)
         DDRB3 |= ( 1 << PORTB3 );
         #endif
         
@@ -47,7 +47,7 @@ struct ModeFastPwm<0,'B'>
         // Pin OC0B en output
         #if defined (__AVR_ATmega328P__)
         DDRD |= ( 1 << PORTD5 );
-        #elseif defined (__AVR_ATmega324P__)
+        #elif defined (__AVR_ATmega324P__)
         DDRB |= ( 1 << PORTB4 );
         #endif
         
@@ -73,7 +73,7 @@ struct ModeFastPwm<1,'A'>
         // Pin OC1A en output
         #if defined (__AVR_ATmega328P__)
         DDRB |= ( 1 << PORTB1 );
-        #elseif defined (__AVR_ATmega324P__)
+        #elif defined (__AVR_ATmega324P__)
         DDRD |= ( 1 << PORTD5 );
         #endif
         
@@ -99,7 +99,7 @@ struct ModeFastPwm<1,'B'>
         // Pin OC1B en output
         #if defined (__AVR_ATmega328P__)
         DDRB |= ( 1 << PORTB2 );
-        #elseif defined (__AVR_ATmega324P__)
+        #elif defined (__AVR_ATmega324P__)
         DDRD |= ( 1 << PORTD4 );
         #endif
         
