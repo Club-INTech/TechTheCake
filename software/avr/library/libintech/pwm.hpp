@@ -22,7 +22,7 @@ struct ModeFastPwm<0,'A'>
         #if defined (__AVR_ATmega328P__)
         DDRD |= ( 1 << PORTD6 );
         #elif defined (__AVR_ATmega324P__)
-        DDRB3 |= ( 1 << PORTB3 );
+        DDRB |= ( 1 << PORTB3 );
         #endif
         
         // Fast PWM
