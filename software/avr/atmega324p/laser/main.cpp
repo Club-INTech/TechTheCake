@@ -18,7 +18,7 @@ int main() {
     {
         char buffer[20];
         Balise::serial_pc::read(buffer);
-        balise.execute(buffer);    
+        balise.execute(buffer);
     }
 }
 
@@ -30,16 +30,32 @@ ISR(TIMER0_OVF_vect)
 //  last_codeur = codeur;
 }
 
+ISR(TIMER2_OVF_vect)
+{
+    //Serial<0>::print(codeur - last_codeur);
+//  Balise::Instance().asservir(codeur - last_codeur);
+//  last_codeur = codeur;
+}
+
 // Overflow timer top-tour
 ISR(TIMER1_OVF_vect)
 {
+    Balise &balise = Balise::Instance();
     
+    // Remise à zéro de la vitesse
+    balise.max_counter(0);
+
+    // Désactivation du timer
+    Balise::timer_toptour::disable();
+    Balise::timer_toptour::value(0);
 }
 
 // Interruption top-tour
 ISR(INT2_vect)
 {
     Balise &balise = Balise::Instance();
+    
+    Balise::timer_toptour::enable();
     
     // On ignore les impulsions quand l'aimant est encore trop proche du capteur
     if (Balise::timer_toptour::value() >= balise.max_counter() / 3)

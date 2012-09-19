@@ -1,7 +1,7 @@
 #ifndef MOTEUR_HPP
 #define MOTEUR_HPP
 
-#include "timer.hpp"
+#include "pwm.hpp"
 #include "safe_enum.hpp"
 #include "register.hpp"
 #include <libintech/utils.h>
@@ -9,58 +9,58 @@
 
 struct direction_def
 {
-	enum type{ RECULER, AVANCER};
+    enum type{ RECULER, AVANCER};
 };
 typedef safe_enum<direction_def> Direction;
 
 
-template<class Timer, class DirectionRegister>
-class Moteur{
-	static const uint8_t TIMER_ID = Timer::ID;
-	static const uint16_t PRESCALER_VALUE = Timer::PRESCALER_RATIO;
-	Timer timer_pwm_;
+template<class PWM, class DirectionRegister>
+class Moteur
+{
+    static const uint8_t TIMER_ID = PWM::ID;
+    static const uint16_t PRESCALER_VALUE = PWM::PRESCALER_RATIO;
+    
 private:
-  void direction(Direction dir){
-		if(dir == Direction::AVANCER){
-		  //PORTD &=  ~(1 << PORTD4);
-		  DirectionRegister::clear();
-		}
-		else if(dir == Direction::RECULER){
-		  //PORTD |=  (1 << PORTD4);
-		  DirectionRegister::set();
-		}
-		//PORTB &=  ~(1 << PORTB0);
+  void direction(Direction dir)
+  {
+        if(dir == Direction::AVANCER){
+          DirectionRegister::clear();
+        }
+        else if(dir == Direction::RECULER){
+          DirectionRegister::set();
+        }
   }
   
 public:
   Moteur() : maxPWM_(255)
   {
-	  Timer::init();
+      PWM::init();
   }
   
-  void envoyerPwm(int16_t pwm){	  
-	pwm_ = pwm;
+  void envoyerPwm(int16_t pwm)
+  {   
+    pwm_ = pwm;
     if (pwm>0) {
       direction(Direction::AVANCER);
-      Timer::MODE::seuil(min(pwm, maxPWM_)); //Bridage
+      PWM::value(min(pwm, maxPWM_)); //Bridage
     }
     else {
       direction(Direction::RECULER);
-	  Timer::MODE::seuil(min(-pwm,maxPWM_)); //Bridage
+      PWM::value(min(-pwm,maxPWM_)); //Bridage
     }
   }
   
   int16_t pwm()
   {
-	return pwm_;
+    return pwm_;
   }
   
   void maxPWM(int16_t maxPWM){
-	maxPWM_ = maxPWM;
+    maxPWM_ = maxPWM;
   }
   
   int16_t maxPWM() const{
-	return maxPWM_;
+    return maxPWM_;
   };
   
 private:
