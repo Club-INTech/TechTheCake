@@ -4,23 +4,6 @@
 #include <stdint.h>
 #include <avr/io.h>
 
-/*
-template<uint8_t timer_id>
-struct ModeCounter{
-  static void set();
-};
-
-template<>
-struct ModeCounter<0>{
-  static void seuil(uint16_t seuil){
-    OCR0A = seuil;
-  }
-
-  static void set(){
-    sbi(TIMSK0,TOIE0);
-  }
-};
-*/
 
 template<uint8_t timer_id, char output>
 struct ModeFastPwm;
@@ -142,7 +125,7 @@ struct ModeFastPwm<2,'A'>
         // Pin OC2A en output
         #if defined (__AVR_ATmega328P__)
         DDRB |= ( 1 << PORTB3 );
-        #elseif defined (__AVR_ATmega324P__)
+        #elif defined (__AVR_ATmega324P__)
         DDRD |= ( 1 << PORTD7 );
         #endif
         
@@ -168,7 +151,7 @@ struct ModeFastPwm<2,'B'>
         // Pin OC2B en output
         #if defined (__AVR_ATmega328P__)
         DDRD |= ( 1 << PORTD3 );
-        #elseif defined (__AVR_ATmega324P__)
+        #elif defined (__AVR_ATmega324P__)
         DDRD |= ( 1 << PORTD6 );
         #endif
         
@@ -188,10 +171,10 @@ class PWM
         static const uint8_t ID = ID_;
         static const char OUTPUT = OUTPUT_;
         static const uint16_t PRESCALER_RATIO = PRESCALER_RATIO_;
-        typedef MODE_<ID_,OUTPUT_> MODE;
   
     private:
         typedef Prescaler<ID,PRESCALER_RATIO> prescaler_;
+        typedef MODE_<ID_,OUTPUT_> mode_;
 
     public:
         static void init()
@@ -199,7 +182,7 @@ class PWM
             static bool is_init = false;
             if (is_init == false)
             {
-                MODE::set();
+                mode_::set();
                 prescaler_::set();
                 is_init = true;
             }
@@ -207,7 +190,7 @@ class PWM
 
         static inline void value(uint16_t new_value)
         {
-            MODE::seuil(new_value);
+            mode_::seuil(new_value);
         }
   
         static inline void disable()
