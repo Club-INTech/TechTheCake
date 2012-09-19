@@ -40,11 +40,10 @@ Balise::Balise():
     
     //sbi(DDRD,PORTD6);
     //sbi(DDRD,PORTD7);
-    DDRD |= ( 1 << PORTD6 );
-    DDRD |= ( 1 << PORTD7 );
     
     pwm_moteur::init();
     pwm_moteur::value(20);
+    //timer_toptour::enable();
     
     // -----------------------
     // Alimentation des lasers

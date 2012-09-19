@@ -21,7 +21,7 @@ class Balise : public Singleton<Balise>
         
         // Utilisé pour calculer l'angle des lasers
         // Doit être le plus précis possible (16 bits), mais ne doit pas faire d'overflow
-        typedef Timer<1,ModeCounter,64> timer_toptour;
+        typedef Timer<1,64> timer_toptour;
         
         // Moteur sur le Timer 2 en FastPWM . Pont en H sur le PORTD4
         typedef PWM<2,ModeFastPwm,1,'B'> pwm_moteur;
