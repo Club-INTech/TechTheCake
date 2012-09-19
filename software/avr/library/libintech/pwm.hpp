@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <avr/io.h>
 
-
+/*
 template<uint8_t timer_id>
 struct ModeCounter{
   static void set();
@@ -20,68 +20,7 @@ struct ModeCounter<0>{
     sbi(TIMSK0,TOIE0);
   }
 };
-
-template<>
-struct ModeCounter<1>{
-  static void seuil(uint16_t seuil){
-    OCR1A = seuil;
-  }
-
-  static void set(){
-    sbi(TIMSK1,TOIE1);
-  }
-};
-
-template<>
-struct ModeCounter<2>{
-  static void seuil(uint16_t seuil){
-    OCR2A = seuil;
-  }
-
-  static void set(){
-    sbi(TIMSK2,TOIE2);
-  }
-};
-
-#if  defined (__AVR_ATmega2560__)\
-    || defined (__AVR_ATmega2561__)\
-    || defined (__AVR_ATmega1280__)
-
-template<>
-struct ModeCounter<3>{
-  static void seuil(uint16_t seuil){
-    OCR3A = seuil;
-  }
-
-  static void set(){
-    sbi(TIMSK3,TOIE3);
-  }
-};
-
-template<>
-struct ModeCounter<4>{
-  static void seuil(uint16_t seuil){
-    OCR4A = seuil;
-  }
-
-  static void set(){
-    sbi(TIMSK4,TOIE4);
-  }
-};
-
-template<>
-struct ModeCounter<5>{
-  static void seuil(uint16_t seuil){
-    OCR5A = seuil;
-  }
-
-  static void set(){
-    sbi(TIMSK5,TOIE5);
-  }
-};
-
-#endif
-
+*/
 
 template<uint8_t timer_id, char output>
 struct ModeFastPwm;
@@ -280,6 +219,5 @@ class PWM
             prescaler_::set();
         }
 };
-
 
 #endif
