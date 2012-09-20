@@ -12,6 +12,7 @@
 #include <libintech/moteur.hpp>
 #include <libintech/asservissement.hpp>
 #include <libintech/register.hpp>
+#include <libintech/timer.hpp>
 #include "utils.h"
 
 extern bool is_laser_on __attribute__((section (".noinit")));
@@ -21,14 +22,14 @@ class Balise : public Singleton<Balise>{
 	public:
 		typedef Serial<0> serial_pc;
 		typedef Serial<1> serial_radio;
-		typedef Timer<3,ModeCounter,64> T_TopTour;
+		typedef Timer<3,64> T_TopTour;
 // 		typedef Timer<1,ModeCounter,64> T_Asservissement;
         typedef AVR_PORTB<PORTB4> pin_activation_moteur;
         typedef AVR_PORTB<PORTB5> pin_activation_moteur2;
 	private:
 		volatile uint32_t max_counter_ ;
 
-		typedef Timer<2,ModeFastPwm,1> T_2;
+		typedef PWM<2,ModeFastPwm,1,'A'> T_2;
 // 		Moteur< T_2, AVR_PORTD<PORTD4> > moteur_;
 // 		Asservissement asservissement_moteur_;
 		

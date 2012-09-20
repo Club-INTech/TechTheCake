@@ -7,6 +7,7 @@
 #include <libintech/asservissement.hpp>
 #include <libintech/register.hpp>
 #include <libintech/serial/serial_0.hpp>
+#include <libintech/timer.hpp>
 #include <util/delay.h>
 #include "define.h"
 
@@ -18,13 +19,13 @@ class Balise : public Singleton<Balise>
         /**
          * Timer utilisé comme timeout pour marquer la distance mesurée comme périmée au bout d'un certain temps
          */
-        typedef Timer<0,ModeCounter,1024> timeout_timer;
+        typedef Timer<0,1024> timeout_timer;
         
         /**
          * Timer utilisé pour mesurer le temps de passage des lasers
          * Sert également de timeout, fermeture de la fenêtre quand il overflow
          */
-        typedef Timer<1,ModeCounter,64> window_timer;
+        typedef Timer<1,64> window_timer;
         
         /**
          * Indique par qui une fenêtre de passage des lasers a été ouverte

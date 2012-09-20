@@ -11,6 +11,7 @@
 
 #include <stdint.h>
 #include <avr/io.h>
+#include "prescaler.hpp"
 
 template<uint8_t timer_id, char output>
 struct ModeFastPwm;

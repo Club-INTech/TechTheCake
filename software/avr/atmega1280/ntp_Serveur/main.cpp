@@ -25,7 +25,7 @@
  ********************************/
 
 
-typedef Timer<0,ModeCounter,1> timer;
+typedef Timer<0,1> timer;
 volatile uint32_t clock=0;
 uint32_t t1;
 uint32_t tp;
