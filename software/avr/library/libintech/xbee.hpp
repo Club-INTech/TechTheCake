@@ -8,12 +8,13 @@
 #ifndef XBEE_HPP
 #define	XBEE_HPP
 
-template<class Serial>
+template<class Serial, class Debug>
 class Xbee {
 public:
 
     static void init() {
         Serial::init();
+        Debug::init();
     }
 
     /**
@@ -71,12 +72,10 @@ public:
      * 
      * @param message   Variable où sera stocké le message après réception
      */
-    static inline void read(char* message) {
+    static inline void read(char* message, uint16_t &source_address, uint8_t &signal_strength) {
         uint8_t checksum = 0;
         uint8_t buffer;
         uint16_t length;
-        uint16_t source_address;
-        uint8_t signal_strength;
 
         // Délimiteur de trame
         do {
@@ -88,8 +87,6 @@ public:
         length = buffer << 8;
         Serial::read_char(buffer);
         length += buffer;
-        
-        Serial::print(length);
 
         // Type de réponse (ignoré pour le moment)
         Serial::read_char(buffer);
@@ -113,6 +110,12 @@ public:
 
         // Checksum (ignoré pour le moment)
         Serial::read_char(checksum);
+    }
+    
+    static inline void read(char* message) {
+        uint16_t source_address;
+        uint8_t signal_strength;
+        read(message, source_address, signal_strength);
     }
 
     /**

@@ -37,10 +37,6 @@ private:
 
     static void PLEASE_INCLUDE_SERIAL_INTERRUPT();
 
-    static inline bool available(void) {
-        return (rx_buffer__SIZE + rx_buffer_.head - rx_buffer_.tail) % rx_buffer__SIZE;
-    }
-
 public:
 
     enum {
@@ -58,15 +54,23 @@ public:
      * 
      */
     static inline void change_baudrate(uint32_t BAUD_RATE);
+    
+    /**
+     * Indique si un message a été reçu ou non
+     * 
+     */
+    static inline bool available(void) {
+        return (rx_buffer__SIZE + rx_buffer_.head - rx_buffer_.tail) % rx_buffer__SIZE;
+    }
 
     /**
-     * Envoie un caractère sur TX (pas de conversion ASCII)
+     * Envoie un octet sur TX (pas de conversion ASCII)
      * 
      */
     static inline void send_char(unsigned char byte);
 
     /**
-     * Récupère un caractère sur RX (pas de conversion ASCII)
+     * Récupère un octet sur RX (pas de conversion ASCII)
      * 
      * @param   byte    Char récupéré sur RX
      * @param   timeout Timeout en ms (approximatif)

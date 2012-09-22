@@ -46,7 +46,7 @@ class Balise : public Singleton<Balise>
  
     public:
         Balise();
-        void execute(char);
+        void execute(char*);
         void diode_on();
         void diode_off();
         void diode_blink();
