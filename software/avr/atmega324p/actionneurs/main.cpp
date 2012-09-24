@@ -98,7 +98,7 @@ extern AX12<serial_ax_, BAUD_RATE_SERIE> AX;
 // extern ultrason< Timer<1,ModeCounter,8>, AVR_PORTD<PORTD3> > ultrason_d;
 
 // Ultrasons SRF05
-typedef Timer<1,ModeCounter, 64> timerCapteurSRF;
+typedef Timer<1, 64> timerCapteurSRF;
 typedef capteur_srf05< timerCapteurSRF, serial_t_ > capteur_srf05_t_;
 
 // Jumper

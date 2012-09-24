@@ -1,6 +1,7 @@
 #include <stdint.h>  
 #include <libintech/serial/serial_0_interrupt.hpp>
 #include <libintech/serial/serial_0.hpp>
+#include <libintech/xbee.hpp>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "balise.h"
@@ -11,12 +12,29 @@
 int main()
 {
     Balise &balise = Balise::Instance();
+    sbi(DDRB, DDB5);
+    
+    _delay_ms(500);
+    sbi(PORTB, PORTB5);
+    _delay_ms(500);
+    cbi(PORTB, PORTB5);
     
     while(1)
     {
-        char order;
+        Serial<0>::print("ok");
+        /*char order[10];
+        Xbee< Serial<0> >::read(order);
+        if (strcmp(order, "Hello") == 0) {
+            sbi(PORTB, PORTB5);
+        }
+        else
+        {
+            sbi(PORTB, PORTB5);
+        }
+        /*
         Balise::serial_radio::read(order);
-        balise.execute(order);
+        balise.execute(order);*/
+        
     }
 }
 
@@ -80,8 +98,11 @@ ISR(TIMER1_OVF_vect)
  * Interruption du timer 0, marque la dernière distance mesurée comme périmée
  * 
  */
+
 ISR(TIMER0_OVF_vect)
 {
     Balise &balise = Balise::Instance();
     balise.distance = 0;
+    
+    //Xbee< Serial<0> >::send(0x5001,"Hello");
 }
