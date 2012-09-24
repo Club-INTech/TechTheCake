@@ -13,17 +13,20 @@
 #include <stdint.h>
 #include "robot.h"
 
-
 int main()
 {
+	
     Robot & robot = Robot::Instance();
 	while(1)
 	{
+		
  		robot.communiquer_pc();
 	}
 	return 0;
 }
 
+ISR(TIMER0_OVF_vect){}
+ISR(TIMER2_OVF_vect){}
 ISR(TIMER1_OVF_vect, ISR_NOBLOCK){
 	Robot & robot = Robot::Instance();
 	

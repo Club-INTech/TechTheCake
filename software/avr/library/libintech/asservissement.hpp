@@ -25,11 +25,8 @@ class Asservissement {
 			enm1_ = en_;
 			en_=consigne_ - positionReelle;
 			
-			pwmCourant_+=kp_*(en_ - enm1_) + ki_*en_ + kd_*(en_ - 2*enm1_ + enm2_);
+			pwmCourant_ += kp_*(en_ - enm1_) + ki_*en_ + kd_*(en_ - 2*enm1_ + enm2_);
 			
-// 			if (abs(en_)<eps)
-//  				return 0;
-
 			if(pwmCourant_> valeur_bridage_)
 				return  valeur_bridage_;
 			else if (pwmCourant_< -valeur_bridage_)
@@ -40,8 +37,6 @@ class Asservissement {
 				return pwmCourant_;
 			
 		}
-		
-		
 		
 		void ki(float ki)
 		{
