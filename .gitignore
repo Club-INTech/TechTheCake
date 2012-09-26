@@ -3,3 +3,4 @@
 software/build/*
 /software/software.kdev4
 *.kate-swp
+/software/.kdev4/software.kdev4

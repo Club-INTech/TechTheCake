@@ -1,6 +1,8 @@
 #include "robot.h"
 #include <avr/eeprom.h>
 
+
+
 // Constructeur avec assignation des attributs
 Robot::Robot() : 	
 			x_(0)
@@ -15,15 +17,9 @@ Robot::Robot() :
 	serial_t_::init();
 	TimerCounter_t::init();
 	serial_t_::change_baudrate(9600);
-
 	
-	translation.kp(0.75);
-	translation.kd(2.5);
 	translation.valeur_bridage(100);
-	rotation.kp   (1.2);
-	rotation.kd   (3.5);
 	rotation.valeur_bridage   (100);
-	
 	changer_orientation(PI);
 
 	/*
@@ -80,6 +76,7 @@ void Robot::update_position()
 	y_ += ( delta_distance_mm * sin_table(angle_radian) );
 	
 	last_mesure_distance = mesure_distance_;
+	
 }
 
 ////////////////////////////// PROTOCOLE SERIE ///////////////////////////////////
@@ -267,7 +264,6 @@ void Robot::communiquer_pc(){
 		serial_t_::print((int16_t)rotation.erreur_d());
 		serial_t_::print((int16_t)translation.erreur_d());
 	}
-	
 }
 ////////////////////////////// VITESSES /////////////////////////////
 

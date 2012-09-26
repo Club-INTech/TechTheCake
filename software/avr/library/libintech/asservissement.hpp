@@ -14,8 +14,7 @@
 class Asservissement {
 public:
 
-    Asservissement(float kp, float kd, float ki) : kp_(kp), kd_(kd), ki_(ki), valeur_bridage_(255) {
-    }
+    Asservissement(float kp, float kd, float ki) : kp_(kp), kd_(kd), ki_(ki), valeur_bridage_(255) {}
 
     int16_t pwm(int32_t positionReelle, int32_t eps = 0) {
         enm2_ = enm1_;
@@ -23,9 +22,6 @@ public:
         en_ = consigne_ - positionReelle;
 
         pwmCourant_ += kp_ * (en_ - enm1_) + ki_ * en_ + kd_ * (en_ - 2 * enm1_ + enm2_);
-
-        // 			if (abs(en_)<eps)
-        //  				return 0;
 
         if (pwmCourant_ > valeur_bridage_)
             return valeur_bridage_;
@@ -35,7 +31,6 @@ public:
             return 0;
         else
             return pwmCourant_;
-
     }
 
     void ki(float ki) {
