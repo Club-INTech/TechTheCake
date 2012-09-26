@@ -1,13 +1,13 @@
 #include "balise.h"
-#include "ntp.h"
+
 
 Balise::Balise():
         max_counter_(0)
 {
+    
     // -----------------------
     // Liaison série
     // -----------------------
-    
     // UART0
     serial_pc::init();
     serial_pc::change_baudrate(ROBOT_BAUDRATE);
@@ -164,7 +164,7 @@ void Balise::execute(char *order)
     
     
     /******Commandes de synchronisation******/
-    
+    /*
     //Ping du deuxieme avr
     if( strcmp(order, "??") == 0 )
     {
@@ -188,7 +188,7 @@ void Balise::execute(char *order)
     //Recuperation de l'horloge
     if( strcmp(order, "t") == 0 )
     {
-	Serial<0>::print(timer_toptour);
+	Serial<0>::print(clock);
     }
     
     //Recuperation des 2 horloges
@@ -198,7 +198,7 @@ void Balise::execute(char *order)
 	Serial<0>::print("Timers local et distant:");
 	Serial<1>::print("t");
 	Serial<1>::read(buffer);
-	Serial<0>::print(timer_toptour);
+	Serial<0>::print(clock);
 	Serial<0>::print(buffer);
     }
     
@@ -210,12 +210,12 @@ void Balise::execute(char *order)
 	Serial<0>::print("Timers local et distant:");
 	Serial<1>::print("t");
 	Serial<1>::read(t);
-	r = timer_toptour / 64.0;
+	r = clock / 64.0;
 	Serial<0>::print(r);
 	r = t / 64.0;
 	Serial<0>::print(r);
     }
-
+*/
 }
 
 void Balise::max_counter(uint16_t valeur)
