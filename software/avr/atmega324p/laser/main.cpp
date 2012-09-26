@@ -8,7 +8,10 @@
 #include <util/delay.h>
 #include "balise.h"
 
-int main() {
+
+
+int main() 
+{
 
     Balise &balise = Balise::Instance();
     
@@ -25,16 +28,15 @@ int main() {
 
 ISR(TIMER0_OVF_vect)
 {
-    //Serial<0>::print(codeur - last_codeur);
-//  Balise::Instance().asservir(codeur - last_codeur);
-//  last_codeur = codeur;
+    Balise &balise = Balise::Instance();
+    //balise.synchro.interruption();
 }
 
 ISR(TIMER2_OVF_vect)
 {
     //Serial<0>::print(codeur - last_codeur);
-//  Balise::Instance().asservir(codeur - last_codeur);
-//  last_codeur = codeur;
+    //  Balise::Instance().asservir(codeur - last_codeur);
+    //  last_codeur = codeur;
 }
 
 // Overflow timer top-tour

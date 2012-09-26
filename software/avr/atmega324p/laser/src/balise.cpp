@@ -1,12 +1,13 @@
 #include "balise.h"
 
+
 Balise::Balise():
         max_counter_(0)
 {
+    
     // -----------------------
     // Liaison série
     // -----------------------
-    
     // UART0
     serial_pc::init();
     serial_pc::change_baudrate(ROBOT_BAUDRATE);
@@ -160,6 +161,61 @@ void Balise::execute(char *order)
     {
         serial_pc::print(max_counter());
     }
+    
+    
+    /******Commandes de synchronisation******/
+    /*
+    //Ping du deuxieme avr
+    if( strcmp(order, "??") == 0 )
+    {
+	char buffer[17];
+	Serial<0>::print("Ping du second arduino");
+	Serial<1>::print("?");
+	Serial<1>::read(buffer);
+	if( strcmp(buffer, "!") == 0 )
+	{
+	    Serial<0>::print("Ping arduino 2 réussi");
+	}
+    }
+    
+    //Demande de synchronisation
+    if( strcmp(order, "a") == 0 )
+    {
+	Serial<0>::print("Test de Synchronisation");
+	synchronisation();
+    }
+    
+    //Recuperation de l'horloge
+    if( strcmp(order, "t") == 0 )
+    {
+	Serial<0>::print(clock);
+    }
+    
+    //Recuperation des 2 horloges
+    if( strcmp(order, "tt") == 0 )
+    {
+	char buffer[17];
+	Serial<0>::print("Timers local et distant:");
+	Serial<1>::print("t");
+	Serial<1>::read(buffer);
+	Serial<0>::print(clock);
+	Serial<0>::print(buffer);
+    }
+    
+    //Recuperation des 2 horloges en ms
+    if( strcmp(order, "mm") == 0 )
+    {
+	float r;
+	float t;
+	Serial<0>::print("Timers local et distant:");
+	Serial<1>::print("t");
+	Serial<1>::read(t);
+	r = clock / 64.0;
+	Serial<0>::print(r);
+	r = t / 64.0;
+	Serial<0>::print(r);
+    }
+*/
 }
 
 void Balise::max_counter(uint16_t valeur)

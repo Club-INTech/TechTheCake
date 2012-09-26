@@ -57,7 +57,7 @@ void Balise::execute(char *order) {
     if (strcmp(order,"p") == 0) {
         serial_radio::print("ping");
     }
-        // Demande de valeur de la dernière distance mesurée
+    // Demande de valeur de la dernière distance mesurée
     else if (strcmp(order,"v") == 0) {
         serial_radio::print(distance);
         serial_radio::print(last_distance_date);

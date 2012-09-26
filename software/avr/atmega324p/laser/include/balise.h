@@ -12,13 +12,14 @@
 #include <libintech/serial/serial_1.hpp>
 #include <util/delay.h>
 #include "define.h"
+#include "synchronisation.h"
+
 
 class Balise : public Singleton<Balise>
 {
     public:
         typedef Serial<0> serial_pc;
         typedef Serial<1> serial_radio;
-        
         // Utilisé pour calculer l'angle des lasers
         // Doit être le plus précis possible (16 bits), mais ne doit pas faire d'overflow
         typedef Timer<1,64> timer_toptour;
@@ -27,8 +28,12 @@ class Balise : public Singleton<Balise>
         typedef PWM<2,ModeFastPwm,1,'B'> pwm_moteur;
         //Moteur< timer_moteur, AVR_PORTD<PORTD7> > moteur;
         
+        Synchronisation< Timer<0,1> , Serial<1> > synchro;
+        
+        
     private:
         volatile uint16_t max_counter_;
+        
 
 //        typedef Timer<2,ModeFastPwm,1> T_2;
 //      Moteur< T_2, AVR_PORTD<PORTD4> > moteur_;
