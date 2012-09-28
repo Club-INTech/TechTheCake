@@ -1,0 +1,10 @@
+###
+sources de la bibliothèque [visilibity.org] de graphes de visibilité et de recherche de chemin. Accesseurs modifiés par [deboc] pour coder plus facilement. Le makefile a été adapté pour compiler pour processeur ARM.
+###
+
+*executer $make dans le dossier pour compiler la bibliothèque partagée de binding : _visilibity.so
+
+*conserver ensuite les deux fichiers _visilibity.so et la version modifiée de visilibity.py.new (à renommer en visilibity.py) dans le dépot python.
+
+*importer le module dans un script python
+>>>import visilibity 
