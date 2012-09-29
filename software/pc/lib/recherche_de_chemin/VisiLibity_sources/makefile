@@ -14,7 +14,7 @@ clean:
 python: visilibity.o _visilibity.so
 
 visilibity.o: visilibity.cpp visilibity.hpp
-	g++ -fPIC -c visilibity.cpp
+	g++ -fPIC $(CXXFLAGS) -c visilibity.cpp
 
 %_wrap.cxx: %.i $(FILES_H)
 	swig -Wall -python -c++ $<
