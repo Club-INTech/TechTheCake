@@ -9,11 +9,14 @@ _extension                  = ".ini"
 # Classe permettant l'ouverture et la compréhension du fichier pc/conf/conf.ini
 # L'instanciation de cet objet a besoin du chemin pc/conf/ pour se lancer
 class Config :
-    def __init__(self, chemin) :
-        self._chemin = chemin
+    def __init__(self) :
         self._conf  = configparser.ConfigParser()
-        self._conf.readfp(open(os.path.join(self._chemin,  _nom_fichier_conf + _extension)))
         self._mode   = None
+        
+    def set_chemin(self, chemin) :
+        self._chemin = chemin
+        self._conf.readfp(open(os.path.join(self._chemin,  _nom_fichier_conf + _extension)))
+        self.get_vars()
         
     # Fonction d'accessibilité.
     def __getitem__(self, key) :
