@@ -11,18 +11,25 @@ def add_coloring_to_emit_ansi(fn):
     def new(*args):
         levelno = args[1].levelno
         if(levelno>=50): # CRITICAL
-            color = '\x1b[31m' # red
+            color_msg = '\x1b[31m' # red
+            color_levelname = '\033[1;31m'
         elif(levelno>=40): # ERROR
-            color = '\x1b[33m' # yellow
+            color_msg = '\x1b[33m' # yellow
+            color_levelname = '\033[1;33m'
         elif(levelno>=30): # WARNING
-            color = '\x1b[35m' # magenta
+            color_msg = '\x1b[33m' # magenta
+            color_levelname = '\033[1;33m'
         elif(levelno>=20): # INFO
-            color = '\x1b[32m' # green 
+            color_msg = '\x1b[32m' # green
+            color_levelname = '\033[1;32m'
         elif(levelno>=10): # DEBUG
-            color = '\x1b[36m' # cyan
+            color_msg = '\x1b[32m' # cyan
+            color_levelname = '\033[1;32m'
         else: # NOTSET
-            color = '\x1b[0m' # normal
-        args[1].msg = color + args[1].msg +  '\x1b[0m'  # normal
+            color_msg = '\x1b[0m' # normal
+            color_levelname = '\x1b[0m'
+        args[1].msg = color_msg + args[1].msg +  '\x1b[0m'  # normal
+        args[1].levelname = color_levelname + args[1].levelname + '\x1b[0m'
         return fn(*args)
     return new
 
@@ -62,19 +69,17 @@ class Log:
     :param dossier: Dossier où mettre les logs (à partir de la racine du code, c'est-à-dire le dossier contenant lanceur.py). Ex : 'logs'
     :type dossier: string
     """
-    def __init__(self, nom=__name__, logs=True, logs_level="DEBUG", logs_format="%(asctime)s::%(levelname)s:l%(lineno)d:%(message)s", stderr=True, stderr_level="DEBUG", stderr_format="%(asctime)s::%(levelname)s:l%(lineno)d:%(threadName)s:%(message)s", dossier="logs"):
+    def __init__(self, nom=__name__, logs=True, logs_level="DEBUG", logs_format="%(asctime)s::%(levelname)s:l%(lineno)d:%(filename)s:%(message)s", stderr=True, stderr_level="DEBUG", stderr_format="%(asctime)s:%(levelname)s:%(filename)s(ligne %(lineno)d) -> %(message)s", dossier="logs"):
         self.nom = nom
         if (logs != None and stderr != None and dossier != None):
-            print("SHPU")
             self.initialisation(logs, logs_level, logs_format, stderr, stderr_level, stderr_format, dossier)
         elif str(self.__init__.im_class) != "tests.log.TestLog":
-            print("HELLO")
             print >> sys.stderr, "Erreur : Veuillez donner des paramètres pour créer un objet Log"
             self.logger = logging.getLogger(self.nom)
             self.logger.setLevel(logging.DEBUG)
             self.stderr_handler = logging.StreamHandler()
             self.stderr_handler.setLevel(logging.WARNING)
-            formatter = logging.Formatter("%(asctime)s:"+self.nom+":%(levelname)s:%(message)s", "%H:%M:%S")
+            formatter = logging.Formatter("%(asctime)s:%(levelname)s:%(message)s", "%H:%M:%S")
             self.stderr_handler.setFormatter(formatter)
             self.logger.addHandler(self.stderr_handler)
 
@@ -99,17 +104,17 @@ class Log:
         :return: Statut de l'initialisation. True si réussite, False si échec
         :rtype: bool
         """
-        dossier_racine = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        dossier_abs = dossier_racine+"/"+dossier
+        Log.dossier_racine = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        Log.dossier_abs = Log.dossier_racine+"/"+dossier
         Log.dossier_logs = dossier
         Log.stderr = stderr
         Log.logs = logs
         Log.stderr_level = stderr_level
         Log.logs_level = logs_level
         # On ajoute le nom du module
-        Log.logs_format = ':'.join(map(lambda x: x if x else self.nom, logs_format.split(":")))
+        Log.logs_format = logs_format
         # On ajoute le nom du module
-        Log.stderr_format = ':'.join(map(lambda x: x if x else self.nom, stderr_format.split(":")))
+        Log.stderr_format = stderr_format
         Log.levels = ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')
         
         if (stderr and (stderr_level not in Log.levels)):
@@ -121,33 +126,31 @@ class Log:
         
         # Création du logger
         self.logger = logging.getLogger(self.nom)
+        
+        self.debug = self.logger.debug
+        self.warning = self.logger.warning
+        self.critical = self.logger.critical    
         self.logger.setLevel(logging.DEBUG)
         if stderr:
             # Ajout du handler pour stderr
             self.configurer_stderr()
-        if logs:
-            self.creer_dossier(dossier_abs)
-            if not hasattr(Log, 'revision'):
-                Log.revision = self.revision_disponible(dossier)
-            # Ajout du handler pour logs
-            self.configurer_logs()
+        
         # Création de l'entête dans stderr et logs
         self.ecrire_entete()
         Log.initialise = True
         return True
         
-    def debug(self, msg) :
-        self.logger.debug(msg)
-    def info(self, msg) :
-        self.logger.info(msg)
-    def warning(self, msg) :
-        self.logger.warning(msg)
-    def error(self, msg) :
-        self.logger.error(msg)
-    def critical(self, msg) :
-        self.logger.critical(msg)
+    def set_chemin(self, dossier_racine) :
+        Log.dossier_racine = dossier_racine
+        Log.dossier_abs     = os.path.join(Log.dossier_racine, Log.dossier_logs)
         
-    
+        if Log.logs:
+            self.creer_dossier(Log.dossier_abs)
+            if not hasattr(Log, 'revision'):
+                Log.revision = self.revision_disponible(Log.dossier_logs)
+            # Ajout du handler pour logs
+            self.configurer_logs()
+        
     def creer_dossier(self, dossier):
         """
         Crée un dossier si il n'existe pas déjà
@@ -204,6 +207,6 @@ class Log:
             self.logger.removeHandler(Log.stderr_handler)
         Log.stderr_handler = logging.StreamHandler()
         exec("Log.stderr_handler.setLevel(logging."+Log.stderr_level+")")
-        formatter = logging.Formatter(Log.stderr_format, "%H:%M:%S")
+        formatter = logging.Formatter(Log.stderr_format, "%Hh%Mm%Ss%m")
         Log.stderr_handler.setFormatter(formatter)
         self.logger.addHandler(Log.stderr_handler)
