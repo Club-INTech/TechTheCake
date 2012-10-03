@@ -43,7 +43,7 @@ class Log:
     Pour utiliser les logs dans vos fichiers :\n
     Pour charger le système de log correctement, en début de fichier ajoutez :\n
     import lib.log\n
-    log = lib.log.Log(__name__)
+    log = lib.log.self(__name__)
     \n
     Puis vous pouvez logguer des messages avec (dans ordre croissant de niveau) :\n
     log.logger.debug('mon message')\n
@@ -82,9 +82,9 @@ class Log:
         
         if (logs != None and stderr != None and dossier != None):
             self.initialisation()
-        elif str(self.__init__.im_class) != "tests.log.TestLog":
-            print >> sys.stderr, "Erreur : Veuillez donner des paramètres pour créer un objet Log"
-            self.logger = logging.getLogger(self.nom)
+        elif str(self.__init__.im_class) != "tests.log.Testself":
+            print >> sys.stderr, "Erreur : Veuillez donner des paramètres pour créer un objet self"
+            self.logger = logging.getselfger(self.nom)
             self.logger.setLevel(logging.DEBUG)
             self.stderr_handler = logging.StreamHandler()
             self.stderr_handler.setLevel(logging.WARNING)
@@ -113,28 +113,17 @@ class Log:
         :return: Statut de l'initialisation. True si réussite, False si échec
         :rtype: bool
         """
-        Log.dossier_racine = ""
-        Log.dossier_abs = Log.dossier_racine+"/"+dossier
-        Log.dossier_logs = dossier
-        Log.stderr = stderr
-        Log.logs = logs
-        Log.stderr_level = stderr_level
-        Log.logs_level = logs_level
-        # On ajoute le nom du module
-        Log.logs_format = logs_format
-        # On ajoute le nom du module
-        Log.stderr_format = stderr_format
-        Log.levels = ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')
+        self.levels = ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')
         
-        if (stderr and (stderr_level not in Log.levels)):
-            print >> sys.stderr, "Erreur : stderr_level incorrect lors de la création d'un objet lib.log.Log"
+        if (stderr and (stderr_level not in self.levels)):
+            print >> sys.stderr, "Erreur : stderr_level incorrect lors de la création d'un objet lib.log.self"
             return False
-        if (logs and (logs_level not in Log.levels)):
-            print >> sys.stderr, "Erreur : logs_level incorrect lors de la création d'un objet lib.log.Log"
+        if (logs and (logs_level not in self.levels)):
+            print >> sys.stderr, "Erreur : logs_level incorrect lors de la création d'un objet lib.log.self"
             return False
         
         # Création du logger
-        self.logger = logging.getLogger(self.nom)
+        self.logger = logging.getselfger(self.nom)
         
         self.debug = self.logger.debug
         self.warning = self.logger.warning
@@ -146,17 +135,17 @@ class Log:
         
         # Création de l'entête dans stderr et logs
         self.ecrire_entete()
-        Log.initialise = True
+        self.initialise = True
         return True
         
     def set_chemin(self, dossier_racine) :
         self.dossier_racine = dossier_racine
         self.dossier_abs    = os.path.join(self.dossier_racine, self.dossier)
         
-        if Log.logs:
+        if self.logs:
             self.creer_dossier(self.dossier_abs)
-            if not hasattr(Log, 'revision'):
-                Log.revision = self.revision_disponible()
+            if not hasattr(self, 'revision'):
+                self.revision = self.revision_disponible()
             # Ajout du handler pour logs
             self.configurer_logs()
         
@@ -200,22 +189,22 @@ class Log:
         """
         Configure les logs (FICHER)
         """
-        if hasattr(Log, 'logs_handler'):
-            self.logger.removeHandler(Log.logs_handler)
-        Log.logs_handler = logging.FileHandler(Log.dossier_logs+"/"+str(Log.revision)+".log")
-        exec("Log.logs_handler.setLevel(logging."+Log.logs_level+")")
-        formatter = logging.Formatter(Log.logs_format)
-        Log.logs_handler.setFormatter(formatter)
-        self.logger.addHandler(Log.logs_handler)
+        if hasattr(self, 'logs_handler'):
+            self.logger.removeHandler(self.logs_handler)
+        self.logs_handler = logging.FileHandler(self.dossier_logs+"/"+str(self.revision)+".log")
+        exec("self.logs_handler.setLevel(logging."+self.logs_level+")")
+        formatter = logging.Formatter(self.logs_format)
+        self.logs_handler.setFormatter(formatter)
+        self.logger.addHandler(self.logs_handler)
     
     def configurer_stderr(self):
         """
         Configure la sortie stderr (CONSOLE)
         """
-        if hasattr(Log, 'stderr_handler'):
-            self.logger.removeHandler(Log.stderr_handler)
-        Log.stderr_handler = logging.StreamHandler()
-        exec("Log.stderr_handler.setLevel(logging."+Log.stderr_level+")")
-        formatter = logging.Formatter(Log.stderr_format, "%Hh%Mm%Ss%m")
-        Log.stderr_handler.setFormatter(formatter)
-        self.logger.addHandler(Log.stderr_handler)
+        if hasattr(self, 'stderr_handler'):
+            self.logger.removeHandler(self.stderr_handler)
+        self.stderr_handler = logging.StreamHandler()
+        exec("self.stderr_handler.setLevel(logging."+self.stderr_level+")")
+        formatter = logging.Formatter(self.stderr_format, "%Hh%Mm%Ss%m")
+        self.stderr_handler.setFormatter(formatter)
+        self.logger.addHandler(self.stderr_handler)
