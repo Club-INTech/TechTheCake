@@ -1,10 +1,11 @@
 class Robot:
 
-    def __init__(self,deplacements,config):
+    def __init__(self,deplacements,config,log):
         
         #instances des dépendances
         self.deplacements = deplacements
         self.config = config
+        self.log = log
         
         """
         #attributs "physiques"
@@ -14,5 +15,3 @@ class Robot:
         self.duree_jeu
         """
         
-        
-        #self.deplacements.parle()
