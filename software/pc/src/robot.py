@@ -15,4 +15,4 @@ class Robot:
         """
         
         
-        self.deplacements.parle()
+        #self.deplacements.parle()

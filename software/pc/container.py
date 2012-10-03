@@ -8,6 +8,7 @@ from src.assemblage import assembler
 #modules
 from src.robot import Robot
 from src.deplacements import Deplacements_simu, Deplacements_serie
+from src.scripts import Script, Script_bougies
 
 class Container:
     def __init__(self):
@@ -35,9 +36,13 @@ class Container:
         #enregistrement du service robot
         self.assembler.register(Robot, requires=[Deplacements,Config])
         
+        #enregistrement des services de scripts
+        self.assembler.register(Script, requires=[Robot,Config])
+        self.assembler.register(Script_bougies, requires=[Robot,Config])
+        
     def get_service(self,type):
         return self.assembler.provide(type)
         
         
 container = Container()
-robot = container.get_service(Robot)
+script = container.get_service(Script_bougies)
