@@ -47,23 +47,24 @@ class Config :
                 self._dic[var[0]] = _try_to_cast(var[1])
         
 # Classe permettant l'acquisition des différentes constantes
-class Constantes :
-    def __init__(self, chemin) :
-            self._chemin = chemin
-            self._conf   = configparser.ConfigParser()
-            self._conf.readfp(open(os.path.join(self._chemin, _nom_fichier_constantes + _extension)))
+# WARNING Cette classe n'est actuellement plus utilisée
+#class Constantes :
+    #def __init__(self, chemin) :
+            #self._chemin = chemin
+            #self._conf   = configparser.ConfigParser()
+            #self._conf.readfp(open(os.path.join(self._chemin, _nom_fichier_constantes + _extension)))
             
-    def __getitem__(self, key) :
-        return self._dic[key]
+    #def __getitem__(self, key) :
+        #return self._dic[key]
         
-    # Charge en mémoire le dictionnaire de constantes   
-    def get_vars(self) :
-        sections = self._conf.sections()
-        self._dic = {}
-        for section in sections :
-            self._dic[section] = {}
-            for var in self._conf.items(section) :
-                self._dic[section][var[0]] = _try_to_cast(var[1])
+    ## Charge en mémoire le dictionnaire de constantes   
+    #def get_vars(self) :
+        #sections = self._conf.sections()
+        #self._dic = {}
+        #for section in sections :
+            #self._dic[section] = {}
+            #for var in self._conf.items(section) :
+                #self._dic[section][var[0]] = _try_to_cast(var[1])
         
 # NE JAMAIS PARLER DE CETTE FONCTION À MARC /!\ /!\ /!\
 def _try_to_cast(var) :
