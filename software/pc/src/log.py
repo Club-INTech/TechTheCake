@@ -105,7 +105,7 @@ class Log:
         :return: Statut de l'initialisation. True si réussite, False si échec
         :rtype: bool
         """
-        Log.dossier_racine = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        Log.dossier_racine = ""
         Log.dossier_abs = Log.dossier_racine+"/"+dossier
         Log.dossier_logs = dossier
         Log.stderr = stderr
