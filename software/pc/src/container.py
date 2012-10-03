@@ -47,9 +47,6 @@ class Container:
         #enregistrement du service robot
         self.assembler.register(Robot, requires=[Deplacements,Config,Log])
         
-        #enregistrement des services de scripts
-        self.assembler.register(ScriptBougies, requires=[Robot,Config,Log])
-        
     def get_service(self,type):
         return self.assembler.provide(type)
         
