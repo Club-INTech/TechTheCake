@@ -69,9 +69,16 @@ class Log:
     :param dossier: Dossier où mettre les logs (à partir de la racine du code, c'est-à-dire le dossier contenant lanceur.py). Ex : 'logs'
     :type dossier: string
     """
-    def __init__(self, config, nom=__name__, logs=True, logs_level="DEBUG", logs_format="%(asctime)s::%(levelname)s:l%(lineno)d:%(filename)s:%(message)s", stderr=True, stderr_level="DEBUG", stderr_format="%(asctime)s:%(levelname)s:%(filename)s(ligne %(lineno)d) -> %(message)s", dossier="logs"):
+    def __init__(self, config, logs_format="%(asctime)s::%(levelname)s:l%(lineno)d:%(filename)s:%(message)s",  stderr_level="DEBUG", stderr_format="%(asctime)s:%(levelname)s:%(filename)s(ligne %(lineno)d) -> %(message)s", dossier="logs"):
         self.config = config
-        self.nom = nom
+        self.nom = "LOG"
+        self.logs = self.config["log_sauvegarde"]
+        self.stderr = self.config["log_affichage"]
+        self.logs_level = self.config["log_level_sauvegarde"]
+        self.stderr_level = self.config["log_level_affichage"]
+        self.logs_format = self.config["log_format_sauvegarde"]
+        self.stderr_format = self.config["log_format_affichage"]
+        
         if (logs != None and stderr != None and dossier != None):
             self.initialisation(logs, logs_level, logs_format, stderr, stderr_level, stderr_format, dossier)
         elif str(self.__init__.im_class) != "tests.log.TestLog":
