@@ -9,6 +9,7 @@ from src.assemblage import assembler
 from src.robot import Robot
 from src.deplacements import Deplacements_simu, Deplacements_serie
 from src.scripts import Script, Script_bougies
+from scr.log import Log
 
 class Container:
     def __init__(self):
@@ -23,6 +24,9 @@ class Container:
         
         #utilisation du service de configuration pour la suite
         self.config = self.get_service(Config)
+        
+        #enregistrement du service des logs
+        self.assembler.register(Log)
         
         #enregistrement du service des déplacements
         if (self.config["mode_simulateur"]):
@@ -42,7 +46,3 @@ class Container:
         
     def get_service(self,type):
         return self.assembler.provide(type)
-        
-        
-container = Container()
-script = container.get_service(Script_bougies)
