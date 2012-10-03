@@ -69,18 +69,19 @@ class Log:
     :param dossier: Dossier où mettre les logs (à partir de la racine du code, c'est-à-dire le dossier contenant lanceur.py). Ex : 'logs'
     :type dossier: string
     """
-    def __init__(self, config, logs_format="%(asctime)s::%(levelname)s:l%(lineno)d:%(filename)s:%(message)s",  stderr_level="DEBUG", stderr_format="%(asctime)s:%(levelname)s:%(filename)s(ligne %(lineno)d) -> %(message)s", dossier="logs"):
-        self.config = config
-        self.nom = "LOG"
-        self.logs = self.config["log_sauvegarde"]
-        self.stderr = self.config["log_affichage"]
-        self.logs_level = self.config["log_level_sauvegarde"]
-        self.stderr_level = self.config["log_level_affichage"]
-        self.logs_format = self.config["log_format_sauvegarde"]
-        self.stderr_format = self.config["log_format_affichage"]
+    def __init__(self, config):
+        self.config         = config
+        self.nom            = "LOG"
+        self.logs           = self.config["log_sauvegarde"]
+        self.stderr         = self.config["log_affichage"]
+        self.logs_level     = self.config["log_level_sauvegarde"]
+        self.stderr_level   = self.config["log_level_affichage"]
+        self.logs_format    = self.config["log_format_sauvegarde"]
+        self.stderr_format  = self.config["log_format_affichage"]
+        self.dossier        = self.config["log_nom_dossier"]
         
         if (logs != None and stderr != None and dossier != None):
-            self.initialisation(logs, logs_level, logs_format, stderr, stderr_level, stderr_format, dossier)
+            self.initialisation()
         elif str(self.__init__.im_class) != "tests.log.TestLog":
             print >> sys.stderr, "Erreur : Veuillez donner des paramètres pour créer un objet Log"
             self.logger = logging.getLogger(self.nom)
@@ -91,7 +92,7 @@ class Log:
             self.stderr_handler.setFormatter(formatter)
             self.logger.addHandler(self.stderr_handler)
 
-    def initialisation(self, logs, logs_level, logs_format, stderr, stderr_level, stderr_format, dossier):
+    def initialisation(self):
         """
         Initialise le système de log
         
@@ -149,13 +150,13 @@ class Log:
         return True
         
     def set_chemin(self, dossier_racine) :
-        Log.dossier_racine = dossier_racine
-        Log.dossier_abs     = os.path.join(Log.dossier_racine, Log.dossier_logs)
+        self.dossier_racine = dossier_racine
+        self.dossier_abs    = os.path.join(self.dossier_racine, self.dossier)
         
         if Log.logs:
-            self.creer_dossier(Log.dossier_abs)
+            self.creer_dossier(self.dossier_abs)
             if not hasattr(Log, 'revision'):
-                Log.revision = self.revision_disponible(Log.dossier_logs)
+                Log.revision = self.revision_disponible()
             # Ajout du handler pour logs
             self.configurer_logs()
         
@@ -173,7 +174,7 @@ class Log:
             return True
         return False
 
-    def revision_disponible(self, dossier):
+    def revision_disponible(self):
         """
         Donne la prochaine révision à créer dans les logs
         
@@ -183,8 +184,8 @@ class Log:
         :rtype: int
         """
         i = 0
-        self.creer_dossier(dossier)
-        while os.path.exists(dossier+"/"+str(i)+".log"):
+        self.creer_dossier(self.dossier_abs)
+        while os.path.exists(self.dossier_abs+"/"+str(i)+".log"):
             i += 1
         return i
 
