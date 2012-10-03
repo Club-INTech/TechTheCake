@@ -80,7 +80,7 @@ class Log:
         self.stderr_format  = self.config["log_format_affichage"]
         self.dossier        = self.config["log_nom_dossier"]
         
-        if (logs != None and stderr != None and dossier != None):
+        if (self.logs != None and self.stderr != None and self.dossier != None):
             self.initialisation()
         elif str(self.__init__.im_class) != "tests.log.Testself":
             print >> sys.stderr, "Erreur : Veuillez donner des paramètres pour créer un objet self"
@@ -115,21 +115,21 @@ class Log:
         """
         self.levels = ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')
         
-        if (stderr and (stderr_level not in self.levels)):
-            print >> sys.stderr, "Erreur : stderr_level incorrect lors de la création d'un objet lib.log.self"
-            return False
-        if (logs and (logs_level not in self.levels)):
-            print >> sys.stderr, "Erreur : logs_level incorrect lors de la création d'un objet lib.log.self"
-            return False
+        #if (self.stderr and (self.stderr_level not in self.levels)):
+            #print >> sys.stderr, "Erreur : stderr_level incorrect lors de la création d'un objet lib.log.self"
+            #return False
+        #if (self.logs and (self.logs_level not in self.levels)):
+            #print >> sys.stderr, "Erreur : logs_level incorrect lors de la création d'un objet lib.log.self"
+            #return False
         
         # Création du logger
-        self.logger = logging.getselfger(self.nom)
+        self.logger = logging.getLogger(self.nom)
         
         self.debug = self.logger.debug
         self.warning = self.logger.warning
         self.critical = self.logger.critical    
         self.logger.setLevel(logging.DEBUG)
-        if stderr:
+        if self.stderr:
             # Ajout du handler pour stderr
             self.configurer_stderr()
         
