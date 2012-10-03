@@ -1,24 +1,26 @@
-#importation de la configuration
-from src.read_ini import Config,Constantes
-import os
+import os,sys
+
+#retrouve le chemin de la racine "software/pc"
+directory = os.path.dirname(os.path.abspath(__file__))
+racine = "software/pc"
+chemin = directory[:directory.index(racine)]+racine
+
+#répertoires d'importation
+sys.path.insert(0, os.path.join(chemin, "src/"))
 
 #module d'injection de dépendances
-from src.assemblage import assembler
+from assemblage import assembler
 
 #modules
-from src.robot import Robot
-from src.deplacements import Deplacements_simu, Deplacements_serie
-from src.scripts import Script, ScriptBougies
-from src.log import Log
+from read_ini import Config
+from robot import Robot
+from deplacements import Deplacements_simu, Deplacements_serie
+from scripts import Script, ScriptBougies
+from log import Log
 
 class Container:
     def __init__(self):
         self.assembler = assembler()
-        
-        #retrouve le chemin de la racine "software/pc"
-        directory = os.path.dirname(os.path.abspath(__file__))
-        racine = "software/pc"
-        chemin = directory[:directory.index(racine)]+racine
         
         #enregistrement du service de configuration
         def make_conf():

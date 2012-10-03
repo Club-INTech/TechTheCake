@@ -1,10 +1,24 @@
-from container import *
+#module d'injection de dépendances
+from src.container import *
+#module pour les threads
 from threading import Thread
 
+#fonction lancée dans le thread de MAJ
+from src.thread_MAJ import fonction_MAJ
+
 container = Container()
-script = container.get_service(ScriptBougies)
-log = container.get_service(Log)
+#lancement des services
+for service in ["Robot", "Log"]:#, Table, Capteurs]
+    exec(service+" = container.get_service("+service+")")
 
 
-#thread_MAJ = threading.Thread(None, Thread_MAJ.boucle(), None, (), {})
-#thread_MAJ.start()
+
+#TODO thread_MAJ nécessite : robot, table, capteurs, actionneurs, log, config
+
+thread_MAJ = Thread(None, fonction_MAJ, None, (), {"robot":Robot,"log":Log})
+thread_MAJ.start()
+
+from time import sleep
+while 1 :
+    Log.debug("_________")
+    sleep(0.2)
