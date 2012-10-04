@@ -27,11 +27,11 @@ class Serie:
             for source in sources:
                 try:
                     print("##("+destinataire+", "+source+"############################")
-                    instanceSerie = Serial(source, self.peripheriques[destinataire].baudrate, timeout=0.5)
+                    instanceSerie = Serial(source, self.peripheriques[destinataire].baudrate, timeout=0.1)
                     
                     #vide le buffer de l'avr
                     instanceSerie.write(bytes("\r","utf-8"))
-                    
+                    sleep(0.1)
                     instanceSerie.write(bytes("?\r","utf-8"))
                     rep = str(instanceSerie.readline(),"utf-8")
                     print(self.clean_string(rep)+" -- "+str(self.peripheriques[destinataire].id))
