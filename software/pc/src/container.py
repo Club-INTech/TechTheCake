@@ -13,8 +13,9 @@ from assemblage import assembler
 
 #modules
 from read_ini import Config
-from robot import Robot
-from deplacements import Deplacements_simu, Deplacements_serie
+from robot import *
+from deplacements import Deplacements_simu, DeplacementsSerie
+from serie import Serie
 from scripts import Script, ScriptBougies
 from log import Log
 
@@ -39,12 +40,16 @@ class Container:
             return log
         self.assembler.register(Log, requires = [Config], factory=make_log)
         
+        #enregistrement du service Serie
+        self.assembler.register(Serie)
+        
         #enregistrement du service des déplacements
         if (self.config["mode_simulateur"]):
             Deplacements = Deplacements_simu
+            self.assembler.register(Deplacements, requires=[Config,Log])
         else:
-            Deplacements = Deplacements_serie
-        self.assembler.register(Deplacements, requires=[Config,Log])
+            Deplacements = DeplacementsSerie
+            self.assembler.register(Deplacements, requires=[Serie,Config,Log])
         
         #enregistrement du service robot
         self.assembler.register(Robot, requires=[Deplacements,Config,Log])

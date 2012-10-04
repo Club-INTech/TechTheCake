@@ -1,5 +1,6 @@
 from math import pi
-       
+from time import time
+
 _tolerance_distance_mm   = 30
 _tolerance_angle_radians = 0.2
 
@@ -38,5 +39,5 @@ class Hook_temps(Hook):
         #timestamp déclencheur
         self.temps_hook = temps
     def evaluate(self):
-        if (self.robot.duree_jeu >= self.temps_hook):
+        if (time() - self.robot.debut_jeu >= self.temps_hook):
             self.callback(*self.args)

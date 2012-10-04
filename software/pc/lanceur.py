@@ -2,23 +2,21 @@
 from src.container import *
 #module pour les threads
 from threading import Thread
-
 #fonction lancée dans le thread de MAJ
 from src.thread_MAJ import fonction_MAJ
+#module de la stratégie (sur le thread principal)
+from src.strategie import Strategie
 
 container = Container()
 #lancement des services
-for service in ["Robot", "Log"]:#, Table, Capteurs]
-    exec(service+" = container.get_service("+service+")")
+#for service in ["Robot", "Log", "Config"]:#, Table, Capteurs]
+    #exec(service.lower()+" = container.get_service("+service+")")
 
-
-
+serie = container.get_service(Serie)
 #TODO thread_MAJ nécessite : robot, table, capteurs, actionneurs, log, config
+#thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
+#thread_MAJ.start()
 
-thread_MAJ = Thread(None, fonction_MAJ, None, (), {"robot":Robot,"log":Log})
-thread_MAJ.start()
-
-from time import sleep
-while 1 :
-    Log.debug("_________")
-    sleep(0.2)
+#lancement de la stratégie
+#strat = Strategie(robot, log, config)
+#strat.boucle_pipeau()

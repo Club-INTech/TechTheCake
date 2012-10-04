@@ -1,114 +1,72 @@
-# -*- coding: utf-8 -*-
-import serial
-import time
-import threading
-from threading import Lock
-
-class TimeoutError(Exception): pass
-
-def timelimit(timeout):
-    def internal(function):
-        def internal2(*args, **kw):
-            class Calculator(threading.Thread):
-                def __init__(self):
-                    threading.Thread.__init__(self)
-                    self.result = None
-                    self.error = None
-                
-                def run(self):
-                    try:
-                        self.result = function(*args, **kw)
-                    except:
-                        self.error = sys.exc_info()[0]
-            
-            c = Calculator()
-            c.start()
-            c.join(timeout)
-            if c.isAlive():
-                raise TimeoutError
-            if c.error:
-                raise c.error
-            return c.result
-        return internal2
-    return internal
-    
-    
-
-class Serie(threading.Thread, serial.Serial):
-    """
-    Classe permettant de créer une liaison Série utilisant un thread (ie non bloquante)\n
-    \n
-    Pour la démarrer utiliser la méthode start()\n
-    Pour l'arrêter utiliser la méthode stop()\n
-    \n
-    :param peripherique: chemin du périphérique utilisant la liaison série
-    :type peripherique: string
-    :param nom: Nom à donner au thread
-    :type nom: string
-    :param debit: Débit de baud de la liaison
-    :type debit: int
-    :param timeout: Timeout de la liaison en secondes
-    :type timeout: int
-    :param parite: Type de parité
-    :type parite: None|'PARITY_NONE'|'PARITY_EVEN'|'PARITY_ODD'|'PARITY_MARK'|'PARITY_SPACE'
-    :TODO: Mettre le débit de Baud par défaut
-    """
-    def __init__(self, peripherique, debit, timeoutSerie):
-        self.serie = serial.Serial(peripherique, debit, timeout = timeoutSerie)
-        self.mutex = Lock()
-
-    @timelimit(1)
-    def decoLire(self):
-        self.mutex.acquire()
-        reponse = self.serie.readline()
-        self.mutex.release()
-        reponse = str(reponse).replace("\n","").replace("\r","").replace("\0", "")
-        return reponse
+from serial import Serial
+from mutex import Mutex
+import os
+from time import sleep
         
-    def lire(self,timeout = True):
-        """
-        Lire une information venant d'un périphérique jusqu'au retour à la ligne
-        """
-        if timeout :
-            try:
-                #print "lecture..."
-                return self.decoLire()
-            except:
-                #print "sleep..."
-                time.sleep(1)
-                #print "recursion..."
-                return self.lire()
-        else:
-            self.mutex.acquire()
-            reponse = self.serie.readline()
-            self.mutex.release()
-            reponse = str(reponse).replace("\n","").replace("\r","").replace("\0", "")
-            return reponse
+        
+class Peripherique:
+    def __init__(self,id,baudrate):
+        self.id = id
+        self.baudrate = baudrate
+        
+class Serie:
+        
+    def __init__(self):
+        self.mutex = Mutex()
+        self.peripheriques = {"asservissement": Peripherique(0,9600),"capteurs_actionneurs" : Peripherique(3,9600)}
+        self.attribuer()
+        
+    def attribuer(self):
+        #listage des périphériques trouvés
+        sources = os.popen('ls -1 /dev/ttyUSB* 2> /dev/null').readlines()
+        sources.extend(os.popen('ls -1 /dev/ttyACM* 2> /dev/null').readlines())
+        for k in range(len(sources)):
+            sources[k] = sources[k].replace("\n","")
+        
+        for destinataire in (self.peripheriques):
+            for source in sources:
+                try:
+                    print("##("+destinataire+", "+source+"############################")
+                    instanceSerie = Serial(source, self.peripheriques[destinataire].baudrate, timeout=0.5)
+                    
+                    #vide le buffer de l'avr
+                    instanceSerie.write(bytes("\r","utf-8"))
+                    
+                    instanceSerie.write(bytes("?\r","utf-8"))
+                    rep = str(instanceSerie.readline(),"utf-8")
+                    print(self.clean_string(rep)+" -- "+str(self.peripheriques[destinataire].id))
+                    if self.clean_string(rep) == str(self.peripheriques[destinataire].id):
+                        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+                        print(destinataire+"\tOK sur "+source)
+                        self.peripheriques[destinataire].chemin = source
+                        self.peripheriques[destinataire].serie = instanceSerie
+                        sources.remove(source)
+                        break
+                    else:
+                        instanceSerie.close()
+                        #del instanceSerie
+                except Exception as e:
+                    print(e)
+        
+    def clean_string(self, chaine):
+        return chaine.replace("\n","").replace("\r","").replace("\0","") 
     
-    def ecrire(self, message):
-        """
-        Écrire une information vers un périphérique puis retourner à la ligne
-        :param message: message à donner au périphérique
-        :type message: string
-        """
-        self.mutex.acquire()
-        self.serie.write(str(message) + '\r')
-        self.mutex.release()
+    def communiquer(self, destinataire, messages, nb_lignes_reponse):
+        with self.mutex:
+           #un seul message
+            if not hasattr(messages, "__getitem__"):
+                self.peripheriques[destinataire].serie.write(bytes(str(messages) + '\r',"utf-8"))
+            else:
+            #liste de messages
+                for message in messages:
+                    sleep(0.1)
+                    self.peripheriques[destinataire].serie.write(bytes(str(message) + '\r',"utf-8"))
+                    
+            #liste des réponses
+            reponses = []
+            for i in range(nb_lignes_reponse):
+                sleep(0.1)
+                reponse = self.clean_string(str(self.peripheriques[destinataire].serie.readline(),"utf-8"))
+                reponses.append(reponse)
+        return reponses
         
-    def clean(self):
-        """
-        réinitialise le buffer d'envoi
-        """
-        self.ecrire("")
-        self.lire()
-        
-    def stop(self):
-        """
-        Arrête la liaison série
-        """
-        self.active = False
-        if self.active:
-            self.join()
-        # Pour gérer une mauvaise parité qui ne lance par la liaison
-        if hasattr(self, "_isOpen"):
-            self.close()
