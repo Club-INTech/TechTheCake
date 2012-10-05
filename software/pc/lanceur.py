@@ -9,20 +9,13 @@ from src.strategie import Strategie
 
 container = Container()
 #lancement des services
-#for service in ["Robot", "Log", "Config"]:#, Table, Capteurs]
-    #exec(service.lower()+" = container.get_service("+service+")")
+for service in ["robot", "log", "config"]:
+    exec(service+" = container.get_service('"+service+"')")
 
-config = container.get_service("config")
-log = container.get_service("log")
-robot = container.get_service("robot")
 
-#TODO thread_MAJ nécessite : robot, table, capteurs, actionneurs, log, config
-#thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
-#thread_MAJ.start()
+thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
+thread_MAJ.start()
 
 #lancement de la stratégie
-#strat = Strategie(robot, log, config)
-#strat.boucle_pipeau()
-
-log.warning("aze")
-robot.deplacements.parle()
+strat = Strategie(container)
+strat.boucle_pipeau()

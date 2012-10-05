@@ -87,13 +87,16 @@ class DeplacementsSerie:
         self.serie.communiquer("asservissement",["d",float(distance)], 0)
         
     def get_infos_stoppage(self):
-        return self.serie.communiquer("asservissement","?bloc",4)
+        infos_string = self.serie.communiquer("asservissement","?bloc",4)
+        return list(map(lambda x: int(x), infos_string))
         
     def get_infos_enMouvement(self):
-        return self.serie.communiquer("asservissement","?arret",4)
+        infos_string = self.serie.communiquer("asservissement","?arret",4)
+        return list(map(lambda x: int(x), infos_string))
         
     def get_infos_x_y_orientation(self):
-        return self.serie.communiquer("asservissement","?xyo",3)
+        infos_string = self.serie.communiquer("asservissement","?xyo",3)
+        return list(map(lambda x: int(x), infos_string))
 
         
 class DeplacementsSimulateur(Deplacements):

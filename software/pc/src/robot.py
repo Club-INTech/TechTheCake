@@ -60,11 +60,23 @@ class Robot:
         else:
             self.enCoursDeBlocage = False
             
-    def update_x_y_orientation(self, x, y, orientation):
+    def update_x_y_orientation(self, x, y, orientation_milliRadians):
         with self.mutex:
             self.x = x
             self.y = y
-            self.orientation = orientation
+            self.orientation = orientation_milliRadians/1000.
+            
+    def get_x(self):
+        with self.mutex:
+            return self.x
+            
+    def get_y(self):
+        with self.mutex:
+            return self.y
+            
+    def get_orientation(self):
+        with self.mutex:
+            return self.orientation
         
     def avancer(self, distance):
         #le robot n'est plus considéré comme bloqué

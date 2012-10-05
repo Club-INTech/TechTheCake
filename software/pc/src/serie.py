@@ -21,7 +21,7 @@ class Serie:
         #mutex évitant les écritures/lectures simultanées sur la série
         self.mutex = Mutex()
         #dictionnaire des périphériques recherchés
-        self.peripheriques = {"asservissement": Peripherique(0,9600),"capteurs_actionneurs" : Peripherique(3,9600)}
+        self.peripheriques = {"asservissement": Peripherique(0,9600)}#,"capteurs_actionneurs" : Peripherique(3,9600)}
         #attribution initiale des périphériques
         self.attribuer()
         
@@ -41,9 +41,10 @@ class Serie:
                     #vide le buffer de l'avr
                     instanceSerie.write(bytes("\r","utf-8"))
                     sleep(0.1)
-                    instanceSerie.write(bytes("?\r","utf-8"))
-                    rep = str(instanceSerie.readline(),"utf-8")
                     
+                    instanceSerie.write(bytes("?\r","utf-8"))
+                    instanceSerie.readline()
+                    rep = str(instanceSerie.readline(),"utf-8")
                     print(self.clean_string(rep)+" -- "+str(self.peripheriques[destinataire].id))
                     if self.clean_string(rep) == str(self.peripheriques[destinataire].id):
                         print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
@@ -62,10 +63,9 @@ class Serie:
     
     def communiquer(self, destinataire, messages, nb_lignes_reponse):
         with self.mutex:
-            if not hasattr(messages, "__getitem__"):
+            if not type(messages) is list:
                 #permet l'envoi d'un seul message, sans structure de liste
                 messages = [messages]
-                
             #parcourt la liste des messages envoyés
             for message in messages:
                 self.peripheriques[destinataire].serie.write(bytes(str(message) + '\r',"utf-8"))
