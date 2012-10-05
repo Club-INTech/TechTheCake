@@ -12,7 +12,10 @@ container = Container()
 #for service in ["Robot", "Log", "Config"]:#, Table, Capteurs]
     #exec(service.lower()+" = container.get_service("+service+")")
 
-serie = container.get_service(Serie)
+config = container.get_service("config")
+log = container.get_service("log")
+robot = container.get_service("robot")
+
 #TODO thread_MAJ nécessite : robot, table, capteurs, actionneurs, log, config
 #thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
 #thread_MAJ.start()
@@ -20,3 +23,6 @@ serie = container.get_service(Serie)
 #lancement de la stratégie
 #strat = Strategie(robot, log, config)
 #strat.boucle_pipeau()
+
+log.warning("aze")
+robot.deplacements.parle()

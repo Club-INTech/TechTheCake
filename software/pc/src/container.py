@@ -14,7 +14,7 @@ from assemblage import assembler
 #modules
 from read_ini import Config
 from robot import *
-from deplacements import Deplacements_simu, DeplacementsSerie
+from deplacements import DeplacementsSimulateur, DeplacementsSerie
 from serie import Serie
 from scripts import Script, ScriptBougies
 from log import Log
@@ -28,32 +28,30 @@ class Container:
             conf = Config()
             conf.set_chemin(chemin+"/config")
             return conf
-        self.assembler.register(Config,factory=make_conf)
+        self.assembler.register("config",Config,factory=make_conf)
         
         #utilisation du service de configuration pour la suite
-        self.config = self.get_service(Config)
+        self.config = self.get_service("config")
         
         #enregistrement du service des logs
         def make_log(config):
             log = Log(self.config)
             log.set_chemin(chemin)
             return log
-        self.assembler.register(Log, requires = [Config], factory=make_log)
+        self.assembler.register("log", Log, requires = ["config"], factory=make_log)
         
         #enregistrement du service Serie
-        self.assembler.register(Serie)
+        self.assembler.register("serie", Serie)
         
         #enregistrement du service des déplacements
         if (self.config["mode_simulateur"]):
-            Deplacements = Deplacements_simu
-            self.assembler.register(Deplacements, requires=[Config,Log])
+            self.assembler.register("deplacements",DeplacementsSimulateur, requires=["config","log"])
         else:
-            Deplacements = DeplacementsSerie
-            self.assembler.register(Deplacements, requires=[Serie,Config,Log])
+            self.assembler.register("deplacements",DeplacementsSerie, requires=["serie","config","log"])
         
         #enregistrement du service robot
-        self.assembler.register(Robot, requires=[Deplacements,Config,Log])
+        self.assembler.register("robot", Robot, requires=["deplacements","config","log"])
         
-    def get_service(self,type):
-        return self.assembler.provide(type)
+    def get_service(self,id):
+        return self.assembler.provide(id)
         
