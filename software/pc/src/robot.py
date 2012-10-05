@@ -1,12 +1,9 @@
 from time import time
+from mutex import Mutex
 
 class Robot:
-    #constantes de classe pour définir l'état de l'acquittement
-    moving = 0
-    arrived = 1
-    stopped = 2
-    
     def __init__(self,deplacements,config,log):
+        self.mutex = Mutex()
         
         #instances des dépendances
         self.deplacements = deplacements
@@ -18,4 +15,61 @@ class Robot:
         self.y = 0
         self.orientation = 0
         self.debut_jeu = time()
-        self.acquittement = self.arrived
+        
+        self.blocage = False
+        self.enCoursDeBlocage = False
+        self.enMouvement = False
+    
+    def get_enMouvement(self):
+        with self.mutex:
+            return self.enMouvement
+        
+    def get_blocage(self):
+        with self.mutex:
+            return self.blocage
+            
+    def update_enMouvement(self, erreur_rotation, erreur_translation, derivee_erreur_rotation, derivee_erreur_translation):
+        """
+        cette méthode récupère l'erreur en position du robot
+        et détermine si le robot est arrivé à sa position de consigne
+        """
+        rotation_stoppe = erreur_rotation < 105
+        translation_stoppe = erreur_translation < 100
+        bouge_pas = derivee_erreur_rotation == 0 and derivee_erreur_translation == 0
+        
+        with self.mutex:
+            self.enMouvement = not(rotation_stoppe and translation_stoppe and bouge_pas)
+    
+    def gestion_blocage(self,PWMmoteurGauche,PWMmoteurDroit,derivee_erreur_rotation,derivee_erreur_translation):
+        """
+        méthode de détection automatique des collisions, qui stoppe le robot lorsqu'il patine
+        """
+        moteur_force = PWMmoteurGauche > 45 or PWMmoteurDroit > 45
+        bouge_pas = derivee_erreur_rotation==0 and derivee_erreur_translation==0
+            
+        if (bouge_pas and moteur_force):
+            if self.enCoursDeBlocage:
+                #la durée de tolérance au patinage est fixée ici 
+                if time() - self.debut_timer_blocage > 0.5:
+                    self.deplacements.stopper()
+                    with self.mutex:
+                        self.blocage = True
+            else:
+                self.debut_timer_blocage = time()
+                self.enCoursDeBlocage = True
+        else:
+            self.enCoursDeBlocage = False
+            
+    def update_x_y_orientation(self, x, y, orientation):
+        with self.mutex:
+            self.x = x
+            self.y = y
+            self.orientation = orientation
+        
+    def avancer(self, distance):
+        #le robot n'est plus considéré comme bloqué
+        with self.mutex:
+            self.blocage = False
+        #utilisation du service de déplacement
+        self.deplacements.avancer(distance)
+        #TODO boucle d'acquittement

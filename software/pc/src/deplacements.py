@@ -1,4 +1,23 @@
+import abc
 
+class Deplacements(metaclass=abc.ABCMeta):
+    
+    @abc.abstractmethod
+    def parle(self):
+        pass
+    
+    #changer_vitesse_translation
+    #changer_vitesse_rotation
+    #avancer
+    #tourner
+    #get_x
+    #get_y
+    #get_orientation
+    #stopper
+    #get_infos_stoppage
+    #get_infos_enMouvement
+    
+    
 class DeplacementsSerie:
     """
     classe gérant les envoi sur la série de la carte d'asservissement.
@@ -12,6 +31,9 @@ class DeplacementsSerie:
         self.vitesse_translation = 2
         self.vitesse_rotation = 2
 
+    def parle(self):
+        print("déplacements pour la série")
+    
     def changer_vitesse_translation(self, valeur):
         """
         spécifie une vitesse prédéfinie en translation
@@ -60,21 +82,21 @@ class DeplacementsSerie:
         
     def avancer(self, distance):
         """
-        Fonction de script pour faire avancer le robot en ligne droite. (distance <0 => reculer)
-        :param distance: Distance à parcourir
-        :type angle: Float
+        Fonction de script pour faire avancer le robot en ligne droite. (distance<0 => reculer)
         """
+        self.serie.communiquer("asservissement",["d",float(distance)], 0)
         
-        envoi = ["d"]
-        envoi.append(float(distance))
-        self.serie.communiquer("asservissement",envoi, 0)
+    def get_infos_stoppage(self):
+        return self.serie.communiquer("asservissement","?bloc",4)
         
-        #pour redémarrer la gestion_stoppage : le robot n'est plus considéré à l'arret
-        #TODO : récupérer cet attribut de Asservissement
-        self.est_stoppe = False
+    def get_infos_enMouvement(self):
+        return self.serie.communiquer("asservissement","?arret",4)
+        
+    def get_infos_x_y_orientation(self):
+        return self.serie.communiquer("asservissement","?xyo",3)
 
         
-class Deplacements_simu:
+class DeplacementsSimulateur(Deplacements):
 
     def __init__(self,config,log):
         self.config = config
