@@ -43,82 +43,67 @@ logging.StreamHandler.emit = add_coloring_to_emit_ansi(logging.StreamHandler.emi
 
 class Log:
     """
-    Classe permettant de gérer les logs\n\n
+    Classe permettant de gérer les logs
+    A besoin d'une instance Config pour se lancer (fournie par l'injecteur de données)
+    Après avoir été instanciée, la methode self.set_chemin(chemin) doit être appellée
+      afin de fournir à la classe le chemin vers le dossier où seront enregistrés les logs.
+      (si cette méthode n'est pas appellée, les logs ne fonctionneront pas).
     
-    Pour utiliser les logs dans vos fichiers :\n
-    Pour charger le système de log correctement, en début de fichier ajoutez :\n
-    import lib.log\n
-    log = lib.log.self(__name__)
-    \n
-    Puis vous pouvez logguer des messages avec (dans ordre croissant de niveau) :\n
-    log.logger.debug('mon message')\n
-    log.logger.info('mon message')\n
-    log.logger.warning('mon message')\n
-    log.logger.error('mon message')\n
-    log.logger.critical('mon message')\n
-    \n
-    L'arborescence des fichiers de logs est : [annee]-[mois]-[jour]/[revision].log\n\n
-
-    :param logs: Enregistrer dans les fichiers de log ?
-    :type logs: bool
-    :param logs_level: Enregistrer à partir de quel niveau de log ?
-    :type logs_level: string 'DEBUG'|'INFO'|'WARNING'|'ERROR'|'CRITICAL'
-    :param logs_format: Format des logs (voir http://docs.python.org/library/logging.html#logrecord-attributes). Ex : '%(asctime)s:%(name)s:%(levelname)s:%(message)s'
-    :type logs_format: string
-    :param stderr: Afficher les erreur dans le stderr ? (ie à l'écran)
-    :type stderr: bool
-    :param stderr_level: Afficher sur l'écran à partir de quel niveau de log ?
-    :type stderr_level: string 'DEBUG'|'INFO'|'WARNING'|'ERROR'|'CRITICAL'
-    :param stderr_format: Format d'affiche à l'écran (voir http://docs.python.org/library/logging.html#logrecord-attributes). Ex : '%(asctime)s:%(name)s:%(levelname)s:%(message)s'
-    :type stderr_format: string
-    :param dossier: Dossier où mettre les logs (à partir de la racine du code, c'est-à-dire le dossier contenant lanceur.py). Ex : 'logs'
-    :type dossier: string
+    Une fois tous ces préparatifs faits, l'utilisateur peut appeller 3 niveaux de log :
+        Log.debug(message)      ---> Message de débug.             (DEBUG)
+        Log.warning(message)    ---> Message d'avertissement.      (WARNING)
+        Log.critical(message)   ---> Message d'erreur critique.    (CRITICAL)
+    
+    
     """
     def __init__(self, config):
-        self.config         = config
-        self.nom            = "LOG"
-        self.logs           = self.config["log_sauvegarde"]
-        self.stderr         = self.config["log_affichage"]
-        self.logs_level     = self.config["log_level_sauvegarde"]
-        self.stderr_level   = self.config["log_level_affichage"]
-        self.logs_format    = self.config["log_format_sauvegarde"]
-        self.stderr_format  = self.config["log_format_affichage"]
-        self.dossier        = self.config["log_nom_dossier"]
+        self.config             = config
+        self.nom                = self.config["log_nom"]
+        self.logs               = self.config["log_sauvegarde"]
+        self.stderr             = self.config["log_affichage"]
+        self.logs_level         = self.config["log_level_sauvegarde"]
+        self.stderr_level       = self.config["log_level_affichage"]
+        self.logs_format        = self.config["log_format_sauvegarde"]
+        self.stderr_format      = self.config["log_format_affichage"]
+        self.dossier            = self.config["log_nom_dossier"]
+        self.dossier_tmp        = self.config["log_nom_dossier_tmp"]
+        self.taille_dossier_tmp = self.config["log_maxsize_tmp"]
         
-        if (self.logs != None and self.stderr != None and self.dossier != None):
-            self.initialisation()
         
-        # Normalement, ce bout de code n'est pas appellé.
-        elif str(self.__init__.im_class) != "tests.log.Testself":
-            print >> sys.stderr, "Erreur : Veuillez donner des paramètres pour créer un objet self"
-            self.logger = logging.getselfger(self.nom)
-            self.logger.setLevel(logging.DEBUG)
-            self.stderr_handler = logging.StreamHandler()
-            self.stderr_handler.setLevel(logging.WARNING)
-            formatter = logging.Formatter("%(asctime)s:%(levelname)s:%(message)s", "%H:%M:%S")
-            self.stderr_handler.setFormatter(formatter)
-            self.logger.addHandler(self.stderr_handler)
+        
+        self.initialisation()
 
     def initialisation(self):
-        self.levels = ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')
-       
+        self.levels = ('DEBUG', 'WARNING', 'CRITICAL')
+        if not (self.logs_level in self.levels and self.stderr_level in self.levels):
+            raise Exception("Erreur sur les noms de logs")
+        
         # Création du logger
         self.logger = logging.getLogger(self.nom)
         
+        # Raccourcis.
         self.debug = self.logger.debug
         self.warning = self.logger.warning
         self.critical = self.logger.critical
         
         self.logger.setLevel(logging.DEBUG)
  
+    
     def set_chemin(self, dossier_racine) :
-        self.dossier_racine = dossier_racine
-        self.dossier_abs    = os.path.join(self.dossier_racine, self.dossier)
+        """
+        Permet d'ajouter aux logs la cible du fichier d'enregistrement.
+        
+        """
+        self.dossier_racine     = dossier_racine
+        self.dossier_abs        = os.path.join(self.dossier_racine, self.dossier)
+        self.dossier_tmp_abs    = os.path.join(self.dossier_abs, self.dossier_tmp)
+        
+        self.revision_disponible()
+        
+        self.nom_fichier_log    = os.path.join(self.dossier_abs, str(self.revision)+".log")
+        self.nom_fichier_tmp    = os.path.join(self.dossier_tmp_abs, "TMP")
         
         if self.logs:
-            self.creer_dossier(self.dossier_abs)
-            if not hasattr(self, 'revision'):
-                self.revision = self.revision_disponible()
             # Ajout du handler pour logs
             self.configurer_logs()
             
@@ -126,20 +111,22 @@ class Log:
             # Ajout du handler pour stderr
             self.configurer_stderr()
  
-    def creer_dossier(self, dossier):
+    def creer_dossier(self):
         """
         Crée un dossier si il n'existe pas déjà
-        
-        :param dossier: chemin vers le dossier à créer
-        :type dossier: string
-        :return: True si on a eu besoin de créer le dossier, False si il existait déjà
-        :rtype: bool
+        Crée aussi le dossier tmp~ pour le ramdisk
         """
-        if not os.access(dossier, os.F_OK):
-            os.makedirs(dossier)
-            return True
-        return False
-
+        # Dossier de logs
+        if not os.access(self.dossier_abs, os.F_OK):
+            os.makedirs(self.dossier_abs)
+        # Dossier ramdisk
+        if not os.access(self.dossier_tmp_abs, os.F_OK) :
+            os.makedirs(self.dossier_tmp_abs)
+        
+        # Montage du dossier ramdisk en RAM
+        os.system("sudo mount -t tmpfs -o size=" + self.taille_dossier_tmp + " tmpfs " + self.dossier_tmp_abs)
+        
+        
     def revision_disponible(self):
         """
         Donne la prochaine révision à créer dans les logs
@@ -149,11 +136,12 @@ class Log:
         :return: révision à créer
         :rtype: int
         """
-        i = 0
-        self.creer_dossier(self.dossier_abs)
-        while os.path.exists(self.dossier_abs+"/"+str(i)+".log"):
-            i += 1
-        return i
+        if not hasattr(self, "revision") :
+            i = 0
+            self.creer_dossier()
+            while os.path.exists(os.path.join(self.dossier_abs, str(i)+".log")):
+                i += 1
+            self.revision = i
     
     def configurer_logs(self):
         """
@@ -161,8 +149,7 @@ class Log:
         """
         if hasattr(self, 'logs_handler'):
             self.logger.removeHandler(self.logs_handler)
-        self.logs_handler = logging.FileHandler(self.dossier_abs+"/"+str(self.revision)+".log")
-        
+        self.logs_handler = logging.FileHandler(self.nom_fichier_tmp)
         exec("self.logs_handler.setLevel(logging."+self.logs_level+")")
         formatter = logging.Formatter(self.logs_format)
         self.logs_handler.setFormatter(formatter)
@@ -179,3 +166,12 @@ class Log:
         formatter = logging.Formatter(self.stderr_format, "%Hh%Mm%Ss")
         self.stderr_handler.setFormatter(formatter)
         self.logger.addHandler(self.stderr_handler)
+        
+    def flush(self) :
+        self.logs_handler.close()
+        
+        f_tmp = open(self.nom_fichier_tmp, "r")
+        f_log = open(self.nom_fichier_log, "w")
+        f_log.write(f_tmp.read())
+        f_log.close()
+        f_tmp.close()
