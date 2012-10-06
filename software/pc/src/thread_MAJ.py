@@ -13,6 +13,8 @@ def fonction_MAJ(container):
     #importation des services nécessaires
     log = container.get_service("log")
     robot = container.get_service("robot")
+    #table = container.get_service("table")
+    #capteurs = container.get_service("capteurs")
     
     log.debug("lancement du thread de mise à jour")
     while 42:
