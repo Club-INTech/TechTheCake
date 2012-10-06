@@ -249,14 +249,6 @@ void Robot::communiquer_pc(){
 		etat_tra_ = true;
 	}
 
-	//demande de la position courante
-	else if(strcmp(buffer,"pos") == 0)
-	{
-		AQUITTER;
-		serial_t_::print((int32_t)x_);
-		serial_t_::print((int32_t)y_);
-	}
-
 	// Changement de la vitesse de translation
 	else if(strcmp(buffer,"ctv") == 0)
 	{

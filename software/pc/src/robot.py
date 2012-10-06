@@ -17,7 +17,7 @@ class Robot:
         self.debut_jeu = time()
         
         self.blocage = False
-        self.enCoursDeBlocage = False
+        self._enCoursDeBlocage = False
         self.enMouvement = False
     
     def get_enMouvement(self):
@@ -48,7 +48,7 @@ class Robot:
         bouge_pas = derivee_erreur_rotation==0 and derivee_erreur_translation==0
             
         if (bouge_pas and moteur_force):
-            if self.enCoursDeBlocage:
+            if self._enCoursDeBlocage:
                 #la durée de tolérance au patinage est fixée ici 
                 if time() - self.debut_timer_blocage > 0.5:
                     self.log.warning("le robot a dû s'arrêter suite à un patinage.")
@@ -57,9 +57,9 @@ class Robot:
                         self.blocage = True
             else:
                 self.debut_timer_blocage = time()
-                self.enCoursDeBlocage = True
+                self._enCoursDeBlocage = True
         else:
-            self.enCoursDeBlocage = False
+            self._enCoursDeBlocage = False
             
     def update_x_y_orientation(self, x, y, orientation_milliRadians):
         with self.mutex:
