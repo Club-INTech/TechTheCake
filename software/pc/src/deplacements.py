@@ -237,3 +237,51 @@ class DeplacementsSimulateur(Deplacements):
     def __init__(self,config,log):
         self.config = config
         self.log = log
+        
+    def avancer(self, distance):
+        pass
+
+    def tourner(self, angle):
+        pass
+    
+    def set_x(self, new_x):
+        pass
+    
+    def set_y(self, new_y):
+        pass
+    
+    def set_orientation(self, new_o):
+        pass
+    
+    def activer_asservissement_translation(self):
+        pass
+    
+    def activer_asservissement_rotation(self):
+        pass
+    
+    def desactiver_asservissement_translation(self):
+        pass
+    
+    def desactiver_asservissement_rotation(self):
+        pass
+    
+    def stopper(self):
+        pass
+    
+    def get_vitesse_translation(self):
+        pass
+    
+    def get_vitesse_rotation(self):
+        pass
+    
+    def set_vitesse_translation(self, valeur):
+        pass
+    
+    def set_vitesse_rotation(self, valeur):
+        pass
+    
+    def get_infos_stoppage_enMouvement(self):
+        pass
+    
+    def get_infos_x_y_orientation(self):
+        pass
