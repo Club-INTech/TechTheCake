@@ -59,6 +59,7 @@ class Serie:
                     print(e)
         
     def clean_string(self, chaine):
+        #suppressions des caractères spéciaux sur la série
         return chaine.replace("\n","").replace("\r","").replace("\0","") 
     
     def communiquer(self, destinataire, messages, nb_lignes_reponse):
