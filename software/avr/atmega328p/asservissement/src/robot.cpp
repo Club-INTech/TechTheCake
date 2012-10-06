@@ -291,24 +291,14 @@ void Robot::communiquer_pc(){
 		changerVitesseRot(kp, kd, brid);
 	}
 	
-	//envoi des paramètres pour l'évaluation des conditions de blocage
-	else if(strcmp(buffer,"?bloc") == 0)
+	//envoi des paramètres pour l'évaluation des conditions de blocage et d'arret
+	else if(strcmp(buffer,"?infos") == 0)
 	{
 		AQUITTER;
 		serial_t_::print((int16_t)abs(moteurGauche.pwm()));
 		serial_t_::print((int16_t)abs(moteurDroit.pwm()));
-		serial_t_::print((int16_t)rotation.erreur_d());
-		serial_t_::print((int16_t)translation.erreur_d());
-	}
-	
-	//envoi des paramètres pour l'évaluation des conditions d'arret
-	else if(strcmp(buffer,"?arret") == 0)
-	{
-		AQUITTER;
 		serial_t_::print((int16_t)abs(rotation.erreur()));
 		serial_t_::print((int16_t)abs(translation.erreur()));
-		serial_t_::print((int16_t)rotation.erreur_d());
-		serial_t_::print((int16_t)translation.erreur_d());
 	}
 	
 	//envoi des coordonnées du robot

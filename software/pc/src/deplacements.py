@@ -30,6 +30,16 @@ class DeplacementsSerie:
         
         self.vitesse_translation = 2
         self.vitesse_rotation = 2
+        
+        #sauvegarde d'infos bas niveau sur l'état du robot, réutilisées par plusieurs calculs dans le thread de mise à jour
+        self.infos_stoppage_enMouvement={
+            "PWMmoteurGauche" : 0,
+            "PWMmoteurDroit" : 0,
+            "erreur_rotation" : 0,
+            "erreur_translation" : 0,
+            "derivee_erreur_rotation" : 0,
+            "derivee_erreur_translation" : 0
+            }
 
     def parle(self):
         print("déplacements pour la série")
@@ -80,23 +90,39 @@ class DeplacementsSerie:
         #sauvegarde de la valeur choisie
         self.vitesse_rotation = int(valeur)
         
+    def get_infos_stoppage_enMouvement(self):
+        infos_string = self.serie.communiquer("asservissement","?infos",4)
+        infos_string = list(map(lambda x: int(x), infos_string))
+        
+        deriv_erreur_rot = infos_string[2] - self.infos_stoppage_enMouvement["erreur_rotation"]
+        deriv_erreur_tra = infos_string[3] - self.infos_stoppage_enMouvement["erreur_translation"]
+        
+        self.infos_stoppage_enMouvement={
+            "PWMmoteurGauche" : infos_string[0],
+            "PWMmoteurDroit" : infos_string[1],
+            "erreur_rotation" : infos_string[2],
+            "erreur_translation" : infos_string[3],
+            "derivee_erreur_rotation" : deriv_erreur_rot,
+            "derivee_erreur_translation" : deriv_erreur_tra
+            }
+            
+        return self.infos_stoppage_enMouvement
+    
+    def get_infos_x_y_orientation(self):
+        infos_string = self.serie.communiquer("asservissement","?xyo",3)
+        return list(map(lambda x: int(x), infos_string))
+        
     def avancer(self, distance):
         """
         Fonction de script pour faire avancer le robot en ligne droite. (distance<0 => reculer)
         """
         self.serie.communiquer("asservissement",["d",float(distance)], 0)
         
-    def get_infos_stoppage(self):
-        infos_string = self.serie.communiquer("asservissement","?bloc",4)
-        return list(map(lambda x: int(x), infos_string))
-        
-    def get_infos_enMouvement(self):
-        infos_string = self.serie.communiquer("asservissement","?arret",4)
-        return list(map(lambda x: int(x), infos_string))
-        
-    def get_infos_x_y_orientation(self):
-        infos_string = self.serie.communiquer("asservissement","?xyo",3)
-        return list(map(lambda x: int(x), infos_string))
+    def stopper(self):
+        """
+        Fonction de script pour stopper le robot (l'asservir sur place)
+        """
+        self.serie.communiquer("asservissement","stop", 0)
 
         
 class DeplacementsSimulateur(Deplacements):

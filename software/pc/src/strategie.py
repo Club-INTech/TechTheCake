@@ -16,5 +16,5 @@ class Strategie:
         
     def boucle_pipeau(self):
         while 1 :
-            self.log.warning(str(self.robot.get_orientation()))
-            sleep(1)
+            self.log.debug(str(self.robot.get_x())+", "+str(self.robot.get_y())+", "+str(self.robot.get_orientation()))
+            sleep(0.1)

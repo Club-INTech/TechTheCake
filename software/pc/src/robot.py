@@ -28,7 +28,7 @@ class Robot:
         with self.mutex:
             return self.blocage
             
-    def update_enMouvement(self, erreur_rotation, erreur_translation, derivee_erreur_rotation, derivee_erreur_translation):
+    def update_enMouvement(self, erreur_rotation, erreur_translation, derivee_erreur_rotation, derivee_erreur_translation, **useless):
         """
         cette méthode récupère l'erreur en position du robot
         et détermine si le robot est arrivé à sa position de consigne
@@ -40,7 +40,7 @@ class Robot:
         with self.mutex:
             self.enMouvement = not(rotation_stoppe and translation_stoppe and bouge_pas)
     
-    def gestion_blocage(self,PWMmoteurGauche,PWMmoteurDroit,derivee_erreur_rotation,derivee_erreur_translation):
+    def gestion_blocage(self,PWMmoteurGauche,PWMmoteurDroit,derivee_erreur_rotation,derivee_erreur_translation, **useless):
         """
         méthode de détection automatique des collisions, qui stoppe le robot lorsqu'il patine
         """
@@ -51,6 +51,7 @@ class Robot:
             if self.enCoursDeBlocage:
                 #la durée de tolérance au patinage est fixée ici 
                 if time() - self.debut_timer_blocage > 0.5:
+                    self.log.warning("le robot a dû s'arrêter suite à un patinage.")
                     self.deplacements.stopper()
                     with self.mutex:
                         self.blocage = True
