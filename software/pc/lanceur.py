@@ -9,8 +9,9 @@ from src.strategie import Strategie
 
 container = Container()
 
-thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
-thread_MAJ.start()
+#thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
+#thread_MAJ.start()
 
-strat = Strategie(container)
-strat.boucle_pipeau()
+#strat = Strategie(container)
+#strat.attrib()
+serie = container.get_service("serie")

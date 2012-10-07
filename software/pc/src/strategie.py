@@ -18,3 +18,7 @@ class Strategie:
         while 1 :
             self.log.debug(str(self.robot.get_x())+", "+str(self.robot.get_y())+", "+str(self.robot.get_orientation()))
             sleep(0.1)
+            
+    def attrib(self):
+        pass
+        

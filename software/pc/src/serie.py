@@ -17,11 +17,15 @@ class Peripherique:
         
 class Serie:
         
-    def __init__(self):
+    def __init__(self, log):
+        
+        #instances des dépendances
+        self.log = log
+        
         #mutex évitant les écritures/lectures simultanées sur la série
         self.mutex = Mutex()
         #dictionnaire des périphériques recherchés
-        self.peripheriques = {"asservissement": Peripherique(0,9600)}#,"capteurs_actionneurs" : Peripherique(3,9600)}
+        self.peripheriques = {"asservissement": Peripherique(0,9600),"capteurs_actionneurs" : Peripherique(3,9600)}
         #attribution initiale des périphériques
         self.attribuer()
         
@@ -35,7 +39,7 @@ class Serie:
         for destinataire in (self.peripheriques):
             for source in sources:
                 try:
-                    print("##("+destinataire+", "+source+"############################")
+                    print("---> recherche de "+destinataire+" sur "+source)
                     instanceSerie = Serial(source, self.peripheriques[destinataire].baudrate, timeout=0.1)
                     
                     #vide le buffer de l'avr
@@ -45,10 +49,9 @@ class Serie:
                     instanceSerie.write(bytes("?\r","utf-8"))
                     instanceSerie.readline()
                     rep = str(instanceSerie.readline(),"utf-8")
-                    print(self.clean_string(rep)+" -- "+str(self.peripheriques[destinataire].id))
+                    print("recu : >"+self.clean_string(rep)+"<"+" / attendu : >"+str(self.peripheriques[destinataire].id)+"<")
                     if self.clean_string(rep) == str(self.peripheriques[destinataire].id):
-                        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-                        print(destinataire+"\tOK sur "+source)
+                        self.log.debug(destinataire+"\tOK sur "+source)
                         self.peripheriques[destinataire].chemin = source
                         self.peripheriques[destinataire].serie = instanceSerie
                         sources.remove(source)
@@ -57,6 +60,8 @@ class Serie:
                         instanceSerie.close()
                 except Exception as e:
                     print(e)
+            if not "serie" in self.peripheriques[destinataire].__dict__:
+                self.log.warning(destinataire+"\tnon trouvé !")
         
     def clean_string(self, chaine):
         #suppressions des caractères spéciaux sur la série
