@@ -30,44 +30,70 @@ class Serie:
         self.attribuer()
         
     def attribuer(self):
-        #listage des périphériques trouvés dans /dev
+        #liste les chemins trouvés dans /dev
         sources = os.popen('ls -1 /dev/ttyUSB* 2> /dev/null').readlines()
         sources.extend(os.popen('ls -1 /dev/ttyACM* 2> /dev/null').readlines())
         for k in range(len(sources)):
             sources[k] = sources[k].replace("\n","")
         
+        #liste les baudrates des périphériques recherchés
+        baudrates = []
         for destinataire in (self.peripheriques):
+            if not self.peripheriques[destinataire].baudrate in baudrates:
+                baudrates.append(self.peripheriques[destinataire].baudrate)
+        
+        #recherche les pings présents sur les chemins et baudrates listés
+        pings = {}
+        for baudrate in baudrates:
+            print("liste des pings pour le baudrate "+str(baudrate)+" :")
             for source in sources:
                 try:
-                    print("---> recherche de "+destinataire+" sur "+source)
-                    instanceSerie = Serial(source, self.peripheriques[destinataire].baudrate, timeout=0.1)
+                    instanceSerie = Serial(source, baudrate, timeout=0.1)
                     
                     #vide le buffer de l'avr
                     instanceSerie.write(bytes("\r","utf-8"))
-                    sleep(0.1)
-                    
+                    #ping
                     instanceSerie.write(bytes("?\r","utf-8"))
+                    #évacuation de l'acquittement
                     instanceSerie.readline()
-                    rep = str(instanceSerie.readline(),"utf-8")
-                    print("recu : >"+self.clean_string(rep)+"<"+" / attendu : >"+str(self.peripheriques[destinataire].id)+"<")
-                    if self.clean_string(rep) == str(self.peripheriques[destinataire].id):
-                        self.log.debug(destinataire+"\tOK sur "+source)
-                        self.peripheriques[destinataire].chemin = source
-                        self.peripheriques[destinataire].serie = instanceSerie
-                        sources.remove(source)
-                        break
-                    else:
-                        instanceSerie.close()
+                    #réception de l'id de la carte
+                    rep = self.clean_string(str(instanceSerie.readline(),"utf-8"))
+                    #fermeture du périphérique
+                    instanceSerie.close()
+                    #tentative de cast pour extraire un id
+                    try:
+                        id = int(rep)
+                        pings[id]=source
+                        print(" * "+str(id)+" sur "+source)
+                    except:
+                        pass
                 except Exception as e:
                     print(e)
-            if not "serie" in self.peripheriques[destinataire].__dict__:
-                self.log.warning(destinataire+"\tnon trouvé !")
+                    
+        #attribue les instances de série pour les périphériques ayant le bon ping
+        for destinataire in (self.peripheriques):
+            if self.peripheriques[destinataire].id in pings:
+                source = pings[self.peripheriques[destinataire].id]
+                self.log.debug(destinataire+" OK sur "+source)
+                self.peripheriques[destinataire].chemin = source
+                self.peripheriques[destinataire].serie = Serial(source, self.peripheriques[destinataire].baudrate, timeout=0.1)
+            else:
+                self.log.warning(destinataire+" non trouvé !")
         
     def clean_string(self, chaine):
         #suppressions des caractères spéciaux sur la série
         return chaine.replace("\n","").replace("\r","").replace("\0","") 
     
     def communiquer(self, destinataire, messages, nb_lignes_reponse):
+        """
+        méthode de communication via la série
+        envoi d'abord au destinataire une liste de trames au périphériques 
+        (celles ci sont toutes acquittées une par une pour éviter le flood)
+        puis récupère nb_lignes_reponse trames sous forme de liste
+        
+        une liste messages d'un seul élément : ["chaine"] peut éventuellement être remplacée par l'élément simple : "chaine"  #userFriendly
+        """
+        
         with self.mutex:
             if not type(messages) is list:
                 #permet l'envoi d'un seul message, sans structure de liste
