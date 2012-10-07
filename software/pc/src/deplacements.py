@@ -1,27 +1,88 @@
+#module natif pour les méthodes abstraites
 import abc
 
+################################################
+## CLASSE D'INTERFACE POUR LES DEPLACEMENTS  ###
+################################################
 class Deplacements(metaclass=abc.ABCMeta):
+    """
+    classe d'interface pour les déplacements
+    les méthodes abstraites définies ici doivent impérativement être surchargées dans les classes filles
+    (DeplacementsSimulateur et DeplacementsSerie)
+    """
     
     @abc.abstractmethod
-    def parle(self):
+    def avancer(self, distance):
         pass
     
-    #changer_vitesse_translation
-    #changer_vitesse_rotation
-    #avancer
-    #tourner
-    #get_x
-    #get_y
-    #get_orientation
-    #stopper
-    #get_infos_stoppage
-    #get_infos_enMouvement
+    @abc.abstractmethod
+    def tourner(self, angle):
+        pass
     
+    @abc.abstractmethod
+    def set_x(self, new_x):
+        pass
     
-class DeplacementsSerie:
+    @abc.abstractmethod
+    def set_y(self, new_y):
+        pass
+    
+    @abc.abstractmethod
+    def set_orientation(self, new_o):
+        pass
+    
+    @abc.abstractmethod
+    def activer_asservissement_translation(self):
+        pass
+    
+    @abc.abstractmethod
+    def activer_asservissement_rotation(self):
+        pass
+    
+    @abc.abstractmethod
+    def desactiver_asservissement_translation(self):
+        pass
+    
+    @abc.abstractmethod
+    def desactiver_asservissement_rotation(self):
+        pass
+    
+    @abc.abstractmethod
+    def stopper(self):
+        pass
+    
+    @abc.abstractmethod
+    def get_vitesse_translation(self):
+        pass
+    
+    @abc.abstractmethod
+    def get_vitesse_rotation(self):
+        pass
+    
+    @abc.abstractmethod
+    def set_vitesse_translation(self, valeur):
+        pass
+    
+    @abc.abstractmethod
+    def set_vitesse_rotation(self, valeur):
+        pass
+    
+    @abc.abstractmethod
+    def get_infos_stoppage_enMouvement(self):
+        pass
+    
+    @abc.abstractmethod
+    def get_infos_x_y_orientation(self):
+        pass
+    
+
+##############################################################
+## CLASSE POUR LES DEPLACEMENTS RÉELS (ENVOI SUR LA SÉRIE) ###
+##############################################################
+class DeplacementsSerie(Deplacements):
     """
     classe gérant les envoi sur la série de la carte d'asservissement.
-    hérite de la classe SerialManager
+    hérite de la classe d'interface Deplacements
     """
     def __init__(self,serie,config,log):
         self.serie = serie
@@ -30,11 +91,73 @@ class DeplacementsSerie:
         
         self.vitesse_translation = 2
         self.vitesse_rotation = 2
-
-    def parle(self):
-        print("déplacements pour la série")
+        
+        #sauvegarde d'infos bas niveau sur l'état du robot, réutilisées par plusieurs calculs dans le thread de mise à jour
+        self.infos_stoppage_enMouvement={
+            "PWMmoteurGauche" : 0,
+            "PWMmoteurDroit" : 0,
+            "erreur_rotation" : 0,
+            "erreur_translation" : 0,
+            "derivee_erreur_rotation" : 0,
+            "derivee_erreur_translation" : 0
+            }   
+            
+    def avancer(self, distance):
+        """
+        fait avancer le robot en ligne droite. (distance<0 => reculer)
+        """
+        self.serie.communiquer("asservissement",["d",float(distance)], 0)
     
-    def changer_vitesse_translation(self, valeur):
+       
+    def tourner(self, angle):
+        """
+        oriente le robot à un angle dans le repère de la table.
+        """
+        self.serie.communiquer("asservissement",["t",float(angle)], 0)
+        
+    def set_x(self, new_x):
+        """
+        écrase la position sur x du robot.
+        """
+        self.serie.communiquer("asservissement",["cx",float(new_x)], 0)
+        
+    def set_y(self, new_y):
+        """
+        écrase la position sur y du robot.
+        """
+        self.serie.communiquer("asservissement",["cy",float(new_y)], 0)
+        
+    def set_orientation(self, new_o):
+        """
+        écrase l'orientation du robot.
+        """
+        self.serie.communiquer("asservissement",["co",float(new_o)], 0)
+        
+    def activer_asservissement_translation(self):
+        self.serie.communiquer("asservissement","ct1", 0)
+        
+    def activer_asservissement_rotation(self):
+        self.serie.communiquer("asservissement","cr1", 0)
+        
+    def desactiver_asservissement_translation(self):
+        self.serie.communiquer("asservissement","ct0", 0)
+        
+    def desactiver_asservissement_rotation(self):
+        self.serie.communiquer("asservissement","cr0", 0)
+        
+    def stopper(self):
+        """
+        stoppe le robot (l'asservit sur place)
+        """
+        self.serie.communiquer("asservissement","stop", 0)
+        
+    def get_vitesse_translation(self):
+        return self.vitesse_translation
+        
+    def get_vitesse_rotation(self):
+        return self.vitesse_rotation
+        
+    def set_vitesse_translation(self, valeur):
         """
         spécifie une vitesse prédéfinie en translation
         une valeur 1,2,3 est attendue
@@ -57,7 +180,7 @@ class DeplacementsSerie:
         #sauvegarde de la valeur choisie
         self.vitesse_translation = int(valeur)
         
-    def changer_vitesse_rotation(self, valeur):
+    def set_vitesse_rotation(self, valeur):
         """
         spécifie une vitesse prédéfinie en rotation
         une valeur 1,2,3 est attendue
@@ -80,30 +203,85 @@ class DeplacementsSerie:
         #sauvegarde de la valeur choisie
         self.vitesse_rotation = int(valeur)
         
-    def avancer(self, distance):
-        """
-        Fonction de script pour faire avancer le robot en ligne droite. (distance<0 => reculer)
-        """
-        self.serie.communiquer("asservissement",["d",float(distance)], 0)
+    def get_infos_stoppage_enMouvement(self):
+        infos_string = self.serie.communiquer("asservissement","?infos",4)
+        infos_string = list(map(lambda x: int(x), infos_string))
         
-    def get_infos_stoppage(self):
-        infos_string = self.serie.communiquer("asservissement","?bloc",4)
-        return list(map(lambda x: int(x), infos_string))
+        deriv_erreur_rot = infos_string[2] - self.infos_stoppage_enMouvement["erreur_rotation"]
+        deriv_erreur_tra = infos_string[3] - self.infos_stoppage_enMouvement["erreur_translation"]
         
-    def get_infos_enMouvement(self):
-        infos_string = self.serie.communiquer("asservissement","?arret",4)
-        return list(map(lambda x: int(x), infos_string))
-        
+        self.infos_stoppage_enMouvement={
+            "PWMmoteurGauche" : infos_string[0],
+            "PWMmoteurDroit" : infos_string[1],
+            "erreur_rotation" : infos_string[2],
+            "erreur_translation" : infos_string[3],
+            "derivee_erreur_rotation" : deriv_erreur_rot,
+            "derivee_erreur_translation" : deriv_erreur_tra
+            }
+            
+        return self.infos_stoppage_enMouvement
+    
     def get_infos_x_y_orientation(self):
         infos_string = self.serie.communiquer("asservissement","?xyo",3)
         return list(map(lambda x: int(x), infos_string))
-
         
+        
+#################################################
+## CLASSE POUR LES DEPLACEMENTS EN SIMULATION ###
+#################################################
 class DeplacementsSimulateur(Deplacements):
-
+    """
+    classe gérant la simulation des déplacements du robot
+    hérite de la classe d'interface Deplacements
+    """
     def __init__(self,config,log):
         self.config = config
         self.log = log
         
-    def parle(self):
-        print("déplacements pour la simulation")
+    def avancer(self, distance):
+        pass
+
+    def tourner(self, angle):
+        pass
+    
+    def set_x(self, new_x):
+        pass
+    
+    def set_y(self, new_y):
+        pass
+    
+    def set_orientation(self, new_o):
+        pass
+    
+    def activer_asservissement_translation(self):
+        pass
+    
+    def activer_asservissement_rotation(self):
+        pass
+    
+    def desactiver_asservissement_translation(self):
+        pass
+    
+    def desactiver_asservissement_rotation(self):
+        pass
+    
+    def stopper(self):
+        pass
+    
+    def get_vitesse_translation(self):
+        pass
+    
+    def get_vitesse_rotation(self):
+        pass
+    
+    def set_vitesse_translation(self, valeur):
+        pass
+    
+    def set_vitesse_rotation(self, valeur):
+        pass
+    
+    def get_infos_stoppage_enMouvement(self):
+        pass
+    
+    def get_infos_x_y_orientation(self):
+        pass

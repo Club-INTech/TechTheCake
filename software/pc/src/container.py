@@ -41,7 +41,7 @@ class Container:
         self.assembler.register("log", Log, requires = ["config"], factory=make_log)
         
         #enregistrement du service Serie
-        self.assembler.register("serie", Serie)
+        self.assembler.register("serie", Serie, requires = ["log"])
         
         #enregistrement du service des déplacements
         if (self.config["mode_simulateur"]):
@@ -51,6 +51,17 @@ class Container:
         
         #enregistrement du service robot
         self.assembler.register("robot", Robot, requires=["deplacements","config","log"])
+        
+        """
+        #enregistrement du service donnant des infos sur la table
+        self.assembler.register("table", Table, requires=["config","log"])
+        
+        #enregistrement du service de recherche de chemin
+        self.assembler.register("recherche_chemin", RechercheChemin, requires=["table","log"])
+        
+        #enregistrement du service de scripts
+        self.assembler.register("script", Script, requires=["robot","config","log"])
+        """
         
     def get_service(self,id):
         return self.assembler.provide(id)
