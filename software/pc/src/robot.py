@@ -48,48 +48,29 @@ class Robot:
             self.__dict__[attribut] = value
             
     def __getattr__(self, attribut):
-        getters = {
-            "x":self.get_x,
-            "y":self.get_y,
-            "orientation":self.get_orientation,
-            "blocage":self.get_blocage,
-            "enMouvement":self.get_enMouvement
-        }
+        getters = [
+            "x",
+            "y",
+            "orientation",
+            "blocage",
+            "enMouvement"
+        ]
         if attribut in getters:
-            return getters[attribut]()
-            
-    def get_x(self):
-        with self.mutex:
-            return self.__dict__["_x"]
-            
+            with self.mutex:
+                return self.__dict__["_"+attribut]
+        
     def set_x(self, value):
         self.deplacements.set_x(value)
         
-    def get_y(self):
-        with self.mutex:
-            return self.__dict__["_y"]
-    
     def set_y(self, value):
         self.deplacements.set_y(value)
      
-    def get_orientation(self):
-        with self.mutex:
-            return self.__dict__["_orientation"]
-       
     def set_orientation(self, value):
         self.deplacements.set_orientation(value)
-        
-    def get_enMouvement(self):
-        with self.mutex:
-            return self.__dict__["_enMouvement"]
         
     def set_enMouvement(self, value):
         with self.mutex:
             self.__dict__["_enMouvement"] = value
-            
-    def get_blocage(self):
-        with self.mutex:
-            return self.__dict__["_blocage"]
             
     def set_blocage(self, value):
         with self.mutex:
