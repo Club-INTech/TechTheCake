@@ -1,8 +1,5 @@
 #!/bin/bash
-LOGIN=thibaut
-DOSSIER_DESTINATION=/home/thibaut/intech-2013/TEST/
+LOGIN=intech
+DOSSIER_DESTINATION=/home/intech/intech-2013/pc/
 
-echo "Adresse IP de la BeagleBoard : "
-read DOSSIER
-
-rsync -e ssh --delete-after --exclude-from exclusion.txt -az ../ "$LOGIN"@"$DOSSIER":"$DOSSIER_DESTINATION"
+rsync -e ssh --delete-after --exclude-from exclusion.txt -az ../ "$LOGIN"@"$1":"$DOSSIER_DESTINATION"
