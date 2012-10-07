@@ -51,7 +51,7 @@ class Serie:
                     instanceSerie = Serial(source, baudrate, timeout=0.1)
                     
                     #vide le buffer de l'avr
-                    self.clean_buffer(instanceSerie)
+                    instanceSerie.flushInput()
                     #ping
                     instanceSerie.write(bytes("?\r","utf-8"))
                     #évacuation de l'acquittement
@@ -82,20 +82,7 @@ class Serie:
         
     def clean_string(self, chaine):
         #suppressions des caractères spéciaux sur la série
-        return chaine.replace("\n","").replace("\r","").replace("\0","") 
-    
-    def clean_buffer(self, instanceSerie):
-        rep = ""
-        joker_vide = 2
-        instanceSerie.write(bytes("\r","utf-8"))
-        instanceSerie.write(bytes("!\r","utf-8"))
-        while not rep == "%" and joker_vide > 0:
-            rep = self.clean_string(str(instanceSerie.readline(),"utf-8"))
-            if rep == "":
-                joker_vide -= 1
-        if joker_vide == 0:
-            raise Exception
-        
+        return chaine.replace("\n","").replace("\r","").replace("\0","")         
         
     def communiquer(self, destinataire, messages, nb_lignes_reponse):
         """
