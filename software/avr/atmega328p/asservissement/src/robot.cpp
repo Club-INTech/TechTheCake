@@ -91,6 +91,13 @@ void Robot::communiquer_pc(){
 		serial_t_::print(0);
 	}
 	
+	//clean série
+	if(strcmp(buffer,"!") == 0)
+	{
+		AQUITTER;
+		serial_t_::print("%");
+	}
+	
 	//maj des constantes d'asservissement en rotation
 	else if(strcmp(buffer,"crp") == 0)
 	{
