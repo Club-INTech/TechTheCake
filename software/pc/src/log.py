@@ -15,15 +15,9 @@ def add_coloring_to_emit_ansi(fn):
             if(levelno>=50): # CRITICAL
                 color_msg = '\x1b[31m' # red
                 color_levelname = '\033[1;31m'
-            elif(levelno>=40): # ERROR
-                color_msg = '\x1b[33m' # yellow
-                color_levelname = '\033[1;33m'
             elif(levelno>=30): # WARNING
                 color_msg = '\x1b[33m' # magenta
                 color_levelname = '\033[1;33m'
-            elif(levelno>=20): # INFO
-                color_msg = '\x1b[32m' # green
-                color_levelname = '\033[1;32m'
             elif(levelno>=10): # DEBUG
                 color_msg = '\x1b[32m' # cyan
                 color_levelname = '\033[1;32m'
@@ -69,14 +63,15 @@ class Log:
         self.dossier_tmp        = self.config["log_nom_dossier_tmp"]
         self.taille_dossier_tmp = self.config["log_maxsize_tmp"]
         
-        
-        
         self.initialisation()
 
     def initialisation(self):
         self.levels = ('DEBUG', 'WARNING', 'CRITICAL')
         if not (self.logs_level in self.levels and self.stderr_level in self.levels):
             raise Exception("Erreur sur les noms de logs")
+        
+        if not (self.logs in (0,1) and self.stderr in (0,1)) :
+            raise Exception("Erreur sur les attributs log_affichage ou log_sauvegarde de config.ini")
         
         # Création du logger
         self.logger = logging.getLogger(self.nom)
@@ -168,6 +163,9 @@ class Log:
         self.logger.addHandler(self.stderr_handler)
         
     def flush(self) :
+        """
+        Flushe la sortie dans le disque dur. A appeller en fin de match.        
+        """
         self.logs_handler.close()
         
         f_tmp = open(self.nom_fichier_tmp, "r")
