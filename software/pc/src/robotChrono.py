@@ -1,9 +1,8 @@
 class RobotChrono:
     
-    def __init__(self):
-        self.x = 
-        self.y = 
-        self.orientation = 
+    def __init__(self, log):
+        
+        self.log = log
         self.duree = 0
         
         #tableau des 3 vitesses de translation 1,2,3 , en mm/sec
@@ -13,6 +12,12 @@ class RobotChrono:
         
         self.vitesse_translation = 2
         self.vitesse_rotation = 2
+        
+    def reset_compteur(self):
+        self.duree = 0
+        
+    def get_compteur(self):
+        return self.duree
         
     def gestion_avancer(self, distance):
         self.duree += distance / self.vitesses_translation[self.vitesse_translation-1]

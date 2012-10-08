@@ -173,7 +173,7 @@ class Robot:
         #etc..
         
     def gestion_tourner(self, angle):
-        retour = self.avancer(angle)
+        retour = self.tourner(angle)
         if retour == "capteur":
             self.stopper()
         #etc..

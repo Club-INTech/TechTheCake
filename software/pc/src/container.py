@@ -14,6 +14,7 @@ from assemblage import assembler
 #modules
 from read_ini import Config
 from robot import *
+from robotChrono import RobotChrono
 from deplacements import DeplacementsSimulateur, DeplacementsSerie
 from serie import Serie
 from scripts import Script, ScriptBougies
@@ -50,6 +51,9 @@ class Container:
         
         #enregistrement du service robot
         self.assembler.register("robot", Robot, requires=["deplacements","config","log"])
+        
+        #enregistrement du service robotChrono
+        self.assembler.register("robotChrono", RobotChrono, requires=["log"])
         
         """
         #enregistrement du service donnant des infos sur la table

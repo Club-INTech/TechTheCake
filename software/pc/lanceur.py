@@ -12,7 +12,11 @@ container = Container()
 thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
 thread_MAJ.start()
 
-strat = Strategie(container)
-strat.controleur()
 
-#serie = container.get_service("serie")
+
+strat = Strategie(container)
+
+input("appuyer sur une touche pour lancer le calcul de durée du script...")
+print(strat.scripts["pipeau"].calcule())
+input("appuyer sur une touche pour effectuer les mouvements du script...")
+strat.scripts["pipeau"].agit()
