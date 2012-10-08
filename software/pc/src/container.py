@@ -40,13 +40,12 @@ class Container:
             return log
         self.assembler.register("log", Log, requires = ["config"], factory=make_log)
         
-        #enregistrement du service Serie
-        self.assembler.register("serie", Serie, requires = ["log"])
-        
         #enregistrement du service des déplacements
         if (self.config["mode_simulateur"]):
             self.assembler.register("deplacements",DeplacementsSimulateur, requires=["config","log"])
         else:
+            #enregistrement du service Serie
+            self.assembler.register("serie", Serie, requires = ["log"])
             self.assembler.register("deplacements",DeplacementsSerie, requires=["serie","config","log"])
         
         #enregistrement du service robot

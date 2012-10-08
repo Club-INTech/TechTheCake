@@ -21,9 +21,28 @@ def fonction_MAJ(container):
         
         #mise à jour des coordonnées dans robot
         infos_xyo = robot.deplacements.get_infos_x_y_orientation()
+        
         robot.update_x_y_orientation(*infos_xyo)
         
-        #mise à jour de l'état du robot (en mouvement, stoppé, à la consigne), et gestion du blocage automatique
+        #récupération des informations bas niveau nécessaires pour gestion_blocage et update_enMouvement
         infos_stoppage_enMouvement = robot.deplacements.get_infos_stoppage_enMouvement()
-        robot.update_enMouvement(**infos_stoppage_enMouvement)
-        robot.gestion_blocage(**infos_stoppage_enMouvement)
+        
+        #mise à jour de l'attribut enMouvement du robot
+        robot.enMouvement = robot.deplacements.update_enMouvement(**infos_stoppage_enMouvement)
+        
+        #si un blocage est detecté, l'inscrire dans un attribut du robot
+        if robot.deplacements.gestion_blocage(**infos_stoppage_enMouvement):
+            robot.blocage = True
+            robot.enMouvement = False
+            
+        #print("isMoving : "+str(robot.deplacements.simulateur.isMoving()))
+        #print("isTurning : "+str(robot.deplacements.simulateur.isTurning()))
+        #print("isBlocked : "+str(robot.deplacements.simulateur.isBlocked()))
+        #print(robot.y)
+        #if robot.enMouvement:
+            #print("en mouvement")
+        #else:
+            #if robot.blocage:
+                #print("bloqué")
+            #else:
+                #print("arrivé")

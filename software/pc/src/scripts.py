@@ -4,11 +4,23 @@ class Script:
     classe mère des scripts
     se charge des dépendances
     """
-    def set_dependencies(self, robot, log, config):
-        self.robot = robot
+    def set_dependencies(self, robot, robotChrono, log, config):
+        
+        self.robotVrai = robot
+        self.robotChrono = robotChrono
         self.log = log
         self.config = config
 
+    def agit(self):
+        self.robot = self.robotVrai
+        self.execute()
+        
+    def calcule(self):
+        self.robot = self.robotChrono
+        self.execute()
+        return self.robot.duree()
+        
+    
         
 class ScriptBougies(Script):
     """
@@ -20,3 +32,5 @@ class ScriptBougies(Script):
         #dictionnaire définissant les bougies actives ou non
         self.bougies = {"bougie1" : False, "bougie2" : True, "bougie3" : True, "bougie4" : True}
         
+    def execute(self):
+        self.robot.agit()

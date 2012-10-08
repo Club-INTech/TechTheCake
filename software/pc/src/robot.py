@@ -1,4 +1,5 @@
-from time import time
+import math
+from time import time,sleep
 from mutex import Mutex
 
 class Robot:
@@ -23,8 +24,7 @@ class Robot:
         self._y = 0
         self._orientation = 0
         self._blocage = False
-        self._enCoursDeBlocage = False
-        self._enMouvement = False
+        self._enMouvement = True
         
         #durée de jeu TODO : à muter dans Table ?
         self.debut_jeu = time()
@@ -76,39 +76,6 @@ class Robot:
         with self.mutex:
             self.__dict__["_blocage"] = value
             
-    def update_enMouvement(self, erreur_rotation, erreur_translation, derivee_erreur_rotation, derivee_erreur_translation, **useless):
-        """
-        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
-        cette méthode récupère l'erreur en position du robot
-        et détermine si le robot est arrivé à sa position de consigne
-        """
-        rotation_stoppe = erreur_rotation < 105
-        translation_stoppe = erreur_translation < 100
-        bouge_pas = derivee_erreur_rotation == 0 and derivee_erreur_translation == 0
-        
-        self.enMouvement = not(rotation_stoppe and translation_stoppe and bouge_pas)
-    
-    def gestion_blocage(self,PWMmoteurGauche,PWMmoteurDroit,derivee_erreur_rotation,derivee_erreur_translation, **useless):
-        """
-        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
-        méthode de détection automatique des collisions, qui stoppe le robot lorsqu'il patine
-        """
-        moteur_force = PWMmoteurGauche > 45 or PWMmoteurDroit > 45
-        bouge_pas = derivee_erreur_rotation==0 and derivee_erreur_translation==0
-            
-        if (bouge_pas and moteur_force):
-            if self._enCoursDeBlocage:
-                #la durée de tolérance au patinage est fixée ici 
-                if time() - self.debut_timer_blocage > 0.5:
-                    self.log.warning("le robot a dû s'arrêter suite à un patinage.")
-                    self.deplacements.stopper()
-                    self.blocage = True
-            else:
-                self.debut_timer_blocage = time()
-                self._enCoursDeBlocage = True
-        else:
-            self._enCoursDeBlocage = False
-            
     def update_x_y_orientation(self, x, y, orientation_milliRadians):
         """
         UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
@@ -120,17 +87,72 @@ class Robot:
             self.__dict__["_orientation"] = orientation_milliRadians/1000.
             
             
-            
     #####################################################################################
     ### MÉTHODES DE DÉPLACEMENTS DE BASE , AVEC GESTION DES ACQUITTEMENTS ET CAPTEURS ###
     #####################################################################################
     
     def avancer(self, distance):
+        print("avance : "+str(distance))
         #le robot n'est plus considéré comme bloqué
         self.blocage = False
         #utilisation du service de déplacement
         self.deplacements.avancer(distance)
-        #TODO boucle d'acquittement
+        #boucle d'acquittement
+        self.enMouvement = True
+        while self.enMouvement:
+            sleep(0.01)
+        
+    def tourner(self, angle):
+        #le robot n'est plus considéré comme bloqué
+        self.blocage = False
+        #utilisation du service de déplacement
+        self.deplacements.tourner(angle)
+        #boucle d'acquittement
+        self.enMouvement = True
+        while self.enMouvement:
+            sleep(0.01)
+    
+    def recaler(self):
+        
+        #TODO utiliser table
+        LONGUEUR_TABLE = 3000
+        LARGEUR_ROBOT = 400
+        #
+        
+        
+        self.deplacements.set_vitesse_translation(1)
+        self.deplacements.set_vitesse_rotation(1)
+        self.avancer(-1000)
+        self.deplacements.desactiver_asservissement_rotation()
+        self.deplacements.set_vitesse_translation(2)
+        self.avancer(-300)
+        if self.couleur == "bleu":
+            self.x = -LONGUEUR_TABLE/2. + LARGEUR_ROBOT/2.
+            self.orientation = 0.0
+        else:
+            self.x = LONGUEUR_TABLE/2. - LARGEUR_ROBOT/2.
+            self.orientation = math.pi
+        self.deplacements.activer_asservissement_rotation()
+        #sleep(0.5)
+        self.deplacements.set_vitesse_translation(1)
+        self.avancer(220)
+        self.tourner(math.pi/2)
+        self.avancer(-1000)
+        self.deplacements.desactiver_asservissement_rotation()
+        self.deplacements.set_vitesse_translation(2)
+        self.avancer(-300)
+        self.y = LARGEUR_ROBOT/2.
+        self.orientation = math.pi/2.
+        self.deplacements.activer_asservissement_rotation()
+        #sleep(0.5)
+        self.deplacements.set_vitesse_translation(1)
+        self.avancer(150)
+        if self.couleur == "bleu":
+            self.tourner(0.0)
+        else:
+            self.tourner(math.pi)
+        self.deplacements.set_vitesse_translation(2)
+        self.deplacements.set_vitesse_rotation(2)
         
         
     ##################################################################################
