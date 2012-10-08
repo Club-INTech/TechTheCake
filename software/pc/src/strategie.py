@@ -27,7 +27,7 @@ class Strategie:
         #self.robot.tourner(-1.57)
         #self.robot.avancer(1000)
         #sleep(3)
-        #self.robot.avancer(500)
+        #self.robot.avancer(-500)
         
         self.robot.recaler()
         

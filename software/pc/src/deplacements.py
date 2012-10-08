@@ -66,14 +66,6 @@ class Deplacements(metaclass=abc.ABCMeta):
         pass
     
     @abc.abstractmethod
-    def get_vitesse_translation(self):
-        pass
-    
-    @abc.abstractmethod
-    def get_vitesse_rotation(self):
-        pass
-    
-    @abc.abstractmethod
     def set_vitesse_translation(self, valeur):
         pass
     
@@ -103,10 +95,6 @@ class DeplacementsSerie(Deplacements):
         self.serie = serie
         self.config = config
         self.log = log
-        
-        #sauvegarde des vitesses courantes du robot
-        self.vitesse_translation = 2
-        self.vitesse_rotation = 2
         
         self._enCoursDeBlocage
         
@@ -210,12 +198,6 @@ class DeplacementsSerie(Deplacements):
         """
         self.serie.communiquer("asservissement","stop", 0)
         
-    def get_vitesse_translation(self):
-        return self.vitesse_translation
-        
-    def get_vitesse_rotation(self):
-        return self.vitesse_rotation
-        
     def set_vitesse_translation(self, valeur):
         """
         spécifie une vitesse prédéfinie en translation
@@ -235,9 +217,6 @@ class DeplacementsSerie(Deplacements):
         envoi.append(float(kd_translation[valeur-1]))
         envoi.append(int(vb_translation[valeur-1]))
         self.serie.communiquer("asservissement",envoi, 0)
-        
-        #sauvegarde de la valeur choisie
-        self.vitesse_translation = int(valeur)
         
     def set_vitesse_rotation(self, valeur):
         """
@@ -259,9 +238,6 @@ class DeplacementsSerie(Deplacements):
         envoi.append(int(vb_rotation[valeur-1]))
         self.serie.communiquer("asservissement",envoi, 0)
             
-        #sauvegarde de la valeur choisie
-        self.vitesse_rotation = int(valeur)
-        
     def get_infos_stoppage_enMouvement(self):
         infos_string = self.serie.communiquer("asservissement","?infos",4)
         infos_string = list(map(lambda x: int(x), infos_string))
@@ -308,7 +284,7 @@ class DeplacementsSimulateur(Deplacements):
         self.simulateur.defineRobot({"list":[{"float":[-200.,-200.]},{"float":[-200.,200.]},{"float":[200.,200.]},{"float":[200.,-200.]}]})
         self.simulateur.defineRobotSensorZone({"list":[{"int":[0,400]},{"int":[-500.,1000.]},{"int":[500,1000]}]})
         self.simulateur.setRobotAngle(0)
-        self.simulateur.setRobotPosition(-1200,230)
+        self.simulateur.setRobotPosition(-1200,350)
         
         
     def gestion_blocage(self, **useless):
@@ -370,21 +346,14 @@ class DeplacementsSimulateur(Deplacements):
         pass
     
     def stopper(self):
+        #TODO méthode de stoppage
         pass
     
-    def get_vitesse_translation(self):
-        return self.vitesse_translation
-    
-    def get_vitesse_rotation(self):
-        return self.vitesse_rotation
-    
     def set_vitesse_translation(self, valeur):
-        #TODO : vitesse sur le simulateur
-        self.vitesse_translation = int(valeur)
+        pass
     
     def set_vitesse_rotation(self, valeur):
-        #TODO : vitesse sur le simulateur
-        self.vitesse_rotation = int(valeur)
+        pass
     
     def get_infos_stoppage_enMouvement(self):
         return {}

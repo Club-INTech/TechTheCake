@@ -26,8 +26,15 @@ class Robot:
         self._blocage = False
         self._enMouvement = True
         
+        #sauvegarde des vitesses courantes du robot
+        self.vitesse_translation = 2
+        self.vitesse_rotation = 2
+        
         #durée de jeu TODO : à muter dans Table ?
         self.debut_jeu = time()
+        
+        #couleur du robot
+        self.couleur = "bleu"
         
         
     #####################################################################################
@@ -103,6 +110,7 @@ class Robot:
             sleep(0.01)
         
     def tourner(self, angle):
+        print("tourne : "+str(angle))
         #le robot n'est plus considéré comme bloqué
         self.blocage = False
         #utilisation du service de déplacement
@@ -119,12 +127,11 @@ class Robot:
         LARGEUR_ROBOT = 400
         #
         
-        
-        self.deplacements.set_vitesse_translation(1)
-        self.deplacements.set_vitesse_rotation(1)
+        self.set_vitesse_translation(1)
+        self.set_vitesse_rotation(1)
         self.avancer(-1000)
         self.deplacements.desactiver_asservissement_rotation()
-        self.deplacements.set_vitesse_translation(2)
+        self.set_vitesse_translation(2)
         self.avancer(-300)
         if self.couleur == "bleu":
             self.x = -LONGUEUR_TABLE/2. + LARGEUR_ROBOT/2.
@@ -134,30 +141,30 @@ class Robot:
             self.orientation = math.pi
         self.deplacements.activer_asservissement_rotation()
         #sleep(0.5)
-        self.deplacements.set_vitesse_translation(1)
+        self.set_vitesse_translation(1)
         self.avancer(220)
         self.tourner(math.pi/2)
         self.avancer(-1000)
         self.deplacements.desactiver_asservissement_rotation()
-        self.deplacements.set_vitesse_translation(2)
+        self.set_vitesse_translation(2)
         self.avancer(-300)
         self.y = LARGEUR_ROBOT/2.
         self.orientation = math.pi/2.
         self.deplacements.activer_asservissement_rotation()
         #sleep(0.5)
-        self.deplacements.set_vitesse_translation(1)
+        self.set_vitesse_translation(1)
         self.avancer(150)
         if self.couleur == "bleu":
             self.tourner(0.0)
         else:
             self.tourner(math.pi)
-        self.deplacements.set_vitesse_translation(2)
-        self.deplacements.set_vitesse_rotation(2)
+        self.set_vitesse_translation(2)
+        self.set_vitesse_rotation(2)
         
         
-    ##################################################################################
-    ### MÉTHODES DE DÉPLACEMENTS DE HAUT NIVEAU , AVEC RELANCES EN CAS DE PROBLÈME ###
-    ##################################################################################
+    #############################################################################################################
+    ### MÉTHODES DE DÉPLACEMENTS DE HAUT NIVEAU (TROUVÉES DANS LES SCRIPTS), AVEC RELANCES EN CAS DE PROBLÈME ###
+    #############################################################################################################
     
     def gestion_avancer(self, distance):
         retour = self.avancer(distance)
@@ -165,3 +172,16 @@ class Robot:
             self.stopper()
         #etc..
         
+    def gestion_tourner(self, angle):
+        retour = self.avancer(angle)
+        if retour == "capteur":
+            self.stopper()
+        #etc..
+        
+    def set_vitesse_translation(self, valeur):
+        self.deplacements.set_vitesse_translation(valeur)
+        self.vitesse_translation = int(valeur)
+    
+    def set_vitesse_rotation(self, valeur):
+        self.deplacements.set_vitesse_rotation(valeur)
+        self.vitesse_rotation = int(valeur)
