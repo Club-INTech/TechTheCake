@@ -316,22 +316,25 @@ class DeplacementsSimulateur(Deplacements):
             print(e)
     
     def set_x(self, new_x):
-        try:
-            self.simulateur.setRobotPosition(new_x,self.simulateur.getY())
-        except Exception as e:
-            print(e)
+        # try:
+            # self.simulateur.setRobotPosition(new_x,self.simulateur.getY())
+        # except Exception as e:
+            # print(e)
+        pass
     
     def set_y(self, new_y):
-        try:
-            self.simulateur.setRobotPosition(self.simulateur.getX(),new_y)
-        except Exception as e:
-            print(e)
+        # try:
+            # self.simulateur.setRobotPosition(self.simulateur.getX(),new_y)
+        # except Exception as e:
+            # print(e)
+        pass
     
     def set_orientation(self, new_o):
-        try:
-            self.simulateur.setRobotAngle(new_o)
-        except Exception as e:
-            print(e)
+        # try:
+            # self.simulateur.setRobotAngle(new_o)
+        # except Exception as e:
+            # print(e)
+        pass
     
     def activer_asservissement_translation(self):
         pass
