@@ -279,7 +279,7 @@ class DeplacementsSimulateur(Deplacements):
         self.mutex = Mutex()
         
         #instance du simulateur
-        client = Client("http://192.168.43.210:8090/INTechSimulator?wsdl")
+        client = Client("http://localhost:8090/INTechSimulator?wsdl")
         self.simulateur = client.service
         #initialisation de la table TODO : prendre les valeurs dans Table
         self.simulateur.reset()
@@ -309,6 +309,20 @@ class DeplacementsSimulateur(Deplacements):
         with self.mutex:
             return self.simulateur.isMoving() or self.simulateur.isTurning()
     
+    def get_infos_stoppage_enMouvement(self):
+        """
+        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
+        """
+        return {}
+    
+    def get_infos_x_y_orientation(self):
+        """
+        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
+        """
+        with self.mutex:
+            return [self.simulateur.getX(), self.simulateur.getY(), self.simulateur.getAngle()]
+            
+            
     def avancer(self, distance):
         try:
             with self.mutex:
@@ -367,9 +381,3 @@ class DeplacementsSimulateur(Deplacements):
     def set_vitesse_rotation(self, valeur):
         pass
     
-    def get_infos_stoppage_enMouvement(self):
-        return {}
-    
-    def get_infos_x_y_orientation(self):
-        with self.mutex:
-            return [self.simulateur.getX(), self.simulateur.getY(), self.simulateur.getAngle()]

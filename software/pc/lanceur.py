@@ -16,7 +16,9 @@ thread_MAJ.start()
 
 strat = Strategie(container)
 
-input("appuyer sur une touche pour lancer le calcul de durée du script...")
-print(strat.scripts["pipeau"].calcule())
-input("appuyer sur une touche pour effectuer les mouvements du script...")
-strat.scripts["pipeau"].agit()
+#input("appuyer sur une touche pour lancer le calcul de durée du script...")
+#print(strat.scripts["pipeau"].calcule())
+#input("appuyer sur une touche pour effectuer les mouvements du script...")
+#strat.scripts["pipeau"].agit()
+
+strat.robot.recaler()

@@ -32,17 +32,10 @@ def fonction_MAJ(container):
         
         #si un blocage est detecté, l'inscrire dans un attribut du robot
         if robot.deplacements.gestion_blocage(**infos_stoppage_enMouvement):
-            robot.blocage = True
-            robot.enMouvement = False
-            
-        #print("isMoving : "+str(robot.deplacements.simulateur.isMoving()))
-        #print("isTurning : "+str(robot.deplacements.simulateur.isTurning()))
-        #print("isBlocked : "+str(robot.deplacements.simulateur.isBlocked()))
-        #print(robot.y)
-        #if robot.enMouvement:
-            #print("en mouvement")
-        #else:
-            #if robot.blocage:
-                #print("bloqué")
-            #else:
-                #print("arrivé")
+            if not robot.blocage :
+                robot.deplacements.stopper()
+                robot.blocage = True
+                robot.enMouvement = False
+        
+        sleep(0.01)
+                    

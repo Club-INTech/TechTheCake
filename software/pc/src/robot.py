@@ -99,25 +99,23 @@ class Robot:
     #####################################################################################
     
     def avancer(self, distance):
-        print("avance : "+str(distance))
         #le robot n'est plus considéré comme bloqué
         self.blocage = False
         #utilisation du service de déplacement
         self.deplacements.avancer(distance)
         #boucle d'acquittement
         self.enMouvement = True
-        while self.enMouvement:
+        while self.enMouvement and not self.blocage:
             sleep(0.01)
         
     def tourner(self, angle):
-        print("tourne : "+str(angle))
         #le robot n'est plus considéré comme bloqué
         self.blocage = False
         #utilisation du service de déplacement
         self.deplacements.tourner(angle)
         #boucle d'acquittement
         self.enMouvement = True
-        while self.enMouvement:
+        while self.enMouvement and not self.blocage:
             sleep(0.01)
     
     def recaler(self):
@@ -132,12 +130,12 @@ class Robot:
         self.avancer(-1000)
         self.deplacements.desactiver_asservissement_rotation()
         self.set_vitesse_translation(2)
-        self.avancer(-300)
+        #self.avancer(-300)
         if self.couleur == "bleu":
-            self.x = -LONGUEUR_TABLE/2. + LARGEUR_ROBOT/2.
+            self.x = -LONGUEUR_TABLE/2. + LARGEUR_ROBOT/1.999
             self.orientation = 0.0
         else:
-            self.x = LONGUEUR_TABLE/2. - LARGEUR_ROBOT/2.
+            self.x = LONGUEUR_TABLE/2. - LARGEUR_ROBOT/1.999
             self.orientation = math.pi
         self.deplacements.activer_asservissement_rotation()
         #sleep(0.5)
@@ -147,8 +145,8 @@ class Robot:
         self.avancer(-1000)
         self.deplacements.desactiver_asservissement_rotation()
         self.set_vitesse_translation(2)
-        self.avancer(-300)
-        self.y = LARGEUR_ROBOT/2.
+        #self.avancer(-300)
+        self.y = LARGEUR_ROBOT/1.999
         self.orientation = math.pi/2.
         self.deplacements.activer_asservissement_rotation()
         #sleep(0.5)
