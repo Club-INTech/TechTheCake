@@ -12,8 +12,6 @@ container = Container()
 thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
 thread_MAJ.start()
 
-
-
 strat = Strategie(container)
 
 #input("appuyer sur une touche pour lancer le calcul de durée du script...")

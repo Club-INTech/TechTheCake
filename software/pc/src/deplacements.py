@@ -288,7 +288,8 @@ class DeplacementsSimulateur(Deplacements):
         self.simulateur.defineRobot({"list":[{"float":[-200.,-200.]},{"float":[-200.,200.]},{"float":[200.,200.]},{"float":[200.,-200.]}]})
         self.simulateur.defineRobotSensorZone({"list":[{"int":[0,400]},{"int":[-500.,1000.]},{"int":[500,1000]}]})
         self.simulateur.setRobotAngle(0)
-        self.simulateur.setRobotPosition(-1200,350)
+        self.simulateur.setRobotPosition(-1200,300)
+        self.simulateur.addEnemy(30,"black")
         
         
     def gestion_blocage(self, **useless):
@@ -314,6 +315,14 @@ class DeplacementsSimulateur(Deplacements):
         UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
         """
         return {}
+        
+    def est_bloque(self):
+        with self.mutex:
+            return self.simulateur.isBlocked()
+        
+    def est_arrive(self):
+        with self.mutex:
+            return not(self.simulateur.isMoving() or self.simulateur.isTurning())
     
     def get_infos_x_y_orientation(self):
         """
@@ -338,26 +347,29 @@ class DeplacementsSimulateur(Deplacements):
             print(e)
     
     def set_x(self, new_x):
-        try:
-            with self.mutex:
-                self.simulateur.setRobotPosition(new_x,self.simulateur.getY())
-        except Exception as e:
-            print(e)
+        # try:
+            # with self.mutex:
+                # self.simulateur.setRobotPosition(new_x,self.simulateur.getY())
+        # except Exception as e:
+            # print(e)
+        pass
     
     def set_y(self, new_y):
-        try:
-            with self.mutex:
-                self.simulateur.setRobotPosition(self.simulateur.getX(),new_y)
-        except Exception as e:
-            print(e)
-    
+        # try:
+            # with self.mutex:
+                # self.simulateur.setRobotPosition(self.simulateur.getX(),new_y)
+        # except Exception as e:
+            # print(e)
+        pass
+
     def set_orientation(self, new_o):
-        try:
-            with self.mutex:
-                self.simulateur.setRobotAngle(new_o)
-        except Exception as e:
-            print(e)
-    
+        # try:
+            # with self.mutex:
+                # self.simulateur.setRobotAngle(new_o)
+        # except Exception as e:
+            # print(e)
+        pass
+
     def activer_asservissement_translation(self):
         pass
         

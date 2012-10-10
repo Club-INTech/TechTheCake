@@ -83,11 +83,12 @@ class Robot:
         with self.mutex:
             self.__dict__["_blocage"] = value
             
-    def update_x_y_orientation(self, x, y, orientation_milliRadians):
+    def update_x_y_orientation(self):
         """
         UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
         méthode de mise à jour des coordonnées du robot
         """
+        [x,y,orientation_milliRadians] = self.deplacements.get_infos_x_y_orientation()
         with self.mutex:
             self.__dict__["_x"] = x
             self.__dict__["_y"] = y
@@ -99,24 +100,27 @@ class Robot:
     #####################################################################################
     
     def avancer(self, distance):
-        #le robot n'est plus considéré comme bloqué
-        self.blocage = False
-        #utilisation du service de déplacement
         self.deplacements.avancer(distance)
-        #boucle d'acquittement
-        self.enMouvement = True
-        while self.enMouvement and not self.blocage:
-            sleep(0.01)
+        self._boucle_acquittement()
         
     def tourner(self, angle):
-        #le robot n'est plus considéré comme bloqué
-        self.blocage = False
-        #utilisation du service de déplacement
         self.deplacements.tourner(angle)
-        #boucle d'acquittement
-        self.enMouvement = True
-        while self.enMouvement and not self.blocage:
-            sleep(0.01)
+        self._boucle_acquittement()
+        
+    # Utiliser des exceptions en cas d'arrêt anormal (blocage, capteur etc...)
+    def _boucle_acquittement(self):
+        while 1:
+            #robot bloqué ?
+            if self.deplacements.est_bloque():
+                self.deplacements.stopper()
+                print("abandon car blocage")
+                sleep(0.5)
+                break
+            #robot arrivé ?
+            if self.deplacements.est_arrive():
+                print("robot arrivé")
+                break
+        pass
     
     def recaler(self):
         
@@ -130,7 +134,7 @@ class Robot:
         self.avancer(-1000)
         self.deplacements.desactiver_asservissement_rotation()
         self.set_vitesse_translation(2)
-        #self.avancer(-300)
+        # self.avancer(-300)
         if self.couleur == "bleu":
             self.x = -LONGUEUR_TABLE/2. + LARGEUR_ROBOT/1.999
             self.orientation = 0.0
@@ -140,16 +144,16 @@ class Robot:
         self.deplacements.activer_asservissement_rotation()
         #sleep(0.5)
         self.set_vitesse_translation(1)
-        self.avancer(220)
+        self.avancer(100)
         self.tourner(math.pi/2)
         self.avancer(-1000)
         self.deplacements.desactiver_asservissement_rotation()
         self.set_vitesse_translation(2)
-        #self.avancer(-300)
+        self.avancer(-300)
         self.y = LARGEUR_ROBOT/1.999
         self.orientation = math.pi/2.
         self.deplacements.activer_asservissement_rotation()
-        #sleep(0.5)
+        # sleep(0.5)
         self.set_vitesse_translation(1)
         self.avancer(150)
         if self.couleur == "bleu":
