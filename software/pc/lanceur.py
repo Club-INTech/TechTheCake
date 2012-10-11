@@ -9,8 +9,8 @@ from src.strategie import Strategie
 
 container = Container()
 
-thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
-thread_MAJ.start()
+#thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
+#thread_MAJ.start()
 
 strat = Strategie(container)
 

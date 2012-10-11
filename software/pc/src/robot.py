@@ -114,12 +114,12 @@ class Robot:
             if self.deplacements.est_bloque():
                 self.deplacements.stopper()
                 print("abandon car blocage")
-                sleep(0.5)
                 break
             #robot arrivé ?
             if self.deplacements.est_arrive():
                 print("robot arrivé")
                 break
+            sleep(0.5)
         pass
     
     def recaler(self):

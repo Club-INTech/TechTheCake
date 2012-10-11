@@ -22,5 +22,5 @@ def fonction_MAJ(container):
         #mise à jour des coordonnées dans robot
         robot.update_x_y_orientation()
         
-        sleep(0.01)
+        sleep(0.2)
                     
