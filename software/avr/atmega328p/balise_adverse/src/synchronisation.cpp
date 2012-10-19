@@ -1,6 +1,6 @@
 #include "synchronisation.h"
 #include "libintech/timer.hpp"
-#include "libintech/serial/serial_1.hpp"
+#include "libintech/serial/serial_0.hpp"
 
 template<class Timer , class Serial>
 Synchronisation<Timer , Serial>::Synchronisation() : clock_(0) 
@@ -13,24 +13,26 @@ void Synchronisation<Timer , Serial>::synchroniser()
 {
     //Declaration des variables
     char buffer[17];
+    uint32_t t1;
     uint32_t tp;
+    uint32_t t4;
+    uint32_t teta;
     
-    // Commence une synchronisation
-    Serial::print("début synchro");
+    // Début de la synchronisation
+    t1 = clock_;
+    Serial::print("!");
     Serial::read(buffer);
+    t4 = clock_;
     
     if(strcmp(buffer, "!") == 0)
     {
-        tp = clock_;
-        Serial::print("!");
-        
-        //Attente de la demande d'envoie de tp
-        Serial::read(buffer);
-        if(strcmp(buffer, "tp?") == 0)
-        {
-            //Envoie de la valeur de tp
-            Serial::print(tp);
-        }
+        //Recuperation de la valeur de tp
+        Serial::print("tp?");
+        Serial::read(tp);
+
+        //Calcul de l'écart teta entre les deux horloges
+        teta = tp - (t1 + t4)/2;
+        clock_ = clock_ + teta;
     }
 }
 
@@ -47,4 +49,4 @@ uint32_t Synchronisation<Timer , Serial>::clock()
     return clock_;
 }
 
-template class Synchronisation<Timer<0,1>,Serial<1> >;
+template class Synchronisation<Timer<0,1>,Serial<0> >;

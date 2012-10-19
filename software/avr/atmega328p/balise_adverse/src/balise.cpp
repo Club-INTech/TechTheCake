@@ -23,8 +23,10 @@ last_distance_date(0) {
     // Diodes
     // -----------------------
 
+    sbi(DDRC, DDC4);
     sbi(DDRD, DDD2);
     sbi(PORTD, PORTD2);
+    
 
     // -----------------------
     // Interruptions
@@ -55,7 +57,7 @@ last_distance_date(0) {
 void Balise::execute(char *order) {
     // Ping
     if (strcmp(order,"p") == 0) {
-        serial_radio::print("ping");
+        Xbee< Serial<0> >::send(0x5001, "ping");
     }
     // Demande de valeur de la dernière distance mesurée
     else if (strcmp(order,"v") == 0) {

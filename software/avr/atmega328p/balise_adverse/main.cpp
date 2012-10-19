@@ -12,28 +12,14 @@
 int main()
 {
     Balise &balise = Balise::Instance();
-    sbi(DDRB, DDB5);
-    
-    _delay_ms(500);
-    sbi(PORTB, PORTB5);
-    _delay_ms(500);
-    cbi(PORTB, PORTB5);
     
     while(1)
     {
-        Serial<0>::print("ok");
-        /*char order[10];
-        Xbee< Serial<0> >::read(order);
-        if (strcmp(order, "Hello") == 0) {
-            sbi(PORTB, PORTB5);
-        }
-        else
-        {
-            sbi(PORTB, PORTB5);
-        }
-        /*
-        Balise::serial_radio::read(order);
-        balise.execute(order);*/
+        xbee::send(0x5001, "Hello World !");
+        
+        char order[10];
+        xbee::read(order);
+        balise.execute(order);
         
     }
 }
@@ -70,6 +56,11 @@ ISR(PCINT1_vect)
             
             // Relance le timer de péremption de la distance calculée
             Balise::timeout_timer::value(0);
+            
+            //test
+            sbi(PORTC, PORTC4);
+            _delay_ms(100);
+            cbi(PORTC, PORTC4);
         }
     }
         
@@ -105,4 +96,14 @@ ISR(TIMER0_OVF_vect)
     balise.distance = 0;
     
     //Xbee< Serial<0> >::send(0x5001,"Hello");
+}
+
+/**
+ * Interruption du timer 2, Incremente l'horloge de Synchronisation
+ * 
+ */
+ISR(TIMER2_OVF_vect)
+{
+    Balise &balise = Balise::Instance();
+    balise.synchro.interruption();
 }

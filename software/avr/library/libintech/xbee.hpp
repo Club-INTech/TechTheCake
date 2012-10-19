@@ -14,10 +14,13 @@ public:
 
     static void init() {
         Serial::init();
+<<<<<<< HEAD
     }
     
     static void change_baudrate(uint32_t baudrate) {
         Serial::change_baudrate(baudrate);
+=======
+>>>>>>> 2a02e677ca4a78c11cbf4cac95b432231e1b27af
     }
 
     /**
