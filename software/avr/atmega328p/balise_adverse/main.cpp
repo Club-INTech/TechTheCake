@@ -15,7 +15,7 @@ int main()
     
     while(1)
     {
-        xbee::send(0x5001, "Hello World !");
+        //xbee::send(0x5001, "Hello World !");
         
         char order[10];
         xbee::read(order);
