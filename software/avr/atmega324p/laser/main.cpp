@@ -29,7 +29,7 @@ int main()
 ISR(TIMER0_OVF_vect)
 {
     Balise &balise = Balise::Instance();
-    //balise.synchro.interruption();
+    balise.synchro.interruption();
 }
 
 ISR(TIMER2_OVF_vect)

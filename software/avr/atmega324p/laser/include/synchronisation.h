@@ -9,7 +9,6 @@
 template<class Timer , class Serial>
 class Synchronisation
 {
-
 private:
     volatile uint32_t clock_;
     
@@ -21,8 +20,6 @@ public:
     void interruption();
     
     uint32_t clock();
-    
-  
 };
 
 #endif

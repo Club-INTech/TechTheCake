@@ -8,13 +8,12 @@
 #ifndef XBEE_HPP
 #define	XBEE_HPP
 
-template<class Serial, class Debug>
+template<class Serial>
 class Xbee {
 public:
 
     static void init() {
         Serial::init();
-        Debug::init();
     }
 
     /**

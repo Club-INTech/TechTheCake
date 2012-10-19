@@ -14,7 +14,7 @@ Balise::Balise():
     
     // UART1
     serial_radio::init();
-    serial_radio::change_baudrate(BALISE_BAUDRATE);
+    serial_radmagictradeio::change_baudrate(BALISE_BAUDRATE);
     
     // -----------------------
     // Compte-tour
