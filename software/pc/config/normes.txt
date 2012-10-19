@@ -1,0 +1,60 @@
+####################
+# FICHIER conf.ini #
+####################
+
+Ce fichier rassemble les constantes "modifiables", comme le temps d'un match,
+les poids de certaines stratégies (j'invente, hein)... 
+
+    STRUCTURE :
+    ----------------------------
+
+    [global]
+    mode=MODE_A_UTILISER
+
+    [mode1]
+    variable_a_modifier1=valeur
+    variable_a_modifier2=valeur
+    ...
+
+    [mode2]
+    variable_a_modifier5=valeur
+    ...
+
+    ...
+
+    [default]
+    variable1=valeur
+    variable2=valeur
+    variable3=valeur
+    ...
+
+    ---------------------------
+
+    La dernière catégorie [default] rassemble l'ensemble des valeurs par défaut. Si le mode
+    choisi est différent du mode [default], alors les variables nécessaires seront remplacées
+    
+
+##########################
+# FICHIER constantes.ini #
+##########################
+
+Ce fichier rassemble l'ensemble des variables non modifiables pour les tests, comme
+par exemple la taille de la table en [x,y]... 
+
+    STRUCTURE :
+    ---------------------------
+
+    [categorie1]
+    variable1=valeur
+    variable2=valeur
+    ...
+
+    [categorie2]
+    variable1=valeur
+    variable2=valeur
+    ...
+
+    ...
+    --------------------------
+
+    Un exemple de catégorie peut-être [table] avec comme variables x et y.
