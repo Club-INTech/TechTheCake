@@ -16,8 +16,8 @@ last_distance_date(0) {
     // Liaison série
     // -----------------------
 
-    serial_radio::init();
-    serial_radio::change_baudrate(9600);
+    xbee::init();
+    xbee::change_baudrate(9600);
 
     // -----------------------
     // Diodes
@@ -57,13 +57,15 @@ last_distance_date(0) {
 void Balise::execute(char *order) {
     // Ping
     if (strcmp(order,"p") == 0) {
-        Xbee< Serial<0> >::send(0x5001, "ping");
+        xbee::send(0x5001, "ping");
     }
     // Demande de valeur de la dernière distance mesurée
+    /*
     else if (strcmp(order,"v") == 0) {
         serial_radio::print(distance);
         serial_radio::print(last_distance_date);
-    }
+        
+    }*/
 }
 
 void Balise::diode_on() {
