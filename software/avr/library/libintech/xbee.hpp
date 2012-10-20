@@ -12,6 +12,10 @@ template<class Serial>
 class Xbee {
 public:
 
+	enum {
+        READ_TIMEOUT = 0, READ_SUCCESS = 1
+    };
+
     static void init() {
         Serial::init();
     }
@@ -75,50 +79,53 @@ public:
      * 
      * @param message   Variable où sera stocké le message après réception
      */
-    static inline void read(char* message, uint16_t &source_address, uint8_t &signal_strength) {
+    static inline uint8_t read(char* message, uint16_t &source_address, uint8_t &signal_strength, uint16_t timeout = 0) {
         uint8_t checksum = 0;
         uint8_t buffer;
         uint16_t length;
+        uint8_t status = READ_SUCCESS;
 
         // Délimiteur de trame
         do {
-            Serial::read_char(buffer);
-        } while (buffer != 0x7E);
+            status = Serial::read_char(buffer, timeout);
+        } while (status != READ_TIMEOUT && buffer != 0x7E);
+        
+        if (status == READ_TIMEOUT) return status;
 
         // Taille de la réponse
-        Serial::read_char(buffer);
+        Serial::read_char(buffer, timeout);
         length = buffer << 8;
-        Serial::read_char(buffer);
+        Serial::read_char(buffer, timeout);
         length += buffer;
 
         // Type de réponse (ignoré pour le moment)
-        Serial::read_char(buffer);
+        Serial::read_char(buffer, timeout);
 
         // Adresse de l'emetteur
-        Serial::read_char(buffer);
+        Serial::read_char(buffer, timeout);
         source_address = buffer << 8;
-        Serial::read_char(buffer);
+        Serial::read_char(buffer, timeout);
         source_address += buffer;
 
         // Force du signal
-        Serial::read_char(signal_strength);
+        Serial::read_char(signal_strength, timeout);
 
         // Options (ignoré pour le moment)
-        Serial::read_char(buffer);
+        Serial::read_char(buffer, timeout);
 
         for (uint8_t i = 0; i < length - 5; i++) {
-            Serial::read_char(buffer);
+            Serial::read_char(buffer, timeout);
             message[i] = buffer;
         }
 
         // Checksum (ignoré pour le moment)
-        Serial::read_char(checksum);
+        return Serial::read_char(checksum, timeout);
     }
     
-    static inline void read(char* message) {
+    static inline uint8_t read(char* message, uint16_t timeout = 0) {
         uint16_t source_address;
         uint8_t signal_strength;
-        read(message, source_address, signal_strength);
+        return read(message, source_address, signal_strength, timeout);
     }
 
     /**

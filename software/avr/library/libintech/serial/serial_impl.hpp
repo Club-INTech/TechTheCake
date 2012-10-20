@@ -82,7 +82,8 @@ public:
         uint8_t j = 0;
 
         // Ajuste le timeout pour faire correspondre approximativement à des ms
-        if (timeout > 0) timeout *= 2.5;
+        // Valable pour 20MHz
+        if (timeout > 0) timeout *= 3.1;
 
         // Attente jusqu'à réception d'un caractère
         while (!available()) {
