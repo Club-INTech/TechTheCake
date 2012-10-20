@@ -1,4 +1,5 @@
-from time import time
+import math
+from time import time,sleep
 from mutex import Mutex
 
 class Robot:
@@ -23,11 +24,17 @@ class Robot:
         self._y = 0
         self._orientation = 0
         self._blocage = False
-        self._enCoursDeBlocage = False
-        self._enMouvement = False
+        self._enMouvement = True
+        
+        #sauvegarde des vitesses courantes du robot
+        self.vitesse_translation = 2
+        self.vitesse_rotation = 2
         
         #durée de jeu TODO : à muter dans Table ?
         self.debut_jeu = time()
+        
+        #couleur du robot
+        self.couleur = "bleu"
         
         
     #####################################################################################
@@ -48,96 +55,44 @@ class Robot:
             self.__dict__[attribut] = value
             
     def __getattr__(self, attribut):
-        getters = {
-            "x":self.get_x,
-            "y":self.get_y,
-            "orientation":self.get_orientation,
-            "blocage":self.get_blocage,
-            "enMouvement":self.get_enMouvement
-        }
+        getters = [
+            "x",
+            "y",
+            "orientation",
+            "blocage",
+            "enMouvement"
+        ]
         if attribut in getters:
-            return getters[attribut]()
-            
-    def get_x(self):
-        with self.mutex:
-            return self.__dict__["_x"]
-            
+            with self.mutex:
+                return self.__dict__["_"+attribut]
+        
     def set_x(self, value):
         self.deplacements.set_x(value)
         
-    def get_y(self):
-        with self.mutex:
-            return self.__dict__["_y"]
-    
     def set_y(self, value):
         self.deplacements.set_y(value)
      
-    def get_orientation(self):
-        with self.mutex:
-            return self.__dict__["_orientation"]
-       
     def set_orientation(self, value):
         self.deplacements.set_orientation(value)
-        
-    def get_enMouvement(self):
-        with self.mutex:
-            return self.__dict__["_enMouvement"]
         
     def set_enMouvement(self, value):
         with self.mutex:
             self.__dict__["_enMouvement"] = value
             
-    def get_blocage(self):
-        with self.mutex:
-            return self.__dict__["_blocage"]
-            
     def set_blocage(self, value):
         with self.mutex:
             self.__dict__["_blocage"] = value
             
-    def update_enMouvement(self, erreur_rotation, erreur_translation, derivee_erreur_rotation, derivee_erreur_translation, **useless):
-        """
-        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
-        cette méthode récupère l'erreur en position du robot
-        et détermine si le robot est arrivé à sa position de consigne
-        """
-        rotation_stoppe = erreur_rotation < 105
-        translation_stoppe = erreur_translation < 100
-        bouge_pas = derivee_erreur_rotation == 0 and derivee_erreur_translation == 0
-        
-        self.enMouvement = not(rotation_stoppe and translation_stoppe and bouge_pas)
-    
-    def gestion_blocage(self,PWMmoteurGauche,PWMmoteurDroit,derivee_erreur_rotation,derivee_erreur_translation, **useless):
-        """
-        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
-        méthode de détection automatique des collisions, qui stoppe le robot lorsqu'il patine
-        """
-        moteur_force = PWMmoteurGauche > 45 or PWMmoteurDroit > 45
-        bouge_pas = derivee_erreur_rotation==0 and derivee_erreur_translation==0
-            
-        if (bouge_pas and moteur_force):
-            if self._enCoursDeBlocage:
-                #la durée de tolérance au patinage est fixée ici 
-                if time() - self.debut_timer_blocage > 0.5:
-                    self.log.warning("le robot a dû s'arrêter suite à un patinage.")
-                    self.deplacements.stopper()
-                    self.blocage = True
-            else:
-                self.debut_timer_blocage = time()
-                self._enCoursDeBlocage = True
-        else:
-            self._enCoursDeBlocage = False
-            
-    def update_x_y_orientation(self, x, y, orientation_milliRadians):
+    def update_x_y_orientation(self):
         """
         UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
         méthode de mise à jour des coordonnées du robot
         """
+        [x,y,orientation_milliRadians] = self.deplacements.get_infos_x_y_orientation()
         with self.mutex:
             self.__dict__["_x"] = x
             self.__dict__["_y"] = y
             self.__dict__["_orientation"] = orientation_milliRadians/1000.
-            
             
             
     #####################################################################################
@@ -145,16 +100,73 @@ class Robot:
     #####################################################################################
     
     def avancer(self, distance):
-        #le robot n'est plus considéré comme bloqué
-        self.blocage = False
-        #utilisation du service de déplacement
         self.deplacements.avancer(distance)
-        #TODO boucle d'acquittement
+        self._boucle_acquittement()
+        
+    def tourner(self, angle):
+        self.deplacements.tourner(angle)
+        self._boucle_acquittement()
+        
+    # Utiliser des exceptions en cas d'arrêt anormal (blocage, capteur etc...)
+    def _boucle_acquittement(self):
+        while 1:
+            #robot bloqué ?
+            if self.deplacements.est_bloque():
+                self.deplacements.stopper()
+                print("abandon car blocage")
+                break
+            #robot arrivé ?
+            if self.deplacements.est_arrive():
+                print("robot arrivé")
+                break
+            sleep(0.5)
+        pass
+    
+    def recaler(self):
+        
+        #TODO utiliser table
+        LONGUEUR_TABLE = 3000
+        LARGEUR_ROBOT = 400
+        #
+        
+        self.set_vitesse_translation(1)
+        self.set_vitesse_rotation(1)
+        self.avancer(-1000)
+        self.deplacements.desactiver_asservissement_rotation()
+        self.set_vitesse_translation(2)
+        # self.avancer(-300)
+        if self.couleur == "bleu":
+            self.x = -LONGUEUR_TABLE/2. + LARGEUR_ROBOT/1.999
+            self.orientation = 0.0
+        else:
+            self.x = LONGUEUR_TABLE/2. - LARGEUR_ROBOT/1.999
+            self.orientation = math.pi
+        self.deplacements.activer_asservissement_rotation()
+        #sleep(0.5)
+        self.set_vitesse_translation(1)
+        self.avancer(100)
+        self.tourner(math.pi/2)
+        self.avancer(-1000)
+        self.deplacements.desactiver_asservissement_rotation()
+        self.set_vitesse_translation(2)
+        self.avancer(-300)
+        self.y = LARGEUR_ROBOT/1.999
+        self.orientation = math.pi/2.
+        self.deplacements.activer_asservissement_rotation()
+        # sleep(0.5)
+        self.set_vitesse_translation(1)
+        self.avancer(150)
+        if self.couleur == "bleu":
+            self.tourner(0.0)
+        else:
+            self.tourner(math.pi)
+        self.set_vitesse_translation(2)
+        self.set_vitesse_rotation(2)
         
         
-    ##################################################################################
-    ### MÉTHODES DE DÉPLACEMENTS DE HAUT NIVEAU , AVEC RELANCES EN CAS DE PROBLÈME ###
-    ##################################################################################
+    #############################################################################################################
+    ### MÉTHODES DE DÉPLACEMENTS DE HAUT NIVEAU (TROUVÉES DANS LES SCRIPTS), AVEC RELANCES EN CAS DE PROBLÈME ###
+    #############################################################################################################
     
     def gestion_avancer(self, distance):
         retour = self.avancer(distance)
@@ -162,3 +174,16 @@ class Robot:
             self.stopper()
         #etc..
         
+    def gestion_tourner(self, angle):
+        retour = self.tourner(angle)
+        if retour == "capteur":
+            self.stopper()
+        #etc..
+        
+    def set_vitesse_translation(self, valeur):
+        self.deplacements.set_vitesse_translation(valeur)
+        self.vitesse_translation = int(valeur)
+    
+    def set_vitesse_rotation(self, valeur):
+        self.deplacements.set_vitesse_rotation(valeur)
+        self.vitesse_rotation = int(valeur)

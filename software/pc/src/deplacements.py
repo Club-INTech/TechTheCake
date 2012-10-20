@@ -1,5 +1,12 @@
 #module natif pour les méthodes abstraites
 import abc
+#client SOAP pour le simulateur
+from suds.client import Client
+
+import os
+from time import sleep
+
+from mutex import Mutex
 
 ################################################
 ## CLASSE D'INTERFACE POUR LES DEPLACEMENTS  ###
@@ -10,6 +17,14 @@ class Deplacements(metaclass=abc.ABCMeta):
     les méthodes abstraites définies ici doivent impérativement être surchargées dans les classes filles
     (DeplacementsSimulateur et DeplacementsSerie)
     """
+    
+    @abc.abstractmethod
+    def gestion_blocage(self, **params):
+        pass
+    
+    @abc.abstractmethod
+    def update_enMouvement(self, **params):
+        pass
     
     @abc.abstractmethod
     def avancer(self, distance):
@@ -34,29 +49,21 @@ class Deplacements(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def activer_asservissement_translation(self):
         pass
-    
+        
     @abc.abstractmethod
     def activer_asservissement_rotation(self):
         pass
-    
+        
     @abc.abstractmethod
     def desactiver_asservissement_translation(self):
         pass
-    
+        
     @abc.abstractmethod
     def desactiver_asservissement_rotation(self):
         pass
     
     @abc.abstractmethod
     def stopper(self):
-        pass
-    
-    @abc.abstractmethod
-    def get_vitesse_translation(self):
-        pass
-    
-    @abc.abstractmethod
-    def get_vitesse_rotation(self):
         pass
     
     @abc.abstractmethod
@@ -85,12 +92,12 @@ class DeplacementsSerie(Deplacements):
     hérite de la classe d'interface Deplacements
     """
     def __init__(self,serie,config,log):
+        #services utilisés
         self.serie = serie
         self.config = config
         self.log = log
         
-        self.vitesse_translation = 2
-        self.vitesse_rotation = 2
+        self._enCoursDeBlocage
         
         #sauvegarde d'infos bas niveau sur l'état du robot, réutilisées par plusieurs calculs dans le thread de mise à jour
         self.infos_stoppage_enMouvement={
@@ -101,6 +108,45 @@ class DeplacementsSerie(Deplacements):
             "derivee_erreur_rotation" : 0,
             "derivee_erreur_translation" : 0
             }   
+
+    def update_enMouvement(self, erreur_rotation, erreur_translation, derivee_erreur_rotation, derivee_erreur_translation, **useless):
+        """
+        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
+        cette méthode récupère l'erreur en position du robot
+        et détermine si le robot est arrivé à sa position de consigne
+        retourne la valeur du booléen enMouvement (attribut de robot)
+        """
+        rotation_stoppe = erreur_rotation < 105
+        translation_stoppe = erreur_translation < 100
+        bouge_pas = derivee_erreur_rotation == 0 and derivee_erreur_translation == 0
+        
+        return not(rotation_stoppe and translation_stoppe and bouge_pas)
+    
+    def gestion_blocage(self,PWMmoteurGauche,PWMmoteurDroit,derivee_erreur_rotation,derivee_erreur_translation, **useless):
+        """
+        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
+        méthode de détection automatique des collisions, qui stoppe le robot lorsqu'il patine
+        retourne True si la valeur du booléen blocage (attribut de robot) doit etre remplacée par True
+        """
+        blocage = False
+        
+        moteur_force = PWMmoteurGauche > 45 or PWMmoteurDroit > 45
+        bouge_pas = derivee_erreur_rotation==0 and derivee_erreur_translation==0
+            
+        if (bouge_pas and moteur_force):
+            if self._enCoursDeBlocage:
+                #la durée de tolérance au patinage est fixée ici 
+                if time() - self.debut_timer_blocage > 0.5:
+                    self.log.warning("le robot a dû s'arrêter suite à un patinage.")
+                    self.stopper()
+                    blocage = True
+            else:
+                self.debut_timer_blocage = time()
+                self._enCoursDeBlocage = True
+        else:
+            self._enCoursDeBlocage = False
+        return blocage
+            
             
     def avancer(self, distance):
         """
@@ -145,17 +191,13 @@ class DeplacementsSerie(Deplacements):
     def desactiver_asservissement_rotation(self):
         self.serie.communiquer("asservissement","cr0", 0)
         
+        ##########################
+        
     def stopper(self):
         """
         stoppe le robot (l'asservit sur place)
         """
         self.serie.communiquer("asservissement","stop", 0)
-        
-    def get_vitesse_translation(self):
-        return self.vitesse_translation
-        
-    def get_vitesse_rotation(self):
-        return self.vitesse_rotation
         
     def set_vitesse_translation(self, valeur):
         """
@@ -177,9 +219,6 @@ class DeplacementsSerie(Deplacements):
         envoi.append(int(vb_translation[valeur-1]))
         self.serie.communiquer("asservissement",envoi, 0)
         
-        #sauvegarde de la valeur choisie
-        self.vitesse_translation = int(valeur)
-        
     def set_vitesse_rotation(self, valeur):
         """
         spécifie une vitesse prédéfinie en rotation
@@ -200,9 +239,6 @@ class DeplacementsSerie(Deplacements):
         envoi.append(int(vb_rotation[valeur-1]))
         self.serie.communiquer("asservissement",envoi, 0)
             
-        #sauvegarde de la valeur choisie
-        self.vitesse_rotation = int(valeur)
-        
     def get_infos_stoppage_enMouvement(self):
         infos_string = self.serie.communiquer("asservissement","?infos",4)
         infos_string = list(map(lambda x: int(x), infos_string))
@@ -235,43 +271,120 @@ class DeplacementsSimulateur(Deplacements):
     hérite de la classe d'interface Deplacements
     """
     def __init__(self,config,log):
+        #services utilisés
         self.config = config
         self.log = log
         
+        #mutex d'envoi au serveur SOAP
+        self.mutex = Mutex()
+        
+        #instance du simulateur
+        client = Client("http://localhost:8090/INTechSimulator?wsdl")
+        self.simulateur = client.service
+        #initialisation de la table TODO : prendre les valeurs dans Table
+        self.simulateur.reset()
+        self.simulateur.setTableDimension(3000,2000)
+        self.simulateur.defineCoordinateSystem(1,0,0,-1,1500,2000)
+        self.simulateur.defineRobot({"list":[{"float":[-200.,-200.]},{"float":[-200.,200.]},{"float":[200.,200.]},{"float":[200.,-200.]}]})
+        self.simulateur.defineRobotSensorZone({"list":[{"int":[0,400]},{"int":[-500.,1000.]},{"int":[500,1000]}]})
+        self.simulateur.setRobotAngle(0)
+        self.simulateur.setRobotPosition(-1200,300)
+        self.simulateur.addEnemy(30,"black")
+        
+        
+    def gestion_blocage(self, **useless):
+        """
+        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
+        méthode de détection des collisions
+        retourne True si la valeur du booléen blocage (attribut de robot) doit etre remplacée par True
+        """
+        with self.mutex:
+            return self.simulateur.isBlocked()
+    
+    def update_enMouvement(self, **useless):
+        """
+        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
+        cette méthode détermine si le robot est arrivé à sa position de consigne
+        retourne la valeur du booléen enMouvement (attribut de robot)
+        """
+        with self.mutex:
+            return self.simulateur.isMoving() or self.simulateur.isTurning()
+    
+    def get_infos_stoppage_enMouvement(self):
+        """
+        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
+        """
+        return {}
+        
+    def est_bloque(self):
+        with self.mutex:
+            return self.simulateur.isBlocked()
+        
+    def est_arrive(self):
+        with self.mutex:
+            return not(self.simulateur.isMoving() or self.simulateur.isTurning())
+    
+    def get_infos_x_y_orientation(self):
+        """
+        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
+        """
+        with self.mutex:
+            return [self.simulateur.getX(), self.simulateur.getY(), self.simulateur.getAngle()]
+            
+            
     def avancer(self, distance):
-        pass
+        try:
+            with self.mutex:
+                self.simulateur.moveRobot(distance)
+        except Exception as e:
+            print(e)
 
     def tourner(self, angle):
-        pass
+        try:
+            with self.mutex:
+                self.simulateur.turnRobot(angle, True)
+        except Exception as e:
+            print(e)
     
     def set_x(self, new_x):
+        # try:
+            # with self.mutex:
+                # self.simulateur.setRobotPosition(new_x,self.simulateur.getY())
+        # except Exception as e:
+            # print(e)
         pass
     
     def set_y(self, new_y):
+        # try:
+            # with self.mutex:
+                # self.simulateur.setRobotPosition(self.simulateur.getX(),new_y)
+        # except Exception as e:
+            # print(e)
         pass
-    
+
     def set_orientation(self, new_o):
+        # try:
+            # with self.mutex:
+                # self.simulateur.setRobotAngle(new_o)
+        # except Exception as e:
+            # print(e)
         pass
-    
+
     def activer_asservissement_translation(self):
         pass
-    
+        
     def activer_asservissement_rotation(self):
         pass
-    
+        
     def desactiver_asservissement_translation(self):
         pass
-    
+        
     def desactiver_asservissement_rotation(self):
         pass
     
     def stopper(self):
-        pass
-    
-    def get_vitesse_translation(self):
-        pass
-    
-    def get_vitesse_rotation(self):
+        with self.mutex:
+            self.simulateur.stopRobot() 
         pass
     
     def set_vitesse_translation(self, valeur):
@@ -280,8 +393,3 @@ class DeplacementsSimulateur(Deplacements):
     def set_vitesse_rotation(self, valeur):
         pass
     
-    def get_infos_stoppage_enMouvement(self):
-        pass
-    
-    def get_infos_x_y_orientation(self):
-        pass

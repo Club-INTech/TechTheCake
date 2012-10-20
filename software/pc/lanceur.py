@@ -9,10 +9,14 @@ from src.strategie import Strategie
 
 container = Container()
 
-thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
-thread_MAJ.start()
+#thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
+#thread_MAJ.start()
 
-#strat = Strategie(container)
-#strat.attrib()
+strat = Strategie(container)
 
-serie = container.get_service("serie")
+#input("appuyer sur une touche pour lancer le calcul de durée du script...")
+#print(strat.scripts["pipeau"].calcule())
+#input("appuyer sur une touche pour effectuer les mouvements du script...")
+#strat.scripts["pipeau"].agit()
+
+strat.robot.recaler()

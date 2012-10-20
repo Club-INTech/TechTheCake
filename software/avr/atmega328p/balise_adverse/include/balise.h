@@ -7,14 +7,16 @@
 #include <libintech/asservissement.hpp>
 #include <libintech/register.hpp>
 #include <libintech/serial/serial_0.hpp>
+#include <libintech/xbee.hpp>
 #include <libintech/timer.hpp>
 #include <util/delay.h>
 #include "define.h"
+#include "synchronisation.h"
 
 class Balise : public Singleton<Balise>
 {
     public:
-        typedef Serial<0> serial_radio;
+        typedef Xbee< Serial<0> > xbee;
         
         /**
          * Timer utilisé comme timeout pour marquer la distance mesurée comme périmée au bout d'un certain temps
@@ -43,7 +45,10 @@ class Balise : public Singleton<Balise>
          */
         volatile uint32_t last_distance_date;
         
- 
+        
+        //On instancie la classe synchronisation
+        Synchronisation< Timer<0,1> , Serial<0> > synchro;
+        
     public:
         Balise();
         void execute(char*);

@@ -6,15 +6,18 @@
  */
 
 #ifndef XBEE_HPP
-#define	XBEE_HPP
+#define XBEE_HPP
 
-template<class Serial, class Debug>
+template<class Serial>
 class Xbee {
 public:
 
     static void init() {
         Serial::init();
-        Debug::init();
+    }
+    
+    static void change_baudrate(uint32_t baudrate) {
+        Serial::change_baudrate(baudrate);
     }
 
     /**

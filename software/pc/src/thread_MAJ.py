@@ -18,12 +18,9 @@ def fonction_MAJ(container):
     
     log.debug("lancement du thread de mise à jour")
     while 42:
-        
+    
         #mise à jour des coordonnées dans robot
-        infos_xyo = robot.deplacements.get_infos_x_y_orientation()
-        robot.update_x_y_orientation(*infos_xyo)
+        robot.update_x_y_orientation()
         
-        #mise à jour de l'état du robot (en mouvement, stoppé, à la consigne), et gestion du blocage automatique
-        infos_stoppage_enMouvement = robot.deplacements.get_infos_stoppage_enMouvement()
-        robot.update_enMouvement(**infos_stoppage_enMouvement)
-        robot.gestion_blocage(**infos_stoppage_enMouvement)
+        sleep(0.2)
+                    
