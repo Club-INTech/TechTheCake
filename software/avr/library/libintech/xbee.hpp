@@ -117,6 +117,9 @@ public:
             Serial::read_char(buffer, timeout);
             message[i] = buffer;
         }
+        
+        // Fin de chaine
+        message[length - 5] = '\0';
 
         // Checksum (ignoré pour le moment)
         return Serial::read_char(checksum, timeout);

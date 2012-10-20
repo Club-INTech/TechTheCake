@@ -43,7 +43,6 @@ Balise::Balise():
     //sbi(DDRD,PORTD7);
     
     pwm_moteur::init();
-    pwm_moteur::value(20);
     //timer_toptour::enable();
     
     // -----------------------
@@ -122,8 +121,14 @@ void Balise::execute(char *order)
             xbee::send(balise_address[id], "p");
             char buffer[10];
             serial_pc::print("Attente réponse...");
-            xbee::read(buffer);
-            serial_pc::print(buffer);
+            if (xbee::read(buffer, 1000) == xbee::READ_TIMEOUT)
+            {
+				serial_pc::print("timeout");
+			}
+			else
+			{
+				serial_pc::print(buffer);
+            }
         }
     }
     
@@ -278,12 +283,12 @@ void Balise::laser_off()
 
 void Balise::motor_on()
 {
-    
+    pwm_moteur::value(40);
 }
 
 void Balise::motor_off()
 {
-    
+    pwm_moteur::value(0);
 }
 
 void Balise::diode_on()

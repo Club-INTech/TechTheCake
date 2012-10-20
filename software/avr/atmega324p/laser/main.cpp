@@ -8,11 +8,8 @@
 #include <util/delay.h>
 #include "balise.h"
 
-
-
 int main() 
 {
-
     Balise &balise = Balise::Instance();
     
     balise.diode_blink();
@@ -29,7 +26,7 @@ int main()
 ISR(TIMER0_OVF_vect)
 {
     Balise &balise = Balise::Instance();
-    balise.synchro.interruption();
+    //balise.synchro.interruption();
 }
 
 ISR(TIMER2_OVF_vect)
