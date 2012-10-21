@@ -15,14 +15,17 @@
 #include "define.h"
 #include "synchronisation.h"
 
-
 class Balise : public Singleton<Balise>
 {
     public:
+    
+		// Communication vers le PC
         typedef Serial<0> serial_pc;
+        
+        // Communication radio
         typedef Xbee< Serial<1> > xbee;
         
-        // Utilisé pour calculer l'angle des lasers
+        // Timer 1 utilisé pour calculer l'angle des lasers
         // Doit être le plus précis possible (16 bits), mais ne doit pas faire d'overflow
         typedef Timer<1,64> timer_toptour;
         
@@ -30,7 +33,8 @@ class Balise : public Singleton<Balise>
         typedef PWM<2,ModeFastPwm,1,'B'> pwm_moteur;
         //Moteur< timer_moteur, AVR_PORTD<PORTD7> > moteur;
         
-        //Synchronisation< Timer<0,1> , Serial<1> > synchro;
+        // Horloge et synchronisation sur Timer 0
+        Synchronisation<Timer<0,1>,xbee> synchronisation;
         
         
     private:

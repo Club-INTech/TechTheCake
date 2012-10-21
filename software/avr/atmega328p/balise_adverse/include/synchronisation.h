@@ -5,9 +5,7 @@
 #include <string.h>
 
 #include "libintech/timer.hpp"
-#include <libintech/serial/serial_0.hpp>
 #include <libintech/xbee.hpp>
-
 
 
 template<class Timer , class Xbee>
@@ -20,7 +18,7 @@ private:
     
 public:
     
-    Synchronisation(uint16_t a);
+    Synchronisation(uint16_t);
     
     void synchroniser_client();
     

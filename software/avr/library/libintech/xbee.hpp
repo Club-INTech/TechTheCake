@@ -130,7 +130,7 @@ public:
         uint8_t signal_strength;
         return read(message, source_address, signal_strength, timeout);
     }
-
+    
     /**
      * Retourne les addresses des modules connectés au réseau dans le tableau response (prévoir de la place)
      * 

@@ -66,6 +66,10 @@ void Balise::execute(char *order) {
         serial_radio::print(last_distance_date);
         
     }*/
+    else if (strcmp(order,"c") == 0) {
+        serial_radio::print(distance);
+        serial_radio::print(last_distance_date);
+    }
 }
 
 void Balise::diode_on() {

@@ -1,5 +1,6 @@
 #include "balise.h"
 
+template class Synchronisation< Timer<0,1>, Xbee< Serial<0> > >;
 
 Balise::Balise():
         max_counter_(0)
@@ -98,6 +99,11 @@ void Balise::execute(char *order)
         serial_pc::print("valeur du pwm:");
         serial_pc::read(pwm);
         pwm_moteur::value(pwm);
+    }
+    
+    else if (strcmp(order, "clock") == 0)
+    {
+        serial_pc::print(synchronisation.clock());
     }
     
     // Ping des balises

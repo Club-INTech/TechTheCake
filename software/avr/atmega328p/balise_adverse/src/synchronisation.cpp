@@ -2,8 +2,8 @@
 
 
 //Initialisation avec 
-template<class Timer , class Xbee>
-Synchronisation<Timer , Xbee>::Synchronisation( uint16_t a) : clock_(0) 
+template<class Timer, class Xbee>
+Synchronisation<Timer,Xbee>::Synchronisation(uint16_t a): clock_(0) 
 {
     //On enregistre la valeur de l'adresse du Xbee
     adresse = a;
@@ -12,8 +12,8 @@ Synchronisation<Timer , Xbee>::Synchronisation( uint16_t a) : clock_(0)
     Timer::init();
 }
 
-template<class Timer , class Xbee>
-void Synchronisation<Timer , Xbee>::synchroniser_client()
+template<class Timer, class Xbee>
+void Synchronisation<Timer,Xbee>::synchroniser_client()
 {
     //Declaration des variables
     char buffer[17];
@@ -24,14 +24,14 @@ void Synchronisation<Timer , Xbee>::synchroniser_client()
     
     // Début de la synchronisation
     t1 = clock_;
-    Xbee::send( adresse , "!" );
+    Xbee::send(adresse, "!");
     Xbee::read(buffer);
     t4 = clock_;
     
     if(strcmp(buffer, "!") == 0)
     {
         //Recuperation de la valeur de tp
-        Xbee::send( adresse , "tp?" );
+        Xbee::send(adresse, "tp?");
         Xbee::read(tp);
 
         //Calcul de l'écart teta entre les deux horloges
@@ -41,27 +41,27 @@ void Synchronisation<Timer , Xbee>::synchroniser_client()
 }
 
 template<class Timer , class Xbee>
-void Synchronisation<Timer , Xbee>::synchroniser_serveur( uint16_t add)
+void Synchronisation<Timer , Xbee>::synchroniser_serveur(uint16_t add)
 {
     //Declaration des variables
     char buffer[17];
     uint32_t tp;
     
     // Commence une synchronisation
-    Xbee::send(add,"début synchro");
+    Xbee::send(add, "début synchro");
     Xbee::read(buffer);
     
     if(strcmp(buffer, "!") == 0)
     {
         tp = clock_;
-        Xbee::send(add,"!");
+        Xbee::send(add, "!");
         
         //Attente de la demande d'envoie de tp
         Xbee::read(buffer);
         if(strcmp(buffer, "tp?") == 0)
         {
             //Envoie de la valeur de tp
-            Xbee::send(add,tp);
+            Xbee::send(add, tp);
         }
     }
 }
