@@ -1,9 +1,9 @@
 #include "balise.h"
 
-template class Synchronisation< Timer<0,1>, Xbee< Serial<0> > >;
-
 Balise::Balise():
-        max_counter_(0)
+	synchronisation(0x5001),
+    last_top_(0),
+    last_period_(0) 
 {
     
     // -----------------------
@@ -22,7 +22,7 @@ Balise::Balise():
     // -----------------------
     
     // Initialisation du timer
-    timer_toptour::init();
+    //timer_toptour::init();
     
     // Input sur INT2 = PB2
     cbi(DDRB,PORTB2);
@@ -44,7 +44,6 @@ Balise::Balise():
     //sbi(DDRD,PORTD7);
     
     pwm_moteur::init();
-    //timer_toptour::enable();
     
     // -----------------------
     // Alimentation des lasers
@@ -55,6 +54,13 @@ Balise::Balise():
     // Pin PWM Laser en output
     sbi(DDRB,PORTB3);
     
+    // Seuil pour le PWM des lasers (cf formule datasheet)
+    // f_wanted = 20 000 000 / (2 * prescaler * (1 + OCR0A))
+    // Valeur fixée = 48KHz (ne pas aller au dessus, le pont redresseur chauffe sinon)
+    pwm_laser::init();
+    pwm_laser::value(170);
+    
+    /*
     // Pin DIR Laser en output
     sbi(DDRB,PORTB4);
     
@@ -71,6 +77,8 @@ Balise::Balise():
     // f_wanted = 20 000 000 / (2 * prescaler * (1 + OCR0A))
     // Valeur fixée = 48KHz (ne pas aller au dessus, le pont redresseur chauffe sinon)
     OCR0A = 170;
+    */
+    
     
     // -----------------------
     // Diode debug
@@ -91,6 +99,7 @@ void Balise::execute(char *order)
     if (strcmp(order, "?") == 0)
     {
         serial_pc::print(PING_ID);
+        diode_blink();
     }
     
     else if (strcmp(order, "pwm") == 0)
@@ -141,7 +150,7 @@ void Balise::execute(char *order)
     // Allumer les lasers
     else if (strcmp(order, "laser_on") == 0)
     {
-        if (max_counter() > 0)
+        if (last_top() > 0)
         {
             laser_on();
         }
@@ -173,10 +182,18 @@ void Balise::execute(char *order)
     }
     
     // Vitesse actuelle du moteur
-    else if(strcmp(order, "motor_speed") == 0)
+    else if(strcmp(order, "speed") == 0)
     {
-        serial_pc::print(max_counter());
+        serial_pc::print(last_period());
     }
+    
+    else if(strcmp(order, "synchro") == 0)
+    {
+        synchronisation.synchroniser_client(0x5001);
+        synchronisation.synchroniser_serveur(0x5001);
+    }
+    
+    
     
     
     /******Commandes de synchronisation******/
@@ -234,14 +251,36 @@ void Balise::execute(char *order)
 */
 }
 
-void Balise::max_counter(uint16_t valeur)
+// -----------------------
+// Controle du top tour
+// -----------------------
+
+/**
+ * Fixe la date du passage de l'aimant, et met à jour la période
+ * 
+ */
+void Balise::last_top(uint32_t value)
 {
-    max_counter_ = valeur;
+	last_period_ = value - last_top_;
+    last_top_ = value;
 }
 
-uint16_t Balise::max_counter()
+/**
+ * Retourne la date du dernier passage de l'aimant devant le top tour
+ * 
+ */
+uint32_t Balise::last_top()
 {
-    return max_counter_;
+    return last_top_;
+}
+
+/**
+ * Retourne la dernière période mesurée de la tourelle
+ * 
+ */
+uint32_t Balise::last_period()
+{
+    return last_period_;
 }
 
 /**
@@ -251,41 +290,40 @@ uint16_t Balise::max_counter()
  * pour éviter l'overflow du timer top-tour
  * 
  */
-int16_t Balise::get_angle(uint16_t offset)
+int16_t Balise::angle(uint32_t date)
 {
-    if (max_counter_ == 0) return -1;
+	/*
+    if (last_top_ == 0) return -1;
     
     //temps à soustraire de l'angle pour avoir la valeur au moment du passage du laser
     int32_t diff = ((int32_t)timer_toptour::value() - (int32_t)offset*4/5);
         
     while(diff<0){ //Assez mystère...
-      diff+=(int32_t)max_counter_;
+		diff += last_top_;
     }
 
-    return diff *(float)360/(float)max_counter_ ;
+    return diff *(float)360/(float)last_top_ ;
+    * */
+    return 0;
 }
 
+// -----------------------
+// Controle des lasers
+// -----------------------
+    
 void Balise::laser_on()
 {
-    // Activation du timer PWM pour DIR
-    cbi(TCCR0B,CS02);
-    cbi(TCCR0B,CS01);
-    sbi(TCCR0B,CS00);
-    
-    // Pin PWM à 5V
-    sbi(PORTB,PORTB3);
+    pwm_laser::enable();
 }
 
 void Balise::laser_off()
 {
-    // Désactivation du timer PWM pour DIR
-    cbi(TCCR0B,CS02);
-    cbi(TCCR0B,CS01);
-    cbi(TCCR0B,CS00);
-    
-    // Pin PWM à 0V
-    cbi(PORTB,PORTB3);
+    pwm_laser::disable();
 }
+
+// -----------------------
+// Controle du moteur
+// -----------------------
 
 void Balise::motor_on()
 {
@@ -297,9 +335,18 @@ void Balise::motor_off()
     pwm_moteur::value(0);
 }
 
+// -----------------------
+// Controle des diodes
+// -----------------------
+
 void Balise::diode_on()
 {
     sbi(PORTD,PORTD7);
+}
+
+void Balise::diode_off()
+{
+    cbi(PORTD,PORTD7);
 }
 
 void Balise::diode_blink()
@@ -316,11 +363,6 @@ void Balise::diode_blink(uint16_t period, uint8_t number)
         diode_off();
         for (uint16_t i = 1; i <= period; i++) _delay_ms(1);
     }
-}
-
-void Balise::diode_off()
-{
-    cbi(PORTD,PORTD7);
 }
 
 /**
