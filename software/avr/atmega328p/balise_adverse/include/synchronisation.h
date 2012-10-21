@@ -4,18 +4,27 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "libintech/timer.hpp"
+#include <libintech/serial/serial_0.hpp>
+#include <libintech/xbee.hpp>
 
 
-template<class Timer , class Serial>
+
+template<class Timer , class Xbee>
 class Synchronisation
 {
 private:
     volatile uint32_t clock_;
     
-public:
-    Synchronisation();
+    uint16_t adresse;
     
-    void synchroniser();
+public:
+    
+    Synchronisation(uint16_t a);
+    
+    void synchroniser_client();
+    
+    void synchroniser_serveur();
     
     void interruption();
     

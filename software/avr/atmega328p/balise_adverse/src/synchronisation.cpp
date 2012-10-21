@@ -1,15 +1,19 @@
 #include "synchronisation.h"
-#include "libintech/timer.hpp"
-#include "libintech/serial/serial_0.hpp"
 
-template<class Timer , class Serial>
-Synchronisation<Timer , Serial>::Synchronisation() : clock_(0) 
+
+//Initialisation avec 
+template<class Timer , class Xbee>
+Synchronisation<Timer , Xbee>::Synchronisation( uint16_t a) : clock_(0) 
 {
+    //On enregistre la valeur de l'adresse du Xbee
+    adresse = a;
+    
+    //Initialisation du Timer
     Timer::init();
 }
 
-template<class Timer , class Serial>
-void Synchronisation<Timer , Serial>::synchroniser()
+template<class Timer , class Xbee>
+void Synchronisation<Timer , Xbee>::synchroniser_client()
 {
     //Declaration des variables
     char buffer[17];
@@ -20,15 +24,15 @@ void Synchronisation<Timer , Serial>::synchroniser()
     
     // Début de la synchronisation
     t1 = clock_;
-    Serial::print("!");
-    Serial::read(buffer);
+    Xbee::send( adresse , "!" );
+    Xbee::read(buffer);
     t4 = clock_;
     
     if(strcmp(buffer, "!") == 0)
     {
         //Recuperation de la valeur de tp
-        Serial::print("tp?");
-        Serial::read(tp);
+        Xbee::send( adresse , "tp?" );
+        Xbee::read(tp);
 
         //Calcul de l'écart teta entre les deux horloges
         teta = tp - (t1 + t4)/2;
@@ -36,17 +40,43 @@ void Synchronisation<Timer , Serial>::synchroniser()
     }
 }
 
+template<class Timer , class Xbee>
+void Synchronisation<Timer , Xbee>::synchroniser_serveur( uint16_t add)
+{
+    //Declaration des variables
+    char buffer[17];
+    uint32_t tp;
+    
+    // Commence une synchronisation
+    Xbee::send(add,"début synchro");
+    Xbee::read(buffer);
+    
+    if(strcmp(buffer, "!") == 0)
+    {
+        tp = clock_;
+        Xbee::send(add,"!");
+        
+        //Attente de la demande d'envoie de tp
+        Xbee::read(buffer);
+        if(strcmp(buffer, "tp?") == 0)
+        {
+            //Envoie de la valeur de tp
+            Xbee::send(add,tp);
+        }
+    }
+}
 
-template<class Timer , class Serial>
-void Synchronisation<Timer , Serial>::interruption()
+
+template<class Timer , class Xbee>
+void Synchronisation<Timer , Xbee>::interruption()
 {
     clock_++;
 }
 
-template<class Timer , class Serial>
-uint32_t Synchronisation<Timer , Serial>::clock()
+template<class Timer , class Xbee>
+uint32_t Synchronisation<Timer , Xbee>::clock()
 {
     return clock_;
 }
 
-template class Synchronisation<Timer<0,1>,Serial<0> >;
+template class Synchronisation< Timer<0,1>, Xbee< Serial<0> > >;

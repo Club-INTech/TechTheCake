@@ -15,10 +15,10 @@ int main()
     
     while(1)
     {
-        //xbee::send(0x5001, "Hello World !");
+       // Balise::xbee::send(0x5001, "m");
         
         char order[10];
-        xbee::read(order);
+        Balise::xbee::read(order);
         balise.execute(order);
         
     }

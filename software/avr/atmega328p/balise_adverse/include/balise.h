@@ -47,7 +47,7 @@ class Balise : public Singleton<Balise>
         
         
         //On instancie la classe synchronisation
-        Synchronisation< Timer<0,1> , Serial<0> > synchro;
+        Synchronisation< Timer<0,1> , Xbee<Serial<0> > > synchro;
         
     public:
         Balise();
