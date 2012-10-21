@@ -1,8 +1,8 @@
-/* 
- * File:   xbee.hpp
- * Author: marc
- *
- * Created on 21 septembre 2012, 00:04
+/** 
+ * Classe de gestion des communications XBEE
+ * 
+ * @author Marc BLANC-PATIN marc.blancpatin@gmail.com
+ * 
  */
 
 #ifndef XBEE_HPP
@@ -73,6 +73,17 @@ public:
         // Checksum
         Serial::send_char(0xFF - checksum);
     }
+    
+    static inline void send(uint16_t address, const char* val) {
+        send(address, val);
+    }
+    
+    template<class T>
+    static inline void send(uint16_t address, T val) {
+        char buffer[10];
+        ltoa(val, buffer, 10);
+        send(address, (const char *) buffer);
+    }
 
     /**
      * Lecture d'un message
@@ -125,10 +136,32 @@ public:
         return Serial::read_char(checksum, timeout);
     }
     
+    template<class T>
+    static inline uint8_t read(T &val, uint16_t &source_address, uint8_t &signal_strength, uint16_t timeout = 0) {
+        static char buffer[20];
+        uint8_t status = read(buffer, source_address, signal_strength, timeout);
+        val = atol(buffer);
+
+        return status;
+    }
+    
+    /**
+     * Alias read avec moins d'arguments
+     * 
+     */
     static inline uint8_t read(char* message, uint16_t timeout = 0) {
         uint16_t source_address;
         uint8_t signal_strength;
         return read(message, source_address, signal_strength, timeout);
+    }
+    
+    template<class T>
+    static inline uint8_t read(T &val, uint16_t timeout = 0) {
+        static char buffer[20];
+        uint8_t status = read(buffer, timeout);
+        val = atol(buffer);
+
+        return status;
     }
     
     /**
