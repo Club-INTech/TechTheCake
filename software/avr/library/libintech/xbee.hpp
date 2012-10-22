@@ -23,7 +23,8 @@ public:
     static void change_baudrate(uint32_t baudrate) {
         Serial::change_baudrate(baudrate);
     }
-
+    
+	
     /**
      * Envoie un message à un module
      * 
@@ -74,58 +75,61 @@ public:
         Serial::send_char(0xFF - checksum);
     }
     
-    static inline void send(uint16_t address, const char* val) {
-        send(address, val);
-    }
-    
     template<class T>
     static inline void send(uint16_t address, T val) {
         char buffer[10];
         ltoa(val, buffer, 10);
-        send(address, (const char *) buffer);
+        send(address, buffer);
     }
-
+    
+    static inline void send(uint16_t address, const char* val) {
+        send(address, (char *) val);
+    }
+    
     /**
      * Lecture d'un message
      * 
      * @param message   Variable où sera stocké le message après réception
      */
-    static inline uint8_t read(char* message, uint16_t &source_address, uint8_t &signal_strength, uint16_t timeout = 0) {
+    static inline uint8_t read(char* message, uint16_t &source_address, uint8_t &signal_strength, uint16_t timeout) {
         uint8_t checksum = 0;
         uint8_t buffer;
         uint16_t length;
         uint8_t status = READ_SUCCESS;
 
         // Délimiteur de trame
-        do {
+        do{
             status = Serial::read_char(buffer, timeout);
+            if (status == READ_TIMEOUT) return status;
         } while (status != READ_TIMEOUT && buffer != 0x7E);
         
-        if (status == READ_TIMEOUT) return status;
-
         // Taille de la réponse
-        Serial::read_char(buffer, timeout);
+        status = Serial::read_char(buffer, 100);
+        if (status == READ_TIMEOUT) return status;
         length = buffer << 8;
-        Serial::read_char(buffer, timeout);
+        
+        status = Serial::read_char(buffer, 100);
+        if (status == READ_TIMEOUT) return status;
         length += buffer;
 
         // Type de réponse (ignoré pour le moment)
-        Serial::read_char(buffer, timeout);
+        Serial::read_char(buffer, 100);
+        if (buffer != 0x81) return READ_TIMEOUT;
 
         // Adresse de l'emetteur
-        Serial::read_char(buffer, timeout);
+        Serial::read_char(buffer, 100);
         source_address = buffer << 8;
-        Serial::read_char(buffer, timeout);
+        Serial::read_char(buffer, 100);
         source_address += buffer;
 
         // Force du signal
-        Serial::read_char(signal_strength, timeout);
+        Serial::read_char(signal_strength, 100);
 
         // Options (ignoré pour le moment)
-        Serial::read_char(buffer, timeout);
+        Serial::read_char(buffer, 100);
 
         for (uint8_t i = 0; i < length - 5; i++) {
-            Serial::read_char(buffer, timeout);
+            Serial::read_char(buffer, 100);
             message[i] = buffer;
         }
         
@@ -133,11 +137,13 @@ public:
         message[length - 5] = '\0';
 
         // Checksum (ignoré pour le moment)
-        return Serial::read_char(checksum, timeout);
+        Serial::read_char(checksum, 100);
+        
+        return READ_SUCCESS;
     }
     
     template<class T>
-    static inline uint8_t read(T &val, uint16_t &source_address, uint8_t &signal_strength, uint16_t timeout = 0) {
+    static inline uint8_t read(T &val, uint16_t &source_address, uint8_t &signal_strength, uint16_t timeout) {
         static char buffer[20];
         uint8_t status = read(buffer, source_address, signal_strength, timeout);
         val = atol(buffer);
@@ -149,16 +155,39 @@ public:
      * Alias read avec moins d'arguments
      * 
      */
-    static inline uint8_t read(char* message, uint16_t timeout = 0) {
+    static inline uint8_t read(char* message, uint16_t timeout) {
         uint16_t source_address;
         uint8_t signal_strength;
         return read(message, source_address, signal_strength, timeout);
     }
     
+    /**
+     * Alias read avec sans timeout, permet de ne pas rester coincé dans une trame invalide
+     * 
+     */
+    static inline uint8_t read(char* message) {
+        uint8_t status;
+        do {
+			status = read(message, 1000);
+		} while (status == READ_TIMEOUT);
+		
+		return status;
+    }
+    
+    
     template<class T>
-    static inline uint8_t read(T &val, uint16_t timeout = 0) {
+    static inline uint8_t read(T &val, uint16_t timeout) {
         static char buffer[20];
         uint8_t status = read(buffer, timeout);
+        val = atol(buffer);
+
+        return status;
+    }
+    
+    template<class T>
+    static inline uint8_t read(T &val) {
+        static char buffer[20];
+        uint8_t status = read(buffer);
         val = atol(buffer);
 
         return status;

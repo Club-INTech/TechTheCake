@@ -159,30 +159,28 @@ public:
 
     static inline void print_noln(bool val) {
         (val) ? print_noln("true") : print_noln("false");
-        send_char('\r');
     }
 
     static inline void print_noln(char* val) {
         for (uint16_t i = 0; i < strlen(val); i++) {
             send_char(val[i]);
         }
-        send_char('\r');
     }
 
     static inline void print_noln(const char* val) {
         for (uint16_t i = 0; i < strlen(val); i++) {
             send_char(val[i]);
         }
-        send_char('\r');
     }
 
     /**
-     * Envoie sur la liaison série, avec retour à la ligne \n
+     * Envoie sur la liaison série, avec délimiteur \r et retour à la ligne \n
      * 
      */
     template<class T>
     static inline void print(T val) {
         print_noln(val);
+        send_char('\r');
         send_char('\n');
     }
 
