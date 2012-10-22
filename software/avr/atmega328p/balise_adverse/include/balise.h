@@ -11,7 +11,7 @@
 #include <libintech/timer.hpp>
 #include <util/delay.h>
 #include "define.h"
-#include "synchronisation.h"
+#include "synchronisation.hpp"
 
 class Balise : public Singleton<Balise>
 {
@@ -45,9 +45,7 @@ class Balise : public Singleton<Balise>
          */
         volatile uint32_t last_distance_date;
         
-        
-        //On instancie la classe synchronisation
-        Synchronisation< Timer<0,1> , Xbee<Serial<0> > > synchro;
+        Synchronisation< Timer<2,1> , Xbee<Serial<0> > > synchronisation;
         
     public:
         Balise();

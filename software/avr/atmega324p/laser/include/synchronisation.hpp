@@ -111,7 +111,7 @@ public:
      * @param ms Renvoie la valeur en ms au lieu de la valeur brute du timer
      * 
      */
-    uint32_t clock(bool ms = false)
+    uint32_t clock(bool ms = true)
     {
 		if (!ms) return clock_;
 		

@@ -1,9 +1,10 @@
 #include "balise.h"
 
 Balise::Balise() :
-window_opener(-1),
-distance(0),
-last_distance_date(0) {
+	window_opener(-1),
+	distance(0),
+	last_distance_date(0)
+{
 
     // -----------------------
     // Timer
@@ -55,9 +56,11 @@ last_distance_date(0) {
 }
 
 void Balise::execute(char *order) {
+	
     // Ping
-    if (strcmp(order,"p") == 0) {
-        xbee::send(0x5001, "ping");
+    if (strcmp(order,"?") == 0) {
+        xbee::send(SERVER_ADDRESS, 7);
+        diode_blink();
     }
     // Demande de valeur de la dernière distance mesurée
     /*
@@ -66,14 +69,20 @@ void Balise::execute(char *order) {
         serial_radio::print(last_distance_date);
         
     }*/
+    
+    // Clock
     else if (strcmp(order,"c") == 0) {
-        serial_radio::print(distance);
-        serial_radio::print(last_distance_date);
+        xbee::send(SERVER_ADDRESS, synchronisation.clock());
+    }
+    
+    // Synchronisation
+    else if (strcmp(order,"s") == 0) {
+        synchronisation.synchroniser_client(SERVER_ADDRESS);
     }
 }
 
 void Balise::diode_on() {
-    sbi(PORTD, PORTD7);
+    sbi(PORTC, PORTC4);
 }
 
 void Balise::diode_blink() {
@@ -90,6 +99,6 @@ void Balise::diode_blink(uint16_t period, uint8_t number) {
 }
 
 void Balise::diode_off() {
-    cbi(PORTD, PORTD7);
+    cbi(PORTC, PORTC4);
 }
 

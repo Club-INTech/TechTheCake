@@ -1,7 +1,6 @@
 #include "balise.h"
 
 Balise::Balise():
-	synchronisation(0x5001),
     last_top_(0),
     last_period_(0) 
 {
@@ -114,7 +113,7 @@ void Balise::execute(char *order)
     {
         serial_pc::print(synchronisation.clock());
     }
-    
+    /*
     // Ping des balises
     else if (strcmp(order, "ping") == 0)
     {
@@ -133,7 +132,7 @@ void Balise::execute(char *order)
         else
         {
             serial_pc::print("Envoi du ping...");
-            xbee::send(balise_address[id], "p");
+            xbee::send(balise_address[id], "c");
             char buffer[10];
             serial_pc::print("Attente réponse...");
             if (xbee::read(buffer, 1000) == xbee::READ_TIMEOUT)
@@ -144,6 +143,102 @@ void Balise::execute(char *order)
 			{
 				serial_pc::print(buffer);
             }
+        }
+    }*/
+    
+    // Ping des balises
+    else if (strcmp(order, "ping") == 0)
+    {
+        for (uint8_t id = 0; id < BALISE_NUMBER; id++)
+        {
+			// Affichage de l'ID sur la série
+			serial_pc::print_noln("ID");
+			serial_pc::print_noln(id);
+			serial_pc::print_noln(" ");
+			
+			xbee::send(balise_address[id], "?");
+            uint8_t ping;
+            if (xbee::read(ping, 500) == xbee::READ_SUCCESS)
+            {
+				serial_pc::print(ping);
+			}
+			else
+			{
+				serial_pc::print("introuvable");
+			}
+		}
+    }
+    
+    // Affichage des clocks des balises
+    else if (strcmp(order, "bclock") == 0)
+    {
+        for (uint8_t id = 0; id < BALISE_NUMBER; id++)
+        {
+			// Affichage de l'ID sur la série
+			serial_pc::print_noln("ID");
+			serial_pc::print_noln(id);
+			serial_pc::print_noln(" ");
+			
+			xbee::send(balise_address[id], "c");
+            uint32_t clock;
+            if (xbee::read(clock, 500) == xbee::READ_SUCCESS)
+            {
+				serial_pc::print(clock);
+			}
+			else
+			{
+				serial_pc::print("introuvable");
+			}
+		}
+    }
+    
+    // Affichage des l'écart des clock des balises avec la clock du serveur
+    else if (strcmp(order, "bclockdiff") == 0)
+    {
+        for (uint8_t id = 0; id < BALISE_NUMBER; id++)
+        {
+			// Affichage de l'ID sur la série
+			serial_pc::print_noln("ID");
+			serial_pc::print_noln(id);
+			serial_pc::print_noln(" ");
+			
+			xbee::send(balise_address[id], "c");
+            uint32_t clock;
+            if (xbee::read(clock, 500) == xbee::READ_SUCCESS)
+            {
+				serial_pc::print(synchronisation.clock() - clock);
+			}
+			else
+			{
+				serial_pc::print("introuvable");
+			}
+		}
+    }
+    
+    // Synchronisation des balises
+    else if (strcmp(order, "synchro") == 0)
+    {
+        // Demande au PC l'ID de la balise à interroger
+        uint8_t id;
+        serial_pc::print("id ?");
+        serial_pc::read(id);
+        
+        // ID connu ?
+        if (id > BALISE_NUMBER-1)
+        {
+            serial_pc::print("id inconnu");
+        }
+        
+        // Lancement de la synchro
+        else
+        {
+            synchronisation.synchroniser_serveur(balise_address[id]);
+            xbee::send(balise_address[id], "c");
+            uint32_t clock;
+            if (xbee::read(clock, 500) == xbee::READ_SUCCESS)
+            {
+				serial_pc::print(synchronisation.clock() - clock);
+			}
         }
     }
     
@@ -186,13 +281,6 @@ void Balise::execute(char *order)
     {
         serial_pc::print(last_period());
     }
-    
-    else if(strcmp(order, "synchro") == 0)
-    {
-        synchronisation.synchroniser_client(0x5001);
-        synchronisation.synchroniser_serveur(0x5001);
-    }
-    
     
     
     

@@ -15,12 +15,9 @@ int main()
     
     while(1)
     {
-       // Balise::xbee::send(0x5001, "m");
-        
         char order[10];
         Balise::xbee::read(order);
         balise.execute(order);
-        
     }
 }
 
@@ -94,8 +91,6 @@ ISR(TIMER0_OVF_vect)
 {
     Balise &balise = Balise::Instance();
     balise.distance = 0;
-    
-    //Xbee< Serial<0> >::send(0x5001,"Hello");
 }
 
 /**
@@ -105,5 +100,5 @@ ISR(TIMER0_OVF_vect)
 ISR(TIMER2_OVF_vect)
 {
     Balise &balise = Balise::Instance();
-    balise.synchro.interruption();
+    balise.synchronisation.interruption();
 }

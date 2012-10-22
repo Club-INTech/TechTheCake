@@ -7,4 +7,6 @@
  */
 #define TIME_THRESHOLD_MIN 100
 
+#define SERVER_ADDRESS 0x5001
+
 #endif
