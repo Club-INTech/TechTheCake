@@ -19,7 +19,7 @@ private:
     
 public:
     
-    Synchronisation(uint16_t a): clock_(0) 
+    Synchronisation(): clock_(0) 
 	{
 		// Initialisation du Timer
 		Timer::init();
@@ -27,6 +27,8 @@ public:
 
 	/**
 	 * Méthode appelée par les clients (balises) pour se synchroniser avec le serveur
+	 * 
+	 * @param server Adresse XBEE du serveur de clock
 	 * 
 	 */
     uint32_t synchroniser_client(uint16_t server)
@@ -66,6 +68,8 @@ public:
      * Méthode appelée par le serveur pour lancer la synchronisation sur un périphérique
      * L'horloge du serveur sert de référence
      * 
+     * @param client Adresse XBEE du client à synchroniser
+     * 
      */
     void synchroniser_serveur(uint16_t client)
     {
@@ -104,10 +108,14 @@ public:
     /**
      * Récupère la valeur courante de l'horloge
      * 
+     * @param ms Renvoie la valeur en ms au lieu de la valeur brute du timer
+     * 
      */
-    uint32_t clock()
+    uint32_t clock(bool ms = false)
     {
-		return clock_;
+		if (!ms) return clock_;
+		
+		return clock_/(F_CPU/256000);
 	}
 	
 private:
