@@ -12,8 +12,8 @@
 #include <libintech/serial/serial_1.hpp>
 #include <libintech/xbee.hpp>
 #include <util/delay.h>
+#include <lib2013/synchronisation.hpp>
 #include "define.h"
-#include "synchronisation.hpp"
 
 class Balise : public Singleton<Balise>
 {
