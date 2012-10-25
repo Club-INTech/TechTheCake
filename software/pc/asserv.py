@@ -6,7 +6,7 @@ from threading import Thread
 from src.thread_MAJ import fonction_MAJ
 
 from time import time,sleep
-from math import sqrt,atan2,pi
+from math import sqrt,atan,atan2,pi
 
 container = Container()
 serie = container.get_service("serie")
@@ -51,7 +51,24 @@ def goto_maj(x,y):
             #commence par tourner sur lui meme
             goto_init(x,y)
         else:
+            ############################
             angle = atan2(delta_y,delta_x)
+            ############################
+            if delta_x == 0:
+                if delta_y > 0:
+                    angle = pi/2
+                else:
+                    angle = -pi/2
+            else:
+                angle = atan(delta_y/delta_x)
+            if delta_x < 0:
+                if distance < 150:
+                    distance = -distance
+                elif delta_y > 0:
+                    angle += pi
+                else:
+                    angle -= pi
+            ############################
             robot.deplacements.tourner(angle)
             robot.deplacements.avancer_diff(distance)
         
@@ -60,12 +77,29 @@ def goto_init(x,y):
     delta_y = y-robot.y
     distance = sqrt(delta_x**2 + delta_y**2)
     if distance > 30:
+        ############################
         angle = atan2(delta_y,delta_x)
+        ############################
+        if delta_x == 0:
+            if delta_y > 0:
+                angle = pi/2
+            else:
+                angle = -pi/2
+        else:
+            angle = atan(delta_y/delta_x)
+        if delta_x < 0:
+            if distance < 150:
+                distance = -distance
+            elif delta_y > 0:
+                angle += pi
+            else:
+                angle -= pi
+        ############################
         robot.deplacements.tourner(angle)
         #acquittement
-        sleep(1.5)
         robot.consigne_x = x
         robot.consigne_y = y
+        sleep(1.5)
     
     
 def prompt():
