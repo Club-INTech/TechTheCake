@@ -387,7 +387,7 @@ void Robot::translater(float distance)
 {
 	translation.consigne(translation.consigne()+distance/CONVERSION_TIC_MM);
 	//attendre un tour de timer avant de continuer (éventuel problème avec attribut volatile)
-// 	while(compteur.value()>0){ asm("nop"); }
+	//while(compteur.value()>0){ asm("nop"); }
 }
 
 //pour stopper le robot on l'asservit sur sa position courante

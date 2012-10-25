@@ -50,7 +50,7 @@ private:
     Moteur< pwmDroit, AVR_PORTB<PORTB0> > moteurDroit;
     
     //Timer 1 en mode compteur, Prescaler de 1
-    typedef Timer<1,8> TimerCounter_t;
+    typedef Timer<1,1> TimerCounter_t;
     TimerCounter_t compteur;
     
     typedef Serial<0> serial_t_;
