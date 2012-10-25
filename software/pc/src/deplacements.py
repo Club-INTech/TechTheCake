@@ -153,6 +153,12 @@ class DeplacementsSerie(Deplacements):
         fait avancer le robot en ligne droite. (distance<0 => reculer)
         """
         self.serie.communiquer("asservissement",["d",float(distance)], 0)
+        
+    def avancer_diff(self, distance):
+        """
+        translation relative à la position courante (ne se cumule pas avec une autre consigne)
+        """
+        self.serie.communiquer("asservissement",["dd",float(distance)], 0)
     
        
     def tourner(self, angle):

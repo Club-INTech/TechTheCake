@@ -20,7 +20,10 @@ def fonction_MAJ(container):
     while 42:
     
         #mise à jour des coordonnées dans robot
-        robot.update_x_y_orientation()
+        try:
+            robot.update_x_y_orientation()
+        except Exception as e:
+            print(e)
         
         sleep(0.2)
                     

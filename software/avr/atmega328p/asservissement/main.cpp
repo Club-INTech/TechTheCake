@@ -13,8 +13,6 @@
 #include <stdint.h>
 #include "robot.h"
 
-// int16_t a = 0;
-
 int main()
 {
 	
@@ -43,14 +41,4 @@ ISR(TIMER1_OVF_vect, ISR_NOBLOCK){
 	
 	//calcul de la nouvelle position courante du robot, en absolu sur la table (mm et radians)
 	robot.update_position();
-	
-	/*
-	if(a==10)
-	{
-		//mise à jour de la consigne pour tendre vers un point (Type_consigne point) 
-		robot.va_au_point();
-		a = 0;
-	}
-	a++;
-	*/
 }

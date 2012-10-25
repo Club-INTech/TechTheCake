@@ -22,6 +22,9 @@ class Robot:
         """
         self._x = 0
         self._y = 0
+        self._consigne_x = 0
+        self._consigne_y = 0
+        
         self._orientation = 0
         self._blocage = False
         self._enMouvement = True
@@ -45,6 +48,8 @@ class Robot:
         setters = {
             "x":self.set_x,
             "y":self.set_y,
+            "consigne_x":self.set_consigne_x,
+            "consigne_y":self.set_consigne_y,
             "orientation":self.set_orientation,
             "blocage":self.set_blocage,
             "enMouvement":self.set_enMouvement
@@ -58,6 +63,8 @@ class Robot:
         getters = [
             "x",
             "y",
+            "consigne_x",
+            "consigne_y",
             "orientation",
             "blocage",
             "enMouvement"
@@ -71,6 +78,14 @@ class Robot:
         
     def set_y(self, value):
         self.deplacements.set_y(value)
+        
+    def set_consigne_x(self, value):
+        with self.mutex:
+            self.__dict__["_consigne_x"] = value
+            
+    def set_consigne_y(self, value):
+        with self.mutex:
+            self.__dict__["_consigne_y"] = value
      
     def set_orientation(self, value):
         self.deplacements.set_orientation(value)

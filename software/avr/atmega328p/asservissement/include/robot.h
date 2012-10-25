@@ -35,8 +35,6 @@
 
 #define AQUITTER serial_t_::print("_");
 
-enum Type_consigne { segments = 0, point = 1, arc = 2};
-
 class Robot : public Singleton<Robot>{
 // Par défaut les attributs sont publics dans une struct
 
@@ -71,8 +69,6 @@ private:
     Asservissement translation;
     Asservissement rotation;
     
-    Type_consigne type_consigne_;
-    
 public:
     
     Robot();
@@ -98,8 +94,6 @@ public:
 
     void stopper();
     
-    void va_au_point(float x = 0, float y = 0);
-    void gotoPos(float x, float y);
     void translater_diff(float distance);
     
 };

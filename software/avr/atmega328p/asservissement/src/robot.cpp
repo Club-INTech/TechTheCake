@@ -12,7 +12,6 @@ Robot::Robot() :
 			,etat_tra_(true)
 			,translation(0.75,2.5,0.0)
 			,rotation(1.2,3.5,0.0)
-			,type_consigne_(segments)
 {
 	TWI_init();
 	serial_t_::init();
@@ -91,38 +90,6 @@ void Robot::communiquer_pc(){
 		AQUITTER;
 		serial_t_::print(0);
 	}
-	
-	//gestion du mode d'asservissement
-	if(strcmp(buffer,"mp") == 0)
-	{
-		AQUITTER;
-		type_consigne_ = point;
-	}
-	if(strcmp(buffer,"ms") == 0)
-	{
-		AQUITTER;
-		type_consigne_ = segments;
-	}
-	
-	//choix du point consigne
-	if(strcmp(buffer,"p") == 0)
-	{
-		AQUITTER;
-		float x;
-		float y;
-		serial_t_::read(x);
-		AQUITTER;
-		serial_t_::read(y);
-		AQUITTER;
-		va_au_point(x,y);
-	}
-	
-	if(strcmp(buffer,"vp") == 0)
-	{
-		AQUITTER;
-		va_au_point();
-	}
-	
 	
 	//maj des constantes d'asservissement en rotation
 	else if(strcmp(buffer,"crp") == 0)
@@ -257,7 +224,17 @@ void Robot::communiquer_pc(){
 		AQUITTER;
 		stopper();
 	}
-
+	
+	//translation relative à la position courante (ne se cumule pas avec une autre consigne)
+	else if(strcmp(buffer,"dd") == 0)
+	{
+		AQUITTER;
+		float valeur;
+		serial_t_::read(valeur);
+		AQUITTER;
+		translater_diff(valeur);
+	}
+	
 	//stopper asservissement rotation/translation
 	else if(strcmp(buffer,"cr0") == 0)
 	{
@@ -419,107 +396,6 @@ void Robot::stopper()
 	rotation.consigne(mesure_angle_);
 	translation.consigne(mesure_distance_);
 }
-
-void Robot::va_au_point(float x, float y)
-{
-	static float x_consigne = 0;
-	static float y_consigne = 1000;
-	if (x or y)
-	{
-		//changement du point consigne
-		x_consigne = x;
-		y_consigne = y;
-		
-// 		serial_t_::print("maj_cons");
-// 		serial_t_::print((int32_t)x);
-// 		serial_t_::print((int32_t)y);
-	}
-	else
-	{
-		//récupération du point consigne statique (appelé par l'interruption timer)
-		if (type_consigne_ == point)
-		{
-// 			serial_t_::print("point");
-			gotoPos(x_consigne, y_consigne);
-		}
-// 		else if (type_consigne_ == segments)
-// 			serial_t_::print("segments");
-// 		else
-// 			serial_t_::print("autre");
-			
-	}
-}
-
-void Robot::gotoPos(float x, float y)
-{
-	float delta_x = (x-x_);
-	float delta_y = (y-y_);
-	float distance = sqrt(delta_x*delta_x+delta_y*delta_y);
-	//0 pour print
-	float angle = 0;
-	if (distance > 30)
-	{
-		//TODO : remplacer par une interpolation
-		/*
-		if (delta_x==0)
-		{
-			if (delta_y > 0)
-				angle=PI/2;
-			else
-				angle=-PI/2;
-		}
-		else if (delta_x > 0)
-		{
-			angle=atan(delta_y/delta_x);
-		}
-		else
-		{
-			if (delta_y > 0)
-				angle=atan(delta_y/delta_x) - PI;
-			else
-				angle=atan(delta_y/delta_x) + PI;
-		}
-		*/
-		
-// 		float angle = atan2(delta_y,delta_x);
-		if (delta_x == 0)
-		{
-			if (delta_y > 0)
-				angle=PI/2;
-			else
-				angle=-PI/2;
-		}
-		else
-		{
-			angle=atan(delta_y/delta_x);
-			//arctan DL3 :
-// 			float d = delta_y/delta_x;
-// 			angle = d - d*d*d/3;
-				
-			if (delta_x < 0)
-			{
-// 				distance = -distance;
-				if (delta_y > 0)
-					angle += PI;
-				else
-					angle -= PI;
-			}
-		}
-		tourner(angle);
-		translater_diff(distance);
-		
-// 		serial_t_::print("##");
-		
-// 		serial_t_::print((int32_t)x);
-// 		serial_t_::print((int32_t)x_);
-// 		serial_t_::print((int32_t)y);
-// 		serial_t_::print((int32_t)y_);
-	}
-// 	serial_t_::print((int32_t)distance);
-// 	serial_t_::print((int32_t)1000*angle);
-	
-}
-
 
 void Robot::translater_diff(float distance)
 {
