@@ -12,6 +12,9 @@ container = Container()
 serie = container.get_service("serie")
 robot = container.get_service("robot")
 
+robot.deplacements.set_vitesse_translation(1)
+robot.deplacements.set_vitesse_rotation(1)
+
 #thread de mise à jour des coordonnées du robot
 thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
 thread_MAJ.start()
@@ -31,7 +34,7 @@ def affichage() :
         
         #controle de la trajectoire
         if time() - debut_timer > 0.5:
-            goto_pos(robot.consigne_x,robot.consigne_y)
+            goto_maj(robot.consigne_x,robot.consigne_y)
             debut_timer = time()
         sleep(0.1)
 
@@ -39,14 +42,31 @@ def affichage() :
 thread_affichage = Thread(None, affichage, None, (), {})
 thread_affichage.start()
 
-def goto_pos(x,y):
+def goto_maj(x,y):
+    delta_x = x-robot.x
+    delta_y = y-robot.y
+    distance = sqrt(delta_x**2 + delta_y**2)
+    if distance > 30:
+        if distance < 150:
+            #commence par tourner sur lui meme
+            goto_init(x,y)
+        else:
+            angle = atan2(delta_y,delta_x)
+            robot.deplacements.tourner(angle)
+            robot.deplacements.avancer_diff(distance)
+        
+def goto_init(x,y):
     delta_x = x-robot.x
     delta_y = y-robot.y
     distance = sqrt(delta_x**2 + delta_y**2)
     if distance > 30:
         angle = atan2(delta_y,delta_x)
         robot.deplacements.tourner(angle)
-        robot.deplacements.avancer_diff(distance)
+        #acquittement
+        sleep(1.5)
+        robot.consigne_x = x
+        robot.consigne_y = y
+    
     
 def prompt():
     
@@ -56,17 +76,13 @@ def prompt():
         #macros
         nb = 0
         if first == "a":
-            robot.consigne_x = -200
-            robot.consigne_y = -200
+            goto_init(-200,-200)
         elif first == "z":
-            robot.consigne_x = -200
-            robot.consigne_y = 0
+            goto_init(-200,0)
         elif first == "q":
-            robot.consigne_x = 0
-            robot.consigne_y = -200
+            goto_init(0,-200)
         elif first == "s":
-            robot.consigne_x = 0
-            robot.consigne_y = 1
+            goto_init(0,1)
         """
         else:
             nb = int(first)
