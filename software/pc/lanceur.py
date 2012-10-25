@@ -9,8 +9,8 @@ from src.strategie import Strategie
 
 container = Container()
 
-#thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
-#thread_MAJ.start()
+thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
+thread_MAJ.start()
 
 strat = Strategie(container)
 
@@ -19,4 +19,7 @@ strat = Strategie(container)
 #input("appuyer sur une touche pour effectuer les mouvements du script...")
 #strat.scripts["pipeau"].agit()
 
-strat.robot.recaler()
+from time import sleep
+while 42:
+    print("("+str(strat.robot.x)+", "+str(strat.robot.y)+")")
+    sleep(0.2)

@@ -35,6 +35,7 @@
 
 #define AQUITTER serial_t_::print("_");
 
+enum Type_consigne { segments = 0, point = 1, arc = 2};
 
 class Robot : public Singleton<Robot>{
 // Par défaut les attributs sont publics dans une struct
@@ -51,7 +52,7 @@ private:
     Moteur< pwmDroit, AVR_PORTB<PORTB0> > moteurDroit;
     
     //Timer 1 en mode compteur, Prescaler de 1
-    typedef Timer<1,1> TimerCounter_t;
+    typedef Timer<1,8> TimerCounter_t;
     TimerCounter_t compteur;
     
     typedef Serial<0> serial_t_;
@@ -66,8 +67,11 @@ private:
     int32_t mesure_distance_;
     int32_t mesure_angle_;
     
+    
     Asservissement translation;
     Asservissement rotation;
+    
+    Type_consigne type_consigne_;
     
 public:
     
@@ -93,6 +97,11 @@ public:
     void translater(float distance);
 
     void stopper();
+    
+    void va_au_point(float x = 0, float y = 0);
+    void gotoPos(float x, float y);
+    void translater_diff(float distance);
+    
 };
 
 #endif

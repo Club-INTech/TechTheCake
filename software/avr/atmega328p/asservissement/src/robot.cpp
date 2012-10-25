@@ -12,6 +12,7 @@ Robot::Robot() :
 			,etat_tra_(true)
 			,translation(0.75,2.5,0.0)
 			,rotation(1.2,3.5,0.0)
+			,type_consigne_(segments)
 {
 	TWI_init();
 	serial_t_::init();
@@ -91,12 +92,37 @@ void Robot::communiquer_pc(){
 		serial_t_::print(0);
 	}
 	
-	//clean série
-	if(strcmp(buffer,"!") == 0)
+	//gestion du mode d'asservissement
+	if(strcmp(buffer,"mp") == 0)
 	{
 		AQUITTER;
-		serial_t_::print("%");
+		type_consigne_ = point;
 	}
+	if(strcmp(buffer,"ms") == 0)
+	{
+		AQUITTER;
+		type_consigne_ = segments;
+	}
+	
+	//choix du point consigne
+	if(strcmp(buffer,"p") == 0)
+	{
+		AQUITTER;
+		float x;
+		float y;
+		serial_t_::read(x);
+		AQUITTER;
+		serial_t_::read(y);
+		AQUITTER;
+		va_au_point(x,y);
+	}
+	
+	if(strcmp(buffer,"vp") == 0)
+	{
+		AQUITTER;
+		va_au_point();
+	}
+	
 	
 	//maj des constantes d'asservissement en rotation
 	else if(strcmp(buffer,"crp") == 0)
@@ -294,10 +320,10 @@ void Robot::communiquer_pc(){
 	else if(strcmp(buffer,"?infos") == 0)
 	{
 		AQUITTER;
-		serial_t_::print((int16_t)abs(moteurGauche.pwm()));
-		serial_t_::print((int16_t)abs(moteurDroit.pwm()));
-		serial_t_::print((int16_t)abs(rotation.erreur()));
-		serial_t_::print((int16_t)abs(translation.erreur()));
+		serial_t_::print((int16_t)moteurGauche.pwm());
+		serial_t_::print((int16_t)moteurDroit.pwm());
+		serial_t_::print((int16_t)rotation.erreur());
+		serial_t_::print((int16_t)translation.erreur());
 	}
 	
 	//envoi des coordonnées du robot
@@ -377,14 +403,14 @@ void Robot::tourner(float angle)
 	float angle_tic = (angle - angle_origine_)/CONVERSION_TIC_RADIAN;
 	rotation.consigne(angle_optimal( angle_tic, mesure_angle_ ));
 	//attendre un tour de timer avant de continuer (éventuel problème avec attribut volatile)
-	while(compteur.value()>0){ asm("nop"); }
+// 	while(compteur.value()>0){ asm("nop"); }
 }
 
 void Robot::translater(float distance)
 {
 	translation.consigne(translation.consigne()+distance/CONVERSION_TIC_MM);
 	//attendre un tour de timer avant de continuer (éventuel problème avec attribut volatile)
-	while(compteur.value()>0){ asm("nop"); }
+// 	while(compteur.value()>0){ asm("nop"); }
 }
 
 //pour stopper le robot on l'asservit sur sa position courante
@@ -392,4 +418,112 @@ void Robot::stopper()
 {
 	rotation.consigne(mesure_angle_);
 	translation.consigne(mesure_distance_);
+}
+
+void Robot::va_au_point(float x, float y)
+{
+	static float x_consigne = 0;
+	static float y_consigne = 1000;
+	if (x or y)
+	{
+		//changement du point consigne
+		x_consigne = x;
+		y_consigne = y;
+		
+// 		serial_t_::print("maj_cons");
+// 		serial_t_::print((int32_t)x);
+// 		serial_t_::print((int32_t)y);
+	}
+	else
+	{
+		//récupération du point consigne statique (appelé par l'interruption timer)
+		if (type_consigne_ == point)
+		{
+// 			serial_t_::print("point");
+			gotoPos(x_consigne, y_consigne);
+		}
+// 		else if (type_consigne_ == segments)
+// 			serial_t_::print("segments");
+// 		else
+// 			serial_t_::print("autre");
+			
+	}
+}
+
+void Robot::gotoPos(float x, float y)
+{
+	float delta_x = (x-x_);
+	float delta_y = (y-y_);
+	float distance = sqrt(delta_x*delta_x+delta_y*delta_y);
+	//0 pour print
+	float angle = 0;
+	if (distance > 30)
+	{
+		//TODO : remplacer par une interpolation
+		/*
+		if (delta_x==0)
+		{
+			if (delta_y > 0)
+				angle=PI/2;
+			else
+				angle=-PI/2;
+		}
+		else if (delta_x > 0)
+		{
+			angle=atan(delta_y/delta_x);
+		}
+		else
+		{
+			if (delta_y > 0)
+				angle=atan(delta_y/delta_x) - PI;
+			else
+				angle=atan(delta_y/delta_x) + PI;
+		}
+		*/
+		
+// 		float angle = atan2(delta_y,delta_x);
+		if (delta_x == 0)
+		{
+			if (delta_y > 0)
+				angle=PI/2;
+			else
+				angle=-PI/2;
+		}
+		else
+		{
+			angle=atan(delta_y/delta_x);
+			//arctan DL3 :
+// 			float d = delta_y/delta_x;
+// 			angle = d - d*d*d/3;
+				
+			if (delta_x < 0)
+			{
+// 				distance = -distance;
+				if (delta_y > 0)
+					angle += PI;
+				else
+					angle -= PI;
+			}
+		}
+		tourner(angle);
+		translater_diff(distance);
+		
+// 		serial_t_::print("##");
+		
+// 		serial_t_::print((int32_t)x);
+// 		serial_t_::print((int32_t)x_);
+// 		serial_t_::print((int32_t)y);
+// 		serial_t_::print((int32_t)y_);
+	}
+// 	serial_t_::print((int32_t)distance);
+// 	serial_t_::print((int32_t)1000*angle);
+	
+}
+
+
+void Robot::translater_diff(float distance)
+{
+	translation.consigne(mesure_distance_+distance/CONVERSION_TIC_MM);
+	//attendre un tour de timer avant de continuer (éventuel problème avec attribut volatile)
+	while(compteur.value()>0){ asm("nop"); }
 }
