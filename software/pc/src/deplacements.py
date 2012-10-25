@@ -146,7 +146,7 @@ class DeplacementsSerie(Deplacements):
         else:
             self._enCoursDeBlocage = False
         return blocage
-            
+        
             
     def avancer(self, distance):
         """
@@ -324,14 +324,6 @@ class DeplacementsSimulateur(Deplacements):
         """
         return {}
         
-    def est_bloque(self):
-        with self.mutex:
-            return self.simulateur.isBlocked()
-        
-    def est_arrive(self):
-        with self.mutex:
-            return not(self.simulateur.isMoving() or self.simulateur.isTurning())
-    
     def get_infos_x_y_orientation(self):
         """
         UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR

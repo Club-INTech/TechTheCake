@@ -126,16 +126,16 @@ class Robot:
     def _boucle_acquittement(self):
         while 1:
             #robot bloqué ?
-            if self.deplacements.est_bloque():
-                self.deplacements.stopper()
+            infos = self.deplacements.get_infos_stoppage_enMouvement()
+            if self.blocage or self.deplacements.gestion_blocage(**infos):
+                self.blocage = True
                 print("abandon car blocage")
                 break
             #robot arrivé ?
-            if self.deplacements.est_arrive():
+            if self.deplacements.update_enMouvement(**infos):
                 print("robot arrivé")
                 break
             sleep(0.5)
-        pass
     
     def recaler(self):
         
