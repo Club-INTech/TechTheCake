@@ -11,7 +11,7 @@
 #include <libintech/timer.hpp>
 #include <util/delay.h>
 #include "define.h"
-#include "synchronisation.hpp"
+#include <lib2013/synchronisation.hpp>
 
 class Balise : public Singleton<Balise>
 {

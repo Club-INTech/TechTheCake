@@ -56,6 +56,7 @@ Balise::Balise() :
 }
 
 void Balise::execute(char *order) {
+    static int32_t mediane = -1;
 	
     // Ping
     if (strcmp(order,"?") == 0) {
@@ -77,8 +78,19 @@ void Balise::execute(char *order) {
     
     // Synchronisation
     else if (strcmp(order,"s") == 0) {
-        synchronisation.synchroniser_client(SERVER_ADDRESS);
+        mediane = synchronisation.synchroniser_client(SERVER_ADDRESS);
     }
+    
+    // Latence
+    else if (strcmp(order,"l") == 0) {
+        xbee::send(SERVER_ADDRESS, 1);
+    }
+    
+    // Mediane
+    else if (strcmp(order,"m") == 0) {
+        xbee::send(SERVER_ADDRESS, mediane);
+    }
+    
 }
 
 void Balise::diode_on() {
