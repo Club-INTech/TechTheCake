@@ -93,9 +93,6 @@ public:
     void translater(float distance);
 
     void stopper();
-    
-    void translater_diff(float distance);
-    
 };
 
 #endif

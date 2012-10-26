@@ -225,16 +225,6 @@ void Robot::communiquer_pc(){
 		stopper();
 	}
 	
-	//translation relative à la position courante (ne se cumule pas avec une autre consigne)
-	else if(strcmp(buffer,"dd") == 0)
-	{
-		AQUITTER;
-		float valeur;
-		serial_t_::read(valeur);
-		AQUITTER;
-		translater_diff(valeur);
-	}
-	
 	//stopper asservissement rotation/translation
 	else if(strcmp(buffer,"cr0") == 0)
 	{
@@ -385,9 +375,12 @@ void Robot::tourner(float angle)
 
 void Robot::translater(float distance)
 {
-	translation.consigne(translation.consigne()+distance/CONVERSION_TIC_MM);
+// 	translation.consigne(translation.consigne()+distance/CONVERSION_TIC_MM);
+	
+	translation.consigne(mesure_distance_+distance/CONVERSION_TIC_MM);
 	//attendre un tour de timer avant de continuer (éventuel problème avec attribut volatile)
-	//while(compteur.value()>0){ asm("nop"); }
+	while(compteur.value()>0){ asm("nop"); }
+	
 }
 
 //pour stopper le robot on l'asservit sur sa position courante
@@ -395,11 +388,4 @@ void Robot::stopper()
 {
 	rotation.consigne(mesure_angle_);
 	translation.consigne(mesure_distance_);
-}
-
-void Robot::translater_diff(float distance)
-{
-	translation.consigne(mesure_distance_+distance/CONVERSION_TIC_MM);
-	//attendre un tour de timer avant de continuer (éventuel problème avec attribut volatile)
-	while(compteur.value()>0){ asm("nop"); }
 }
