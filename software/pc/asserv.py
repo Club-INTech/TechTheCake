@@ -70,7 +70,7 @@ def goto_maj(x,y):
                     angle -= pi
             ############################
             robot.deplacements.tourner(angle)
-            robot.deplacements.avancer_diff(distance)
+            robot.deplacements.avancer(distance)
         
 def goto_init(x,y):
     delta_x = x-robot.x

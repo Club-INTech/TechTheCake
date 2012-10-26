@@ -35,6 +35,10 @@ class Deplacements(metaclass=abc.ABCMeta):
         pass
     
     @abc.abstractmethod
+    def stopper(self):
+        pass
+    
+    @abc.abstractmethod
     def set_x(self, new_x):
         pass
     
@@ -60,10 +64,6 @@ class Deplacements(metaclass=abc.ABCMeta):
         
     @abc.abstractmethod
     def desactiver_asservissement_rotation(self):
-        pass
-    
-    @abc.abstractmethod
-    def stopper(self):
         pass
     
     @abc.abstractmethod
@@ -109,19 +109,6 @@ class DeplacementsSerie(Deplacements):
             "derivee_erreur_translation" : 0
             }   
 
-    def update_enMouvement(self, erreur_rotation, erreur_translation, derivee_erreur_rotation, derivee_erreur_translation, **useless):
-        """
-        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
-        cette méthode récupère l'erreur en position du robot
-        et détermine si le robot est arrivé à sa position de consigne
-        retourne la valeur du booléen enMouvement (attribut de robot)
-        """
-        rotation_stoppe = erreur_rotation < 105
-        translation_stoppe = erreur_translation < 100
-        bouge_pas = derivee_erreur_rotation == 0 and derivee_erreur_translation == 0
-        
-        return not(rotation_stoppe and translation_stoppe and bouge_pas)
-    
     def gestion_blocage(self,PWMmoteurGauche,PWMmoteurDroit,derivee_erreur_rotation,derivee_erreur_translation, **useless):
         """
         UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
@@ -147,25 +134,36 @@ class DeplacementsSerie(Deplacements):
             self._enCoursDeBlocage = False
         return blocage
         
-            
+    def update_enMouvement(self, erreur_rotation, erreur_translation, derivee_erreur_rotation, derivee_erreur_translation, **useless):
+        """
+        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
+        cette méthode récupère l'erreur en position du robot
+        et détermine si le robot est arrivé à sa position de consigne
+        retourne la valeur du booléen enMouvement (attribut de robot)
+        """
+        rotation_stoppe = erreur_rotation < 105
+        translation_stoppe = erreur_translation < 100
+        bouge_pas = derivee_erreur_rotation == 0 and derivee_erreur_translation == 0
+        
+        return not(rotation_stoppe and translation_stoppe and bouge_pas)
+        
     def avancer(self, distance):
         """
         fait avancer le robot en ligne droite. (distance<0 => reculer)
         """
         self.serie.communiquer("asservissement",["d",float(distance)], 0)
-        
-    def avancer_diff(self, distance):
-        """
-        translation relative à la position courante (ne se cumule pas avec une autre consigne)
-        """
-        self.serie.communiquer("asservissement",["dd",float(distance)], 0)
-    
        
     def tourner(self, angle):
         """
         oriente le robot à un angle dans le repère de la table.
         """
         self.serie.communiquer("asservissement",["t",float(angle)], 0)
+    
+    def stopper(self):
+        """
+        stoppe le robot (l'asservit sur place)
+        """
+        self.serie.communiquer("asservissement","stop", 0)
         
     def set_x(self, new_x):
         """
@@ -196,14 +194,6 @@ class DeplacementsSerie(Deplacements):
         
     def desactiver_asservissement_rotation(self):
         self.serie.communiquer("asservissement","cr0", 0)
-        
-        ##########################
-        
-    def stopper(self):
-        """
-        stoppe le robot (l'asservit sur place)
-        """
-        self.serie.communiquer("asservissement","stop", 0)
         
     def set_vitesse_translation(self, valeur):
         """
@@ -318,20 +308,6 @@ class DeplacementsSimulateur(Deplacements):
         with self.mutex:
             return self.simulateur.isMoving() or self.simulateur.isTurning()
     
-    def get_infos_stoppage_enMouvement(self):
-        """
-        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
-        """
-        return {}
-        
-    def get_infos_x_y_orientation(self):
-        """
-        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
-        """
-        with self.mutex:
-            return [self.simulateur.getX(), self.simulateur.getY(), self.simulateur.getAngle()]
-            
-            
     def avancer(self, distance):
         try:
             with self.mutex:
@@ -346,6 +322,10 @@ class DeplacementsSimulateur(Deplacements):
         except Exception as e:
             print(e)
     
+    def stopper(self):
+        with self.mutex:
+            self.simulateur.stopRobot() 
+            
     def set_x(self, new_x):
         # try:
             # with self.mutex:
@@ -369,7 +349,7 @@ class DeplacementsSimulateur(Deplacements):
         # except Exception as e:
             # print(e)
         pass
-
+    
     def activer_asservissement_translation(self):
         pass
         
@@ -382,14 +362,21 @@ class DeplacementsSimulateur(Deplacements):
     def desactiver_asservissement_rotation(self):
         pass
     
-    def stopper(self):
-        with self.mutex:
-            self.simulateur.stopRobot() 
-        pass
-    
     def set_vitesse_translation(self, valeur):
         pass
     
     def set_vitesse_rotation(self, valeur):
         pass
     
+    def get_infos_stoppage_enMouvement(self):
+        """
+        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
+        """
+        return {}
+        
+    def get_infos_x_y_orientation(self):
+        """
+        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
+        """
+        with self.mutex:
+            return [self.simulateur.getX(), self.simulateur.getY(), self.simulateur.getAngle()]

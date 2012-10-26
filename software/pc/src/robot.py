@@ -114,13 +114,21 @@ class Robot:
     ### MÉTHODES DE DÉPLACEMENTS DE BASE , AVEC GESTION DES ACQUITTEMENTS ET CAPTEURS ###
     #####################################################################################
     
+    def new_avancer(self,distance):
+        pass
+        
     def avancer(self, distance):
+        self.blocage = False
         self.deplacements.avancer(distance)
         self._boucle_acquittement()
         
     def tourner(self, angle):
+        self.blocage = False
         self.deplacements.tourner(angle)
         self._boucle_acquittement()
+        
+    def goto_point(self, consigne_x, consigne_y):
+        pass
         
     # Utiliser des exceptions en cas d'arrêt anormal (blocage, capteur etc...)
     def _boucle_acquittement(self):
@@ -132,10 +140,10 @@ class Robot:
                 print("abandon car blocage")
                 break
             #robot arrivé ?
-            if self.deplacements.update_enMouvement(**infos):
+            if not self.deplacements.update_enMouvement(**infos):
                 print("robot arrivé")
                 break
-            sleep(0.5)
+            sleep(0.2)
     
     def recaler(self):
         
@@ -143,6 +151,8 @@ class Robot:
         LONGUEUR_TABLE = 3000
         LARGEUR_ROBOT = 400
         #
+        
+        self.log.debug("début du recalage")
         
         self.set_vitesse_translation(1)
         self.set_vitesse_rotation(1)
@@ -178,6 +188,7 @@ class Robot:
         self.set_vitesse_translation(2)
         self.set_vitesse_rotation(2)
         
+        self.log.debug("recalage terminé")
         
     #############################################################################################################
     ### MÉTHODES DE DÉPLACEMENTS DE HAUT NIVEAU (TROUVÉES DANS LES SCRIPTS), AVEC RELANCES EN CAS DE PROBLÈME ###
