@@ -2,15 +2,15 @@
 
 Balise::Balise() :
 	window_opener(-1),
-	distance(0),
-	last_distance_date(0)
+	distance(0)
 {
 
     // -----------------------
     // Timer
     // -----------------------
 
-    timeout_timer::init();
+    
+    offset_timer::init();
     window_timer::init();
 
     // -----------------------
@@ -18,7 +18,7 @@ Balise::Balise() :
     // -----------------------
 
     xbee::init();
-    xbee::change_baudrate(9600);
+    xbee::change_baudrate(BAUDRATE);
 
     // -----------------------
     // Diodes
@@ -56,7 +56,6 @@ Balise::Balise() :
 }
 
 void Balise::execute(char *order) {
-    static int32_t mediane = -1;
 	
     // Ping
     if (strcmp(order,"?") == 0) {
@@ -64,21 +63,19 @@ void Balise::execute(char *order) {
         diode_blink();
     }
     // Demande de valeur de la dernière distance mesurée
-    /*
     else if (strcmp(order,"v") == 0) {
-        serial_radio::print(distance);
-        serial_radio::print(last_distance_date);
-        
-    }*/
+        xbee::send(SERVER_ADDRESS, distance);
+        xbee::send(SERVER_ADDRESS, offset_timer::value());
+    }
     
     // Clock
     else if (strcmp(order,"c") == 0) {
-        xbee::send(SERVER_ADDRESS, synchronisation.clock());
+        //xbee::send(SERVER_ADDRESS, synchronisation.clock());
     }
     
     // Synchronisation
     else if (strcmp(order,"s") == 0) {
-        mediane = synchronisation.synchroniser_client(SERVER_ADDRESS);
+        //synchronisation.synchroniser_client(SERVER_ADDRESS);
     }
     
     // Latence
@@ -86,10 +83,10 @@ void Balise::execute(char *order) {
         xbee::send(SERVER_ADDRESS, 1);
     }
     
-    // Mediane
-    else if (strcmp(order,"m") == 0) {
-        xbee::send(SERVER_ADDRESS, mediane);
-    }
+
+    
+
+    
     
 }
 
