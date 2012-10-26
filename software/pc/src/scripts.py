@@ -1,4 +1,6 @@
 from time import sleep
+from math import pi
+
 class Script:
     """
     classe mère des scripts
@@ -40,10 +42,13 @@ class ScriptBougies(Script):
 class ScriptPipeau(Script):
     
     def execute(self):
-        self.robot.gestion_tourner(0.1)
-        self.robot.gestion_avancer(600)
-        self.robot.gestion_tourner(-1.57)
-        self.robot.gestion_avancer(1000)
+        #self.robot.gestion_tourner(0.1)
+        self.robot.gestion_avancer(300)
+        if self.config["mode_simulateur"]:
+            self.robot.gestion_tourner(-pi/2)
+        else:
+            self.robot.gestion_tourner(pi/2)
+        self.robot.gestion_avancer(500)
         self.robot.gestion_avancer(-500)
         
         #self.robot.recaler()

@@ -54,52 +54,27 @@ def goto_maj(x,y):
             ############################
             angle = atan2(delta_y,delta_x)
             ############################
-            if delta_x == 0:
-                if delta_y > 0:
-                    angle = pi/2
-                else:
-                    angle = -pi/2
-            else:
-                angle = atan(delta_y/delta_x)
-            if delta_x < 0:
-                if distance < 150:
-                    distance = -distance
-                elif delta_y > 0:
-                    angle += pi
-                else:
-                    angle -= pi
+            #if delta_x == 0:
+                #if delta_y > 0:
+                    #angle = pi/2
+                #else:
+                    #angle = -pi/2
+            #else:
+                #angle = atan(delta_y/delta_x)
+            #if delta_x < 0:
+                #if distance < 150:
+                    #distance = -distance
+                #elif delta_y > 0:
+                    #angle += pi
+                #else:
+                    #angle -= pi
             ############################
             robot.deplacements.tourner(angle)
             robot.deplacements.avancer(distance)
         
 def goto_init(x,y):
-    delta_x = x-robot.x
-    delta_y = y-robot.y
-    distance = sqrt(delta_x**2 + delta_y**2)
-    if distance > 30:
-        ############################
-        angle = atan2(delta_y,delta_x)
-        ############################
-        if delta_x == 0:
-            if delta_y > 0:
-                angle = pi/2
-            else:
-                angle = -pi/2
-        else:
-            angle = atan(delta_y/delta_x)
-        if delta_x < 0:
-            if distance < 150:
-                distance = -distance
-            elif delta_y > 0:
-                angle += pi
-            else:
-                angle -= pi
-        ############################
-        robot.deplacements.tourner(angle)
-        #acquittement
-        robot.consigne_x = x
-        robot.consigne_y = y
-        sleep(1.5)
+    robot.consigne_x = x
+    robot.consigne_y = y
     
     
 def prompt():

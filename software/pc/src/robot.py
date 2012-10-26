@@ -1,4 +1,4 @@
-import math
+from math import pi,sqrt,atan2
 from time import time,sleep
 from mutex import Mutex
 
@@ -22,10 +22,12 @@ class Robot:
         """
         self._x = 0
         self._y = 0
+        self._orientation = 0
+        
         self._consigne_x = 0
         self._consigne_y = 0
+        self._consigne_orientation = 0
         
-        self._orientation = 0
         self._blocage = False
         self._enMouvement = True
         
@@ -37,8 +39,10 @@ class Robot:
         self.debut_jeu = time()
         
         #couleur du robot
-        self.couleur = "bleu"
-        
+        if self.config["mode_simulateur"]:
+            self.couleur = "bleu"
+        else:
+            self.couleur = "rouge"
         
     #####################################################################################
     ### ACCESSEURS SUR LES ATTRIBUTS DU ROBOT , MÉTHODES DE MISES À JOUR AUTOMATIQUES ###
@@ -118,18 +122,78 @@ class Robot:
         pass
         
     def avancer(self, distance):
+        self.log.debug("avancer de "+str(distance))
         self.blocage = False
         self.deplacements.avancer(distance)
         self._boucle_acquittement()
+        #self._consigne_orientation
         
     def tourner(self, angle):
+        self.log.debug("tourner à "+str(angle))
         self.blocage = False
+        self._consigne_orientation = angle
         self.deplacements.tourner(angle)
         self._boucle_acquittement()
         
-    def goto_point(self, consigne_x, consigne_y):
-        pass
+    def va_au_point(self, x, y):
         
+        self.set_vitesse_rotation(1)
+        self.set_vitesse_translation(1)
+                
+        self.log.debug("va au point ("+str(x)+", "+str(y)+")")
+        
+        self.blocage = False
+        self.consigne_x = x
+        self.consigne_y = y
+        
+        while 1:
+            #get infos
+            infos = self.deplacements.get_infos_stoppage_enMouvement()
+            print("infos :")
+            for i in infos:
+                print(i+" : "+str(infos[i]))
+                
+            delta_x = self.consigne_x-self.x
+            delta_y = self.consigne_y-self.y
+            distance = round(sqrt(delta_x**2 + delta_y**2),2)
+            if distance > 30:
+                ############################
+                angle = round(atan2(delta_y,delta_x),4)
+                self.log.debug("distance calculée : "+str(distance))
+                self.log.debug("angle calculé : "+str(angle))
+                ############################
+                #if delta_x == 0:
+                    #if delta_y > 0:
+                        #angle = pi/2
+                    #else:
+                        #angle = -pi/2
+                #else:
+                    #angle = atan(delta_y/delta_x)
+                #if delta_x < 0:
+                    #if distance < 150:
+                        #distance = -distance
+                    #elif delta_y > 0:
+                        #angle += pi
+                    #else:
+                        #angle -= pi
+                ############################
+                self.deplacements.tourner(angle)
+                self.deplacements.avancer(distance)
+            else:
+                self.log.warning("distance calculée : "+str(distance))
+                #robot arrivé ?
+                if not self.deplacements.update_enMouvement(**infos):
+                    print("robot arrivé")
+                    break
+            
+            #robot bloqué ?
+            if self.blocage or self.deplacements.gestion_blocage(**infos):
+                self.blocage = True
+                print("abandon car blocage")
+                break
+            sleep(0.1)
+            
+            
     # Utiliser des exceptions en cas d'arrêt anormal (blocage, capteur etc...)
     def _boucle_acquittement(self):
         while 1:
@@ -165,18 +229,18 @@ class Robot:
             self.orientation = 0.0
         else:
             self.x = LONGUEUR_TABLE/2. - LARGEUR_ROBOT/1.999
-            self.orientation = math.pi
+            self.orientation = pi
         self.deplacements.activer_asservissement_rotation()
         #sleep(0.5)
         self.set_vitesse_translation(1)
         self.avancer(100)
-        self.tourner(math.pi/2)
+        self.tourner(pi/2)
         self.avancer(-1000)
         self.deplacements.desactiver_asservissement_rotation()
         self.set_vitesse_translation(2)
         self.avancer(-300)
         self.y = LARGEUR_ROBOT/1.999
-        self.orientation = math.pi/2.
+        self.orientation = pi/2.
         self.deplacements.activer_asservissement_rotation()
         # sleep(0.5)
         self.set_vitesse_translation(1)
@@ -184,7 +248,7 @@ class Robot:
         if self.couleur == "bleu":
             self.tourner(0.0)
         else:
-            self.tourner(math.pi)
+            self.tourner(pi)
         self.set_vitesse_translation(2)
         self.set_vitesse_rotation(2)
         

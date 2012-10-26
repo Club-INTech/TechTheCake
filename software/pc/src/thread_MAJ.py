@@ -25,5 +25,5 @@ def fonction_MAJ(container):
         except Exception as e:
             print(e)
         
-        sleep(0.2)
+        sleep(0.1)
                     
