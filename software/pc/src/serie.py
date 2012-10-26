@@ -100,13 +100,18 @@ class Serie:
                 messages = [messages]
             #parcourt la liste des messages envoyés
             for message in messages:
+                #print(str(message)+"<")
                 self.peripheriques[destinataire].serie.write(bytes(str(message) + '\r',"utf-8"))
                 #chaque envoi est acquité par le destinataire, pour permettre d'émettre en continu sans flooder la série
-                self.peripheriques[destinataire].serie.readline()
+                acquittement = ""
+                while acquittement != "_":
+                    acquittement = self.clean_string(str(self.peripheriques[destinataire].serie.readline(),"utf-8"))
+                    #print("\t>"+acquittement)
                     
             #liste des réponses
             reponses = []
             for i in range(nb_lignes_reponse):
                 reponse = str(self.peripheriques[destinataire].serie.readline(),"utf-8")
+                #print("\t>"+reponse)
                 reponses.append(self.clean_string(reponse))
         return reponses
