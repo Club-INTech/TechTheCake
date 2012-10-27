@@ -38,9 +38,9 @@ public:
      * @param address   Adresse du destinataire
      * @param message   Message à envoyer
      */
-    static inline void send(uint16_t address, char* message) {
+    static inline void send(uint16_t address, char* message, int8_t strl = -1) {
         uint8_t checksum = 0;
-        uint16_t length = strlen(message) + 5;
+        uint16_t length = (strl == -1) ? strlen(message) + 5 : strl + 5;
 		
         // Délimiteur
         Serial::send_char(0x7E);
@@ -66,7 +66,7 @@ public:
         Serial::send_char(0x00);
 
         // Message
-        for (uint16_t i = 0; i < strlen(message); i++) {
+        for (uint16_t i = 0; i < length - 5; i++) {
             send_with_escape(message[i]);
             checksum += message[i];
         }
@@ -77,10 +77,17 @@ public:
     
     template<class T>
     static inline void send(uint16_t address, T val) {
-		uint8_t bytes[5];
+		char bytes[5];
 		memcpy(bytes, &val, sizeof(T));
-        bytes[sizeof(T)] = '\0';
-        send(address, bytes);
+        send(address, bytes, sizeof(T));
+    }
+    
+    /**
+     * Erreur mystique sur le 0 en 8 bit seulement
+     * 
+     */
+    static inline void send(uint16_t address, uint8_t val) {
+		send(address, (uint16_t) val);
     }
     
     static inline void send(uint16_t address, const char* val) {
