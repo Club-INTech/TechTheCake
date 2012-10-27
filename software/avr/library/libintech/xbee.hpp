@@ -77,9 +77,10 @@ public:
     
     template<class T>
     static inline void send(uint16_t address, T val) {
-        char buffer[10];
-        ltoa(val, buffer, 10);
-        send(address, buffer);
+		uint8_t bytes[5];
+		memcpy(bytes, &val, sizeof(T));
+        bytes[sizeof(T)] = '\0';
+        send(address, bytes);
     }
     
     static inline void send(uint16_t address, const char* val) {
@@ -112,7 +113,7 @@ public:
         if (status == READ_TIMEOUT) return status;
         length += buffer;
 
-        // Type de réponse (ignoré pour le moment)
+        // Type de réponse
         Serial::read_char(buffer, 100);
         if (buffer != 0x81) return READ_TIMEOUT;
 
@@ -144,10 +145,9 @@ public:
     
     template<class T>
     static inline uint8_t read(T &val, uint16_t &source_address, uint8_t &signal_strength, uint16_t timeout) {
-        static char buffer[20];
+        static char buffer[5];
         uint8_t status = read(buffer, source_address, signal_strength, timeout);
-        val = atol(buffer);
-
+        memcpy(&val, buffer, sizeof(T));
         return status;
     }
     
@@ -168,7 +168,7 @@ public:
     static inline uint8_t read(char* message) {
         uint8_t status;
         do {
-			status = read(message, 1000);
+			status = read(message, 300);
 		} while (status == READ_TIMEOUT);
 		
 		return status;
@@ -177,103 +177,21 @@ public:
     
     template<class T>
     static inline uint8_t read(T &val, uint16_t timeout) {
-        static char buffer[20];
+        static char buffer[5];
         uint8_t status = read(buffer, timeout);
-        val = atol(buffer);
+        memcpy(&val, buffer, sizeof(T));
 
         return status;
     }
     
     template<class T>
     static inline uint8_t read(T &val) {
-        static char buffer[20];
+        static char buffer[5];
         uint8_t status = read(buffer);
-        val = atol(buffer);
+        memcpy(&val, buffer, sizeof(T));
 
         return status;
     }
-    
-    /**
-     * Retourne les addresses des modules connectés au réseau dans le tableau response (prévoir de la place)
-     * 
-     * NON FONCTIONNEL POUR LE MOMENT
-     * 
-     * @param address   Adresse du destinataire
-     * @param message   Message à envoyer
-     */
-    /*
-    static inline uint8_t node_discover(uint16_t* response) {
-
-        // Délimiteur
-        Serial::send_char(0x7E);
-
-        // Taille du message
-        Serial::send_char(0x00);
-        Serial::send_char(0x04);
-
-        // API identifier: AT command
-        Serial::send_char(0x08);
-
-        // API Frame ID: 0 (aucun ACK)
-        Serial::send_char(0x00);
-
-        // Commande ND: node discover
-        Serial::send_char(0x4E);
-        Serial::send_char(0x44);
-
-        // Checksum
-        Serial::send_char(0x65);
-
-        // Traitement de la réponse...
-        uint8_t buffer;
-        uint16_t frame_length;
-        uint8_t address_number = 0;
-
-        // Réception des modules jusqu'à la frame de fin de transmission
-        do {
-            // Délimiteur de trame
-            do {
-                Serial::read_char(buffer);
-            } while (buffer != 0x7E);
-
-            // Taille de la réponse
-            Serial::read_char(buffer);
-            frame_length = buffer << 8;
-            Serial::read_char(buffer);
-            frame_length += buffer;
-
-            // Length == 1: fin de transmission
-            if (frame_length == 1) break;
-
-            // Type de réponse (ignoré pour le moment)
-            Serial::read_char(buffer);
-
-            // Frame ID (ignoré pour le moment)
-            Serial::read_char(buffer);
-
-            // AT Command (ignoré pour le moment)
-            Serial::read_char(buffer);
-            Serial::read_char(buffer);
-
-            // Status response (ignoré pour le moment)
-            Serial::read_char(buffer);
-
-            uint16_t address = 0;
-            
-            // Contenu de la réponse
-            for (uint8_t i = 0; i < frame_length - 5; i++) {
-                Serial::read_char(buffer);
-            }
-            
-            // Stocke l'adresse lue
-            response[address_number] = address; 
-            address_number++;
-
-        } while (1);
-        
-        return address_number;
-    }
-    */
 
 };
 
