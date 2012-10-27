@@ -41,13 +41,13 @@ public:
     static inline void send(uint16_t address, char* message) {
         uint8_t checksum = 0;
         uint16_t length = strlen(message) + 5;
-
+		
         // Délimiteur
         Serial::send_char(0x7E);
 
         // Taille du message
-        Serial::send_char(length >> 8);
-        Serial::send_char((length << 8) >> 8);
+        send_with_escape(length >> 8);
+        send_with_escape((length << 8) >> 8);
 
         // API identifier: Request TX 16 bits
         Serial::send_char(0x01);
@@ -57,9 +57,9 @@ public:
         Serial::send_char(0x00);
 
         // Adresse de destination
-        Serial::send_char(address >> 8);
+        send_with_escape(address >> 8);
         checksum += address >> 8;
-        Serial::send_char((address << 8) >> 8);
+        send_with_escape((address << 8) >> 8);
         checksum += (address << 8) >> 8;
 
         // Option
@@ -67,12 +67,12 @@ public:
 
         // Message
         for (uint16_t i = 0; i < strlen(message); i++) {
-            Serial::send_char(message[i]);
+            send_with_escape(message[i]);
             checksum += message[i];
         }
 
         // Checksum
-        Serial::send_char(0xFF - checksum);
+        send_with_escape(0xFF - checksum);
     }
     
     template<class T>
@@ -192,6 +192,18 @@ public:
 
         return status;
     }
+    
+private:
+	
+	static inline void send_with_escape(uint8_t byte) {
+		if (byte == 0x7E || byte == 0x7D || byte == 0x11 || byte == 0x13) {
+			Serial::send_char(0x7D);
+			Serial::send_char(byte ^ 0x20);
+		}
+		else {
+			Serial::send_char(byte);
+		}
+	}
 
 };
 

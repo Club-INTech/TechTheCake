@@ -59,8 +59,18 @@ void Balise::execute(char *order) {
 	
     // Ping
     if (strcmp(order,"?") == 0) {
-        xbee::send(SERVER_ADDRESS, 7);
-        diode_blink();
+		char p[10] = ".";
+        xbee::send(SERVER_ADDRESS, p);
+    }
+    // Ping
+    else if (strcmp(order,"?1") == 0) {
+		char p[10] = "/";
+        xbee::send(SERVER_ADDRESS, p);
+    }
+    // Ping
+    else if (strcmp(order,"?2") == 0) {
+		char p[10] = "0";
+        xbee::send(SERVER_ADDRESS, p);
     }
     // Demande de valeur de la dernière distance mesurée
     else if (strcmp(order,"v") == 0) {

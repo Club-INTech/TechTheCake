@@ -155,10 +155,42 @@ void Balise::execute(char *order)
 			serial_pc::print_noln(" ");
 			
 			xbee::send(balise_address[id], "?");
-            uint8_t ping;
+            char ping[10];
             if (xbee::read(ping, TIMEOUT) == xbee::READ_SUCCESS)
             {
 				serial_pc::print(ping);
+			}
+			else
+			{
+				serial_pc::print("introuvable");
+			}
+			
+			// Affichage de l'ID sur la série
+			serial_pc::print_noln("ping ID");
+			serial_pc::print_noln(id);
+			serial_pc::print_noln(" ");
+			
+			xbee::send(balise_address[id], "?1");
+            char ping1[10];
+            if (xbee::read(ping1, TIMEOUT) == xbee::READ_SUCCESS)
+            {
+				serial_pc::print(ping1);
+			}
+			else
+			{
+				serial_pc::print("introuvable");
+			}
+			
+			// Affichage de l'ID sur la série
+			serial_pc::print_noln("ping ID");
+			serial_pc::print_noln(id);
+			serial_pc::print_noln(" ");
+			
+			xbee::send(balise_address[id], "?2");
+            char ping2[10];
+            if (xbee::read(ping2, TIMEOUT) == xbee::READ_SUCCESS)
+            {
+				serial_pc::print(ping2);
 			}
 			else
 			{
