@@ -109,7 +109,7 @@ void Balise::execute(char *order)
     /*
     else if (strcmp(order, "clock") == 0)
     {
-        serial_pc::print(synchronisation.clock());
+        serial_pc::print(synchronisation.clock(false));
     }
     
     // Ping des balises
