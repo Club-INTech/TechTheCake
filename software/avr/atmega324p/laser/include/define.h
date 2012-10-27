@@ -1,9 +1,11 @@
 #ifndef DEFINE_H
 #define DEFINE_H
 
-#define BALISE_BAUDRATE   9600
+#define BALISE_BAUDRATE   57600
 #define ROBOT_BAUDRATE    9600
 #define PING_ID           2
+
+#define TIMEOUT			  100
 
 #define BALISE_NUMBER     1
 

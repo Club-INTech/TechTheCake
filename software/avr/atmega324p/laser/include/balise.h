@@ -12,7 +12,6 @@
 #include <libintech/serial/serial_1.hpp>
 #include <libintech/xbee.hpp>
 #include <util/delay.h>
-#include <lib2013/synchronisation.hpp>
 #include "define.h"
 
 class Balise : public Singleton<Balise>
@@ -27,21 +26,19 @@ class Balise : public Singleton<Balise>
         
         // Timer 1 utilisé pour calculer l'angle des lasers
         // Doit être le plus précis possible (16 bits), mais ne doit pas faire d'overflow
-        //typedef Timer<1,64> timer_toptour;
+        typedef Timer<1,64> timer_toptour;
         
         // Moteur sur le Timer 2 en FastPWM . Pont en H sur le PORTD4
-        // ! Passer sur le timer 1 !
         typedef PWM<2,ModeFastPwm,1,'B'> pwm_moteur;
         //Moteur< timer_moteur, AVR_PORTD<PORTD7> > moteur;
         
-        typedef PWM<0,ModeCTC,1,'A'> pwm_laser;
+        typedef PWM<0,ModeCTC,1,'B'> pwm_laser;
         
         // Horloge et synchronisation sur Timer 2
-        Synchronisation<Timer<2,1>,xbee> synchronisation;
+        //Synchronisation<Timer<2,1>,xbee> synchronisation;
         
     private:
-        volatile uint32_t last_top_;
-        volatile uint32_t last_period_;
+        volatile uint16_t last_period_;
         
 
 //        typedef Timer<2,ModeFastPwm,1> T_2;
@@ -52,10 +49,9 @@ class Balise : public Singleton<Balise>
         Balise();
         void execute(char*);
 //      void asservir(int32_t vitesse_courante);
-        void last_top(uint32_t);
-        uint32_t last_top();
-        uint32_t last_period();
-        int16_t angle(uint32_t);
+        void last_period(uint16_t);
+        uint16_t last_period();
+        int16_t angle(uint16_t);
         void motor_on();
         void motor_off();
         void laser_on();

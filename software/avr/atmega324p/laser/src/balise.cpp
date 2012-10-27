@@ -1,7 +1,6 @@
 #include "balise.h"
 
 Balise::Balise():
-    last_top_(0),
     last_period_(0) 
 {
     
@@ -21,7 +20,7 @@ Balise::Balise():
     // -----------------------
     
     // Initialisation du timer
-    //timer_toptour::init();
+    timer_toptour::init();
     
     // Input sur INT2 = PB2
     cbi(DDRB,PORTB2);
@@ -39,10 +38,11 @@ Balise::Balise():
     // Moteur
     // -----------------------
     
-    //sbi(DDRD,PORTD6);
-    //sbi(DDRD,PORTD7);
+    sbi(DDRD,PORTD6);
+    sbi(DDRD,PORTD7);
     
     pwm_moteur::init();
+    motor_off();
     
     // -----------------------
     // Alimentation des lasers
@@ -50,16 +50,15 @@ Balise::Balise():
     
     // Attention, ici DIR est un créneau et PWM est constant
     
-    // Pin PWM Laser en output
+    // Pin PWM en output
     sbi(DDRB,PORTB3);
     
     // Seuil pour le PWM des lasers (cf formule datasheet)
     // f_wanted = 20 000 000 / (2 * prescaler * (1 + OCR0A))
     // Valeur fixée = 48KHz (ne pas aller au dessus, le pont redresseur chauffe sinon)
-    pwm_laser::init();
-    pwm_laser::value(170);
-    
-    /*
+    //pwm_laser::init();
+    //pwm_laser::value(170);
+
     // Pin DIR Laser en output
     sbi(DDRB,PORTB4);
     
@@ -76,9 +75,7 @@ Balise::Balise():
     // f_wanted = 20 000 000 / (2 * prescaler * (1 + OCR0A))
     // Valeur fixée = 48KHz (ne pas aller au dessus, le pont redresseur chauffe sinon)
     OCR0A = 170;
-    */
-    
-    
+
     // -----------------------
     // Diode debug
     // -----------------------
@@ -109,11 +106,12 @@ void Balise::execute(char *order)
         pwm_moteur::value(pwm);
     }
     
+    /*
     else if (strcmp(order, "clock") == 0)
     {
         serial_pc::print(synchronisation.clock());
     }
-    /*
+    
     // Ping des balises
     else if (strcmp(order, "ping") == 0)
     {
@@ -152,13 +150,13 @@ void Balise::execute(char *order)
         for (uint8_t id = 0; id < BALISE_NUMBER; id++)
         {
 			// Affichage de l'ID sur la série
-			serial_pc::print_noln("ID");
+			serial_pc::print_noln("ping ID");
 			serial_pc::print_noln(id);
 			serial_pc::print_noln(" ");
 			
 			xbee::send(balise_address[id], "?");
             uint8_t ping;
-            if (xbee::read(ping, 500) == xbee::READ_SUCCESS)
+            if (xbee::read(ping, TIMEOUT) == xbee::READ_SUCCESS)
             {
 				serial_pc::print(ping);
 			}
@@ -169,21 +167,87 @@ void Balise::execute(char *order)
 		}
     }
     
+    // Valeur des balises
+    else if (strcmp(order, "valeur") == 0)
+    {
+        for (uint8_t id = 0; id < BALISE_NUMBER; id++)
+        {
+			// Affichage de la valeur
+			serial_pc::print_noln("valeur ID");
+			serial_pc::print_noln(id);
+			serial_pc::print_noln(" ");
+			
+			xbee::send(balise_address[id], "v");
+            uint16_t distance;
+            uint16_t clock = timer_toptour::value();
+            if (xbee::read(distance, TIMEOUT) == xbee::READ_SUCCESS)
+            {
+				serial_pc::print(distance);
+			}
+			else
+			{
+				serial_pc::print("introuvable");
+			}
+			
+			// Affichage de l'offset
+			serial_pc::print_noln("offset ID");
+			serial_pc::print_noln(id);
+			serial_pc::print_noln(" ");
+			
+            uint16_t offset;
+            uint16_t aller_retour;
+            if (xbee::read(offset, TIMEOUT) == xbee::READ_SUCCESS)
+            {
+				aller_retour = timer_toptour::value() - clock;
+				serial_pc::print(angle(offset + aller_retour/2));
+			}
+			else
+			{
+				serial_pc::print("introuvable");
+			}
+		}
+    }
+    
+    /*
     // Affichage des clocks des balises
     else if (strcmp(order, "bclock") == 0)
     {
         for (uint8_t id = 0; id < BALISE_NUMBER; id++)
         {
 			// Affichage de l'ID sur la série
-			serial_pc::print_noln("ID");
+			serial_pc::print_noln("bclock ID");
 			serial_pc::print_noln(id);
 			serial_pc::print_noln(" ");
 			
 			xbee::send(balise_address[id], "c");
             uint32_t clock;
-            if (xbee::read(clock, 500) == xbee::READ_SUCCESS)
+            if (xbee::read(clock, TIMEOUT) == xbee::READ_SUCCESS)
             {
 				serial_pc::print(clock);
+			}
+			else
+			{
+				serial_pc::print("introuvable");
+			}
+		}
+    }
+    
+    // Affichage des latence de transmission
+    else if (strcmp(order, "latence") == 0)
+    {
+        for (uint8_t id = 0; id < BALISE_NUMBER; id++)
+        {
+			// Affichage de l'ID sur la série
+			serial_pc::print_noln("latence ID");
+			serial_pc::print_noln(id);
+			serial_pc::print_noln(" ");
+			
+			uint32_t clock = synchronisation.clock();
+			uint8_t buffer;
+			xbee::send(balise_address[id], "c");
+            if (xbee::read(buffer, TIMEOUT) == xbee::READ_SUCCESS)
+            {
+				serial_pc::print(synchronisation.clock() - clock);
 			}
 			else
 			{
@@ -198,13 +262,13 @@ void Balise::execute(char *order)
         for (uint8_t id = 0; id < BALISE_NUMBER; id++)
         {
 			// Affichage de l'ID sur la série
-			serial_pc::print_noln("ID");
+			serial_pc::print_noln("clockdiff ID");
 			serial_pc::print_noln(id);
 			serial_pc::print_noln(" ");
 			
 			xbee::send(balise_address[id], "c");
             uint32_t clock;
-            if (xbee::read(clock, 500) == xbee::READ_SUCCESS)
+            if (xbee::read(clock, TIMEOUT) == xbee::READ_SUCCESS)
             {
 				serial_pc::print(synchronisation.clock() - clock);
 			}
@@ -235,17 +299,32 @@ void Balise::execute(char *order)
             synchronisation.synchroniser_serveur(balise_address[id]);
             xbee::send(balise_address[id], "c");
             uint32_t clock;
-            if (xbee::read(clock, 500) == xbee::READ_SUCCESS)
+            if (xbee::read(clock, TIMEOUT) == xbee::READ_SUCCESS)
             {
 				serial_pc::print(synchronisation.clock() - clock);
 			}
         }
     }
     
+    // Synchronisation des balises
+    else if (strcmp(order, "mediane") == 0)
+    {
+        xbee::send(balise_address[0], "m");
+        int32_t mediane;
+        if (xbee::read(mediane, TIMEOUT) == xbee::READ_SUCCESS)
+        {
+			serial_pc::print(mediane);
+		}
+		else 
+		{
+			serial_pc::print("erreur");
+		}
+    }
+    */
     // Allumer les lasers
     else if (strcmp(order, "laser_on") == 0)
     {
-        if (last_top() > 0)
+        if (last_period() > 0)
         {
             laser_on();
         }
@@ -344,31 +423,21 @@ void Balise::execute(char *order)
 // -----------------------
 
 /**
- * Fixe la date du passage de l'aimant, et met à jour la période
- * 
- */
-void Balise::last_top(uint32_t value)
-{
-	last_period_ = value - last_top_;
-    last_top_ = value;
-}
-
-/**
- * Retourne la date du dernier passage de l'aimant devant le top tour
- * 
- */
-uint32_t Balise::last_top()
-{
-    return last_top_;
-}
-
-/**
  * Retourne la dernière période mesurée de la tourelle
  * 
  */
-uint32_t Balise::last_period()
+uint16_t Balise::last_period()
 {
     return last_period_;
+}
+
+/**
+ * Met à jour la dernière periode mesurée
+ * 
+ */
+void Balise::last_period(uint16_t period)
+{
+    last_period_ = period;
 }
 
 /**
@@ -378,21 +447,17 @@ uint32_t Balise::last_period()
  * pour éviter l'overflow du timer top-tour
  * 
  */
-int16_t Balise::angle(uint32_t date)
+int16_t Balise::angle(uint16_t offset)
 {
-	/*
-    if (last_top_ == 0) return -1;
-    
     //temps à soustraire de l'angle pour avoir la valeur au moment du passage du laser
-    int32_t diff = ((int32_t)timer_toptour::value() - (int32_t)offset*4/5);
+    int32_t diff = ((int32_t)timer_toptour::value() - (int32_t)offset);
         
-    while(diff<0){ //Assez mystère...
-		diff += last_top_;
+    while (diff<0){ //Assez mystère...
+		diff = diff + last_period_;
     }
 
-    return diff *(float)360/(float)last_top_ ;
-    * */
-    return 0;
+	return diff;
+    //return diff *(float)360/(float)last_period;
 }
 
 // -----------------------
@@ -401,12 +466,24 @@ int16_t Balise::angle(uint32_t date)
     
 void Balise::laser_on()
 {
-    pwm_laser::enable();
+    // Activation du timer PWM pour DIR
+    cbi(TCCR0B,CS02);
+    cbi(TCCR0B,CS01);
+    sbi(TCCR0B,CS00);
+    
+    // Pin PWM à 5V
+    sbi(PORTB,PORTB3);
 }
 
 void Balise::laser_off()
 {
-    pwm_laser::disable();
+    // Désactivation du timer PWM pour DIR
+    cbi(TCCR0B,CS02);
+    cbi(TCCR0B,CS01);
+    cbi(TCCR0B,CS00);
+    
+    // Pin PWM à 0V
+    cbi(PORTB,PORTB3);
 }
 
 // -----------------------
