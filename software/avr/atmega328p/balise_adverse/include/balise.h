@@ -22,7 +22,7 @@ class Balise : public Singleton<Balise>
          * Timer utilisé pour calculer l'écart de temps entre les 2 lasers
          * Fermeture de la fenêtre quand il overflow
          */
-        typedef Timer<0,1024> window_timer;
+        typedef Timer<2,128> window_timer;
         
         /**
          * Timer utilisé pour mesurer l'offset de temps pour la mesure
