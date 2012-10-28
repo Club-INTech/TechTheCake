@@ -18,6 +18,7 @@ int main()
         char order[10];
         Balise::xbee::read(order);
         balise.execute(order);
+        
     }
 }
 
@@ -42,12 +43,11 @@ ISR(PCINT1_vect)
     {
         // Ignore les doublets trop proches
         
-        //if (Balise::window_timer::value() * 20 >= TIME_THRESHOLD_MIN && changed_bits == balise.window_opener)
-        if ( changed_bits == balise.window_opener)
+        if (Balise::window_timer::value() * 20 >= TIME_THRESHOLD_MIN && changed_bits == balise.window_opener)
         {
             
             uint16_t timer = Balise::window_timer::value();
-            balise.distance = getDistance(timer);
+            balise.distance = timer;
                          
             // Fermeture de la fenêtre
             balise.window_opener = -1;
@@ -59,7 +59,7 @@ ISR(PCINT1_vect)
             
             //test
             sbi(PORTC, PORTC4);
-            _delay_ms(11);
+            _delay_ms(2);
             cbi(PORTC, PORTC4);
         }
         
@@ -97,6 +97,7 @@ ISR(TIMER1_OVF_vect)
     Balise &balise = Balise::Instance();
     balise.distance = 0;
     Balise::offset_timer::disable();
+    Balise::offset_timer::value(0);
 }
 
 /**
