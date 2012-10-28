@@ -51,7 +51,7 @@ class Balise : public Singleton<Balise>
 //      void asservir(int32_t vitesse_courante);
         void last_period(uint16_t);
         uint16_t last_period();
-        int16_t angle(uint16_t);
+        float angle(int32_t);
         void motor_on();
         void motor_off();
         void laser_on();
