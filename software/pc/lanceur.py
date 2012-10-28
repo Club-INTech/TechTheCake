@@ -13,13 +13,20 @@ thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
 thread_MAJ.start()
 
 strat = Strategie(container)
+strat.robot.recaler()
+#strat.scripts["pipeau"].agit()
+
+#strat.robot.va_au_point(-200,0)
+#strat.robot.avancer(-200)
+#strat.robot.va_au_point(-200,0)
+#strat.robot.avancer(-200)
 
 #input("appuyer sur une touche pour lancer le calcul de durée du script...")
 #print(strat.scripts["pipeau"].calcule())
 #input("appuyer sur une touche pour effectuer les mouvements du script...")
 #strat.scripts["pipeau"].agit()
 
-from time import sleep
-while 42:
-    print("("+str(strat.robot.x)+", "+str(strat.robot.y)+")")
-    sleep(0.2)
+#from time import sleep
+#while 42:
+    #print("("+str(strat.robot.x)+", "+str(strat.robot.y)+")")
+    #sleep(0.2)
