@@ -28,15 +28,11 @@ public:
     /**
      * Envoie un message à un module
      * 
-     * - Aucun ACK demandé pour simplifier
-     * - Pas de gestion des caractères spéciaux :
-     *    - 0x7E: ~
-     *    - 0x7D: }
-     *    - 0x11: XON
-     *    - 0x13: XOFF
+     * Aucun ACK demandé pour simplifier
      * 
      * @param address   Adresse du destinataire
      * @param message   Message à envoyer
+     * @param strl		Taille du message (calculée automatiquement avec strlen si pas renseignée)
      */
     static inline void send(uint16_t address, char* message, int8_t strl = -1) {
         uint8_t checksum = 0;
@@ -75,6 +71,10 @@ public:
         send_with_escape(0xFF - checksum);
     }
     
+    static inline void send(uint16_t address, const char* val) {
+        send(address, (char *) val);
+    }
+    
     template<class T>
     static inline void send(uint16_t address, T val) {
 		char bytes[5];
@@ -90,8 +90,8 @@ public:
 		send(address, (uint16_t) val);
     }
     
-    static inline void send(uint16_t address, const char* val) {
-        send(address, (char *) val);
+    static inline void send(uint16_t address, int8_t val) {
+		send(address, (int16_t) val);
     }
     
     /**
@@ -159,7 +159,7 @@ public:
     }
     
     /**
-     * Alias read avec moins d'arguments
+     * Alias read avec juste le timeout
      * 
      */
     static inline uint8_t read(char* message, uint16_t timeout) {
@@ -168,8 +168,17 @@ public:
         return read(message, source_address, signal_strength, timeout);
     }
     
+    template<class T>
+    static inline uint8_t read(T &val, uint16_t timeout) {
+        static char buffer[5];
+        uint8_t status = read(buffer, timeout);
+        memcpy(&val, buffer, sizeof(T));
+
+        return status;
+    }
+    
     /**
-     * Alias read avec sans timeout, permet de ne pas rester coincé dans une trame invalide
+     * Alias read sans timeout, permet de ne pas rester coincé dans une trame invalide
      * 
      */
     static inline uint8_t read(char* message) {
@@ -179,16 +188,6 @@ public:
 		} while (status == READ_TIMEOUT);
 		
 		return status;
-    }
-    
-    
-    template<class T>
-    static inline uint8_t read(T &val, uint16_t timeout) {
-        static char buffer[5];
-        uint8_t status = read(buffer, timeout);
-        memcpy(&val, buffer, sizeof(T));
-
-        return status;
     }
     
     template<class T>
