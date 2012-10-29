@@ -26,8 +26,7 @@ int main()
  */
 ISR(TIMER2_OVF_vect)
 {
-    Balise &balise = Balise::Instance();
-    balise.synchronisation.interruption();
+
 }
 
 ISR(TIMER0_OVF_vect)
@@ -43,7 +42,14 @@ ISR(TIMER0_OVF_vect)
  */
 ISR(TIMER1_OVF_vect)
 {
-
+	Balise &balise = Balise::Instance();
+		
+    // Remise à zéro de la vitesse	
+    balise.last_period(0);
+		
+    // Désactivation du timer	
+    Balise::timer_toptour::disable();	
+    Balise::timer_toptour::value(0);
 }
 
 /**
@@ -55,9 +61,11 @@ ISR(INT2_vect)
     Balise &balise = Balise::Instance();
     
     // On ignore les impulsions quand l'aimant est encore trop proche du capteur
-    if (balise.synchronisation.clock() - balise.last_top() >= balise.last_period() / 3)
+    if (Balise::timer_toptour::value() >= balise.last_period() / 3)
     {
-        balise.last_top(balise.synchronisation.clock());
+        balise.last_period(Balise::timer_toptour::value());
+        Balise::timer_toptour::value(0);
+        Balise::timer_toptour::enable();	
     }
 }
 

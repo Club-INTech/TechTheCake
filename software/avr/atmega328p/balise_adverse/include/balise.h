@@ -11,7 +11,7 @@
 #include <libintech/timer.hpp>
 #include <util/delay.h>
 #include "define.h"
-#include "synchronisation.hpp"
+//#include <lib2013/synchronisation.hpp>
 
 class Balise : public Singleton<Balise>
 {
@@ -19,15 +19,16 @@ class Balise : public Singleton<Balise>
         typedef Xbee< Serial<0> > xbee;
         
         /**
-         * Timer utilisé comme timeout pour marquer la distance mesurée comme périmée au bout d'un certain temps
+         * Timer utilisé pour calculer l'écart de temps entre les 2 lasers
+         * Fermeture de la fenêtre quand il overflow
          */
-        typedef Timer<0,1024> timeout_timer;
+        typedef Timer<2,128> window_timer;
         
         /**
-         * Timer utilisé pour mesurer le temps de passage des lasers
-         * Sert également de timeout, fermeture de la fenêtre quand il overflow
+         * Timer utilisé pour mesurer l'offset de temps pour la mesure
+         * Mise à zero de la mesure quand il overflow
          */
-        typedef Timer<1,64> window_timer;
+        typedef Timer<1,64> offset_timer;
         
         /**
          * Indique par qui une fenêtre de passage des lasers a été ouverte
@@ -40,12 +41,7 @@ class Balise : public Singleton<Balise>
          */
         volatile uint16_t distance;
         
-        /**
-         * Date de la dernière distance mesurée
-         */
-        volatile uint32_t last_distance_date;
-        
-        Synchronisation< Timer<2,1> , Xbee<Serial<0> > > synchronisation;
+        //Synchronisation< Timer<2,1> , Xbee<Serial<0> > > synchronisation;
         
     public:
         Balise();

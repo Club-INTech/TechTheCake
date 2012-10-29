@@ -18,6 +18,7 @@ int main()
         char order[10];
         Balise::xbee::read(order);
         balise.execute(order);
+        
     }
 }
 
@@ -41,24 +42,28 @@ ISR(PCINT1_vect)
     if (balise.window_opener != -1)
     {
         // Ignore les doublets trop proches
+        
         if (Balise::window_timer::value() * 20 >= TIME_THRESHOLD_MIN && changed_bits == balise.window_opener)
         {
+            
             uint16_t timer = Balise::window_timer::value();
-            balise.distance = getDistance(timer);
-            balise.last_distance_date = 1123456789;
+            balise.distance = timer;
                          
             // Fermeture de la fenêtre
             balise.window_opener = -1;
             Balise::window_timer::disable();
             
-            // Relance le timer de péremption de la distance calculée
-            Balise::timeout_timer::value(0);
+            // Déclenche le timer d'offset pour la mesure
+            Balise::offset_timer::value(0);
+            Balise::offset_timer::enable();
             
             //test
             sbi(PORTC, PORTC4);
-            _delay_ms(100);
+            _delay_ms(2);
             cbi(PORTC, PORTC4);
         }
+        
+        
     }
         
     // Fenêtre fermée, passage d'un 1er laser
@@ -72,10 +77,10 @@ ISR(PCINT1_vect)
 }
 
 /**
- * Interruption du timer 1, fermeture de la fenêtre ouverte
+ * Interruption du timer 0, fermeture de la fenêtre ouverte
  * 
  */
-ISR(TIMER1_OVF_vect)
+ISR(TIMER0_OVF_vect)
 {
     Balise &balise = Balise::Instance();
     balise.window_opener = -1;
@@ -83,14 +88,16 @@ ISR(TIMER1_OVF_vect)
 }
 
 /**
- * Interruption du timer 0, marque la dernière distance mesurée comme périmée
+ * Interruption du timer 1, marque la dernière distance mesurée comme périmée
  * 
  */
 
-ISR(TIMER0_OVF_vect)
+ISR(TIMER1_OVF_vect)
 {
     Balise &balise = Balise::Instance();
     balise.distance = 0;
+    Balise::offset_timer::disable();
+    Balise::offset_timer::value(0);
 }
 
 /**
@@ -99,6 +106,8 @@ ISR(TIMER0_OVF_vect)
  */
 ISR(TIMER2_OVF_vect)
 {
+    /*
     Balise &balise = Balise::Instance();
     balise.synchronisation.interruption();
+    */
 }

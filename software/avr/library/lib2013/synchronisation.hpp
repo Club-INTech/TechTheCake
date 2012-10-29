@@ -8,14 +8,14 @@
 #include <libintech/xbee.hpp>
 #include <libintech/serial/serial_0.hpp>
 
-#define SYNCHRO_ITERATIONS 9
+#define SYNCHRO_ITERATIONS 1
 
 
 template<class Timer, class Xbee>
 class Synchronisation
 {
 private:
-    volatile uint32_t clock_;
+    int32_t clock_;
     
 public:
     
@@ -31,13 +31,14 @@ public:
 	 * @param server Adresse XBEE du serveur de clock
 	 * 
 	 */
-    uint32_t synchroniser_client(uint16_t server)
+    inline uint32_t synchroniser_client(uint16_t server)
     {
-		char buffer[17];
-		uint32_t t1;
-		uint32_t tp;
-		uint32_t t4;
-		uint32_t delta[SYNCHRO_ITERATIONS];
+		static char buffer[17];
+		static int32_t t1;
+		static int32_t tp;
+		static int32_t t4;
+		//int32_t delta[SYNCHRO_ITERATIONS];
+        static int32_t time;
 		
 		for (int8_t i = 0; i < SYNCHRO_ITERATIONS; i++)
 		{
@@ -54,14 +55,15 @@ public:
 			Xbee::read(tp);
 
 			// Calcul de l'écart teta entre les deux horloges (Etape 8)
-			delta[i] = tp - (t1 + t4)/2;
+			time = tp - (t1 + t4)/2;
 		}
-		
+		/*
 		sort(delta, SYNCHRO_ITERATIONS);
 		uint32_t mediane = delta[SYNCHRO_ITERATIONS/2];
-		clock_ += mediane;
+        */
+		clock_ = clock_ + time;
 		
-		return mediane;
+		return (t1+t4)/(2*F_CPU/256000);
 	}
     
     /**
@@ -71,10 +73,10 @@ public:
      * @param client Adresse XBEE du client à synchroniser
      * 
      */
-    void synchroniser_serveur(uint16_t client)
+    inline void synchroniser_serveur(uint16_t client)
     {
-		char buffer[17];
-		uint32_t tp;
+		static char buffer[17];
+		static int32_t tp;
 		
 		// Demande au client de se synchroniser sur le serveur (Etape 1)
 		Xbee::send(client, "s");
@@ -100,7 +102,7 @@ public:
      * A appeler à chaque interruption du timer utilisé pour la clock
      * 
      */
-    void interruption()
+    inline void interruption()
     {
 		clock_++;
 	}
@@ -111,7 +113,7 @@ public:
      * @param ms Renvoie la valeur en ms au lieu de la valeur brute du timer
      * 
      */
-    uint32_t clock(bool ms = true)
+    inline uint32_t clock(bool ms = true)
     {
 		if (!ms) return clock_;
 		
@@ -124,7 +126,7 @@ private:
 	 * Tri du tableau des écarts
 	 * 
 	 */
-	void sort(uint32_t delta[], uint8_t size)
+	inline void sort(uint32_t delta[], uint8_t size)
 	{
 		for (uint8_t i = 0; i < size; i++)
 		{
