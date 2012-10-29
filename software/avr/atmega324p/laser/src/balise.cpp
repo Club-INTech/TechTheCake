@@ -106,83 +106,40 @@ void Balise::execute(char *order)
         pwm_moteur::value(pwm);
     }
     
-    /*
-    else if (strcmp(order, "clock") == 0)
-    {
-        serial_pc::print(synchronisation.clock(false));
-    }
-    
-    // Ping des balises
-    else if (strcmp(order, "ping") == 0)
-    {
-        // Demande au PC l'ID de la balise à interroger
-        uint8_t id;
-        serial_pc::print("id ?");
-        serial_pc::read(id);
-        
-        // ID connu ?
-        if (id > BALISE_NUMBER-1)
-        {
-            serial_pc::print("id inconnu");
-        }
-        
-        // Ping de la balise
-        else
-        {
-            serial_pc::print("Envoi du ping...");
-            xbee::send(balise_address[id], "c");
-            char buffer[10];
-            serial_pc::print("Attente réponse...");
-            if (xbee::read(buffer, 1000) == xbee::READ_TIMEOUT)
-            {
-				serial_pc::print("timeout");
-			}
-			else
-			{
-				serial_pc::print(buffer);
-            }
-        }
-    }*/
-    
     // Ping des balises
     else if (strcmp(order, "ping") == 0)
     {
         for (uint8_t id = 0; id < BALISE_NUMBER; id++)
         {
-			
 			// Affichage de l'ID sur la série
-			serial_pc::print_noln("ping 0 ID");
-			serial_pc::print_noln(id);
-			serial_pc::print_noln(" ");
+			serial_pc::write("ping ID");
+			serial_pc::write(id);
+			serial_pc::write(" ");
 			
 			xbee::send(balise_address[id], "?");
             uint8_t ping;
-            if (xbee::read(ping, TIMEOUT) == xbee::READ_SUCCESS)
+            uint16_t source_address;
+            uint8_t signal_strength;
+            if (xbee::read(ping, source_address, signal_strength, TIMEOUT) == xbee::READ_SUCCESS)
             {
-				serial_pc::print(ping);
+				// Identifiant et adresse de la balise
+				serial_pc::write("réponse: ");
+				serial_pc::write(ping);
+				serial_pc::write(", adresse: ");
+				serial_pc::write(source_address);
+				
+				// Force du signal
+				serial_pc::write(", signal: -");
+				serial_pc::write(signal_strength);
+				serial_pc::write("dBm (");
+				serial_pc::write(signal_strength * -100 / 92 + 100);
+				serial_pc::write("%)");
+				serial_pc::send_ln();
 			}
 			else
 			{
-				serial_pc::print("introuvable");
+				serial_pc::print("aucune réponse");
 			}
-			
-			/*
-			// Affichage de l'ID sur la série
-			serial_pc::print_noln("ping 1 ID");
-			serial_pc::print_noln(id);
-			serial_pc::print_noln(" ");
-			
-			xbee::send(balise_address[id], "??");
-            char ping1[30];
-            if (xbee::read(ping1, TIMEOUT) == xbee::READ_SUCCESS)
-            {
-				serial_pc::print(ping1);
-			}
-			else
-			{
-				serial_pc::print("introuvable");
-			}
-			*/
 		}
     }
     
@@ -233,7 +190,7 @@ void Balise::execute(char *order)
 				serial_pc::print_noln("angle ID");
 				serial_pc::print_noln(id);
 				serial_pc::print_noln(" ");
-				serial_pc::print(angle_ * 10);
+				serial_pc::print(angle_, 1);
 			}
 			else
 			{
@@ -242,120 +199,6 @@ void Balise::execute(char *order)
 		}
     }
     
-    
-    /*
-    // Affichage des clocks des balises
-    else if (strcmp(order, "bclock") == 0)
-    {
-        for (uint8_t id = 0; id < BALISE_NUMBER; id++)
-        {
-			// Affichage de l'ID sur la série
-			serial_pc::print_noln("bclock ID");
-			serial_pc::print_noln(id);
-			serial_pc::print_noln(" ");
-			
-			xbee::send(balise_address[id], "c");
-            uint32_t clock;
-            if (xbee::read(clock, TIMEOUT) == xbee::READ_SUCCESS)
-            {
-				serial_pc::print(clock);
-			}
-			else
-			{
-				serial_pc::print("introuvable");
-			}
-		}
-    }
-    
-    // Affichage des latence de transmission
-    else if (strcmp(order, "latence") == 0)
-    {
-        for (uint8_t id = 0; id < BALISE_NUMBER; id++)
-        {
-			// Affichage de l'ID sur la série
-			serial_pc::print_noln("latence ID");
-			serial_pc::print_noln(id);
-			serial_pc::print_noln(" ");
-			
-			uint32_t clock = synchronisation.clock();
-			uint8_t buffer;
-			xbee::send(balise_address[id], "c");
-            if (xbee::read(buffer, TIMEOUT) == xbee::READ_SUCCESS)
-            {
-				serial_pc::print(synchronisation.clock() - clock);
-			}
-			else
-			{
-				serial_pc::print("introuvable");
-			}
-		}
-    }
-    
-    // Affichage des l'écart des clock des balises avec la clock du serveur
-    else if (strcmp(order, "bclockdiff") == 0)
-    {
-        for (uint8_t id = 0; id < BALISE_NUMBER; id++)
-        {
-			// Affichage de l'ID sur la série
-			serial_pc::print_noln("clockdiff ID");
-			serial_pc::print_noln(id);
-			serial_pc::print_noln(" ");
-			
-			xbee::send(balise_address[id], "c");
-            uint32_t clock;
-            if (xbee::read(clock, TIMEOUT) == xbee::READ_SUCCESS)
-            {
-				serial_pc::print(synchronisation.clock() - clock);
-			}
-			else
-			{
-				serial_pc::print("introuvable");
-			}
-		}
-    }
-    
-    // Synchronisation des balises
-    else if (strcmp(order, "synchro") == 0)
-    {
-        // Demande au PC l'ID de la balise à interroger
-        uint8_t id;
-        serial_pc::print("id ?");
-        serial_pc::read(id);
-        
-        // ID connu ?
-        if (id > BALISE_NUMBER-1)
-        {
-            serial_pc::print("id inconnu");
-        }
-        
-        // Lancement de la synchro
-        else
-        {
-            synchronisation.synchroniser_serveur(balise_address[id]);
-            xbee::send(balise_address[id], "c");
-            uint32_t clock;
-            if (xbee::read(clock, TIMEOUT) == xbee::READ_SUCCESS)
-            {
-				serial_pc::print(synchronisation.clock() - clock);
-			}
-        }
-    }
-    
-    // Synchronisation des balises
-    else if (strcmp(order, "mediane") == 0)
-    {
-        xbee::send(balise_address[0], "m");
-        int32_t mediane;
-        if (xbee::read(mediane, TIMEOUT) == xbee::READ_SUCCESS)
-        {
-			serial_pc::print(mediane);
-		}
-		else 
-		{
-			serial_pc::print("erreur");
-		}
-    }
-    */
     // Allumer les lasers
     else if (strcmp(order, "laser_on") == 0)
     {
@@ -399,65 +242,9 @@ void Balise::execute(char *order)
     // Fréquence du moteur
     else if(strcmp(order, "freq") == 0)
     {
-		uint32_t freq = F_CPU / (last_period() * 64);
-        serial_pc::print(freq);
+		float freq = (last_period() == 0) ? 0. : (float)F_CPU / ((float)last_period() * 64.);
+        serial_pc::print(freq, 1);
     }
-    
-    
-    
-    /******Commandes de synchronisation******/
-    /*
-    //Ping du deuxieme avr
-    if( strcmp(order, "??") == 0 )
-    {
-    char buffer[17];
-    Serial<0>::print("Ping du second arduino");
-    Serial<1>::print("?");
-    Serial<1>::read(buffer);
-    if( strcmp(buffer, "!") == 0 )
-    {
-        Serial<0>::print("Ping arduino 2 réussi");
-    }
-    }
-    
-    //Demande de synchronisation
-    if( strcmp(order, "a") == 0 )
-    {
-    Serial<0>::print("Test de Synchronisation");
-    synchronisation();
-    }
-    
-    //Recuperation de l'horloge
-    if( strcmp(order, "t") == 0 )
-    {
-    Serial<0>::print(clock);
-    }
-    
-    //Recuperation des 2 horloges
-    if( strcmp(order, "tt") == 0 )
-    {
-    char buffer[17];
-    Serial<0>::print("Timers local et distant:");
-    Serial<1>::print("t");
-    Serial<1>::read(buffer);
-    Serial<0>::print(clock);
-    Serial<0>::print(buffer);
-    }
-    
-    //Recuperation des 2 horloges en ms
-    if( strcmp(order, "mm") == 0 )
-    {
-    float r;
-    float t;
-    Serial<0>::print("Timers local et distant:");
-    Serial<1>::print("t");
-    Serial<1>::read(t);
-    r = clock / 64.0;
-    Serial<0>::print(r);
-    r = t / 64.0;
-    Serial<0>::print(r);
-    }
-*/
 }
 
 // -----------------------

@@ -6,7 +6,6 @@
 #include <avr/interrupt.h>
 #include "balise.h"
 #include "define.h"
-#include "timeToDistance.h"
 
 
 int main()
@@ -18,7 +17,6 @@ int main()
         char order[10];
         Balise::xbee::read(order);
         balise.execute(order);
-        
     }
 }
 
@@ -42,7 +40,6 @@ ISR(PCINT1_vect)
     if (balise.window_opener != -1)
     {
         // Ignore les doublets trop proches
-        
         if (Balise::window_timer::value() * 20 >= TIME_THRESHOLD_MIN && changed_bits == balise.window_opener)
         {
             
@@ -57,13 +54,9 @@ ISR(PCINT1_vect)
             Balise::offset_timer::value(0);
             Balise::offset_timer::enable();
             
-            //test
-            sbi(PORTC, PORTC4);
-            _delay_ms(2);
-            cbi(PORTC, PORTC4);
+            // Allumage de la diode rouge
+            balise.diode_blink(1, 5);		
         }
-        
-        
     }
         
     // Fenêtre fermée, passage d'un 1er laser
@@ -77,10 +70,10 @@ ISR(PCINT1_vect)
 }
 
 /**
- * Interruption du timer 0, fermeture de la fenêtre ouverte
+ * Interruption du timer 2, fermeture de la fenêtre ouverte
  * 
  */
-ISR(TIMER0_OVF_vect)
+ISR(TIMER2_OVF_vect)
 {
     Balise &balise = Balise::Instance();
     balise.window_opener = -1;
@@ -101,13 +94,35 @@ ISR(TIMER1_OVF_vect)
 }
 
 /**
- * Interruption du timer 2, Incremente l'horloge de Synchronisation
+ * Interruption du timer 0, pour l'extinction de la diode debug
  * 
  */
-ISR(TIMER2_OVF_vect)
+ISR(TIMER0_OVF_vect)
 {
-    /*
-    Balise &balise = Balise::Instance();
-    balise.synchronisation.interruption();
-    */
+	static bool status = false;
+	static uint8_t modulo = 0;
+	Balise &balise = Balise::Instance();
+	
+	modulo++;
+	
+    if (modulo < balise.blink_delay) return;
+    
+	if (status) {
+		status = false;
+		balise.diode_off();
+		balise.blink_count--;
+	}
+	else {
+		status = true;
+		balise.diode_on();
+	}
+	
+	if (balise.blink_count <= 0) {
+		status = false;
+		balise.diode_off();
+		Balise::diode_timer::disable();
+		Balise::diode_timer::value(0);
+	}
+	
+	modulo = 0;
 }

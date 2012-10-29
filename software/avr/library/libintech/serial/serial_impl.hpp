@@ -258,6 +258,8 @@ public:
      * 
      * @param	val			Valeur à envoyer
      * @param	precision	Précision du float (fait l'arrondi automatiquement)
+     * 
+     */
     static inline void print(float val, int precision) {
         write(val, precision);
         send_ln();

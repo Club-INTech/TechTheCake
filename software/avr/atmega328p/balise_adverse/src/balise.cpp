@@ -8,10 +8,11 @@ Balise::Balise() :
     // -----------------------
     // Timer
     // -----------------------
-
     
     offset_timer::init();
     window_timer::init();
+    diode_timer::init();
+    diode_timer::disable();
 
     // -----------------------
     // Liaison série
@@ -24,10 +25,12 @@ Balise::Balise() :
     // Diodes
     // -----------------------
 
+	// Mode output pour les 2 diodes
     sbi(DDRC, DDC4);
     sbi(DDRD, DDD2);
-    sbi(PORTD, PORTD2);
     
+    // Allumage diode debug
+    sbi(PORTD, PORTD2);
 
     // -----------------------
     // Interruptions
@@ -59,8 +62,8 @@ void Balise::execute(char *order) {
 	
     // Ping
     if (strcmp(order,"?") == 0) {
-        uint8_t a =1;
-        xbee::send(SERVER_ADDRESS, a);
+        xbee::send(SERVER_ADDRESS, 1);
+        diode_blink(10, 100);
     }
     
     // Demande de valeur de la dernière distance mesurée
@@ -84,31 +87,20 @@ void Balise::execute(char *order) {
         xbee::send(SERVER_ADDRESS, 1);
     }
     
-
-    
-
-    
-    
 }
 
 void Balise::diode_on() {
     sbi(PORTC, PORTC4);
 }
 
-void Balise::diode_blink() {
-    diode_blink(50, 8);
-}
-
-void Balise::diode_blink(uint16_t period, uint8_t number) {
-    for (uint8_t i = 1; i <= number; i++) {
-        diode_on();
-        for (uint16_t i = 1; i <= period; i++) _delay_ms(1);
-        diode_off();
-        for (uint16_t i = 1; i <= period; i++) _delay_ms(1);
-    }
-}
-
 void Balise::diode_off() {
     cbi(PORTC, PORTC4);
+}
+
+void Balise::diode_blink(uint8_t number, uint8_t delay) {
+	blink_count = number;
+	blink_delay = delay;
+	diode_timer::value(0);
+	diode_timer::enable();
 }
 

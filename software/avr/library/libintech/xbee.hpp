@@ -8,6 +8,10 @@
 #ifndef XBEE_HPP
 #define XBEE_HPP
 
+#include <stdlib.h>
+#include <avr/io.h>
+#include <string.h>
+
 template<class Serial>
 class Xbee {
 public:
