@@ -69,33 +69,45 @@ ISR(INT2_vect)
     }
 }
 
-ISR(PCINT0_vect)
+#define READ_CANAL_A() rbi(PINC,PORTC1)
+#define READ_CANAL_B() rbi(PINC,PORTC0)
+
+ISR(PCINT2_vect)
 {
-//   if(dernier_etat_a == 0 && READ_CANAL_A() == 1){
-//     if(READ_CANAL_B() == 0)
-//       codeur--;
-//     else
-//       codeur++;
-//   }
-//   else if(dernier_etat_a == 1 && READ_CANAL_A() == 0){
-//     if(READ_CANAL_B() == 0)
-//       codeur++;
-//     else
-//       codeur--;
-//   }
-//   else if(dernier_etat_b == 0 && READ_CANAL_B() == 1){
-//     if(READ_CANAL_A() == 0)
-//       codeur--;
-//     else
-//       codeur++;
-//   }
-//   else if(dernier_etat_b == 1 && READ_CANAL_B() == 0){
-//     if(READ_CANAL_A() == 0)
-//       codeur++;
-//     else
-//       codeur--;
-//   }
-//  dernier_etat_a = READ_CANAL_A();
-//  dernier_etat_b = READ_CANAL_B(); 
+	Balise &balise = Balise::Instance();
+	
+	static uint8_t dernier_etat_a = READ_CANAL_A();
+	static uint8_t dernier_etat_b = READ_CANAL_B();
+	static int32_t codeur = 0;
+	
+	if(dernier_etat_a == 0 && READ_CANAL_A() == 1){
+		if(READ_CANAL_B() == 0)
+			codeur--;
+		else
+			codeur++;
+    }
+    else if(dernier_etat_a == 1 && READ_CANAL_A() == 0){
+		if(READ_CANAL_B() == 0)
+			codeur++;
+		else
+			codeur--;
+    }
+    else if(dernier_etat_b == 0 && READ_CANAL_B() == 1){
+		if(READ_CANAL_A() == 0)
+			codeur--;
+		else
+			codeur++;
+    }
+    else if(dernier_etat_b == 1 && READ_CANAL_B() == 0){
+		if(READ_CANAL_A() == 0)
+			codeur++;
+		else
+			codeur--;
+	}
+	
+	Balise::serial_pc::print(codeur);
+	
+	dernier_etat_a = READ_CANAL_A();
+	dernier_etat_b = READ_CANAL_B();
 }
 

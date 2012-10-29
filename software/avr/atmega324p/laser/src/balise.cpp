@@ -38,6 +38,18 @@ Balise::Balise():
     // Moteur
     // -----------------------
     
+    // Codeuse A/B en input
+    cbi(DDRC, DDC0);
+    cbi(DDRC, DDC1);
+    
+    // Interruptions codeuse sur PORTC
+    // A = PCINT17
+    // B = PCINT16
+    sbi(PCMSK2, PCINT16);
+    sbi(PCMSK2, PCINT17);
+    sbi(PCICR, PCIE2);
+
+	// Output PWM et DIR
     sbi(DDRD,PORTD6);
     sbi(DDRD,PORTD7);
     
@@ -244,6 +256,12 @@ void Balise::execute(char *order)
     {
 		float freq = (last_period() == 0) ? 0. : (float)F_CPU / ((float)last_period() * 64.);
         serial_pc::print(freq, 1);
+    }
+    
+    // Valeur de la codeuse du moteur
+    else if(strcmp(order, "codeuse") == 0)
+    {
+		serial_pc::print(codeur);
     }
 }
 

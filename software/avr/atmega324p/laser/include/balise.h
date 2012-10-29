@@ -30,12 +30,13 @@ class Balise : public Singleton<Balise>
         
         // Moteur sur le Timer 2 en FastPWM . Pont en H sur le PORTD4
         typedef PWM<2,ModeFastPwm,1,'B'> pwm_moteur;
+        
         //Moteur< timer_moteur, AVR_PORTD<PORTD7> > moteur;
         
         typedef PWM<0,ModeCTC,1,'B'> pwm_laser;
         
-        // Horloge et synchronisation sur Timer 2
-        //Synchronisation<Timer<2,1>,xbee> synchronisation;
+        //Valeur de la codeuse du moteur
+        volatile int32_t codeur;
         
     private:
         volatile uint16_t last_period_;
