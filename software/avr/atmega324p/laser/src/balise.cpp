@@ -1,7 +1,8 @@
 #include "balise.h"
 
 Balise::Balise():
-    last_period_(0) 
+    last_period_(0),
+    asservissement_moteur(14,3,0.04)
 {
     
     // -----------------------
@@ -42,6 +43,10 @@ Balise::Balise():
     cbi(DDRC, DDC0);
     cbi(DDRC, DDC1);
     
+    // Pull-up activée
+    sbi(PORTC,PORTC0);
+    sbi(PORTC,PORTC1);
+    
     // Interruptions codeuse sur PORTC
     // A = PCINT17
     // B = PCINT16
@@ -53,13 +58,17 @@ Balise::Balise():
     sbi(DDRD,PORTD6);
     sbi(DDRD,PORTD7);
     
-    pwm_moteur::init();
+    timer_asservissement::init();
+    
+    moteur.maxPWM(140);
+    asservissement_moteur.consigne(15);
+    
     motor_off();
     
     // -----------------------
     // Alimentation des lasers
     // -----------------------
-    
+    /*
     // Attention, ici DIR est un créneau et PWM est constant
     
     // Pin PWM en output
@@ -87,7 +96,7 @@ Balise::Balise():
     // f_wanted = 20 000 000 / (2 * prescaler * (1 + OCR0A))
     // Valeur fixée = 48KHz (ne pas aller au dessus, le pont redresseur chauffe sinon)
     OCR0A = 170;
-
+	*/
     // -----------------------
     // Diode debug
     // -----------------------
@@ -110,12 +119,35 @@ void Balise::execute(char *order)
         diode_blink();
     }
     
+    /*
     else if (strcmp(order, "pwm") == 0)
     {
-        uint16_t pwm;
+        int16_t pwm;
         serial_pc::print("valeur du pwm:");
         serial_pc::read(pwm);
-        pwm_moteur::value(pwm);
+        serial_pc::write("nouveau pwm fixé à ");
+        serial_pc::print(pwm);
+        moteur.envoyerPwm(pwm);
+    }
+    */
+    else if (strcmp(order, "pwm") == 0)
+    {
+        serial_pc::print(pwm_);
+    }
+    
+    else if (strcmp(order, "err") == 0)
+    {
+        serial_pc::print(asservissement_moteur.erreur());
+    }
+    
+    else if (strcmp(order, "consigne") == 0)
+    {
+        uint8_t consigne;
+        serial_pc::print("nouvelle consigne:");
+        serial_pc::read(consigne);
+        asservissement_moteur.consigne(consigne);
+        serial_pc::write("nouvelle consigne fixée à ");
+        serial_pc::print(consigne);
     }
     
     // Ping des balises
@@ -338,12 +370,13 @@ void Balise::laser_off()
 
 void Balise::motor_on()
 {
-    pwm_moteur::value(40);
+    timer_asservissement::enable();
 }
 
 void Balise::motor_off()
 {
-    pwm_moteur::value(0);
+    timer_asservissement::disable();
+    moteur.envoyerPwm(0);
 }
 
 // -----------------------
@@ -391,10 +424,9 @@ uint32_t Balise::format_value(uint16_t distance, uint16_t angle)
     return value;
 }
 
-// void Balise::asservir(int32_t vitesse_courante)
-// {
-//  int16_t pwm = asservissement_moteur_.pwm(vitesse_courante);
-//  Serial<0>::print(pwm);
-//  moteur_.envoyerPwm(pwm);
-// }
+void Balise::asservir(int32_t current_speed)
+{
+	pwm_ = asservissement_moteur.pwm(current_speed);
+	moteur.envoyerPwm(pwm_);
+}
 

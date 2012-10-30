@@ -31,9 +31,10 @@ ISR(TIMER2_OVF_vect)
 
 ISR(TIMER0_OVF_vect)
 {
-    //Serial<0>::print(codeur - last_codeur);
-    //  Balise::Instance().asservir(codeur - last_codeur);
-    //  last_codeur = codeur;
+	static int32_t last_codeur = 0;
+	Balise &balise = Balise::Instance();
+    Balise::Instance().asservir(balise.codeur - last_codeur);
+    last_codeur = balise.codeur;
 }
 
 /**
@@ -69,45 +70,35 @@ ISR(INT2_vect)
     }
 }
 
-#define READ_CANAL_A() rbi(PINC,PORTC1)
-#define READ_CANAL_B() rbi(PINC,PORTC0)
 
 ISR(PCINT2_vect)
 {
+	static uint8_t canal_a;
+	static uint8_t canal_b;
+	static uint8_t previous_canal_a;
+	static uint8_t previous_canal_b;
+	
 	Balise &balise = Balise::Instance();
 	
-	static uint8_t dernier_etat_a = READ_CANAL_A();
-	static uint8_t dernier_etat_b = READ_CANAL_B();
-	static int32_t codeur = 0;
+	canal_a = rbi(PINC,PORTC1);
+	canal_b = rbi(PINC,PORTC0);
 	
-	if(dernier_etat_a == 0 && READ_CANAL_A() == 1){
-		if(READ_CANAL_B() == 0)
-			codeur--;
-		else
-			codeur++;
-    }
-    else if(dernier_etat_a == 1 && READ_CANAL_A() == 0){
-		if(READ_CANAL_B() == 0)
-			codeur++;
-		else
-			codeur--;
-    }
-    else if(dernier_etat_b == 0 && READ_CANAL_B() == 1){
-		if(READ_CANAL_A() == 0)
-			codeur--;
-		else
-			codeur++;
-    }
-    else if(dernier_etat_b == 1 && READ_CANAL_B() == 0){
-		if(READ_CANAL_A() == 0)
-			codeur++;
-		else
-			codeur--;
+	// Vérification que l'on est sur un front (useless ?)
+	if (!(canal_a != previous_canal_a || canal_b != previous_canal_b)) return;
+	
+	bool sens = canal_a == previous_canal_b;
+	
+	// Incrémente ou décrémente en fonction du sens
+	if (sens)
+	{
+		balise.codeur++;
+	}
+	else
+	{
+		balise.codeur--;
 	}
 	
-	Balise::serial_pc::print(codeur);
-	
-	dernier_etat_a = READ_CANAL_A();
-	dernier_etat_b = READ_CANAL_B();
+	previous_canal_a = canal_a;
+	previous_canal_b = canal_b;
 }
 
