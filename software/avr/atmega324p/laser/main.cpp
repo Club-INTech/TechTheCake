@@ -28,10 +28,10 @@ ISR(TIMER0_OVF_vect)
 
 ISR(TIMER2_OVF_vect)
 {
-	static int32_t last_codeur = 0;
+	static int32_t previous_encoder = 0;
 	Balise &balise = Balise::Instance();
-    Balise::Instance().asservir(balise.codeur - last_codeur);
-    last_codeur = balise.codeur;
+    Balise::Instance().control(balise.encoder - previous_encoder);
+    previous_encoder = balise.encoder;
 }
 
 /**
@@ -88,11 +88,11 @@ ISR(PCINT2_vect)
 	// Incrémente ou décrémente en fonction du sens
 	if (sens)
 	{
-		balise.codeur++;
+		balise.encoder++;
 	}
 	else
 	{
-		balise.codeur--;
+		balise.encoder--;
 	}
 	
 	previous_canal_a = canal_a;

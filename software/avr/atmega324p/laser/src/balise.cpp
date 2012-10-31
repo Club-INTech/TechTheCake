@@ -1,7 +1,7 @@
 #include "balise.h"
 
 Balise::Balise():
-    asservissement_moteur(20,2.5,0.048),
+    motor_control(20,2.5,0.048),
     last_period_(0)
 {
     
@@ -54,10 +54,10 @@ Balise::Balise():
     sbi(PCMSK2, PCINT17);
     sbi(PCICR, PCIE2);
     
-    timer_asservissement::init();
+    timer_control::init();
     
-    moteur.maxPWM(150);
-    asservissement_moteur.consigne(-15);
+    motor.maxPWM(150);
+    motor_control.consigne(-15);
     
     motor_off();
     
@@ -142,7 +142,7 @@ void Balise::execute(char *order)
     
     else if (strcmp(order, "err") == 0)
     {
-        serial_pc::print(asservissement_moteur.erreur());
+        serial_pc::print(motor_control.erreur());
     }
     
     else if (strcmp(order, "consigne") == 0)
@@ -150,7 +150,7 @@ void Balise::execute(char *order)
         uint8_t consigne;
         serial_pc::print("nouvelle consigne:");
         serial_pc::read(consigne);
-        asservissement_moteur.consigne(consigne);
+        motor_control.consigne(consigne);
         serial_pc::write("nouvelle consigne fixée à ");
         serial_pc::print(consigne);
     }
@@ -230,16 +230,14 @@ void Balise::execute(char *order)
 				}
 				
 				// Affichage de la distance
-				serial_pc::print_noln("distance ID");
-				serial_pc::print_noln(id);
-				serial_pc::print_noln(" ");
-				serial_pc::print(distance_);
-				
-				// Affichage de l'angle
-				serial_pc::print_noln("angle ID");
-				serial_pc::print_noln(id);
-				serial_pc::print_noln(" ");
-				serial_pc::print(angle_, 1);
+				serial_pc::write("valeurs ID");
+				serial_pc::write(id);
+				serial_pc::write(" ");
+				serial_pc::write(distance_);
+				serial_pc::write(",");
+				serial_pc::write(angle_, 1);
+				serial_pc::write(",");
+				serial_pc::print(offset_);
 			}
 			else
 			{
@@ -300,7 +298,7 @@ void Balise::execute(char *order)
     // Valeur de la codeuse du moteur
     else if(strcmp(order, "codeuse") == 0)
     {
-		serial_pc::print(codeur);
+		serial_pc::print(encoder);
     }
 }
 
@@ -327,7 +325,7 @@ void Balise::last_period(uint16_t period)
 }
 
 /**
- * Retourne l'angle que font les lasers actuellement, en degrés
+ * Retourne l'angle des lasers à une certaine date, en degrés
  * 
  * Attention: valeur fausse tant que le moteur n'a pas une vitesse suffisante 
  * pour éviter l'overflow du timer top-tour
@@ -335,9 +333,11 @@ void Balise::last_period(uint16_t period)
  */
 float Balise::angle(int32_t offset)
 {
-    //temps à soustraire de l'angle pour avoir la valeur au moment du passage du laser
+    // Temps à soustraire de l'angle pour avoir la valeur au moment du passage du laser
     int32_t t0 = ((int32_t)timer_toptour::value() - offset);
     
+    // En cas d'offset grand, le moteur a pu faire plusieurs tours
+    // Approximation sur la période, considérée comme constante
     while (t0 < 0) {
 		t0 += last_period();
     }
@@ -373,14 +373,14 @@ void Balise::laser_off()
 
 void Balise::motor_on()
 {
-    timer_asservissement::enable();
+    timer_control::enable();
 }
 
 void Balise::motor_off()
 {
-    timer_asservissement::disable();
+    timer_control::disable();
     pwm_ = 0;
-    moteur.envoyerPwm(0);
+    motor.envoyerPwm(0);
 }
 
 // -----------------------
@@ -428,9 +428,9 @@ uint32_t Balise::format_value(uint16_t distance, uint16_t angle)
     return value;
 }
 
-void Balise::asservir(int32_t current_speed)
+void Balise::control(int32_t current_speed)
 {
-	pwm_ = asservissement_moteur.pwm(current_speed);
-	moteur.envoyerPwm(pwm_);
+	pwm_ = motor_control.pwm(current_speed);
+	motor.envoyerPwm(pwm_);
 }
 
