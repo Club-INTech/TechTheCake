@@ -20,16 +20,13 @@ int main()
     }
 }
 
-/**
- * Interruption timer clock
- * 
- */
-ISR(TIMER2_OVF_vect)
+
+ISR(TIMER0_OVF_vect)
 {
 
 }
 
-ISR(TIMER0_OVF_vect)
+ISR(TIMER2_OVF_vect)
 {
 	static int32_t last_codeur = 0;
 	Balise &balise = Balise::Instance();

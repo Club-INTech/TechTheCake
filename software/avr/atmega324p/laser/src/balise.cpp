@@ -1,8 +1,8 @@
 #include "balise.h"
 
 Balise::Balise():
-    last_period_(0),
-    asservissement_moteur(14,3,0.04)
+    asservissement_moteur(20,2.5,0.048),
+    last_period_(0)
 {
     
     // -----------------------
@@ -53,27 +53,28 @@ Balise::Balise():
     sbi(PCMSK2, PCINT16);
     sbi(PCMSK2, PCINT17);
     sbi(PCICR, PCIE2);
-
-	// Output PWM et DIR
-    sbi(DDRD,PORTD6);
-    sbi(DDRD,PORTD7);
     
     timer_asservissement::init();
     
-    moteur.maxPWM(140);
-    asservissement_moteur.consigne(15);
+    moteur.maxPWM(150);
+    asservissement_moteur.consigne(-15);
     
     motor_off();
     
     // -----------------------
     // Alimentation des lasers
     // -----------------------
-    /*
+    
     // Attention, ici DIR est un créneau et PWM est constant
     
     // Pin PWM en output
-    sbi(DDRB,PORTB3);
+    sbi(DDRB,PORTB0);
     
+    // Pin DIR pour alimenter les lasers
+    pwm_laser::init();
+	pwm_laser::value(127);
+	
+    /*
     // Seuil pour le PWM des lasers (cf formule datasheet)
     // f_wanted = 20 000 000 / (2 * prescaler * (1 + OCR0A))
     // Valeur fixée = 48KHz (ne pas aller au dessus, le pont redresseur chauffe sinon)
@@ -97,6 +98,9 @@ Balise::Balise():
     // Valeur fixée = 48KHz (ne pas aller au dessus, le pont redresseur chauffe sinon)
     OCR0A = 170;
 	*/
+	
+	
+	
     // -----------------------
     // Diode debug
     // -----------------------
@@ -130,6 +134,7 @@ void Balise::execute(char *order)
         moteur.envoyerPwm(pwm);
     }
     */
+    
     else if (strcmp(order, "pwm") == 0)
     {
         serial_pc::print(pwm_);
@@ -246,6 +251,8 @@ void Balise::execute(char *order)
     // Allumer les lasers
     else if (strcmp(order, "laser_on") == 0)
     {
+		laser_on();
+		/*
         if (last_period() > 0)
         {
             laser_on();
@@ -253,7 +260,7 @@ void Balise::execute(char *order)
         else
         {
             serial_pc::print("Le moteur n'est pas allumé");
-        }
+        }*/
     }
     
     // Eteindre les lasers
@@ -345,23 +352,19 @@ float Balise::angle(int32_t offset)
 void Balise::laser_on()
 {
     // Activation du timer PWM pour DIR
-    cbi(TCCR0B,CS02);
-    cbi(TCCR0B,CS01);
-    sbi(TCCR0B,CS00);
+	pwm_laser::value(127);
     
-    // Pin PWM à 5V
-    sbi(PORTB,PORTB3);
+    // Pin PWM du pont H à 5V
+    sbi(PORTB,PORTB0);
 }
 
 void Balise::laser_off()
 {
     // Désactivation du timer PWM pour DIR
-    cbi(TCCR0B,CS02);
-    cbi(TCCR0B,CS01);
-    cbi(TCCR0B,CS00);
+	pwm_laser::value(0);
     
-    // Pin PWM à 0V
-    cbi(PORTB,PORTB3);
+    // Pin PWM du pont H à 0V
+    cbi(PORTB,PORTB0);
 }
 
 // -----------------------
@@ -376,6 +379,7 @@ void Balise::motor_on()
 void Balise::motor_off()
 {
     timer_asservissement::disable();
+    pwm_ = 0;
     moteur.envoyerPwm(0);
 }
 

@@ -24,19 +24,39 @@ class Balise : public Singleton<Balise>
         // Communication radio
         typedef Xbee< Serial<1> > xbee;
         
-        // Timer 1 utilisé pour calculer l'angle des lasers
-        // Doit être le plus précis possible (16 bits), mais ne doit pas faire d'overflow
+        /**
+         * Timer utilisé pour calculer l'angle des lasers
+         *
+         * Doit être le plus précis possible (16 bits), mais ne doit pas faire d'overflow
+         */
         typedef Timer<1,64> timer_toptour;
         
-        // Moteur sur le Timer 2 en FastPWM . Pont en H sur le PORTD4
-        typedef PWM<2,ModeFastPwm,1,'B'> pwm_moteur;
+        /**
+         * Moteur sur le Timer 0 en FastPWM. Pont en H sur le PORTB3
+         */
+        typedef PWM<0,ModeFastPwm,1,'A'> pwm_moteur;
         
+        /**
+         * PWM Laser
+         * 
+         * Prescaler 1: f = 80kHZ (fait chauffer le pont de diodes)
+         * Prescaler 8: f = 10kHz (bruyant)
+         */
+        typedef PWM<0,ModeFastPwm,1,'B'> pwm_laser;
+        
+        /**
+         * Moteur
+         */
         Moteur< pwm_moteur, AVR_PORTD<PORTD4> > moteur;
+        
+        /**
+         * Asservissement du moteur
+         */
         Asservissement asservissement_moteur;
         
         //typedef PWM<0,ModeCTC,1,'B'> pwm_laser;
         
-        typedef Timer<0,1024> timer_asservissement;
+        typedef Timer<2,1024> timer_asservissement;
         
         //Valeur de la codeuse du moteur
         volatile int32_t codeur;
@@ -45,10 +65,6 @@ class Balise : public Singleton<Balise>
         volatile uint16_t last_period_;
         volatile int16_t pwm_;
         
-
-//        typedef Timer<2,ModeFastPwm,1> T_2;
-//      Moteur< T_2, AVR_PORTD<PORTD4> > moteur_;
-//      Asservissement asservissement_moteur_;
         
     public:
         Balise();
