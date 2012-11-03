@@ -42,27 +42,25 @@ ISR(PCINT1_vect)
         // Ignore les doublets trop proches
         if (Balise::window_timer::value() * 20 >= TIME_THRESHOLD_MIN && changed_bits == balise.window_opener)
         {
-            
-            uint16_t timer = Balise::window_timer::value();
-            balise.distance = timer;
-                         
-            // Fermeture de la fenêtre
-            balise.window_opener = -1;
-            Balise::window_timer::disable();
+            balise.distance = Balise::window_timer::value();
             
             // Déclenche le timer d'offset pour la mesure
             Balise::offset_timer::value(0);
             Balise::offset_timer::enable();
+             
+            // Fermeture de la fenêtre
+            balise.window_opener = -1;
+            Balise::window_timer::disable();
             
             // Allumage de la diode rouge
-            balise.diode_blink(1, 5);		
+            balise.diode_blink(1, 15);		
         }
     }
         
     // Fenêtre fermée, passage d'un 1er laser
     else
     {
-        // Ouverture d'une fenêtre, timer1 comme timeout
+        // Ouverture d'une fenêtre
         balise.window_opener = changed_bits;
         Balise::window_timer::value(0);
         Balise::window_timer::enable();
@@ -84,7 +82,6 @@ ISR(TIMER2_OVF_vect)
  * Interruption du timer 1, marque la dernière distance mesurée comme périmée
  * 
  */
-
 ISR(TIMER1_OVF_vect)
 {
     Balise &balise = Balise::Instance();

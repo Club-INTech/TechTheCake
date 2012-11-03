@@ -68,23 +68,16 @@ void Balise::execute(char *order) {
     
     // Demande de valeur de la dernière distance mesurée
     else if (strcmp(order,"v") == 0) {
-        xbee::send(SERVER_ADDRESS, distance);
-        xbee::send(SERVER_ADDRESS, offset_timer::value());
+		cli();
+		uint32_t value = (uint32_t) offset_timer::value() << 8;
+		value = value | (uint32_t) distance;
+        xbee::send(SERVER_ADDRESS, value);
+        sei();
     }
     
-    // Clock
-    else if (strcmp(order,"c") == 0) {
-        //xbee::send(SERVER_ADDRESS, synchronisation.clock());
-    }
-    
-    // Synchronisation
-    else if (strcmp(order,"s") == 0) {
-        //synchronisation.synchroniser_client(SERVER_ADDRESS);
-    }
-    
-    // Latence
+    // Utilisé pour calculer la latence de transmission
     else if (strcmp(order,"l") == 0) {
-        xbee::send(SERVER_ADDRESS, 1);
+        xbee::send(SERVER_ADDRESS, (uint32_t) 0);
     }
     
 }

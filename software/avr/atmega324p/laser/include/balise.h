@@ -11,6 +11,7 @@
 #include <libintech/serial/serial_0.hpp>
 #include <libintech/serial/serial_1.hpp>
 #include <libintech/xbee.hpp>
+#include <libintech/ring_buffer.hpp>
 #include <util/delay.h>
 #include "define.h"
 
@@ -18,10 +19,14 @@ class Balise : public Singleton<Balise>
 {
     public:
     
-		// Communication vers le PC
+		/**
+		 * Communication vers le PC
+		 */
         typedef Serial<0> serial_pc;
         
-        // Communication radio
+        /**
+         * Communication radio
+         */
         typedef Xbee< Serial<1> > xbee;
         
         /**
@@ -72,21 +77,18 @@ class Balise : public Singleton<Balise>
     public:
         Balise();
         void execute(char*);
-		void control(int32_t);
         void last_period(uint16_t);
         uint16_t last_period();
         float angle(int32_t);
         void motor_on();
         void motor_off();
+        void control(int32_t);
         void laser_on();
         void laser_off();
         void diode_on();
         void diode_off();
         void diode_blink();
         void diode_blink(uint16_t, uint8_t);
-        
-    private:
-        uint32_t format_value(uint16_t, uint16_t);
 };
 
 #endif

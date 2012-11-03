@@ -26,16 +26,8 @@ ISR(TIMER0_OVF_vect)
 
 }
 
-ISR(TIMER2_OVF_vect)
-{
-	static int32_t previous_encoder = 0;
-	Balise &balise = Balise::Instance();
-    Balise::Instance().control(balise.encoder - previous_encoder);
-    previous_encoder = balise.encoder;
-}
-
 /**
- * Interruption timer top tour
+ * Interruption timer top tour, ne se produit pas quand le moteur tourne suffisament vite
  * 
  */
 ISR(TIMER1_OVF_vect)
@@ -48,6 +40,18 @@ ISR(TIMER1_OVF_vect)
     // Désactivation du timer	
     Balise::timer_toptour::disable();	
     Balise::timer_toptour::value(0);
+}
+
+/**
+ * Interruption pour l'asservissement du moteur
+ * 
+ */
+ISR(TIMER2_OVF_vect)
+{
+	static int32_t previous_encoder = 0;
+	Balise &balise = Balise::Instance();
+    Balise::Instance().control(balise.encoder - previous_encoder);
+    previous_encoder = balise.encoder;
 }
 
 /**
@@ -67,7 +71,10 @@ ISR(INT2_vect)
     }
 }
 
-
+/**
+ * Interruption des codeuses
+ * 
+ */
 ISR(PCINT2_vect)
 {
 	static uint8_t canal_a;

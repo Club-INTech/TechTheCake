@@ -34,7 +34,6 @@ Balise::Balise():
     sbi(EICRA,ISC20);
     sbi(EIMSK,INT2);
     
-    
     // -----------------------
     // Moteur
     // -----------------------
@@ -57,7 +56,7 @@ Balise::Balise():
     timer_control::init();
     
     motor.maxPWM(150);
-    motor_control.consigne(-15);
+    motor_control.consigne(DEFAULT_SPEED_ORDER);
     
     motor_off();
     
@@ -73,34 +72,7 @@ Balise::Balise():
     // Pin DIR pour alimenter les lasers
     pwm_laser::init();
 	pwm_laser::value(127);
-	
-    /*
-    // Seuil pour le PWM des lasers (cf formule datasheet)
-    // f_wanted = 20 000 000 / (2 * prescaler * (1 + OCR0A))
-    // Valeur fixée = 48KHz (ne pas aller au dessus, le pont redresseur chauffe sinon)
-    //pwm_laser::init();
-    //pwm_laser::value(170);
 
-    // Pin DIR Laser en output
-    sbi(DDRB,PORTB4);
-    
-    // Réglage pin DIR en PWM mode CTC
-    cbi(TCCR0A,WGM00);
-    sbi(TCCR0A,WGM01);
-    cbi(TCCR0B,WGM02);
-    
-    // Toggle OCR0B
-    sbi(TCCR0A,COM0B0);
-    cbi(TCCR0A,COM0B1);
-    
-    // Seuil pour le PWM (cf formule datasheet)
-    // f_wanted = 20 000 000 / (2 * prescaler * (1 + OCR0A))
-    // Valeur fixée = 48KHz (ne pas aller au dessus, le pont redresseur chauffe sinon)
-    OCR0A = 170;
-	*/
-	
-	
-	
     // -----------------------
     // Diode debug
     // -----------------------
@@ -145,14 +117,14 @@ void Balise::execute(char *order)
         serial_pc::print(motor_control.erreur());
     }
     
-    else if (strcmp(order, "consigne") == 0)
+    else if (strcmp(order, "speed_order") == 0)
     {
-        uint8_t consigne;
+		int16_t order;
         serial_pc::print("nouvelle consigne:");
-        serial_pc::read(consigne);
-        motor_control.consigne(consigne);
+        serial_pc::read(order);
+        motor_control.consigne(order);
         serial_pc::write("nouvelle consigne fixée à ");
-        serial_pc::print(consigne);
+        serial_pc::print(order);
     }
     
     // Ping des balises
@@ -192,35 +164,83 @@ void Balise::execute(char *order)
 		}
     }
     
+    // Calcul du latence de transmission
+    else if (strcmp(order, "latence") == 0)
+    {
+        for (uint8_t id = 0; id < BALISE_NUMBER; id++)
+        {
+			// Affichage de l'ID sur la série
+			serial_pc::write("latence ID");
+			serial_pc::write(id);
+			serial_pc::write(" ");
+			
+			// Temps avant transmission
+			uint16_t clock1 = timer_toptour::value();
+			
+			xbee::send(balise_address[id], "?");
+			
+			// Temps après transmission
+			uint16_t clock2 = timer_toptour::value();
+            uint32_t buffer;
+            
+            if (xbee::read(buffer, TIMEOUT) == xbee::READ_SUCCESS)
+            {
+				// Temps après réception
+				uint16_t clock3 = timer_toptour::value();
+				
+				int16_t transmit_time = (clock2 < clock1) ? clock2 - clock1 + last_period() : clock2 - clock1;
+				int16_t reception_time = (clock3 < clock2) ? clock3 - clock2 + last_period() : clock3 - clock2;
+				int16_t total_time = (clock3 < clock1) ? clock3 - clock1 + last_period() : clock3 - clock1;
+
+				serial_pc::write("émission: ");
+				serial_pc::write(transmit_time);
+				serial_pc::write(", réception: ");
+				serial_pc::write(reception_time);
+				serial_pc::write(", total: ");
+				serial_pc::print(total_time);
+			}
+			else
+			{
+				serial_pc::print("aucune réponse");
+			}
+		}
+    }
+    
     // Valeur des balises
     else if (strcmp(order, "valeur") == 0)
     {
         for (uint8_t id = 0; id < BALISE_NUMBER; id++)
         {
-            // Calcul du temps d'aller retour
-            // ! Attention ! Ne marche que si le moteur tourne
-            uint16_t clock1 = timer_toptour::value();
-            uint16_t aller_retour;
             uint16_t offset_;
             uint8_t distance_;
+            uint32_t value;
             float angle_;
-            
+
             // Envoi d'une demande de valeur
 			xbee::send(balise_address[id], "v");
             
-            if (xbee::read(distance_, TIMEOUT) == xbee::READ_SUCCESS && xbee::read(offset_, TIMEOUT) == xbee::READ_SUCCESS)
+            // Calcul du temps d'aller retour
+            // ! Attention ! Ne marche que si le moteur tourne
+            uint16_t clock1 = timer_toptour::value();
+            
+            if (xbee::read(value, TIMEOUT) == xbee::READ_SUCCESS)
             {
 				// Calcul de l'aller retour
 				uint16_t clock2 = timer_toptour::value();
-				aller_retour = clock2 - clock1;
+				
+				// Décodage de la transmission
+				offset_ = value >> 8;
+				distance_ = (value << 24) >> 24;
+				
+				int16_t aller_retour = clock2 - clock1;
 				
 				// Cas où le timer est réinitialisé en passant devant l'aimant pendant la transmission
 				if (clock2 < clock1)
 				{
 					aller_retour += last_period();
 				}
-				
-				angle_ = angle(offset_ + aller_retour/2);
+
+				angle_ = angle(offset_ + aller_retour);
 				
 				// Suppression des valeurs si pas assez récente
 				if (offset_ == 0 || offset_ >= last_period())
@@ -230,14 +250,69 @@ void Balise::execute(char *order)
 				}
 				
 				// Affichage de la distance
-				serial_pc::write("valeurs ID");
-				serial_pc::write(id);
-				serial_pc::write(" ");
+				serial_pc::write("valeurs ID0 ");
 				serial_pc::write(distance_);
 				serial_pc::write(",");
 				serial_pc::write(angle_, 1);
 				serial_pc::write(",");
-				serial_pc::print(offset_);
+				serial_pc::write(offset_, 1);
+				serial_pc::write(",");
+				serial_pc::print(aller_retour, 1);
+			}
+			else
+			{
+				serial_pc::print("introuvable");
+			}
+		}
+    }
+    
+    // Valeur des balises
+    else if (strcmp(order, "valeurb") == 0)
+    {
+        for (uint8_t id = 0; id < BALISE_NUMBER; id++)
+        {
+            uint16_t offset_;
+            uint8_t distance_;
+            uint32_t value;
+            float angle_;
+
+            // Envoi d'une demande de valeur
+			xbee::send(balise_address[id], "v");
+            
+            // Calcul du temps d'aller retour
+            // ! Attention ! Ne marche que si le moteur tourne
+            uint16_t clock1 = timer_toptour::value();
+            
+            if (xbee::read(value, TIMEOUT) == xbee::READ_SUCCESS)
+            {
+				// Calcul de l'aller retour
+				uint16_t clock2 = timer_toptour::value();
+				
+				// Décodage de la transmission
+				offset_ = value >> 8;
+				distance_ = (value << 24) >> 24;
+				
+				int16_t aller_retour = clock2 - clock1;
+				
+				// Cas où le timer est réinitialisé en passant devant l'aimant pendant la transmission
+				if (clock2 < clock1)
+				{
+					aller_retour += last_period();
+				}
+
+				angle_ = angle(offset_ + aller_retour);
+				
+				// Suppression des valeurs si pas assez récente
+				if (offset_ == 0 || offset_ >= last_period())
+				{
+					distance_ = 0;
+					angle_ = 0;
+				}
+				
+				// Affichage de la distance
+				serial_pc::write(distance_);
+				serial_pc::write(",");
+				serial_pc::print(angle_, 1);
 			}
 			else
 			{
@@ -383,6 +458,12 @@ void Balise::motor_off()
     motor.envoyerPwm(0);
 }
 
+void Balise::control(int32_t current_speed)
+{
+	pwm_ = motor_control.pwm(current_speed);
+	motor.envoyerPwm(pwm_);
+}
+
 // -----------------------
 // Controle des diodes
 // -----------------------
@@ -413,24 +494,5 @@ void Balise::diode_blink(uint16_t period, uint8_t number)
     }
 }
 
-/**
- * Renvoie un entier correspondant au codage suivant :
- * 
- * angle en degrés [0,512] sur les 9 bits de poids faible
- * distance en mm [0,4096] sur les 12 bits (ou plus) suivants
- * 
- */
-uint32_t Balise::format_value(uint16_t distance, uint16_t angle)
-{
-    uint32_t value = (uint32_t) distance << 9;
-    value = value | (uint32_t) angle;
-    
-    return value;
-}
 
-void Balise::control(int32_t current_speed)
-{
-	pwm_ = motor_control.pwm(current_speed);
-	motor.envoyerPwm(pwm_);
-}
 
