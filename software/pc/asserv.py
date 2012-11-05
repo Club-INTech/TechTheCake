@@ -34,7 +34,7 @@ def affichage() :
         
         #controle de la trajectoire
         if time() - debut_timer > 0.5:
-            goto_maj(robot.consigne_x,robot.consigne_y)
+            goto_maj()
             debut_timer = time()
         sleep(0.1)
 
@@ -42,35 +42,31 @@ def affichage() :
 thread_affichage = Thread(None, affichage, None, (), {})
 thread_affichage.start()
 
-def goto_maj(x,y):
-    delta_x = x-robot.x
-    delta_y = y-robot.y
+def goto_maj():
+    delta_x = robot.consigne_x-robot.x
+    delta_y = robot.consigne_y-robot.y
     distance = sqrt(delta_x**2 + delta_y**2)
     if distance > 30:
-        if distance < 150:
-            #commence par tourner sur lui meme
-            goto_init(x,y)
-        else:
-            ############################
-            angle = atan2(delta_y,delta_x)
-            ############################
-            #if delta_x == 0:
-                #if delta_y > 0:
-                    #angle = pi/2
-                #else:
-                    #angle = -pi/2
+        ############################
+        angle = atan2(delta_y,delta_x)
+        ############################
+        #if delta_x == 0:
+            #if delta_y > 0:
+                #angle = pi/2
             #else:
-                #angle = atan(delta_y/delta_x)
-            #if delta_x < 0:
-                #if distance < 150:
-                    #distance = -distance
-                #elif delta_y > 0:
-                    #angle += pi
-                #else:
-                    #angle -= pi
-            ############################
-            robot.deplacements.tourner(angle)
-            robot.deplacements.avancer(distance)
+                #angle = -pi/2
+        #else:
+            #angle = atan(delta_y/delta_x)
+        #if delta_x < 0:
+            #if distance < 150:
+                #distance = -distance
+            #elif delta_y > 0:
+                #angle += pi
+            #else:
+                #angle -= pi
+        ############################
+        robot.deplacements.tourner(angle)
+        robot.deplacements.avancer(distance)
         
 def goto_init(x,y):
     robot.consigne_x = x

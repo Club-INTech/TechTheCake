@@ -379,7 +379,7 @@ void Robot::translater(float distance)
 	
 	translation.consigne(mesure_distance_+distance/CONVERSION_TIC_MM);
 	//attendre un tour de timer avant de continuer (éventuel problème avec attribut volatile)
-	while(compteur.value()>0){ asm("nop"); }
+// 	while(compteur.value()>0){ asm("nop"); }
 	
 }
 
