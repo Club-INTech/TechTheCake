@@ -62,10 +62,9 @@ int main()
         /// ******************************************
         /// **          PROGRAMME PRINCIPAL         **
         /// ******************************************
-        
+        //serial_t_::print(0);
         char buffer[17];
-        serial_t_::read(buffer,17);
-        #define COMPARE_BUFFER(string,len) strncmp(buffer, string, len) == 0 && len>0
+        serial_t_::read(buffer);
         
         
         
@@ -75,17 +74,17 @@ int main()
         
         
         // infrarouge
-        if (COMPARE_BUFFER(";i", 2))
+        if (strcmp(buffer, "i")==0)
             serial_t_::print(capteur_infrarouge::value());
         
-        else if (COMPARE_BUFFER(";u", 2))
+        else if (strcmp(buffer, "u")==0)
             serial_t_::print(capteur_infrarouge::value_brut());
         
         // Ultrasons SRF05
-        else if (COMPARE_BUFFER(";s", 2))
+        else if (strcmp(buffer, "s")==0)
             capteur_srf05_t_::value();
             // C'est une interruption qui s'occupe d'afficher
-            // la valeur.
+            // la valeur.*/
     }
     return 0;
 }

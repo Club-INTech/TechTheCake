@@ -50,11 +50,19 @@
  *  détecté.  
  */
 
+#define dPCIE	PCIE0
+#define dPCINT	PCINT5
+#define dPCMSK	PCMSK0
+#define dDDR	DDRB
+#define dPORT	PORTB
+#define dPIN	PINB
+#define dPORTB	PORTB5
+
 template< class Timer , class Serial>
 class capteur_srf05
 {
    private:
-    static const uint8_t port = PORTC2;
+    static const uint8_t port = dPORTB;
     static volatile bool busy;
     
    public:
@@ -75,33 +83,36 @@ class capteur_srf05
         // l'impulsion retour du capteur).
         if (not busy)
         {
+		//Serial::print("Lancement");
             // Désactivation des interruptions
-            cbi(PCICR,PCIE2);
-            cbi(PCMSK2,PCINT18);
+            cbi(PCICR,dPCIE);
+            cbi(dPCMSK,dPCINT);
             
             // Port "port" en output
-            sbi(DDRC, port);
+            sbi(dDDR, port);
             
             // On met un zéro sur la pin pour 2 µs
-            cbi(PORTC, port);
+            cbi(dPORT, port);
             _delay_us(2);
             
-            // On met un "un" sur la pin pour 5 µs
-            sbi(PORTC, port);
+            // On met un "un" sur la pin pour 10 µs
+            sbi(dPORT, port);
             _delay_us(10);
+		//Serial::print("intergo");
             
             // On remet un zéro puis on la met en input
-            cbi(PORTC, port);
-            cbi(DDRC, port);
+            cbi(dPORT, port);
+            cbi(dDDR, port);
 
             // On lance l'interruption qui gèrera la sortie du capteur
-            sbi(PCMSK2,PCINT18); // PCINT18 pour PORTC2
-            sbi(PCICR,PCIE2);//active PCINT
+            sbi(dPCMSK,dPCINT); // PCINT18 pour PORTC2
+            sbi(PCICR,dPCIE);//active PCINT
             sei();
             
             Timer::value(0);
             // On est busy en attendant l'interruption.
             busy = true;
+		//Serial::print("GO");
         }
 
     }
@@ -112,7 +123,7 @@ class capteur_srf05
     static void interruption()
     {
         // Front montant si bit == 1, descendant sinon.
-        uint8_t bit = rbi(PINC, port);
+        uint8_t bit = rbi(dPIN, port);
         // Début de l'impulsion
         if (bit)
         {
@@ -126,20 +137,21 @@ class capteur_srf05
             // Si le timerOverflow n'a pas été lancé. sdfmodsfkgmodsj
             if (busy)
                 /// Envoi de la valeur mesurée sur la série. 
-                Serial::print(Timer::value()*1050/1800.);
+                Serial::print(Timer::value()*1180/1800.);
             
             // On n'est plus busy et on peut recevoir un nouvel ordre.
             busy = false;
             
             // Désactivation des interruptions
-            cbi(PCICR,PCIE2);
-            cbi(PCMSK2,PCINT18);
+            cbi(PCICR,dPCIE);
+            cbi(dPCMSK,dPCINT);
         }
     }
     
     /// Overflow du timer.
     static void timerOverflow()
     {
+	
         // Trame d'overflow
         if (busy == true)
         {
@@ -149,8 +161,8 @@ class capteur_srf05
 
         // Désactivation des interruptions
         else{
-        cbi(PCICR,PCIE2);
-        cbi(PCMSK2,PCINT18);
+        cbi(PCICR,dPCIE);
+        cbi(dPCMSK,dPCINT);
         }
         busy = false;
         

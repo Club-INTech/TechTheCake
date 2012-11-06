@@ -11,7 +11,7 @@ volatile bool capteur_srf05<timerCapteurSRF, serial_t_>::busy = false;
 
 /** Interruption pour un changement d'état sur la pin.
  */
-ISR(PCINT2_vect)
+ISR(PCINT0_vect)
 {
    capteur_srf05_t_.interruption();
 }
