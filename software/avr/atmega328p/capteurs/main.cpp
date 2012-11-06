@@ -85,6 +85,10 @@ int main()
             capteur_srf05_t_::value();
             // C'est une interruption qui s'occupe d'afficher
             // la valeur.*/
+
+        else if (strcmp(buffer, "?")==0)
+            serial_t_::print(2);
+
     }
     return 0;
 }
