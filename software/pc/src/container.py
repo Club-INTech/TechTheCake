@@ -16,6 +16,7 @@ from read_ini import Config
 from robot import *
 from robotChrono import RobotChrono
 from deplacements import DeplacementsSimulateur, DeplacementsSerie
+from capteurs import Capteurs
 from serie import Serie
 from scripts import Script, ScriptBougies
 from log import Log
@@ -41,13 +42,17 @@ class Container:
             return log
         self.assembler.register("log", Log, requires = ["config"], factory=make_log)
         
-        #enregistrement du service des déplacements
+        #services différents en fonction du mode simulateur on/off :
         if (self.config["mode_simulateur"]):
+            #enregistrement du service des déplacements pour le simulateur
             self.assembler.register("deplacements",DeplacementsSimulateur, requires=["config","log"])
         else:
             #enregistrement du service Serie
             self.assembler.register("serie", Serie, requires = ["log"])
+            #enregistrement du service des déplacements pour la série
             self.assembler.register("deplacements",DeplacementsSerie, requires=["serie","config","log"])
+            #enregistrement du service des capteurs pour la série
+            self.assembler.register("capteurs",Capteurs, requires=["serie","config","log"])
         
         #enregistrement du service robot
         self.assembler.register("robot", Robot, requires=["deplacements","config","log"])

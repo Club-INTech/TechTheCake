@@ -6,7 +6,6 @@
 #include <avr/interrupt.h>
 #include "balise.h"
 #include "define.h"
-#include "timeToDistance.h"
 
 
 int main()
@@ -15,12 +14,9 @@ int main()
     
     while(1)
     {
-       // Balise::xbee::send(0x5001, "m");
-        
         char order[10];
         Balise::xbee::read(order);
         balise.execute(order);
-        
     }
 }
 
@@ -46,28 +42,25 @@ ISR(PCINT1_vect)
         // Ignore les doublets trop proches
         if (Balise::window_timer::value() * 20 >= TIME_THRESHOLD_MIN && changed_bits == balise.window_opener)
         {
-            uint16_t timer = Balise::window_timer::value();
-            balise.distance = getDistance(timer);
-            balise.last_distance_date = 1123456789;
-                         
+            balise.distance = Balise::window_timer::value();
+            
+            // Déclenche le timer d'offset pour la mesure
+            Balise::offset_timer::value(0);
+            Balise::offset_timer::enable();
+             
             // Fermeture de la fenêtre
             balise.window_opener = -1;
             Balise::window_timer::disable();
             
-            // Relance le timer de péremption de la distance calculée
-            Balise::timeout_timer::value(0);
-            
-            //test
-            sbi(PORTC, PORTC4);
-            _delay_ms(100);
-            cbi(PORTC, PORTC4);
+            // Allumage de la diode rouge
+            balise.diode_blink(1, 15);		
         }
     }
         
     // Fenêtre fermée, passage d'un 1er laser
     else
     {
-        // Ouverture d'une fenêtre, timer1 comme timeout
+        // Ouverture d'une fenêtre
         balise.window_opener = changed_bits;
         Balise::window_timer::value(0);
         Balise::window_timer::enable();
@@ -75,10 +68,10 @@ ISR(PCINT1_vect)
 }
 
 /**
- * Interruption du timer 1, fermeture de la fenêtre ouverte
+ * Interruption du timer 2, fermeture de la fenêtre ouverte
  * 
  */
-ISR(TIMER1_OVF_vect)
+ISR(TIMER2_OVF_vect)
 {
     Balise &balise = Balise::Instance();
     balise.window_opener = -1;
@@ -86,24 +79,47 @@ ISR(TIMER1_OVF_vect)
 }
 
 /**
- * Interruption du timer 0, marque la dernière distance mesurée comme périmée
+ * Interruption du timer 1, marque la dernière distance mesurée comme périmée
  * 
  */
-
-ISR(TIMER0_OVF_vect)
+ISR(TIMER1_OVF_vect)
 {
     Balise &balise = Balise::Instance();
     balise.distance = 0;
-    
-    //Xbee< Serial<0> >::send(0x5001,"Hello");
+    Balise::offset_timer::disable();
+    Balise::offset_timer::value(0);
 }
 
 /**
- * Interruption du timer 2, Incremente l'horloge de Synchronisation
+ * Interruption du timer 0, pour l'extinction de la diode debug
  * 
  */
-ISR(TIMER2_OVF_vect)
+ISR(TIMER0_OVF_vect)
 {
-    Balise &balise = Balise::Instance();
-    balise.synchro.interruption();
+	static bool status = false;
+	static uint8_t modulo = 0;
+	Balise &balise = Balise::Instance();
+	
+	modulo++;
+	
+    if (modulo < balise.blink_delay) return;
+    
+	if (status) {
+		status = false;
+		balise.diode_off();
+		balise.blink_count--;
+	}
+	else {
+		status = true;
+		balise.diode_on();
+	}
+	
+	if (balise.blink_count <= 0) {
+		status = false;
+		balise.diode_off();
+		Balise::diode_timer::disable();
+		Balise::diode_timer::value(0);
+	}
+	
+	modulo = 0;
 }

@@ -12,8 +12,6 @@ int main()
 {
     Balise &balise = Balise::Instance();
     
-    balise.diode_blink();
-    
     while(1)
     {
         char buffer[20];
@@ -25,71 +23,86 @@ int main()
 
 ISR(TIMER0_OVF_vect)
 {
-    Balise &balise = Balise::Instance();
-    //balise.synchro.interruption();
+
 }
 
-ISR(TIMER2_OVF_vect)
-{
-    //Serial<0>::print(codeur - last_codeur);
-    //  Balise::Instance().asservir(codeur - last_codeur);
-    //  last_codeur = codeur;
-}
-
-// Overflow timer top-tour
+/**
+ * Interruption timer top tour, ne se produit pas quand le moteur tourne suffisament vite
+ * 
+ */
 ISR(TIMER1_OVF_vect)
 {
-    Balise &balise = Balise::Instance();
-    
-    // Remise à zéro de la vitesse
-    balise.max_counter(0);
-
-    // Désactivation du timer
-    Balise::timer_toptour::disable();
+	Balise &balise = Balise::Instance();
+		
+    // Remise à zéro de la vitesse	
+    balise.last_period(0);
+		
+    // Désactivation du timer	
+    Balise::timer_toptour::disable();	
     Balise::timer_toptour::value(0);
 }
 
-// Interruption top-tour
+/**
+ * Interruption pour l'asservissement du moteur
+ * 
+ */
+ISR(TIMER2_OVF_vect)
+{
+	static int32_t previous_encoder = 0;
+	Balise &balise = Balise::Instance();
+    Balise::Instance().control(balise.encoder - previous_encoder);
+    previous_encoder = balise.encoder;
+}
+
+/**
+ * Interruption capteur top tour (aimant passant devant le capteur)
+ * 
+ */
 ISR(INT2_vect)
 {
     Balise &balise = Balise::Instance();
     
-    Balise::timer_toptour::enable();
-    
     // On ignore les impulsions quand l'aimant est encore trop proche du capteur
-    if (Balise::timer_toptour::value() >= balise.max_counter() / 3)
+    if (Balise::timer_toptour::value() >= balise.last_period() / 3)
     {
-        balise.max_counter(Balise::timer_toptour::value());
+        balise.last_period(Balise::timer_toptour::value());
         Balise::timer_toptour::value(0);
+        Balise::timer_toptour::enable();	
     }
 }
 
-ISR(PCINT0_vect)
+/**
+ * Interruption des codeuses
+ * 
+ */
+ISR(PCINT2_vect)
 {
-//   if(dernier_etat_a == 0 && READ_CANAL_A() == 1){
-//     if(READ_CANAL_B() == 0)
-//       codeur--;
-//     else
-//       codeur++;
-//   }
-//   else if(dernier_etat_a == 1 && READ_CANAL_A() == 0){
-//     if(READ_CANAL_B() == 0)
-//       codeur++;
-//     else
-//       codeur--;
-//   }
-//   else if(dernier_etat_b == 0 && READ_CANAL_B() == 1){
-//     if(READ_CANAL_A() == 0)
-//       codeur--;
-//     else
-//       codeur++;
-//   }
-//   else if(dernier_etat_b == 1 && READ_CANAL_B() == 0){
-//     if(READ_CANAL_A() == 0)
-//       codeur++;
-//     else
-//       codeur--;
-//   }
-//  dernier_etat_a = READ_CANAL_A();
-//  dernier_etat_b = READ_CANAL_B(); 
+	static uint8_t canal_a;
+	static uint8_t canal_b;
+	static uint8_t previous_canal_a;
+	static uint8_t previous_canal_b;
+	
+	Balise &balise = Balise::Instance();
+	
+	canal_a = rbi(PINC,PORTC1);
+	canal_b = rbi(PINC,PORTC0);
+	
+	// Vérification que l'on est sur un front (useless ?)
+	if (!(canal_a != previous_canal_a || canal_b != previous_canal_b)) return;
+	
+	bool sens = canal_a == previous_canal_b;
+	
+	// Incrémente ou décrémente en fonction du sens
+	if (sens)
+	{
+		balise.encoder++;
+	}
+	else
+	{
+		balise.encoder--;
+	}
+	
+	previous_canal_a = canal_a;
+	previous_canal_b = canal_b;
 }
+
