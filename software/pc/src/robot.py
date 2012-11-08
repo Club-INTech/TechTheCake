@@ -1,4 +1,4 @@
-from math import pi,sqrt,atan2
+from math import pi,sqrt,atan2,atan,cos,sin
 from time import time,sleep
 from mutex import Mutex
 
@@ -34,6 +34,9 @@ class Robot:
         #sauvegarde des vitesses courantes du robot
         self.vitesse_translation = 2
         self.vitesse_rotation = 2
+        
+        #mode marche arrière
+        self.marche_arriere = False
         
         #durée de jeu TODO : à muter dans Table ?
         self.debut_jeu = time()
@@ -118,103 +121,140 @@ class Robot:
     ### MÉTHODES DE DÉPLACEMENTS DE BASE , AVEC GESTION DES ACQUITTEMENTS ET CAPTEURS ###
     #####################################################################################
     
-    def new_avancer(self,distance):
-        pass
-        
-    def avancer(self, distance):
+    def avancer(self, distance, hooks=[]):
         self.log.debug("avancer de "+str(distance))
-        self.blocage = False
-        self.deplacements.avancer(distance)
-        self._boucle_acquittement()
-        #self._consigne_orientation
         
-    def tourner(self, angle):
+        consigne_x = self.x + distance*cos(self._consigne_orientation)
+        consigne_y = self.y + distance*sin(self._consigne_orientation)
+        
+        print("avancer.")
+        print("orientation courante : "+str(self.orientation))
+        print("orientation consigne : "+str(self._consigne_orientation))
+        return self.va_au_point(consigne_x,consigne_y,hooks,False)
+        
+        
+    def tourner(self, angle, hooks=[]):
         self.log.debug("tourner à "+str(angle))
         self.blocage = False
         self._consigne_orientation = angle
         self.deplacements.tourner(angle)
-        self._boucle_acquittement()
+        while 1:
+            #vérification des hooks
+            for hook in hooks:
+                hook.evaluate()
+                
+            #acquittement du déplacement : sort de la boucle avec un return si arrivé ou bloqué
+            acq = self._acquittement()
+            if acq:
+                return acq
+            
+            sleep(0.05)
         
-    def va_au_point(self, x, y):
+    def va_au_point(self, x, y, hooks=[], virage_initial=False):
         
         self.set_vitesse_rotation(1)
         self.set_vitesse_translation(1)
                 
-        self.log.debug("va au point ("+str(x)+", "+str(y)+")")
+        self.log.debug("va au point ("+str(x)+", "+str(y)+"), virage inital : "+str(virage_initial))
         
         self.blocage = False
         self.consigne_x = x
         self.consigne_y = y
         
+        #au moins un déplacement
+        delta_x = self.consigne_x-self.x
+        delta_y = self.consigne_y-self.y
+        distance = round(sqrt(delta_x**2 + delta_y**2),2)
+        angle = round(atan2(delta_y,delta_x),4)
+        if self.marche_arriere:
+            distance *= -1
+            angle += pi 
+        if not virage_initial:
+            #sans virage : la première rotation est blocante
+            self.tourner(angle)
+            self.log.debug("rotation initiale terminée, va maintenant au point ("+str(x)+", "+str(y)+")")
+            self.deplacements.avancer(distance)
+        else:
+            self.deplacements.tourner(angle)
+            self._consigne_orientation = angle
+            self.deplacements.avancer(distance)
+            
         while 1:
-            #get infos
-            infos = self.deplacements.get_infos_stoppage_enMouvement()
-            print("infos :")
-            for i in infos:
-                print(i+" : "+str(infos[i]))
+            #vérification des hooks
+            for hook in hooks:
+                hook.evaluate()
                 
-            delta_x = self.consigne_x-self.x
-            delta_y = self.consigne_y-self.y
-            distance = round(sqrt(delta_x**2 + delta_y**2),2)
-            if distance > 30:
-                ############################
-                angle = round(atan2(delta_y,delta_x),4)
-                self.log.debug("distance calculée : "+str(distance))
-                self.log.debug("angle calculé : "+str(angle))
-                ############################
-                #if delta_x == 0:
-                    #if delta_y > 0:
-                        #angle = pi/2
-                    #else:
-                        #angle = -pi/2
+            #mise à jour des consignes en translation et rotation
+            self.mise_a_jour_consignes()
+            
+            #acquittement du déplacement : sort de la boucle avec un return si arrivé ou bloqué
+            acq = self._acquittement()
+            if acq:
+                return acq
+            
+            sleep(0.05)
+    
+    # Met à jour les consignes en translation et rotation (vise un point)
+    def mise_a_jour_consignes(self):
+        delta_x = self.consigne_x-self.x
+        delta_y = self.consigne_y-self.y
+        distance = round(sqrt(delta_x**2 + delta_y**2),2)
+        if distance > 30:
+            ############################
+            angle = round(atan2(delta_y,delta_x),4)
+            #self.log.debug("distance calculée : "+str(distance))
+            #self.log.debug("angle calculé : "+str(angle))
+            ############################
+            #if delta_x == 0:
+                #if delta_y > 0:
+                    #angle = pi/2
                 #else:
-                    #angle = atan(delta_y/delta_x)
-                #if delta_x < 0:
-                    #if distance < 150:
-                        #distance = -distance
-                    #elif delta_y > 0:
-                        #angle += pi
-                    #else:
-                        #angle -= pi
-                ############################
-                self.deplacements.tourner(angle)
-                self.deplacements.avancer(distance)
-            else:
-                self.log.warning("distance calculée : "+str(distance))
-                #robot arrivé ?
-                if not self.deplacements.update_enMouvement(**infos):
-                    print("robot arrivé")
-                    break
+                    #angle = -pi/2
+            #else:
+                #angle = atan(delta_y/delta_x)
+            #if delta_x < 0:
+                #if distance < 150:
+                    #distance = -distance
+                #elif delta_y > 0:
+                    #angle += pi
+                #else:
+                    #angle -= pi
+            ############################
+            if self.marche_arriere:
+                distance *= -1
+                angle += pi 
+                
+            self.deplacements.tourner(angle)
+            self._consigne_orientation = angle
+            sleep(0.05)
+            self.deplacements.avancer(distance)
+        else:
+            self.log.debug("robot dans le disque de tolérance, pas de mise à jour des consignes.")
             
-            #robot bloqué ?
-            if self.blocage or self.deplacements.gestion_blocage(**infos):
-                self.blocage = True
-                print("abandon car blocage")
-                break
-            sleep(0.1)
-            
-            
-    # Utiliser des exceptions en cas d'arrêt anormal (blocage, capteur etc...)
-    def _boucle_acquittement(self):
-        while 1:
-            #robot bloqué ?
-            infos = self.deplacements.get_infos_stoppage_enMouvement()
-            if self.blocage or self.deplacements.gestion_blocage(**infos):
-                self.blocage = True
-                print("abandon car blocage")
-                break
-            #robot arrivé ?
-            if not self.deplacements.update_enMouvement(**infos):
-                print("robot arrivé")
-                break
-            sleep(0.2)
+    # S'utilise dans la boucle d'acquittement. Remonte des exceptions en cas d'arrêt anormal (blocage, capteur etc...)
+    def _acquittement(self):
+        #récupérations des informations d'acquittement
+        infos = self.deplacements.get_infos_stoppage_enMouvement()
+        #print("infos :")
+        #for i in infos:
+            #print(i+" : "+str(infos[i]))
+        #robot bloqué ?
+        if self.blocage or self.deplacements.gestion_blocage(**infos):
+            self.blocage = True
+            #abandon car blocage
+            #TODO préciser les exceptions
+            raise Exception
+            return 2
+        #robot arrivé ?
+        if not self.deplacements.update_enMouvement(**infos):
+            #robot arrivé
+            return 1
     
     def recaler(self):
         
         #TODO utiliser table
         LONGUEUR_TABLE = 3000
         LARGEUR_ROBOT = 400
-        #
         
         self.log.debug("début du recalage")
         
@@ -258,17 +298,44 @@ class Robot:
     ### MÉTHODES DE DÉPLACEMENTS DE HAUT NIVEAU (TROUVÉES DANS LES SCRIPTS), AVEC RELANCES EN CAS DE PROBLÈME ###
     #############################################################################################################
     
-    def gestion_avancer(self, distance):
-        retour = self.avancer(distance)
-        if retour == "capteur":
+    def gestion_avancer(self, distance, hooks=[]):
+        retour = self.avancer(distance, hooks)
+        if retour == 1:
+            print("translation terminée !")
+        elif retour == 2:
+            print("translation arrêtée car blocage !")
+        elif retour == 3:
             self.stopper()
-        #etc..
+            print("capteurs !")
         
-    def gestion_tourner(self, angle):
-        retour = self.tourner(angle)
-        if retour == "capteur":
+    def gestion_tourner(self, angle, hooks=[]):
+        
+        if not self.marche_arriere:
+            if self.couleur == "bleu":
+                angle = pi - angle
+                
+        retour = self.tourner(angle, hooks)
+        if retour == 1:
+            print("rotation terminée !")
+        elif retour == 2:
+            print("rotation arrêtée car blocage !")
+        elif retour == 3:
             self.stopper()
-        #etc..
+            print("capteurs !")
+            
+    def gestion_va_au_point(self, x, y, hooks=[], virage_initial=False):
+        
+        if self.couleur == "bleu":
+            x *= -1
+                
+        retour = self.va_au_point(x, y, hooks, virage_initial)
+        if retour == 1:
+            print("point de destination atteint !")
+        elif retour == 2:
+            print("déplacement arrêté car blocage !")
+        elif retour == 3:
+            self.stopper()
+            print("capteurs !")
         
     def set_vitesse_translation(self, valeur):
         self.deplacements.set_vitesse_translation(valeur)

@@ -12,14 +12,25 @@ container = Container()
 thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
 thread_MAJ.start()
 
-strat = Strategie(container)
-strat.robot.recaler()
+#strat = Strategie(container)
+#strat.robot.recaler()
 #strat.scripts["pipeau"].agit()
 
-#strat.robot.va_au_point(-200,0)
-#strat.robot.avancer(-200)
-#strat.robot.va_au_point(-200,0)
-#strat.robot.avancer(-200)
+from time import sleep
+from math import pi
+robot = container.get_service("robot")
+#attente de la mise à jour des coordonnées
+while not robot.y:
+    sleep(0.1)
+    
+robot.marche_arriere = True
+robot.couleur = "rouge"
+
+robot.gestion_va_au_point(-800,700)
+robot.gestion_tourner(pi/4)
+robot.gestion_avancer(500)
+
+#robot.gestion_va_au_point(400,500)
 
 #input("appuyer sur une touche pour lancer le calcul de durée du script...")
 #print(strat.scripts["pipeau"].calcule())

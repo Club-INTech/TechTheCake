@@ -379,4 +379,4 @@ class DeplacementsSimulateur(Deplacements):
         UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
         """
         with self.mutex:
-            return [self.simulateur.getX(), self.simulateur.getY(), self.simulateur.getAngle()]
+            return [self.simulateur.getX(), self.simulateur.getY(), self.simulateur.getAngle()*1000]

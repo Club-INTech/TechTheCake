@@ -9,19 +9,15 @@ from time import time,sleep
 from math import sqrt,atan,atan2,pi
 
 container = Container()
-serie = container.get_service("serie")
 robot = container.get_service("robot")
-
-robot.deplacements.set_vitesse_translation(1)
-robot.deplacements.set_vitesse_rotation(1)
 
 #thread de mise à jour des coordonnées du robot
 thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
 thread_MAJ.start()
 
+"""
+serie = container.get_service("serie")
 def affichage() :
-    
-    debut_timer = time()
     while 346422:
         tab = serie.communiquer("asservissement","?infos", 4)
         
@@ -31,48 +27,14 @@ def affichage() :
                 
         print("PWM ("+str(tab[0])+", "+str(tab[1])+")\t trans : "+str(tab[3])+"\t rot : "+str(tab[2]))
         print("robot : ("+str(robot.x)+", "+str(robot.y)+")\t consigne : ("+str(robot.consigne_x)+", "+str(robot.consigne_y)+")")
-        
-        #controle de la trajectoire
-        if time() - debut_timer > 0.5:
-            goto_maj()
-            debut_timer = time()
         sleep(0.1)
 
 #thread d'affichage des infos et de controle de la trajectoire
-thread_affichage = Thread(None, affichage, None, (), {})
-thread_affichage.start()
+#thread_affichage = Thread(None, affichage, None, (), {})
+#thread_affichage.start()
+"""
 
-def goto_maj():
-    delta_x = robot.consigne_x-robot.x
-    delta_y = robot.consigne_y-robot.y
-    distance = sqrt(delta_x**2 + delta_y**2)
-    if distance > 30:
-        ############################
-        angle = atan2(delta_y,delta_x)
-        ############################
-        #if delta_x == 0:
-            #if delta_y > 0:
-                #angle = pi/2
-            #else:
-                #angle = -pi/2
-        #else:
-            #angle = atan(delta_y/delta_x)
-        #if delta_x < 0:
-            #if distance < 150:
-                #distance = -distance
-            #elif delta_y > 0:
-                #angle += pi
-            #else:
-                #angle -= pi
-        ############################
-        robot.deplacements.tourner(angle)
-        robot.deplacements.avancer(distance)
-        
-def goto_init(x,y):
-    robot.consigne_x = x
-    robot.consigne_y = y
-    
-    
+#@ test
 def prompt():
     
     while 37:
@@ -80,14 +42,30 @@ def prompt():
         
         #macros
         nb = 0
+        
+        #serie
+        #if first == "a":
+            #robot.va_au_point(-200,-200)
+        #elif first == "z":
+            #robot.va_au_point(-200,0)
+        #elif first == "q":
+            #robot.va_au_point(0,-200)
+        #elif first == "s":
+            #robot.va_au_point(0,1)
+            
+        #simulateur
         if first == "a":
-            goto_init(-200,-200)
+            robot.deplacements.simulateur.drawPoint(-1000,800,"red",False)
+            robot.va_au_point(-1000,800)
         elif first == "z":
-            goto_init(-200,0)
+            robot.deplacements.simulateur.drawPoint(-500,800,"red",False)
+            robot.va_au_point(-500,800)
         elif first == "q":
-            goto_init(0,-200)
+            robot.deplacements.simulateur.drawPoint(-1000,300,"red",False)
+            robot.va_au_point(-1000,300)
         elif first == "s":
-            goto_init(0,1)
+            robot.deplacements.simulateur.drawPoint(-500,300,"red",False)
+            robot.va_au_point(-500,300)
         """
         else:
             nb = int(first)
@@ -99,5 +77,6 @@ def prompt():
         """
         sleep(0.1)
         
-
+robot.deplacements.set_vitesse_translation(1)
+robot.deplacements.set_vitesse_rotation(1)
 prompt()
