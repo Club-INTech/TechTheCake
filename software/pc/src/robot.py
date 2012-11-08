@@ -185,7 +185,7 @@ class Robot:
                 hook.evaluate()
                 
             #mise à jour des consignes en translation et rotation
-            self.mise_a_jour_consignes()
+            self._mise_a_jour_consignes()
             
             #acquittement du déplacement : sort de la boucle avec un return si arrivé ou bloqué
             acq = self._acquittement()
@@ -195,7 +195,7 @@ class Robot:
             sleep(0.05)
     
     # Met à jour les consignes en translation et rotation (vise un point)
-    def mise_a_jour_consignes(self):
+    def _mise_a_jour_consignes(self):
         delta_x = self.consigne_x-self.x
         delta_y = self.consigne_y-self.y
         distance = round(sqrt(delta_x**2 + delta_y**2),2)
@@ -249,6 +249,26 @@ class Robot:
         if not self.deplacements.update_enMouvement(**infos):
             #robot arrivé
             return 1
+            
+    def arc_de_cercle(self,xA,yA,xM,yM,d):
+        #centre du cercle
+        xO = 0
+        yO = 2000
+        #rayon du cercle
+        r = float(sqrt((xA-xO)**2+(yA-yO)**2))
+        #on ramène M sur le cercle : point B
+        s = float(sqrt((xM-xO)**2+(yM-yO)**2))
+        xB = xO + (r/s)*(xM-xO)
+        yB = yO + (r/s)*(yM-yO)
+        self.deplacements.simulateur.drawPoint(xB,yB,"red",True)
+        #angle absolu pour A
+        tA = atan2(yA-yO,xA-xO)
+        #angle absolu pour C, d mm devant A (sur l'abscisse curviligne)
+        tC = tA + d/r
+        #coordonnées de C, prochain point consigne
+        xC = xO + r*cos(tC)
+        yC = yO + r*sin(tC)
+        return(xC,yC)
     
     def recaler(self):
         
@@ -336,7 +356,7 @@ class Robot:
         elif retour == 3:
             self.stopper()
             print("capteurs !")
-        
+            
     def set_vitesse_translation(self, valeur):
         self.deplacements.set_vitesse_translation(valeur)
         self.vitesse_translation = int(valeur)

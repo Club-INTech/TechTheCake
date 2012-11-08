@@ -26,11 +26,25 @@ while not robot.y:
 robot.marche_arriere = True
 robot.couleur = "rouge"
 
-robot.gestion_va_au_point(-800,700)
-robot.gestion_tourner(pi/4)
-robot.gestion_avancer(500)
+xA = -500
+yA = 1200
+xM = 600
+yM = 1500
+d = 10
+robot.deplacements.simulateur.drawPoint(xA,yA,"red",True)
+robot.deplacements.simulateur.drawPoint(xM,yM,"black",True)
+abscisse = 0
+while abscisse < 2000:
+    abscisse += d
+    x,y = robot.arc_de_cercle(xA,yA,xM,yM,abscisse)
+    print("("+str(x)+", "+str(y)+")")
+    robot.deplacements.simulateur.drawPoint(x,y,"red",True)
 
-#robot.gestion_va_au_point(400,500)
+#robot.gestion_va_au_point(-800,700)
+#robot.gestion_tourner(pi/4)
+#robot.gestion_avancer(500)
+
+
 
 #input("appuyer sur une touche pour lancer le calcul de durée du script...")
 #print(strat.scripts["pipeau"].calcule())
