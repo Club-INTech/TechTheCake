@@ -250,19 +250,51 @@ class Robot:
             #robot arrivé
             return 1
             
-    def arc_de_cercle(self,xA,yA,xM,yM,d):
+            
+    def arc_de_cercle(self,xM,yM,d):
+        #effectue un arc de cercle à partir de la position courante vers le projetté de M sur le cercle passant par la position courante
+        
+        self.set_vitesse_rotation(1)
+        self.set_vitesse_translation(1)
+                
+        self.log.debug("effectue un arc de cercle entre ("+str(self.x)+", "+str(self.y)+") et ("+str(xM)+", "+str(yM)+")")
+        self.blocage = False
+        
+        #TODO : sens de parcours
+        #TODO : rotation initiale, pour être tangent 
+        
         #centre du cercle
         xO = 0
         yO = 2000
         #rayon du cercle
-        r = float(sqrt((xA-xO)**2+(yA-yO)**2))
+        r = float(sqrt((self.x-xO)**2+(self.y-yO)**2))
         #on ramène M sur le cercle : point B
         s = float(sqrt((xM-xO)**2+(yM-yO)**2))
         xB = xO + (r/s)*(xM-xO)
         yB = yO + (r/s)*(yM-yO)
-        self.deplacements.simulateur.drawPoint(xB,yB,"red",True)
-        #angle absolu pour A
-        tA = atan2(yA-yO,xA-xO)
+        
+        while 1:
+            #vérification des hooks
+            for hook in hooks:
+                hook.evaluate()
+                
+            #calcul de l'angle de A (point de départ)
+            tA = atan2(self.y-yO,self.x-xO)
+            #nouvelle consigne : incrémenter l'abscisse curviligne
+            self.consigne_x,self.consigne_y = self.prochain_point_arc(r,tA,d,xO,yO)
+            
+            #mise à jour des consignes en translation et rotation
+            self._mise_a_jour_consignes()
+            
+            #acquittement du déplacement : sort de la boucle avec un return si arrivé ou bloqué
+            acq = self._acquittement()
+            if acq:
+                return acq
+            
+            sleep(0.05)
+            
+        
+    def prochain_point_arc(self,r,tA,d,xO,yO):
         #angle absolu pour C, d mm devant A (sur l'abscisse curviligne)
         tC = tA + d/r
         #coordonnées de C, prochain point consigne
