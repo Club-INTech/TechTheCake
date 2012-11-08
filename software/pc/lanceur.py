@@ -19,36 +19,34 @@ thread_MAJ.start()
 from time import sleep
 from math import pi
 robot = container.get_service("robot")
+config = container.get_service("config")
 #attente de la mise à jour des coordonnées
 while not robot.y:
     sleep(0.1)
     
-robot.marche_arriere = True
-robot.couleur = "bleu"
+robot.marche_arriere = False
+robot.couleur = "rouge"
 
-xM = -600
-yM = 1500
-xA = 300
-yA = 1500
+xM = -200
+yM = 1000
+xA = 500
+yA = 250
 pas = 100
-robot.deplacements.simulateur.drawPoint(xA,yA,"red",True)
-robot.deplacements.simulateur.drawPoint(xM,yM,"black",True)
+if config["mode_simulateur"]:
+    robot.deplacements.simulateur.drawPoint(xA,yA,"red",True)
+    robot.deplacements.simulateur.drawPoint(xM,yM,"black",True)
+else:
+    robot.x = 1170
+    robot.y = 250
+    robot.orientation = pi
 
-robot.va_au_point(xA,yA)
-
-#robot.deplacements.simulateur.drawPoint(200,1500,"green",True)
-#robot.va_au_point(200,1500)
-#robot.deplacements.simulateur.drawPoint(-200,1600,"green",True)
-#robot.va_au_point(-200,1600)
-#robot.va_au_point(xM,yM)
-
-robot.arc_de_cercle(xM,yM,pas)
+#robot.recaler()
+#print(robot.va_au_point(0,500))
+#input()
+print(robot.va_au_point(xA,yA))
+input()
+print(robot.arc_de_cercle(xM,yM,pas))
     
-
-#robot.gestion_va_au_point(-800,700)
-#robot.gestion_tourner(pi/4)
-#robot.gestion_avancer(500)
-
 
 
 #input("appuyer sur une touche pour lancer le calcul de durée du script...")

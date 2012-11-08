@@ -20,13 +20,23 @@ class Robot:
         self.enMouvement : booléen True si le robot est encore en mouvement
         les écritures et lectures sur ces attributs passent par des mutex gérant les accès mémoire, et communiquent avec la série si nécessaire
         """
+        
+        #couleur du robot
+        if self.config["mode_simulateur"]:
+            self.couleur = "bleu"
+        else:
+            self.couleur = "rouge"
+            
         self._x = 0
         self._y = 0
         self._orientation = 0
         
         self._consigne_x = 0
         self._consigne_y = 0
-        self._consigne_orientation = 0
+        if self.couleur == "bleu":
+            self._consigne_orientation = pi
+        else:
+            self._consigne_orientation = 0
         
         self._blocage = False
         self._enMouvement = True
@@ -41,11 +51,6 @@ class Robot:
         #durée de jeu TODO : à muter dans Table ?
         self.debut_jeu = time()
         
-        #couleur du robot
-        if self.config["mode_simulateur"]:
-            self.couleur = "bleu"
-        else:
-            self.couleur = "rouge"
         
     #####################################################################################
     ### ACCESSEURS SUR LES ATTRIBUTS DU ROBOT , MÉTHODES DE MISES À JOUR AUTOMATIQUES ###
@@ -228,7 +233,6 @@ class Robot:
                 
             self._consigne_orientation = angle
             self.deplacements.tourner(angle)
-            print("MaJ: cour="+str(self.orientation)+" cons="+str(self._consigne_orientation))
             #sleep nécessaire pour le simulateur
             sleep(0.05)
             self.deplacements.avancer(distance)
@@ -240,9 +244,9 @@ class Robot:
     def _acquittement(self):
         #récupérations des informations d'acquittement
         infos = self.deplacements.get_infos_stoppage_enMouvement()
-        #print("infos :")
-        #for i in infos:
-            #print(i+" : "+str(infos[i]))
+        print("infos :")
+        for i in infos:
+            print(i+" : "+str(infos[i]))
         #robot bloqué ?
         if self.blocage or self.deplacements.gestion_blocage(**infos):
             self.blocage = True
@@ -265,13 +269,20 @@ class Robot:
         self.log.debug("effectue un arc de cercle entre ("+str(self.x)+", "+str(self.y)+") et ("+str(xM)+", "+str(yM)+")")
         self.blocage = False
         
-        #TODO : sens de parcours
-        if xM < self.x:
+        #sens de parcours
+        
+        #si gateau en haut :
+        #if xM < self.x:
+            #pas *= -1
+            
+        #si gateau en bas :
+        if xM > self.x:
             pas *= -1
         
         #centre du cercle
         xO = 0
-        yO = 2000
+        #yO = 2000
+        yO = 0
         #rayon du cercle
         r = float(sqrt((self.x-xO)**2+(self.y-yO)**2))
         #on ramène M sur le cercle : point B
@@ -279,8 +290,10 @@ class Robot:
         xB = xO + (r/s)*(xM-xO)
         yB = yO + (r/s)*(yM-yO)
         tB = atan2(yB-yO,xB-xO)
-        #TODO : enlever
-        self.deplacements.simulateur.drawPoint(xB,yB,"red",True)
+        
+        #TODO : visualisation à enlever
+        if self.config["mode_simulateur"]:
+            self.deplacements.simulateur.drawPoint(xB,yB,"red",True)
         
         #s'aligner sur la tangente au cercle :
         #calcul de l'angle de A (point de départ)
@@ -303,7 +316,8 @@ class Robot:
                 #coordonnées de C, prochain point consigne
                 self.consigne_x = xO + r*cos(tC)
                 self.consigne_y = yO + r*sin(tC)
-                self.deplacements.simulateur.drawPoint(self.consigne_x,self.consigne_y,"green",False)
+                if self.config["mode_simulateur"]:
+                    self.deplacements.simulateur.drawPoint(self.consigne_x,self.consigne_y,"green",False)
                 
                 #vérification des hooks
                 for hook in hooks:
@@ -338,13 +352,15 @@ class Robot:
         
         #TODO utiliser table
         LONGUEUR_TABLE = 3000
-        LARGEUR_ROBOT = 400
+        LARGEUR_ROBOT = 240
         
         self.log.debug("début du recalage")
         
         self.set_vitesse_translation(1)
         self.set_vitesse_rotation(1)
+        self.marche_arriere = True
         self.avancer(-1000)
+        self.marche_arriere = False
         self.deplacements.desactiver_asservissement_rotation()
         self.set_vitesse_translation(2)
         # self.avancer(-300)
@@ -359,10 +375,12 @@ class Robot:
         self.set_vitesse_translation(1)
         self.avancer(100)
         self.tourner(pi/2)
+        self.marche_arriere = True
         self.avancer(-1000)
         self.deplacements.desactiver_asservissement_rotation()
         self.set_vitesse_translation(2)
         self.avancer(-300)
+        self.marche_arriere = False
         self.y = LARGEUR_ROBOT/1.999
         self.orientation = pi/2.
         self.deplacements.activer_asservissement_rotation()
