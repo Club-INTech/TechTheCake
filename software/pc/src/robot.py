@@ -138,6 +138,7 @@ class Robot:
         self.blocage = False
         self._consigne_orientation = angle
         self.deplacements.tourner(angle)
+        print("tourner: cour="+str(self.orientation)+" cons="+str(self._consigne_orientation))
         while 1:
             #vérification des hooks
             for hook in hooks:
@@ -175,8 +176,9 @@ class Robot:
             self.log.debug("rotation initiale terminée, va maintenant au point ("+str(x)+", "+str(y)+")")
             self.deplacements.avancer(distance)
         else:
-            self.deplacements.tourner(angle)
             self._consigne_orientation = angle
+            self.deplacements.tourner(angle)
+            print("1ère rotation: cour="+str(self.orientation)+" cons="+str(self._consigne_orientation))
             self.deplacements.avancer(distance)
             
         while 1:
@@ -224,12 +226,15 @@ class Robot:
                 distance *= -1
                 angle += pi 
                 
-            self.deplacements.tourner(angle)
             self._consigne_orientation = angle
+            self.deplacements.tourner(angle)
+            print("MaJ: cour="+str(self.orientation)+" cons="+str(self._consigne_orientation))
+            #sleep nécessaire pour le simulateur
             sleep(0.05)
             self.deplacements.avancer(distance)
         else:
-            self.log.debug("robot dans le disque de tolérance, pas de mise à jour des consignes.")
+            #self.log.debug("robot dans le disque de tolérance, pas de mise à jour des consignes.")
+            pass
             
     # S'utilise dans la boucle d'acquittement. Remonte des exceptions en cas d'arrêt anormal (blocage, capteur etc...)
     def _acquittement(self):
@@ -251,7 +256,7 @@ class Robot:
             return 1
             
             
-    def arc_de_cercle(self,xM,yM,d):
+    def arc_de_cercle(self,xM,yM,pas,hooks=[]):
         #effectue un arc de cercle à partir de la position courante vers le projetté de M sur le cercle passant par la position courante
         
         self.set_vitesse_rotation(1)
@@ -261,7 +266,8 @@ class Robot:
         self.blocage = False
         
         #TODO : sens de parcours
-        #TODO : rotation initiale, pour être tangent 
+        if xM < self.x:
+            pas *= -1
         
         #centre du cercle
         xO = 0
@@ -272,36 +278,62 @@ class Robot:
         s = float(sqrt((xM-xO)**2+(yM-yO)**2))
         xB = xO + (r/s)*(xM-xO)
         yB = yO + (r/s)*(yM-yO)
+        tB = atan2(yB-yO,xB-xO)
+        #TODO : enlever
+        self.deplacements.simulateur.drawPoint(xB,yB,"red",True)
+        
+        #s'aligner sur la tangente au cercle :
+        #calcul de l'angle de A (point de départ)
+        tA = atan2(self.y-yO,self.x-xO)
+        
+        if (pas < 0) != self.marche_arriere:
+            self.tourner(tA-pi/2)
+        else:
+            self.tourner(tA+pi/2)
         
         while 1:
-            #vérification des hooks
-            for hook in hooks:
-                hook.evaluate()
-                
             #calcul de l'angle de A (point de départ)
             tA = atan2(self.y-yO,self.x-xO)
-            #nouvelle consigne : incrémenter l'abscisse curviligne
-            self.consigne_x,self.consigne_y = self.prochain_point_arc(r,tA,d,xO,yO)
             
-            #mise à jour des consignes en translation et rotation
-            self._mise_a_jour_consignes()
-            
-            #acquittement du déplacement : sort de la boucle avec un return si arrivé ou bloqué
-            acq = self._acquittement()
-            if acq:
-                return acq
+            #if r*abs(tB-tA) > abs(pas):
+            if (pas > 0 and r*tA+pas < r*tB) or (pas < 0 and r*tA+pas > r*tB):
+                #nouveau point consigne : incrémenter l'abscisse curviligne de A du pas en mm
+                #angle absolu pour C
+                tC = tA + pas/r
+                #coordonnées de C, prochain point consigne
+                self.consigne_x = xO + r*cos(tC)
+                self.consigne_y = yO + r*sin(tC)
+                self.deplacements.simulateur.drawPoint(self.consigne_x,self.consigne_y,"green",False)
+                
+                #vérification des hooks
+                for hook in hooks:
+                    hook.evaluate()
+                    
+                #mise à jour des consignes en translation et rotation
+                self._mise_a_jour_consignes()
+                
+                #acquittement du déplacement : sort de la boucle avec un return si arrivé ou bloqué
+                acq = self._acquittement()
+                if acq:
+                    return acq
+            else:
+                self.log.debug("abscisse curviligne atteinte, on fixe la consigne au point d'arrivé")
+                #proche de la consigne, dernière mise à jour du point virtuel 
+                self.consigne_x = xB
+                self.consigne_y = yB
+                
+                #vérification des hooks
+                for hook in hooks:
+                    hook.evaluate()
+                    
+                acq = self._acquittement()
+                if acq:
+                    return acq
+                #return self.va_au_point(xB, yB, hooks)
             
             sleep(0.05)
             
         
-    def prochain_point_arc(self,r,tA,d,xO,yO):
-        #angle absolu pour C, d mm devant A (sur l'abscisse curviligne)
-        tC = tA + d/r
-        #coordonnées de C, prochain point consigne
-        xC = xO + r*cos(tC)
-        yC = yO + r*sin(tC)
-        return(xC,yC)
-    
     def recaler(self):
         
         #TODO utiliser table

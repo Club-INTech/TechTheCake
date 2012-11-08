@@ -24,21 +24,26 @@ while not robot.y:
     sleep(0.1)
     
 robot.marche_arriere = True
-robot.couleur = "rouge"
+robot.couleur = "bleu"
 
-xA = -500
-yA = 1200
-xM = 600
+xM = -600
 yM = 1500
-d = 10
+xA = 300
+yA = 1500
+pas = 100
 robot.deplacements.simulateur.drawPoint(xA,yA,"red",True)
 robot.deplacements.simulateur.drawPoint(xM,yM,"black",True)
-abscisse = 0
-while abscisse < 2000:
-    abscisse += d
-    x,y = robot.arc_de_cercle(xA,yA,xM,yM,abscisse)
-    print("("+str(x)+", "+str(y)+")")
-    robot.deplacements.simulateur.drawPoint(x,y,"red",True)
+
+robot.va_au_point(xA,yA)
+
+#robot.deplacements.simulateur.drawPoint(200,1500,"green",True)
+#robot.va_au_point(200,1500)
+#robot.deplacements.simulateur.drawPoint(-200,1600,"green",True)
+#robot.va_au_point(-200,1600)
+#robot.va_au_point(xM,yM)
+
+robot.arc_de_cercle(xM,yM,pas)
+    
 
 #robot.gestion_va_au_point(-800,700)
 #robot.gestion_tourner(pi/4)
