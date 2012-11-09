@@ -1,3 +1,3 @@
 include(atmega324p.cmake)
-set(MICROCONTROLEURS actionneurs laser)
+set(MICROCONTROLEURS laser)
 add_microcontrolers(m324pa "${MICROCONTROLEURS}")
