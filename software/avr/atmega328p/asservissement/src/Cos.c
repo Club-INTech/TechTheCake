@@ -25,7 +25,7 @@ float tan_table (float angle_rad)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-static int32_t linspace[TABLE_LENGTH] PROGMEM = {
+static const int32_t linspace[TABLE_LENGTH] PROGMEM = {
 0,402,804,1206,1608,2010,2412,2814,
 3216,3618,4020,4422,4824,5226,5628,6030,
 6432,6834,7236,7638,8040,8442,8844,9246,
@@ -60,7 +60,7 @@ static int32_t linspace[TABLE_LENGTH] PROGMEM = {
 99696,100098,100500,100902,101304,101706,102108,102510
 };
 
-static int32_t fp_cos_table[TABLE_LENGTH] PROGMEM = {
+static const int32_t fp_cos_table[TABLE_LENGTH] PROGMEM = {
 65536,65535,65531,65525,65516,65505,65492,65476,
 65457,65436,65413,65387,65359,65328,65294,65259,
 65221,65180,65137,65091,65043,64993,64940,64885,
