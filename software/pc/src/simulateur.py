@@ -87,5 +87,8 @@ class Simulateur():
     def stopper(self):
         with self.mutex:
             self.service.stopRobot() 
-        pass
-  
+          
+    def mesurer(self):
+        with self.mutex:
+            return self.service.getRobotSensorValue()
+            
