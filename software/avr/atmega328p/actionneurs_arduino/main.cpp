@@ -8,8 +8,7 @@
 #include <libintech/serial/serial_0.hpp>
 
 // LIBRAIRIES LOCALES
-#include "ax12.h"
-#include "actionneurs.h"
+#include <libintech/ax12.hpp>
 
 /********************************
  *           CONSTANTES         *
@@ -49,10 +48,16 @@
 // matériel. Vérifier la masse, puis faire revérifier la masse par un 2A
     #define REANIMATION_MODE        0
 
-
+int main(int argc, char const *argv[])
+{
+    /* code */
+    return 0;
+}
 /**     Ce fichier permet de flasher un arduilol pour pouvoir reprendre le contrôle
  *      en cas de pépin (le bref).
  */
+
+ /*
 typedef Serial<0> serial_t_;
 
 int main()
@@ -251,3 +256,4 @@ int main()
 }
 
 
+*/
