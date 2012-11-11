@@ -270,27 +270,11 @@ class DeplacementsSimulateur(Deplacements):
     classe gérant la simulation des déplacements du robot
     hérite de la classe d'interface Deplacements
     """
-    def __init__(self,config,log):
-        #services utilisés
-        self.config = config
-        self.log = log
-        
-        #mutex d'envoi au serveur SOAP
-        self.mutex = Mutex()
-        
-        #instance du simulateur
-        client = Client("http://localhost:8090/INTechSimulator?wsdl")
-        self.simulateur = client.service
-        #initialisation de la table TODO : prendre les valeurs dans Table
-        self.simulateur.reset()
-        self.simulateur.setTableDimension(3000,2000)
-        self.simulateur.defineCoordinateSystem(1,0,0,-1,1500,2000)
-        self.simulateur.defineRobot({"list":[{"float":[-200.,-200.]},{"float":[-200.,200.]},{"float":[200.,200.]},{"float":[200.,-200.]}]})
-        self.simulateur.defineRobotSensorZone({"list":[{"int":[0,400]},{"int":[-500.,1000.]},{"int":[500,1000]}]})
-        self.simulateur.setRobotAngle(0)
-        self.simulateur.setRobotPosition(-1200,300)
-        self.simulateur.addEnemy(30,"black")
-        
+    def __init__(self,simulateur,config,log):
+             
+        self.simulateur = simulateur
+        self.config=config
+        self.log=log
         
     def gestion_blocage(self, **useless):
         """
@@ -298,8 +282,7 @@ class DeplacementsSimulateur(Deplacements):
         méthode de détection des collisions
         retourne True si la valeur du booléen blocage (attribut de robot) doit etre remplacée par True
         """
-        with self.mutex:
-            return self.simulateur.isBlocked()
+        return self.simulateur.gestion_blocage()
     
     def update_enMouvement(self, **useless):
         """
@@ -307,67 +290,39 @@ class DeplacementsSimulateur(Deplacements):
         cette méthode détermine si le robot est arrivé à sa position de consigne
         retourne la valeur du booléen enMouvement (attribut de robot)
         """
-        with self.mutex:
-            return self.simulateur.isMoving() or self.simulateur.isTurning()
+        return self.simulateur.update_enMouvement()
     
     def get_infos_stoppage_enMouvement(self):
         """
         UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
         """
-        return {}
+        return self.simulateur.get_infos_stoppage_enMouvement()
         
     def est_bloque(self):
-        with self.mutex:
-            return self.simulateur.isBlocked()
+        return self.simulateur.est_bloque()
         
     def est_arrive(self):
-        with self.mutex:
-            return not(self.simulateur.isMoving() or self.simulateur.isTurning())
+        return self.simulateur.est_arrive()
     
     def get_infos_x_y_orientation(self):
         """
         UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
         """
-        with self.mutex:
-            return [self.simulateur.getX(), self.simulateur.getY(), self.simulateur.getAngle()]
-            
+        return self.simulateur.get_infos_x_y_orientation()
+      
             
     def avancer(self, distance):
-        try:
-            with self.mutex:
-                self.simulateur.moveRobot(distance)
-        except Exception as e:
-            print(e)
+        self.simulateur.avancer(distance)
 
     def tourner(self, angle):
-        try:
-            with self.mutex:
-                self.simulateur.turnRobot(angle, True)
-        except Exception as e:
-            print(e)
+        self.simulateur.tourner(angle)
     
     def set_x(self, new_x):
-        # try:
-            # with self.mutex:
-                # self.simulateur.setRobotPosition(new_x,self.simulateur.getY())
-        # except Exception as e:
-            # print(e)
         pass
     
     def set_y(self, new_y):
-        # try:
-            # with self.mutex:
-                # self.simulateur.setRobotPosition(self.simulateur.getX(),new_y)
-        # except Exception as e:
-            # print(e)
         pass
-
     def set_orientation(self, new_o):
-        # try:
-            # with self.mutex:
-                # self.simulateur.setRobotAngle(new_o)
-        # except Exception as e:
-            # print(e)
         pass
 
     def activer_asservissement_translation(self):
@@ -383,13 +338,10 @@ class DeplacementsSimulateur(Deplacements):
         pass
     
     def stopper(self):
-        with self.mutex:
-            self.simulateur.stopRobot() 
-        pass
+        self.simulateur.stopper() 
     
     def set_vitesse_translation(self, valeur):
         pass
     
     def set_vitesse_rotation(self, valeur):
         pass
-    
