@@ -1,7 +1,5 @@
 #module natif pour les méthodes abstraites
 import abc
-#client SOAP pour le simulateur
-from suds.client import Client
 
 import os
 from time import sleep
@@ -272,56 +270,18 @@ class DeplacementsSimulateur(Deplacements):
     """
     def __init__(self,simulateur,config,log):
              
+        self.mutex = Mutex()
         self.simulateur = simulateur
         self.config=config
         self.log=log
         
-    def gestion_blocage(self, **useless):
-        """
-        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
-        méthode de détection des collisions
-        retourne True si la valeur du booléen blocage (attribut de robot) doit etre remplacée par True
-        """
-        return self.simulateur.gestion_blocage()
-    
-    def update_enMouvement(self, **useless):
-        """
-        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
-        cette méthode détermine si le robot est arrivé à sa position de consigne
-        retourne la valeur du booléen enMouvement (attribut de robot)
-        """
-        return self.simulateur.update_enMouvement()
-    
-    def get_infos_stoppage_enMouvement(self):
-        """
-        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
-        """
-        return self.simulateur.get_infos_stoppage_enMouvement()
-        
-    def est_bloque(self):
-        return self.simulateur.est_bloque()
-        
-    def est_arrive(self):
-        return self.simulateur.est_arrive()
-    
-    def get_infos_x_y_orientation(self):
-        """
-        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
-        """
-        return self.simulateur.get_infos_x_y_orientation()
-      
             
-    def avancer(self, distance):
-        self.simulateur.avancer(distance)
-
-    def tourner(self, angle):
-        self.simulateur.tourner(angle)
-    
     def set_x(self, new_x):
         pass
     
     def set_y(self, new_y):
         pass
+    
     def set_orientation(self, new_o):
         pass
 
@@ -337,11 +297,67 @@ class DeplacementsSimulateur(Deplacements):
     def desactiver_asservissement_rotation(self):
         pass
     
-    def stopper(self):
-        self.simulateur.stopper() 
-    
     def set_vitesse_translation(self, valeur):
         pass
     
     def set_vitesse_rotation(self, valeur):
         pass
+    
+    def gestion_blocage(self):
+        """
+        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
+        méthode de détection des collisions
+        retourne True si la valeur du booléen blocage (attribut de robot) doit etre remplacée par True
+        """
+        with self.mutex:
+            return self.simulateur.isBlocked()
+    
+    def update_enMouvement(self, **useless):
+        """
+        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
+        cette méthode détermine si le robot est arrivé à sa position de consigne
+        retourne la valeur du booléen enMouvement (attribut de robot)
+        """
+        with self.mutex:
+            return self.simulateur.isMoving() or self.simulateur.isTurning()
+    
+    def get_infos_stoppage_enMouvement(self, **useless):
+        """
+        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
+        """
+        return {}
+        
+    def est_bloque(self):
+        with self.mutex:
+            return self.simulateur.isBlocked()
+        
+    def est_arrive(self):
+        with self.mutex:
+            return not(self.simulateur.isMoving() or self.simulateur.isTurning())
+    
+    def get_infos_x_y_orientation(self):
+        """
+        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
+        """
+        with self.mutex:
+            return [self.simulateur.getX(), self.simulateur.getY(), self.simulateur.getAngle()]
+            
+            
+    def avancer(self, distance):
+        try:
+            with self.mutex:
+                self.simulateur.moveRobot(distance)
+        except Exception as e:
+            print(e)
+
+    def tourner(self, angle):
+        try:
+            with self.mutex:
+                self.simulateur.turnRobot(angle, True)
+        except Exception as e:
+            print(e)
+      
+    
+    def stopper(self):
+        with self.mutex:
+            self.simulateur.stopRobot() 

@@ -69,7 +69,7 @@ class CapteursSimulateur():
         self.log = log
 
     def mesurer(self): 
-        distance= self.simulateur.mesurer()
+        distance = self.simulateur.getRobotSensorValue()
         if distance==-1:
             return 5000
         else:
