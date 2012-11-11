@@ -153,6 +153,19 @@ public:
     }
 
     /**
+     * Retourne la valeur maximale du timer (65535 si 16bits, 255 si 8bits)
+     * Ne marche que pour les 328p et 324p
+     *
+     * @return 
+     */
+    static inline uint16_t value_max() {
+        if (ID_==1)
+	    return 65535;
+        else
+            return 255;
+    }
+
+    /**
      * Récupère la valeur courante du compteur
      * 
      * @return 

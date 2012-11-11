@@ -97,7 +97,7 @@ class DeplacementsSerie(Deplacements):
         self.config = config
         self.log = log
         
-        self._enCoursDeBlocage
+        self._enCoursDeBlocage = False
         
         #sauvegarde d'infos bas niveau sur l'état du robot, réutilisées par plusieurs calculs dans le thread de mise à jour
         self.infos_stoppage_enMouvement={

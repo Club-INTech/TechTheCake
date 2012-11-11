@@ -33,9 +33,9 @@ class Capteurs():
         Donc on oublie pas de bien caster la sortie :)
         """
 
-        m=3 #le nombre de valeurs d'où est extraite la médiane
+        nbValeurs=3 #le nombre de valeurs d'où est extraite la médiane. A passer en paramètre?
         valeurs=[] #cette liste contiendra les m valeurs
-        for i in range(m):
+        for i in range(nbValeurs):
             retour = self.serie.communiquer("capteurs_actionneurs",["s"], 1)
             valeurs.append(int(retour[0]))
 
@@ -44,7 +44,7 @@ class Capteurs():
         capteurUltrason=valeurs[m//2]
 
         valeurs=[]
-        for i in range(m): #idem, mais avec les infrarouges
+        for i in range(nbValeurs): #idem, mais avec les infrarouges
             retour = self.serie.communiquer("capteurs_actionneurs",["i"], 1)
             valeurs.append(int(retour[0]))
 
@@ -52,5 +52,7 @@ class Capteurs():
 
         capteurInfrarouge=valeurs[m//2]
 
-        return max(capteurInfrarouge, capteurUltrason)
+        self.log.debug("Appel capteurs et récupération de valeurs: OK")
+
+        return max(capteurInfrarouge, capteurUltrason) #on retourne la distance maximale (on est optimiste)
 
