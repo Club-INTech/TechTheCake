@@ -9,8 +9,11 @@
 // Librairie INTech :: Timer
 #include <libintech/timer.hpp>
 
-// Librairie INTech spéciale série
-#include <libintech/serial/serial_0.hpp>
+// Librairie INTech de manipulation de bits
+#include <libintech/utils.h>
+
+// Librarie INTech permettant l'utilisation simplifiée des ports et pin
+#include <libintech/register.hpp>
 
 
 /** @file libintech/capteur_srf05.hpp
@@ -19,25 +22,12 @@
  *  @date 05 mai 2012
  */ 
 
-/** Fonctions de lecture et écriture de bits. */
-// Set bit
-#ifndef sbi
-#define sbi(port,bit) (port) |= (1 << (bit))
-#endif
-// Clear bit
-#ifndef cbi
-#define cbi(port,bit) (port) &= ~(1 << (bit))
-#endif
-// Read bit
-#ifndef rbi
-#define rbi(port,bit) ((port & (1 << bit)) >> bit)
-#endif
 
 /** @class capteur_srf05
  *  \brief Classe pour pouvoir gérer facilement les capteurs srf05.
  * 
- *  \param Timer    L'instance de Timer utilisé pour le calcul de distance.
- *  \param Serial   L'instance de Série utilisée pour communiquer le résultat.
+ *  \param Timer               L'instance de Timer utilisé pour le calcul de distance.
+ *  \param PinRegister         L'instance de registre
  * 
  *  La classe gère la récupération d'une distance entre le capteur et un obstacle.
  *  
@@ -50,123 +40,64 @@
  *  détecté.  
  */
 
-#define dPCIE	PCIE0
-#define dPCINT	PCINT5
-#define dPCMSK	PCMSK0
-#define dDDR	DDRB
-#define dPORT	PORTB
-#define dPIN	PINB
-#define dPORTB	PORTB5
-
-template< class Timer , class Serial>
-class capteur_srf05
+template< class Timer, class PinRegisterIn, class PinRegisterOut >
+class CapteurSRF
 {
-   private:
-    static const uint8_t port = dPORTB;
-    static volatile bool busy;
-    
-   public:
-    /** S'occupe d'initialiser le capteur.
-     */
-    static void init()
+    uint16_t origineTimer;			//origine du timer afin de détecter une durée (le timer est une horloge)
+    uint16_t derniereDistance;		//contient la dernière distance acquise, prête à être envoyée
+
+   public:	//constructeur
+   CapteurSRF() :
+	derniereDistance(0)
     {
-        // Initialisation du timer. C'est tout.
-        Timer::init();
+        PinRegisterOut::set_output();
+        PinRegisterIn::set_input();
+        PinRegisterOut::clear_interrupt();
+        PinRegisterIn::set_interrupt();
     }
-    
-    /** Envoie une impulsion dans la pin, puis active les interruptions de changement
-     *  d'état sur cette pin.
-     */
-    static void value()
+
+    uint16_t value()
     {
-        // Si on n'est pas busy (càd si on n'est pas en train d'attendre
-        // l'impulsion retour du capteur).
-        if (not busy)
-        {
-		//Serial::print("Lancement");
-            // Désactivation des interruptions
-            cbi(PCICR,dPCIE);
-            cbi(dPCMSK,dPCINT);
-            
-            // Port "port" en output
-            sbi(dDDR, port);
-            
+        return derniereDistance;
+    }
+
+    void refresh()
+    {
             // On met un zéro sur la pin pour 2 µs
-            cbi(dPORT, port);
-            _delay_us(2);
-            
+        PinRegisterOut::clear();
+        _delay_us(2);
+
             // On met un "un" sur la pin pour 10 µs
-            sbi(dPORT, port);
-            _delay_us(10);
-		//Serial::print("intergo");
-            
+        PinRegisterOut::set();
+        _delay_us(10);
+
             // On remet un zéro puis on la met en input
-            cbi(dPORT, port);
-            cbi(dDDR, port);
-
-            // On lance l'interruption qui gèrera la sortie du capteur
-            sbi(dPCMSK,dPCINT); // PCINT18 pour PORTC2
-            sbi(PCICR,dPCIE);//active PCINT
-            sei();
-            
-            Timer::value(0);
-            // On est busy en attendant l'interruption.
-            busy = true;
-		//Serial::print("GO");
-        }
-
+        PinRegisterOut::clear();
     }
   
     /** Fonction appellée par l'interruption. S'occupe d'envoyer la valeur de la longueur
      *  de l'impulsion retournée par le capteur dans la série.
      */
-    static void interruption()
+
+    void interruption()
     {
         // Front montant si bit == 1, descendant sinon.
-        uint8_t bit = rbi(dPIN, port);
+        uint8_t bit = PinRegisterIn::read();
+
         // Début de l'impulsion
-        if (bit)
-        {
-            // Réinitialisation du capteur.
-            Timer::value(0);
-        }
-            
+        if (bit)                // Réinitialisation du capteur.
+            origineTimer=Timer::value();  /*le timer est utilisée comme horloge (afin d'utiliser plusieurs capteurs)
+                                         On enregistre donc cette valeur et on fera la différence.*/
+
         // Fin de l'impulsion
         else
         {
-            // Si le timerOverflow n'a pas été lancé. sdfmodsfkgmodsj
-            if (busy)
-                /// Envoi de la valeur mesurée sur la série. 
-                Serial::print(Timer::value()*1180/1800.);
-            
-            // On n'est plus busy et on peut recevoir un nouvel ordre.
-            busy = false;
-            
-            // Désactivation des interruptions
-            cbi(PCICR,dPCIE);
-            cbi(dPCMSK,dPCINT);
-        }
-    }
-    
-    /// Overflow du timer.
-    static void timerOverflow()
-    {
-	
-        // Trame d'overflow
-        if (busy == true)
-        {
-            Serial::print("noresponse");
-        }
-        
+                //Enregistrement de la dernière distance calculée, mais pas envoyer (l'envoi se fait par la méthode value)
+            derniereDistance=((Timer::value()+Timer::value_max()-origineTimer)&Timer::value_max())*(1700-0.0000325*F_CPU)/1800.;
+                         /*interpolation linéaire entre deux valeurs
+                         mesurées: 1050/1800 à 20MHz, 1180/1800 à 16MHz*/
 
-        // Désactivation des interruptions
-        else{
-        cbi(PCICR,dPCIE);
-        cbi(dPCMSK,dPCINT);
         }
-        busy = false;
-        
-
     }
 };
 

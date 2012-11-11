@@ -38,31 +38,54 @@
 // Liaison série Carte <-> PC
 typedef Serial<0> serial_t_;
 
-
 // Ultrasons SRF05
 typedef Timer<1, 64> timerCapteurSRF;
-typedef capteur_srf05< timerCapteurSRF, serial_t_ > capteur_srf05_t_;
+typedef Timer<2, 1024> timerRefresh;
+typedef CapteurSRF< timerCapteurSRF, AVR_PORTB<PORTB1>, AVR_PORTB<PORTB2> > srf;
+srf capteur_srf05_t_;
+
+typedef CapteurInfrarouge< AVR_ADC<PORTC0> > cap_infra;
+cap_infra capteur_infrarouge; 
+
+/* correspondances pin/port:
+pin 0 <-> PORTD0
+pin 1 <-> PORTD1
+pin 2 <-> PORTD2
+pin 3 <-> PORTD3
+pin 4 <-> PORTD4
+pin 5 <-> PORTD5
+pin 6 <-> PORTD6
+pin 7 <-> PORTD7
+pin 8 <-> PORTB0
+pin 9 <-> PORTB1
+pin 10 <-> PORTB2
+pin 11 <-> PORTB3
+pin 12 <-> PORTB4
+pin 13 <-> PORTB5 (à éviter! pin de debug uniquement)
+
+analog in 0 <-> PORTC0
+analog in 1 <-> PORTC1
+analog in 2 <-> PORTC2
+analog in 3 <-> PORTC3
+analog in 4 <-> PORTC4
+analog in 5 <-> PORTC5
+*/
 
 int main()
 {
     // Initialisations de tous les objets.
-    capteur_infrarouge  ::init();
-    capteur_srf05_t_    ::init();
     serial_t_           ::init();
-    
+    timerCapteurSRF     ::init();
+    timerRefresh        ::init();
+
     // Changement du BAUD RATE de la série carte <-> PC
     serial_t_::change_baudrate(BAUD_RATE_SERIE);
 
-    // Activation de toutes les interruptions (notamment les interruptions
-    // de la liaison série carte <-> carte).
-    sei();
-    
     while (1)
     {
         /// ******************************************
         /// **          PROGRAMME PRINCIPAL         **
         /// ******************************************
-        //serial_t_::print(0);
         char buffer[17];
         serial_t_::read(buffer);
         
@@ -71,30 +94,39 @@ int main()
         /// *********************************************** ///
         ///                 CAPTEURS                        ///
         /// *********************************************** ///
-        
-        
+
+
         // infrarouge
         if (strcmp(buffer, "i")==0)
-            serial_t_::print(capteur_infrarouge::value());
+            serial_t_::print(capteur_infrarouge.value());
         
-        else if (strcmp(buffer, "u")==0)
-            serial_t_::print(capteur_infrarouge::value_brut());
-        
+        else if (strcmp(buffer, "u")==0) //debug (valeur brute, à ne pas utiliser directement)
+            serial_t_::print(capteur_infrarouge.value_brut());
+
         // Ultrasons SRF05
         else if (strcmp(buffer, "s")==0)
-            capteur_srf05_t_::value();
-            // C'est une interruption qui s'occupe d'afficher
-            // la valeur.*/
+            serial_t_::print(capteur_srf05_t_.value());
 
-        else if (strcmp(buffer, "?")==0)
-            serial_t_::print(2);
+        else if (strcmp(buffer, "?")==0) //serial de la carte (ping)
+            serial_t_::print(3);
 
     }
     return 0;
 }
 
-
-// Overflow du timer 1 (utilisé notamment par les ultrasons SRF05
-ISR(TIMER1_OVF_vect){
-    capteur_srf05_t_::timerOverflow();
+ISR(TIMER2_OVF_vect) //overflow du timer 2, qui appelle le refresh d'un ou des capteur(s) SRF05 (autant de refresh que de capteurs)
+{
+    static uint8_t overflow=0;  //on appelle la fonction refresh qu'une fois sur 5 overflow
+    if(overflow==0)
+        capteur_srf05_t_.refresh();
+    overflow++;
+    overflow%=5;
 }
+ISR(TIMER1_OVF_vect)    //MÊME SI ELLE EST VIDE, IL EST OBLIGATOIRE DE DEFINIR CETTE FONCTION
+{}
+
+ISR(PCINT0_vect)
+{
+   capteur_srf05_t_.interruption();
+}
+
