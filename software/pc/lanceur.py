@@ -25,16 +25,21 @@ while not robot.y:
     sleep(0.1)
     
 robot.marche_arriere = False
-robot.couleur = "rouge"
+robot.couleur = "bleu"
 
 xM = -200
 yM = 1000
 xA = 500
-yA = 250
+yA = 350
 pas = 100
 if config["mode_simulateur"]:
-    robot.deplacements.simulateur.drawPoint(xA,yA,"red",True)
-    robot.deplacements.simulateur.drawPoint(xM,yM,"black",True)
+    affiche_xA = xA
+    affiche_xM = xM
+    if robot.couleur == "bleu":
+        affiche_xA *= -1
+        affiche_xM *= -1
+    robot.deplacements.simulateur.drawPoint(affiche_xA,yA,"red",True)
+    robot.deplacements.simulateur.drawPoint(affiche_xM,yM,"black",True)
 else:
     robot.x = 1170
     robot.y = 250
@@ -43,9 +48,9 @@ else:
 #robot.recaler()
 #print(robot.va_au_point(0,500))
 #input()
-print(robot.va_au_point(xA,yA))
+print(robot.gestion_va_au_point(xA,yA))
 input()
-print(robot.arc_de_cercle(xM,yM,pas))
+print(robot.gestion_arc_de_cercle(xM,yM,pas))
     
 
 

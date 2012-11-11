@@ -439,6 +439,20 @@ class Robot:
             self.stopper()
             print("capteurs !")
             
+    def gestion_arc_de_cercle(self,xM,yM,pas,hooks=[]):
+        
+        if self.couleur == "bleu":
+            xM *= -1
+                
+        retour = self.arc_de_cercle(xM,yM,pas,hooks)
+        if retour == 1:
+            print("point de destination atteint !")
+        elif retour == 2:
+            print("déplacement arrêté car blocage !")
+        elif retour == 3:
+            self.stopper()
+            print("capteurs !")
+        
     def set_vitesse_translation(self, valeur):
         self.deplacements.set_vitesse_translation(valeur)
         self.vitesse_translation = int(valeur)
