@@ -52,6 +52,7 @@ public:
 
     Moteur() : maxPWM_(255) {
         PWM::init();
+		AVR_PORTB <PORTB5>::set_output();
     }
 
     /**
