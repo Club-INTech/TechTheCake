@@ -1,21 +1,14 @@
 #ifndef DEF_AX12_HPP
 #define DEF_AX12_HPP
 
-// Librairie INTech
-#include <libintech/serial/serial_0.hpp>
-
 // Librairie Standard
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <util/delay.h>
 
-// Librairie INTech.
-#include <libintech/serial/serial_1.hpp>
-
+#include <libintech/utils.h>
 
 #define AX_BROADCAST            0xFE
-
-
 
 /** EEPROM AREA **/
 #define AX_MODEL_NUMBER_L           0
@@ -81,41 +74,146 @@
 #define AX_SYNC_WRITE               131
 
 
-
-    template< class Serial, uint32_t baud_rate >
-class AX12
+template<class Serial>
+class DEF_AX12_HPP2
 {
-private :
+private:
+	uint8_t id_;
+
+    enum {
+        READ_TIMEOUT = 0, READ_SUCCESS = 1
+    };
+	
+private:
     
     // Méthode pour envoyer un packet lisible par l'AX12
-    void sendPacket (uint8_t id, uint8_t datalength, uint8_t instruction, uint8_t *data)
+    void sendPacket(uint8_t datalength, uint8_t instruction, uint8_t *data)
     {
         uint8_t checksum = 0;
+        cbi(UCSR0B, RXEN0);             // dégueu
         Serial::send_char(0xFF);
         Serial::send_char(0xFF);
         
-        Serial::send_char(id);
+        Serial::send_char(id_);
         Serial::send_char(datalength + 2);
         Serial::send_char(instruction);
         
-        checksum += id + datalength + 2 + instruction;
-
-        uint8_t f;
-        for (f=0; f<datalength; f++) {
-        checksum += data[f];
-        Serial::send_char(data[f]);
+        checksum += id_ + datalength + 2 + instruction;
+        
+        for (uint8_t f=0; f<datalength; f++) {
+			checksum += data[f];
+			Serial::send_char(data[f]);
         }
+        
         Serial::send_char(~checksum);
+        sbi(UCSR0B, RXEN0);                // dégueu
     }
     
-public :
+    /// Ecriture d'une séquence de bits 
+    void writeData(uint8_t regstart, uint8_t reglength, uint16_t value) {
+        uint8_t data [reglength+1];
+        data [0] = regstart; data [1] = value&0xFF;
+        if (reglength > 1) {data[2] = (value&0xFF00)>>8;}
+        sendPacket(reglength+1, AX_WRITE_DATA, data);
+    }
+
+    uint8_t readData(uint8_t regstart, uint8_t reglength){
+        uint8_t reponse;
+        uint8_t data [reglength+1];
+        data[0] = regstart;
+        data[1] = reglength;
+        sendPacket(reglength+1, AX_READ_DATA, data);
+
+        uint8_t buffer1, buffer2;
+        uint8_t status = READ_SUCCESS;
+        uint8_t checksum = 0;
+        uint16_t timeout=1;
+        uint8_t resultat;
+        uint8_t resultat1;
+        uint8_t resultat2;
+
+        status = Serial::read_char(buffer1, timeout); 
+
+
+        // Attention, ça va devenir dégueulasse !
+
+
+        // Délimiteur de trame
+        do{
+            buffer2 = buffer1;
+            status = Serial::read_char(buffer1, timeout);
+            if (status == READ_TIMEOUT) return status;
+        } while (status != READ_TIMEOUT && buffer1 != 0xFF && buffer2 != 0xFF);
+
+        // Lecture de l'ID
+        status = Serial::read_char(buffer1, 100);
+        if (status == READ_TIMEOUT) return status;
+        if (buffer1 == id_){                                     // On est bien sur le bon AX12 ?
+            status = Serial::read_char(buffer1, 100);
+            if (status == READ_TIMEOUT) return status;
+            uint8_t length = buffer1;                           // Récupération de la longueur du mot
+
+            status = Serial::read_char(buffer1, 100);
+            if (status == READ_TIMEOUT) return status;
+            uint8_t error = buffer1;
+            // Plein de cas d'erreur à tester !!
+            if (error == 0x00){                                 // S'il n'y a pas d'erreur
+                if(length == 0x03){                             // Si le mot n'est qu'un octet
+                    status = Serial::read_char(buffer1, 100);
+                    if (status == READ_TIMEOUT) return status;
+                    resultat = buffer1;
+                    checksum += resultat;
+                }
+                else{                                           // Sinon, il fait 2 octets !
+                    status = Serial::read_char(buffer1, 100);
+                    if (status == READ_TIMEOUT) return status;
+                    resultat1 = buffer1; 
+
+                    status = Serial::read_char(buffer1, 100);
+                    if (status == READ_TIMEOUT) return status;
+                    resultat2 = buffer1;
+
+                    checksum += resultat2 + resultat1;                    
+                }
+
+                status = Serial::read_char(buffer1, 100);
+                if (status == READ_TIMEOUT) return status;
+                uint8_t checksumAX12 = buffer1;
+
+                checksum += id_ + length + error;
+
+                if(checksum != checksumAX12){
+                    // Erreur fatale à corriger d'une façon ou d'une autre !!!
+                }
+
+                else{
+                    if (length = 0x03)
+                        uint16_t res = resultat1<<8 + resultat2;
+                    else uint16_t res = resultat;
+
+                }
+
+            }
+            else{
+                // Plein de cas d'erreur à tester !!
+            }
+        }
+        else{
+            // Si on est pas sur le bon AX12, faut débeuguer !!1!
+        }
+    }
+    
+public:
+
+	DEF_AX12_HPP2(uint8_t id)  // Constructeur de la classe
+	{
+		id_ = id;
+	}
+	
     /// Initialisation
     void init(uint16_t AX_angle_CW, uint16_t AX_angle_CCW, uint16_t AX_speed)
     {
-        // Initialisation de la série
-        Serial::init();
-        Serial::change_baudrate(baud_rate);
-        
+		/*
         // Active l'asservissement du servo
         writeData (AX_BROADCAST, AX_TORQUE_ENABLE, 1, 1);
         // Définit les angles mini et maxi
@@ -123,21 +221,13 @@ public :
         writeData (AX_BROADCAST, AX_CCW_ANGLE_LIMIT_L, 2, AX_angle_CCW);
         // Définit la vitesse de rotation
         writeData (AX_BROADCAST, AX_GOAL_SPEED_L, 2, AX_speed);
+         */
     }
     
     /// Reset de l'AX12
-    void reset (uint8_t id) {
+    void reset() {
         uint8_t *data = 0;
-        sendPacket (id, 0, AX_RESET, data);  
-    }
-
-
-    /// Ecriture d'une séquence de bits 
-    void writeData (uint8_t id, uint8_t regstart, uint8_t reglength, uint16_t value) {
-        uint8_t data [reglength+1];
-        data [0] = regstart; data [1] = value&0xFF;
-        if (reglength > 1) {data[2] = (value&0xFF00)>>8;}
-        sendPacket (id, reglength+1, AX_WRITE_DATA, data);
+        sendPacket(0, AX_RESET, data);  
     }
     
     /// Tente de réanimer un AX12 mort.
@@ -156,9 +246,9 @@ public :
         // Une fois que le signal de reset a été reçu, l'AX12 écoute à 1.000.000 bps.
         // Donc à ce baud rate, on reflash le baud rate d'écoute de l'AX12.
         Serial::change_baudrate(1000000);
-        writeData(0xFE, AX_BAUD_RATE, 1, uint8_t(2000000/baud_rate - 1));
+        //writeData(0xFE, AX_BAUD_RATE, 1, uint8_t(2000000/baud_rate - 1));
         
-        Serial::change_baudrate(baud_rate);
+        //Serial::change_baudrate(baud_rate);
         // Si l'id est différente du broadcast, alors on la reflash.
         if (id != 0xFE)
             initID(0x01, id);
@@ -167,49 +257,45 @@ public :
     /// Réinitialisation de l'ID de l'AX12
     void initID(uint8_t ancien_id, uint8_t nouvel_id)
     {
-        writeData (ancien_id, AX_ID, 1, nouvel_id);
+        //writeData(ancien_id, AX_ID, 1, nouvel_id);
     }
 
     /// Goto
-    void GoTo (uint8_t ID, uint16_t angle)
+    void GoTo(uint16_t angle)
     {
-        writeData (ID, AX_GOAL_POSITION_L, 2, angle);
+        writeData(AX_GOAL_POSITION_L, 2, angle);
     }
 
     /// Changement de l'angle min
-    void changeAngleMIN(uint8_t ID, uint16_t angleCW)
+    void changeAngleMIN(uint16_t angleCW)
     {
-        writeData (ID, AX_CW_ANGLE_LIMIT_L, 2, angleCW);
+        writeData(AX_CW_ANGLE_LIMIT_L, 2, angleCW);
     }
 
     /// Changement de l'angle max
-    void changeAngleMAX(uint8_t ID, uint16_t angleCCW)
+    void changeAngleMAX(uint16_t angleCCW)
     {
-        writeData (ID, AX_CCW_ANGLE_LIMIT_L, 2, angleCCW);
+        writeData(AX_CCW_ANGLE_LIMIT_L, 2, angleCCW);
     }
     
     /// Changement de la vitesse de rotation
-    void changeSpeed(uint8_t ID, uint16_t vitesse)
+    void changeSpeed(uint16_t vitesse)
     {
-        writeData (ID, AX_GOAL_SPEED_L, 2, vitesse);
+        writeData(AX_GOAL_SPEED_L, 2, vitesse);
     }
 
     /// Désasservissement d'un AX12 branché.
-    void unasserv(uint8_t ID)
+    void unasserv()
     {
-        writeData (ID, AX_TORQUE_ENABLE, 1, 0);
+        writeData(AX_TORQUE_ENABLE, 1, 0);
     }
 
-    
-        
-        
-
-    
-    
-    
+    /// Récupération de la position
+    uint16_t readPosition()
+    {
+        readData(AX_PRESENT_POSITION_L, 2);
+    } 
     
 };
-    
-
 
 #endif

@@ -3,11 +3,12 @@ from time import time,sleep
 from mutex import Mutex
 
 class Robot:
-    def __init__(self,deplacements,config,log):
+    def __init__(self,deplacements,capteurs,config,log):
         self.mutex = Mutex()
         
         #instances des dépendances
         self.deplacements = deplacements
+        self.capteurs=capteurs
         self.config = config
         self.log = log
         
