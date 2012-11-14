@@ -273,7 +273,7 @@ class DeplacementsSimulateur(Deplacements):
         self.config=config
         self.log=log
         
-    def gestion_blocage(self):
+    def gestion_blocage(self, **useless):
         """
         UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
         méthode de détection des collisions
@@ -336,7 +336,7 @@ class DeplacementsSimulateur(Deplacements):
     def set_vitesse_rotation(self, valeur):
         pass
     
-    def get_infos_stoppage_enMouvement(self, **useless):
+    def get_infos_stoppage_enMouvement(self):
         """
         UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
         """
