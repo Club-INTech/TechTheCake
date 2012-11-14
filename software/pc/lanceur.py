@@ -9,14 +9,64 @@ from src.strategie import Strategie
 
 container = Container()
 
-#thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
-#thread_MAJ.start()
+thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
+thread_MAJ.start()
 
-strat = Strategie(container)
+#strat = Strategie(container)
+#strat.robot.recaler()
+#strat.scripts["pipeau"].agit()
+
+from time import sleep
+from math import pi
+robot = container.get_service("robot")
+config = container.get_service("config")
+#attente de la mise à jour des coordonnées
+while not robot.y:
+    sleep(0.1)
+    
+robot.marche_arriere = False
+robot.couleur = "rouge"
+cote_normal = False
+
+xA = 500
+yA = 400
+xM = -200
+yM = 450
+if config["mode_simulateur"]:
+    affiche_xA = xA
+    affiche_xM = xM
+    if robot.couleur == "bleu":
+        affiche_xA *= -1
+        affiche_xM *= -1
+        
+    robot.deplacements.simulateur.drawPoint(affiche_xA,yA,"red",True)
+    robot.deplacements.simulateur.drawPoint(affiche_xM,yM,"black",True)
+else:
+    robot.x = 1170
+    robot.y = 250
+    robot.orientation = pi
+
+#robot.recaler()
+#print(robot.va_au_point(0,500))
+#input()
+if cote_normal:
+    print(robot.gestion_va_au_point(xA,yA))
+    input()
+    print(robot.gestion_arc_de_cercle(xM,yM))
+else:
+    print(robot.gestion_va_au_point(xM,yM))
+    input()
+    print(robot.gestion_arc_de_cercle(xA,yA))
+    
+    
+
 
 #input("appuyer sur une touche pour lancer le calcul de durée du script...")
 #print(strat.scripts["pipeau"].calcule())
 #input("appuyer sur une touche pour effectuer les mouvements du script...")
 #strat.scripts["pipeau"].agit()
 
-strat.robot.recaler()
+#from time import sleep
+#while 42:
+    #print("("+str(strat.robot.x)+", "+str(strat.robot.y)+")")
+    #sleep(0.2)

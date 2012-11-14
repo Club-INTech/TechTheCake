@@ -91,13 +91,6 @@ void Robot::communiquer_pc(){
 		serial_t_::print(0);
 	}
 	
-	//clean série
-	if(strcmp(buffer,"!") == 0)
-	{
-		AQUITTER;
-		serial_t_::print("%");
-	}
-	
 	//maj des constantes d'asservissement en rotation
 	else if(strcmp(buffer,"crp") == 0)
 	{
@@ -231,7 +224,7 @@ void Robot::communiquer_pc(){
 		AQUITTER;
 		stopper();
 	}
-
+	
 	//stopper asservissement rotation/translation
 	else if(strcmp(buffer,"cr0") == 0)
 	{
@@ -294,10 +287,10 @@ void Robot::communiquer_pc(){
 	else if(strcmp(buffer,"?infos") == 0)
 	{
 		AQUITTER;
-		serial_t_::print((int16_t)abs(moteurGauche.pwm()));
-		serial_t_::print((int16_t)abs(moteurDroit.pwm()));
-		serial_t_::print((int16_t)abs(rotation.erreur()));
-		serial_t_::print((int16_t)abs(translation.erreur()));
+		serial_t_::print((int16_t)moteurGauche.pwm());
+		serial_t_::print((int16_t)moteurDroit.pwm());
+		serial_t_::print((int16_t)rotation.erreur());
+		serial_t_::print((int16_t)translation.erreur());
 	}
 	
 	//envoi des coordonnées du robot
@@ -377,14 +370,17 @@ void Robot::tourner(float angle)
 	float angle_tic = (angle - angle_origine_)/CONVERSION_TIC_RADIAN;
 	rotation.consigne(angle_optimal( angle_tic, mesure_angle_ ));
 	//attendre un tour de timer avant de continuer (éventuel problème avec attribut volatile)
-	while(compteur.value()>0){ asm("nop"); }
+// 	while(compteur.value()>0){ asm("nop"); }
 }
 
 void Robot::translater(float distance)
 {
-	translation.consigne(translation.consigne()+distance/CONVERSION_TIC_MM);
+// 	translation.consigne(translation.consigne()+distance/CONVERSION_TIC_MM);
+	
+	translation.consigne(mesure_distance_+distance/CONVERSION_TIC_MM);
 	//attendre un tour de timer avant de continuer (éventuel problème avec attribut volatile)
-	while(compteur.value()>0){ asm("nop"); }
+// 	while(compteur.value()>0){ asm("nop"); }
+	
 }
 
 //pour stopper le robot on l'asservit sur sa position courante

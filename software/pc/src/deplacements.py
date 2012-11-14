@@ -2,7 +2,7 @@
 import abc
 
 import os
-from time import sleep
+from time import sleep,time
 
 from mutex import Mutex
 
@@ -33,6 +33,10 @@ class Deplacements(metaclass=abc.ABCMeta):
         pass
     
     @abc.abstractmethod
+    def stopper(self):
+        pass
+    
+    @abc.abstractmethod
     def set_x(self, new_x):
         pass
     
@@ -58,10 +62,6 @@ class Deplacements(metaclass=abc.ABCMeta):
         
     @abc.abstractmethod
     def desactiver_asservissement_rotation(self):
-        pass
-    
-    @abc.abstractmethod
-    def stopper(self):
         pass
     
     @abc.abstractmethod
@@ -107,19 +107,6 @@ class DeplacementsSerie(Deplacements):
             "derivee_erreur_translation" : 0
             }   
 
-    def update_enMouvement(self, erreur_rotation, erreur_translation, derivee_erreur_rotation, derivee_erreur_translation, **useless):
-        """
-        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
-        cette méthode récupère l'erreur en position du robot
-        et détermine si le robot est arrivé à sa position de consigne
-        retourne la valeur du booléen enMouvement (attribut de robot)
-        """
-        rotation_stoppe = erreur_rotation < 105
-        translation_stoppe = erreur_translation < 100
-        bouge_pas = derivee_erreur_rotation == 0 and derivee_erreur_translation == 0
-        
-        return not(rotation_stoppe and translation_stoppe and bouge_pas)
-    
     def gestion_blocage(self,PWMmoteurGauche,PWMmoteurDroit,derivee_erreur_rotation,derivee_erreur_translation, **useless):
         """
         UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
@@ -144,20 +131,37 @@ class DeplacementsSerie(Deplacements):
         else:
             self._enCoursDeBlocage = False
         return blocage
-            
-            
+        
+    def update_enMouvement(self, erreur_rotation, erreur_translation, derivee_erreur_rotation, derivee_erreur_translation, **useless):
+        """
+        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
+        cette méthode récupère l'erreur en position du robot
+        et détermine si le robot est arrivé à sa position de consigne
+        retourne la valeur du booléen enMouvement (attribut de robot)
+        """
+        rotation_stoppe = erreur_rotation < 105
+        translation_stoppe = erreur_translation < 100
+        bouge_pas = derivee_erreur_rotation == 0 and derivee_erreur_translation == 0
+        
+        return not(rotation_stoppe and translation_stoppe and bouge_pas)
+        
     def avancer(self, distance):
         """
         fait avancer le robot en ligne droite. (distance<0 => reculer)
         """
         self.serie.communiquer("asservissement",["d",float(distance)], 0)
-    
        
     def tourner(self, angle):
         """
         oriente le robot à un angle dans le repère de la table.
         """
         self.serie.communiquer("asservissement",["t",float(angle)], 0)
+    
+    def stopper(self):
+        """
+        stoppe le robot (l'asservit sur place)
+        """
+        self.serie.communiquer("asservissement","stop", 0)
         
     def set_x(self, new_x):
         """
@@ -189,14 +193,6 @@ class DeplacementsSerie(Deplacements):
     def desactiver_asservissement_rotation(self):
         self.serie.communiquer("asservissement","cr0", 0)
         
-        ##########################
-        
-    def stopper(self):
-        """
-        stoppe le robot (l'asservit sur place)
-        """
-        self.serie.communiquer("asservissement","stop", 0)
-        
     def set_vitesse_translation(self, valeur):
         """
         spécifie une vitesse prédéfinie en translation
@@ -209,7 +205,8 @@ class DeplacementsSerie(Deplacements):
         #definition des constantes d'asservissement en fonction de la vitesse
         kp_translation = [0.75,0.75,0.5]
         kd_translation = [2.0,2.5,4.0]
-        vb_translation = [60,100,200]
+        #vb_translation = [60,100,200]
+        vb_translation = [40,100,200]
         
         envoi = ["ctv"]
         envoi.append(float(kp_translation[valeur-1]))
@@ -229,7 +226,8 @@ class DeplacementsSerie(Deplacements):
         #definition des constantes d'asservissement en fonction de la vitesse
         kp_rotation = [1.5,1.2,0.9]
         kd_rotation = [2.0,3.5,3.5]
-        vb_rotation = [80,100,200]
+        #vb_rotation = [80,100,200]
+        vb_rotation = [60,100,200]
         
         envoi = ["crv"]
         envoi.append(float(kp_rotation[valeur-1]))
@@ -275,6 +273,41 @@ class DeplacementsSimulateur(Deplacements):
         self.config=config
         self.log=log
         
+    def gestion_blocage(self):
+        """
+        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
+        méthode de détection des collisions
+        retourne True si la valeur du booléen blocage (attribut de robot) doit etre remplacée par True
+        """
+        with self.mutex:
+            return self.simulateur.isBlocked()
+    
+    def update_enMouvement(self, **useless):
+        """
+        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
+        cette méthode détermine si le robot est arrivé à sa position de consigne
+        retourne la valeur du booléen enMouvement (attribut de robot)
+        """
+        with self.mutex:
+            return self.simulateur.isMoving() or self.simulateur.isTurning()
+    
+    def avancer(self, distance):
+        try:
+            with self.mutex:
+                self.simulateur.moveRobot(distance)
+        except Exception as e:
+            print(e)
+
+    def tourner(self, angle):
+        try:
+            with self.mutex:
+                self.simulateur.turnRobot(angle, True)
+        except Exception as e:
+            print(e)     
+    
+    def stopper(self):
+        with self.mutex:
+            self.simulateur.stopRobot()      
             
     def set_x(self, new_x):
         pass
@@ -303,61 +336,15 @@ class DeplacementsSimulateur(Deplacements):
     def set_vitesse_rotation(self, valeur):
         pass
     
-    def gestion_blocage(self):
-        """
-        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
-        méthode de détection des collisions
-        retourne True si la valeur du booléen blocage (attribut de robot) doit etre remplacée par True
-        """
-        with self.mutex:
-            return self.simulateur.isBlocked()
-    
-    def update_enMouvement(self, **useless):
-        """
-        UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
-        cette méthode détermine si le robot est arrivé à sa position de consigne
-        retourne la valeur du booléen enMouvement (attribut de robot)
-        """
-        with self.mutex:
-            return self.simulateur.isMoving() or self.simulateur.isTurning()
-    
     def get_infos_stoppage_enMouvement(self, **useless):
         """
         UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
         """
         return {}
         
-    def est_bloque(self):
-        with self.mutex:
-            return self.simulateur.isBlocked()
-        
-    def est_arrive(self):
-        with self.mutex:
-            return not(self.simulateur.isMoving() or self.simulateur.isTurning())
-    
     def get_infos_x_y_orientation(self):
         """
         UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
         """
         with self.mutex:
-            return [self.simulateur.getX(), self.simulateur.getY(), self.simulateur.getAngle()]
-            
-            
-    def avancer(self, distance):
-        try:
-            with self.mutex:
-                self.simulateur.moveRobot(distance)
-        except Exception as e:
-            print(e)
-
-    def tourner(self, angle):
-        try:
-            with self.mutex:
-                self.simulateur.turnRobot(angle, True)
-        except Exception as e:
-            print(e)
-      
-    
-    def stopper(self):
-        with self.mutex:
-            self.simulateur.stopRobot() 
+            return [self.simulateur.getX(), self.simulateur.getY(), self.simulateur.getAngle()*1000]
