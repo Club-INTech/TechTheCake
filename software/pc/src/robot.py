@@ -244,9 +244,9 @@ class Robot:
     def _acquittement(self):
         #récupérations des informations d'acquittement
         infos = self.deplacements.get_infos_stoppage_enMouvement()
-        print("infos :")
-        for i in infos:
-            print(i+" : "+str(infos[i]))
+        #print("infos :")
+        #for i in infos:
+            #print(i+" : "+str(infos[i]))
         #robot bloqué ?
         if self.blocage or self.deplacements.gestion_blocage(**infos):
             self.blocage = True
@@ -260,29 +260,34 @@ class Robot:
             return 1
             
             
-    def arc_de_cercle(self,xM,yM,pas,hooks=[]):
+    def arc_de_cercle(self,xM,yM,hooks=[]):
         #effectue un arc de cercle à partir de la position courante vers le projetté de M sur le cercle passant par la position courante
         
+        pas = 100
         self.set_vitesse_rotation(1)
         self.set_vitesse_translation(1)
                 
         self.log.debug("effectue un arc de cercle entre ("+str(self.x)+", "+str(self.y)+") et ("+str(xM)+", "+str(yM)+")")
         self.blocage = False
         
-        #sens de parcours
-        
-        #si gateau en haut :
+        #####################
+        ##si gateau en haut :
+        ##sens de parcours
         #if xM < self.x:
             #pas *= -1
-            
+        ##centre du cercle
+        #xO = 0
+        #yO = 2000
+        
+        #####################
         #si gateau en bas :
+        #sens de parcours
         if xM > self.x:
             pas *= -1
-        
         #centre du cercle
         xO = 0
-        #yO = 2000
         yO = 0
+        
         #rayon du cercle
         r = float(sqrt((self.x-xO)**2+(self.y-yO)**2))
         #on ramène M sur le cercle : point B
@@ -308,7 +313,6 @@ class Robot:
             #calcul de l'angle de A (point de départ)
             tA = atan2(self.y-yO,self.x-xO)
             
-            #if r*abs(tB-tA) > abs(pas):
             if (pas > 0 and r*tA+pas < r*tB) or (pas < 0 and r*tA+pas > r*tB):
                 #nouveau point consigne : incrémenter l'abscisse curviligne de A du pas en mm
                 #angle absolu pour C
@@ -343,7 +347,6 @@ class Robot:
                 acq = self._acquittement()
                 if acq:
                     return acq
-                #return self.va_au_point(xB, yB, hooks)
             
             sleep(0.05)
             
@@ -439,12 +442,12 @@ class Robot:
             self.stopper()
             print("capteurs !")
             
-    def gestion_arc_de_cercle(self,xM,yM,pas,hooks=[]):
+    def gestion_arc_de_cercle(self,xM,yM,hooks=[]):
         
         if self.couleur == "bleu":
             xM *= -1
                 
-        retour = self.arc_de_cercle(xM,yM,pas,hooks)
+        retour = self.arc_de_cercle(xM,yM,hooks)
         if retour == 1:
             print("point de destination atteint !")
         elif retour == 2:
