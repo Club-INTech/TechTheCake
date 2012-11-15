@@ -236,12 +236,12 @@ class Point(_object):
     #userFriendly :)
     def __getattr__(self, attribut):
         if attribut in ("x", "y"):
-            exec "out = self.get_"+attribut+"()"
+            exec("out = self.get_"+attribut+"()")
             return out
         
     def __setattr__(self, attribut, value):
         if attribut in ("x", "y"):
-            exec "self.set_"+attribut+"("+str(value)+")"
+            exec("self.set_"+attribut+"("+str(value)+")")
         else:
             self.__dict__[attribut] = value
         
