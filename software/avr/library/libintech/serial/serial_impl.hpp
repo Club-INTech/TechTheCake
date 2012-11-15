@@ -48,6 +48,18 @@ public:
      * 
      */
     static inline void init();
+    
+    /**
+     * Active la réception
+     * 
+     */
+    static inline void enable_rx();
+    
+    /**
+     * Désactive la réception
+     * 
+     */
+    static inline void disable_rx();
 
     /**
      * Fixe le baudrate (défaut à 57600)

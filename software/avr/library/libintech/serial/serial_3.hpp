@@ -49,6 +49,16 @@ void Serial < 3 > ::change_baudrate(uint32_t new_baudrate) {
     UCSR3C = (1 << USBS3) | (3 << UCSZ30);
 }
 
+template<>
+inline void Serial<0>::enable_rx() {
+	UCSR3B |= (1 << RXEN3);
+}
+
+template<>
+inline void Serial<0>::disable_rx() {
+	UCSR3B &= ~(1 << RXEN3);
+}
+
 ISR(USART3_RX_vect) {
     unsigned char c = UDR3;
     Serial < 3 > ::store_char(c);
