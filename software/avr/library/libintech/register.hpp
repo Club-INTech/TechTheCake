@@ -139,7 +139,7 @@ struct AVR_ADC {
         ADCSRA &= ~(1 << ADSC);
     }
 
-    static void prescalar(uint16_t facteur) { //facteurs disponibles: 2, 4, 8, 16, 32, 64 et 128 
+    static void prescaler(uint16_t facteur) { //facteurs disponibles: 2, 4, 8, 16, 32, 64 et 128 
         switch(facteur) {
         case 2:  ADCSRA |= (1 << ADPS0);
                  break;
