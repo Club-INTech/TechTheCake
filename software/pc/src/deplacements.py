@@ -1,9 +1,7 @@
 #module natif pour les méthodes abstraites
 import abc
 
-import os
-from time import sleep,time
-
+from time import time
 from mutex import Mutex
 
 ################################################
