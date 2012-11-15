@@ -50,12 +50,12 @@ void Serial < 3 > ::change_baudrate(uint32_t new_baudrate) {
 }
 
 template<>
-inline void Serial<0>::enable_rx() {
+inline void Serial<3>::enable_rx() {
 	UCSR3B |= (1 << RXEN3);
 }
 
 template<>
-inline void Serial<0>::disable_rx() {
+inline void Serial<3>::disable_rx() {
 	UCSR3B &= ~(1 << RXEN3);
 }
 
