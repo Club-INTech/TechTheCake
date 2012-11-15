@@ -10,8 +10,8 @@ Robot::Robot() :
 			,angle_origine_(0.0)
 			,etat_rot_(true)
 			,etat_tra_(true)
-			,translation(0.75,2.5,0.0)
-			,rotation(1.2,3.5,0.0)
+			,translation(0.3,3.5,0.0)//0.75,2.5,0.0)
+			,rotation(0.8,3.5,0.0)//1.2,3.5,0.0)
 {
 	TWI_init();
 	serial_t_::init();
