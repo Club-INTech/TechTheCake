@@ -16,8 +16,9 @@ from read_ini import Config
 from robot import *
 from robotChrono import RobotChrono
 from deplacements import DeplacementsSimulateur, DeplacementsSerie
-from capteurs import Capteurs
+from capteurs import CapteursSerie, CapteursSimulateur
 from serie import Serie
+from suds.client import Client
 from scripts import Script, ScriptBougies
 from log import Log
 
@@ -44,18 +45,36 @@ class Container:
         
         #services différents en fonction du mode simulateur on/off :
         if (self.config["mode_simulateur"]):
+            #enregistrement du service Simulateur
+            def make_simu():
+                client=Client("http://localhost:8090/INTechSimulator?wsdl")
+                #initialisation de la table TODO : prendre les valeurs dans Table
+                client.service.reset()
+                client.service.setTableDimension(3000,2000)
+                client.service.defineCoordinateSystem(1,0,0,-1,1500,2000)
+                client.service.defineRobot({"list":[{"float":[-200.,-200.]},{"float":[-200.,200.]},{"float":[200.,200.]},{"float":[200.,-200.]}]})
+                client.service.defineRobotSensorZone({"list":[{"int":[0,400]},{"int":[-500.,1000.]},{"int":[500,1000]}]})
+                client.service.setRobotAngle(0)
+                client.service.setRobotPosition(-1200,300)
+                client.service.addEnemy(30,"black")
+                return client.service
+            self.assembler.register("simulateur",  None, factory=make_simu)
+            
             #enregistrement du service des déplacements pour le simulateur
-            self.assembler.register("deplacements",DeplacementsSimulateur, requires=["config","log"])
+            self.assembler.register("deplacements",DeplacementsSimulateur, requires=["simulateur","config","log"])
+            #enregistrement du service des capteurs pour le simulateur
+            self.assembler.register("capteurs",CapteursSimulateur, requires=["simulateur","config","log"])
+            
         else:
             #enregistrement du service Serie
             self.assembler.register("serie", Serie, requires = ["log"])
             #enregistrement du service des déplacements pour la série
             self.assembler.register("deplacements",DeplacementsSerie, requires=["serie","config","log"])
             #enregistrement du service des capteurs pour la série
-            self.assembler.register("capteurs",Capteurs, requires=["serie","config","log"])
+            self.assembler.register("capteurs",CapteursSerie, requires=["serie","config","log"])
         
         #enregistrement du service robot
-        self.assembler.register("robot", Robot, requires=["deplacements","config","log"])
+        self.assembler.register("robot", Robot, requires=["deplacements","capteurs","config","log"])
         
         #enregistrement du service robotChrono
         self.assembler.register("robotChrono", RobotChrono, requires=["log"])

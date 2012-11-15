@@ -9,14 +9,19 @@ from src.strategie import Strategie
 
 container = Container()
 
-#thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
-#thread_MAJ.start()
+thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":container})
+thread_MAJ.start()
 
-strat = Strategie(container)
-
-#input("appuyer sur une touche pour lancer le calcul de durée du script...")
-#print(strat.scripts["pipeau"].calcule())
-#input("appuyer sur une touche pour effectuer les mouvements du script...")
+#strat = Strategie(container)
+#strat.robot.recaler()
 #strat.scripts["pipeau"].agit()
 
-strat.robot.recaler()
+from time import sleep
+robot = container.get_service("robot")
+#attente de la mise à jour des coordonnées
+while not robot.y:
+    sleep(0.1)
+
+    
+# Do what the fuck you want
+robot.recaler()

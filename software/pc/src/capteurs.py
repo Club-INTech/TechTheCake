@@ -1,6 +1,6 @@
 #éventuelles importations nécessaires pour le module
 
-class Capteurs():
+class CapteursSerie():
     """
     classe gérant les capteurs (communication via la série avec la carte appropriée).
     """
@@ -43,3 +43,21 @@ class Capteurs():
 
         return max(capteurInfrarouge, capteurUltrason) #on retourne la distance maximale (on est optimiste)
 
+
+class CapteursSimulateur():
+    """
+    classe gérant les capteurs (communication via la série avec la carte appropriée).
+    """
+    
+    def __init__(self,simulateur,config,log):
+        #services utilisés
+        self.simulateur = simulateur
+        self.config = config
+        self.log = log
+
+    def mesurer(self): 
+        distance = self.simulateur.getRobotSensorValue()
+        if distance==-1:
+            return 5000
+        else:
+            return distance
