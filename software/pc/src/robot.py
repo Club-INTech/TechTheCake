@@ -22,6 +22,16 @@ class Robot:
         les écritures et lectures sur ces attributs passent par des mutex gérant les accès mémoire, et communiquent avec la série si nécessaire
         """
         
+        #TODO variables à ajuster puis passer dans le service config
+        if self.config["mode_simulateur"]:
+            self.sleep_boucle_acquittement = 0.1
+            self.frequence_maj_arc_de_cercle = 20
+            self.pas = 100
+        else:
+            self.sleep_boucle_acquittement = 0.1
+            self.frequence_maj_arc_de_cercle = 20
+            self.pas = 100
+        
         #couleur du robot
         if self.config["mode_simulateur"]:
             self.couleur = "bleu"
@@ -101,6 +111,7 @@ class Robot:
             self.__dict__["_consigne_y"] = value
      
     def set_orientation(self, value):
+        self._consigne_orientation = value
         self.deplacements.set_orientation(value)
         
     def set_enMouvement(self, value):
@@ -155,7 +166,11 @@ class Robot:
             if acq:
                 return acq
             
-            sleep(0.05)
+            if self.config["mode_simulateur"]:
+                #sleep nécessaire pour le simulateur
+                sleep(self.sleep_boucle_acquittement/2.)
+            else:
+                sleep(self.sleep_boucle_acquittement)
         
     def va_au_point(self, x, y, hooks=[], virage_initial=False):
         
@@ -200,7 +215,12 @@ class Robot:
             if acq:
                 return acq
             
-            sleep(0.05)
+            
+            if self.config["mode_simulateur"]:
+                #sleep nécessaire pour le simulateur
+                sleep(self.sleep_boucle_acquittement/2.)
+            else:
+                sleep(self.sleep_boucle_acquittement)
     
     # Met à jour les consignes en translation et rotation (vise un point)
     def _mise_a_jour_consignes(self):
@@ -234,8 +254,9 @@ class Robot:
                 
             self._consigne_orientation = angle
             self.deplacements.tourner(angle)
-            #sleep nécessaire pour le simulateur
-            sleep(0.05)
+            if self.config["mode_simulateur"]:
+                #sleep nécessaire pour le simulateur
+                sleep(self.sleep_boucle_acquittement/2.)
             self.deplacements.avancer(distance)
         else:
             #self.log.debug("robot dans le disque de tolérance, pas de mise à jour des consignes.")
@@ -264,7 +285,9 @@ class Robot:
     def arc_de_cercle(self,xM,yM,hooks=[]):
         #effectue un arc de cercle à partir de la position courante vers le projetté de M sur le cercle passant par la position courante
         
-        pas = 100
+        
+        pas = self.pas
+        
         self.set_vitesse_rotation(1)
         self.set_vitesse_translation(1)
                 
@@ -349,7 +372,7 @@ class Robot:
                 if acq:
                     return acq
             
-            sleep(0.05)
+            sleep(1./self.frequence_maj_arc_de_cercle)
             
         
     def recaler(self):
@@ -375,7 +398,6 @@ class Robot:
             self.x = LONGUEUR_TABLE/2. - LARGEUR_ROBOT/1.999
             self.orientation = pi
         self.deplacements.activer_asservissement_rotation()
-        #sleep(0.5)
         self.set_vitesse_translation(1)
         self.avancer(100)
         self.tourner(pi/2)
@@ -388,7 +410,6 @@ class Robot:
         self.y = LARGEUR_ROBOT/1.999
         self.orientation = pi/2.
         self.deplacements.activer_asservissement_rotation()
-        # sleep(0.5)
         self.set_vitesse_translation(1)
         self.avancer(150)
         if self.couleur == "bleu":
