@@ -45,10 +45,11 @@ class CapteurSRF
 {
     uint16_t origineTimer;			//origine du timer afin de détecter une durée (le timer est une horloge)
     uint16_t derniereDistance;		//contient la dernière distance acquise, prête à être envoyée
+    uint8_t busy;
 
    public:	//constructeur
    CapteurSRF() :
-	derniereDistance(0)
+	derniereDistance(0), busy(0)
     {
         PinRegisterOut::set_output();
         PinRegisterIn::set_input();
@@ -79,19 +80,23 @@ class CapteurSRF
      *  de l'impulsion retournée par le capteur dans la série.
      */
 
-    void interruption()
+    void interruption() //sans busy, si l'interruption est appelée plusieurs fois (à cause d'autres capteurs) alors que, pour un capteur, on n'a pas encore fini de recevoir un créneau, celui-ci réinitialisera son timer. Ce qui donnera des résultats faux!
     {
         // Front montant si bit == 1, descendant sinon.
         uint8_t bit = PinRegisterIn::read();
 
         // Début de l'impulsion
-        if (bit)                // Réinitialisation du capteur.
+        if (bit && !(busy))
+        {
             origineTimer=Timer::value();  /*le timer est utilisée comme horloge (afin d'utiliser plusieurs capteurs)
-                                         On enregistre donc cette valeur et on fera la différence.*/
+                                           On enregistre donc cette valeur et on fera la différence.*/
+            busy=1;
+        }
 
         // Fin de l'impulsion
-        else
+        else if(!(bit) && busy)
         {
+            busy=0;
                 //Enregistrement de la dernière distance calculée, mais pas envoyer (l'envoi se fait par la méthode value)
             derniereDistance=((Timer::value()+Timer::value_max()-origineTimer)&Timer::value_max())*(1700-0.0000325*F_CPU)/1800.;
                          /*interpolation linéaire entre deux valeurs

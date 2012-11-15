@@ -15,7 +15,7 @@
  *  @brief Classe pour gérer les capteurs
  */
 
-uint16_t fonctionDegueuPourTabval_ADCH(uint8_t i) {
+uint16_t fonctionDegueuPourTabval_ADCH(uint8_t i) { //c'est vraiment dégueu, alors si quelqu'un a une idée pour faire autrement...
     switch((i)) {
     case 0 : return 200; 
     case 1 : return 64;
