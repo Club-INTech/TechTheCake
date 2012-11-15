@@ -37,4 +37,14 @@ inline void Serial < 1 > ::change_baudrate(uint32_t new_baudrate) {
     UCSR1C = (1 << USBS1) | (3 << UCSZ10);
 }
 
+template<>
+inline void Serial<1>::enable_rx() {
+	UCSR1B |= (1 << RXEN1);
+}
+
+template<>
+inline void Serial<1>::disable_rx() {
+	UCSR1B &= ~(1 << RXEN1);
+}
+
 #endif /* SERIAL_0_HPP_ */

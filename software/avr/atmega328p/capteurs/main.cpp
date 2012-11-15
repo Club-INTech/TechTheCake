@@ -41,11 +41,15 @@ typedef Serial<0> serial_t_;
 // Ultrasons SRF05
 typedef Timer<1, 64> timerCapteurSRF;
 typedef Timer<2, 1024> timerRefresh;
-typedef CapteurSRF< timerCapteurSRF, AVR_PORTB<PORTB1>, AVR_PORTB<PORTB2> > srf;
-srf capteur_srf05_t_;
+typedef CapteurSRF< timerCapteurSRF, AVR_PORTB<PORTB1>, AVR_PORTB<PORTB2> > srf1;
+srf1 capteur_srf05_t_1;
+typedef CapteurSRF< timerCapteurSRF, AVR_PORTB<PORTB3>, AVR_PORTB<PORTB4> > srf2;
+srf2 capteur_srf05_t_2;
 
-typedef CapteurInfrarouge< AVR_ADC<PORTC0> > cap_infra;
-cap_infra capteur_infrarouge; 
+typedef CapteurInfrarouge< AVR_ADC<PORTC0> > cap_infra1;
+cap_infra1 capteur_infrarouge_1;
+typedef CapteurInfrarouge< AVR_ADC<PORTC1> > cap_infra2;
+cap_infra2 capteur_infrarouge_2;
 
 /* correspondances pin/port:
 pin 0 <-> PORTD0
@@ -97,15 +101,22 @@ int main()
 
 
         // infrarouge
-        if (strcmp(buffer, "i")==0)
-            serial_t_::print(capteur_infrarouge.value());
-        
+        if (strcmp(buffer, "iAv")==0)
+            serial_t_::print(capteur_infrarouge_1.value());
+
+        else if (strcmp(buffer, "iAr")==0)
+            serial_t_::print(capteur_infrarouge_2.value());
+
         else if (strcmp(buffer, "u")==0) //debug (valeur brute, à ne pas utiliser directement)
-            serial_t_::print(capteur_infrarouge.value_brut());
+            serial_t_::print(capteur_infrarouge_1.value_brut());
 
         // Ultrasons SRF05
-        else if (strcmp(buffer, "s")==0)
-            serial_t_::print(capteur_srf05_t_.value());
+        else if (strcmp(buffer, "sAr")==0)
+            serial_t_::print((capteur_srf05_t_1.value()+capteur_srf05_t_2.value())/2);
+
+        else if (strcmp(buffer, "sAv")==0)
+            serial_t_::print((capteur_srf05_t_1.value()+capteur_srf05_t_2.value())/2);
+
 
         else if (strcmp(buffer, "?")==0) //serial de la carte (ping)
             serial_t_::print(3);
@@ -118,7 +129,10 @@ ISR(TIMER2_OVF_vect) //overflow du timer 2, qui appelle le refresh d'un ou des c
 {
     static uint8_t overflow=0;  //on appelle la fonction refresh qu'une fois sur 5 overflow
     if(overflow==0)
-        capteur_srf05_t_.refresh();
+    {
+        capteur_srf05_t_1.refresh();
+        capteur_srf05_t_2.refresh();
+    }
     overflow++;
     overflow%=5;
 }
@@ -127,6 +141,7 @@ ISR(TIMER1_OVF_vect)    //MÊME SI ELLE EST VIDE, IL EST OBLIGATOIRE DE DEFINIR 
 
 ISR(PCINT0_vect)
 {
-   capteur_srf05_t_.interruption();
+   capteur_srf05_t_1.interruption();
+   capteur_srf05_t_2.interruption();
 }
 

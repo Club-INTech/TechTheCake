@@ -83,15 +83,21 @@ class CapteurSRF
     {
         // Front montant si bit == 1, descendant sinon.
         uint8_t bit = PinRegisterIn::read();
+        static uint8_t ancienBit=0;
+
 
         // Début de l'impulsion
-        if (bit)                // Réinitialisation du capteur.
+        if (bit && bit!=ancienBit)
+        {
             origineTimer=Timer::value();  /*le timer est utilisée comme horloge (afin d'utiliser plusieurs capteurs)
-                                         On enregistre donc cette valeur et on fera la différence.*/
+                                           On enregistre donc cette valeur et on fera la différence.*/
+            ancienBit=bit;
+        }
 
         // Fin de l'impulsion
-        else
+        else if(!(bit) && bit!=ancienBit)
         {
+            ancienBit=bit;
                 //Enregistrement de la dernière distance calculée, mais pas envoyer (l'envoi se fait par la méthode value)
             derniereDistance=((Timer::value()+Timer::value_max()-origineTimer)&Timer::value_max())*(1700-0.0000325*F_CPU)/1800.;
                          /*interpolation linéaire entre deux valeurs

@@ -1,6 +1,14 @@
-#éventuelles importations nécessaires pour le module
+import abc
 
-class CapteursSerie():
+
+class Capteurs(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def mesurer(self,marche_arriere):
+        pass
+
+    
+
+class CapteursSerie(Capteurs):
     """
     classe gérant les capteurs (communication via la série avec la carte appropriée).
     """
@@ -11,53 +19,40 @@ class CapteursSerie():
         self.config = config
         self.log = log
 
-    def mesurer(self):
-        """
-        renvoi une distance, toussa...
-        """
-#        self.aze = "zer" #variable pour toute la classe
-#        aze = "zer"	#variable pour la fonction
-        
-        self.log.debug("ca va")
-        self.log.warning("probleme")
-        self.log.critical("gros probleme")
-        
-
-        """
-        pour PF : on utilise ici la méthode "communiquer" du service "serie" qui est en attribut de la classe Capteurs.
-        elle prend trois arguments : 
-          - la dénomination de la carte avec laquelle on communique (à paramétrer dans le constructeur de la classe Serie)
-          - un tableau de messages d'envoi, qui seront séparés par des retours à la ligne
-          - un entier spécifiant le nombre de lignes de retour attendues
-        cette méthode renvoit un TABLEAU de STRING, contenant les lignes de retour.
-        Donc on oublie pas de bien caster la sortie :)
-        """
+    def mesurer(self, marche_arriere): #cette méthode retourne une médiane d'un grand nombre de valeurs provenant des capteurs
 
         nbValeurs=3 #le nombre de valeurs d'où est extraite la médiane. A passer en paramètre?
+
         valeurs=[] #cette liste contiendra les m valeurs
         for i in range(nbValeurs):
-            retour = self.serie.communiquer("capteurs_actionneurs",["s"], 1)
+            if(marche_arriere):
+                retour = self.serie.communiquer("capteurs_actionneurs",["sAr"], 1)
+            else:
+                retour = self.serie.communiquer("capteurs_actionneurs",["sAv"], 1)
             valeurs.append(int(retour[0]))
 
         valeurs.sort()	#les valeurs sont triées dans l'ordre croissant
 
-        capteurUltrason=valeurs[m//2]
+        capteurUltrason=valeurs[nbValeurs//2]
 
         valeurs=[]
         for i in range(nbValeurs): #idem, mais avec les infrarouges
-            retour = self.serie.communiquer("capteurs_actionneurs",["i"], 1)
+            if(marche_arriere): 
+                retour = self.serie.communiquer("capteurs_actionneurs",["iAr"], 1)
+            else:
+                retour = self.serie.communiquer("capteurs_actionneurs",["iAv"], 1)
             valeurs.append(int(retour[0]))
 
         valeurs.sort()
 
-        capteurInfrarouge=valeurs[m//2]
+        capteurInfrarouge=valeurs[nbValeurs//2]
 
         self.log.debug("Appel capteurs et récupération de valeurs: OK")
 
         return max(capteurInfrarouge, capteurUltrason) #on retourne la distance maximale (on est optimiste)
 
 
-class CapteursSimulateur():
+class CapteursSimulateur(Capteurs):
     """
     classe gérant les capteurs (communication via la série avec la carte appropriée).
     """
@@ -68,7 +63,7 @@ class CapteursSimulateur():
         self.config = config
         self.log = log
 
-    def mesurer(self): 
+    def mesurer(self,marche_arriere): 
         distance = self.simulateur.getRobotSensorValue()
         if distance==-1:
             return 5000
