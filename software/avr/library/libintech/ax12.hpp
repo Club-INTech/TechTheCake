@@ -74,7 +74,7 @@
 #define AX_SYNC_WRITE               131
 
 
-template<class Serial, uint32_t baudrate>
+template<class Serial, uint32_t baudrate, class Debug>
 class AX
 {
 private:
@@ -89,50 +89,59 @@ private:
     // Méthode pour envoyer un packet lisible par l'AX12
     void sendPacket(uint8_t datalength, uint8_t instruction, uint8_t *data)
     {
+        Debug::print("Envoi du paquet :");
         uint8_t checksum = 0;
-        Serial::disable_rx();             //désactiver la série
+        //Serial::disable_rx();             //désactiver la série
         Serial::send_char(0xFF);
+        Debug::print(0xFF);
         Serial::send_char(0xFF);
+        Debug::print(0xFF);
         
         Serial::send_char(id_);
+        Debug::print(id_);
         Serial::send_char(datalength + 2);
+        Debug::print(datalength+2);
         Serial::send_char(instruction);
+        Debug::print(instruction);
         
         checksum += id_ + datalength + 2 + instruction;
         
         for (uint8_t f=0; f<datalength; f++) {
 			checksum += data[f];
 			Serial::send_char(data[f]);
+            Debug::print(data[f]);
         }
         
         Serial::send_char(~checksum);
-        Serial::enable_rx();                //réactiver la série
+        Debug::print(~checksum);
+       // Serial::enable_rx();                //réactiver la série
+        Debug::print("Fin du paquet");
     }
     
     /// Ecriture d'une séquence de bits 
     void writeData(uint8_t regstart, uint8_t reglength, uint16_t value) {
         uint8_t data [reglength+1];
-        data [0] = regstart; data [1] = value&0xFF;
+        data[0] = regstart;
+        data[1] = value&0xFF;
         if (reglength > 1) {data[2] = (value&0xFF00)>>8;}
         sendPacket(reglength+1, AX_WRITE_DATA, data);
     }
 
-    uint16_t readData(uint8_t regstart, uint8_t reglength){
-        uint8_t reponse;
-        uint8_t data [reglength+1];
+    uint16_t readData(int16_t &reponse, uint8_t regstart, uint8_t reglength){
+        uint8_t data [2];
         data[0] = regstart;
         data[1] = reglength;
-        sendPacket(reglength+1, AX_READ_DATA, data);
+        sendPacket(2, AX_READ_DATA, data);
 
         uint8_t buffer1, buffer2;
         uint8_t status = READ_SUCCESS;
         uint8_t checksum = 0;
-        uint16_t timeout=1;
+        uint16_t timeout=3000;
         uint8_t resultat;
         uint8_t resultat1;
         uint8_t resultat2;
 
-        status = Serial::read_char(buffer1, timeout); 
+        //status = Serial::read_char(buffer1, timeout); 
 
 
         // Attention, ça va devenir dégueulasse !
@@ -140,72 +149,62 @@ private:
 
         // Délimiteur de trame
         do{
-            buffer2 = buffer1;
+            //buffer2 = buffer1;
             status = Serial::read_char(buffer1, timeout);
+            Debug::print(buffer1);
             if (status == READ_TIMEOUT) return status;
-        } while (status != READ_TIMEOUT && buffer1 != 0xFF && buffer2 != 0xFF);
+        } while (1 /*buffer1 != 0xFF && buffer2 != 0xFF*/);
 
-        // Lecture de l'ID
+        /*
+        status = Serial::read_char(buffer1, 100);           // Lecture de l'ID, ignorée
+        if (status == READ_TIMEOUT) return status;
         status = Serial::read_char(buffer1, 100);
         if (status == READ_TIMEOUT) return status;
-        if (buffer1 == id_){                                     // On est bien sur le bon AX12 ?
-            status = Serial::read_char(buffer1, 100);
-            if (status == READ_TIMEOUT) return status;
-            uint8_t length = buffer1;                           // Récupération de la longueur du mot
+        uint8_t length = buffer1;                           // Récupération de la longueur du mot
 
-            status = Serial::read_char(buffer1, 100);
-            if (status == READ_TIMEOUT) return status;
-            uint8_t error = buffer1;
-            // Plein de cas d'erreur à tester !!
-            if (error == 0x00)
-            {                                 // S'il n'y a pas d'erreur
-                if(length == 0x03)
-                {                             // Si le mot n'est qu'un octet
-                    status = Serial::read_char(buffer1, 100);
-                    if (status == READ_TIMEOUT) return status;
-                    resultat = buffer1;
-                    checksum += resultat;
-                }
-                else
-                {                             // Sinon, il fait 2 octets !
-                    status = Serial::read_char(buffer1, 100);
-                    if (status == READ_TIMEOUT) return status;
-                    resultat1 = buffer1; 
-
-                    status = Serial::read_char(buffer1, 100);
-                    if (status == READ_TIMEOUT) return status;
-                    resultat2 = buffer1;
-
-                    checksum += resultat2 + resultat1;                    
-                }
-
+        status = Serial::read_char(buffer1, 100);
+        if (status == READ_TIMEOUT) return status;
+        uint8_t error = buffer1;
+        // Plein de cas d'erreur à tester !!
+        if (error == 0x00)
+        {                                 // S'il n'y a pas d'erreur
+            if(length == 0x03)
+            {                             // Si le mot n'est qu'un octet
+                status = Serial::read_char(resultat, 100);
+                if (status == READ_TIMEOUT) return status;
+                checksum += resultat;
+            }
+            else
+            {                             // Sinon, il fait 2 octets !
                 status = Serial::read_char(buffer1, 100);
                 if (status == READ_TIMEOUT) return status;
-                uint8_t checksumAX12 = buffer1;
 
-                checksum += id_ + length + error;
-
-                if(checksum != checksumAX12){
-                    // Erreur fatale à corriger d'une façon ou d'une autre !!!
-                }
-
-                else{
-                    uint16_t res;
-                    if (length = 0x03)
-                        return res = resultat1<<8 + resultat2;
-                    else return res = resultat;
-
-                }
-
+                status = Serial::read_char(resultat, 100);
+                if (status == READ_TIMEOUT) return status;
+                checksum += resultat + buffer1;
+                resultat = (resultat<<8) + buffer1;
             }
+
+            status = Serial::read_char(buffer1, 100);
+            if (status == READ_TIMEOUT) return status;
+            uint8_t checksumAX12 = buffer1;
+
+            checksum += id_ + length + error;
+
+            if(checksum != checksumAX12){
+                // Erreur fatale à corriger d'une façon ou d'une autre !!!
+            }
+
             else{
-                // Plein de cas d'erreur à tester, à voir à la page 12 de la datasheet
+                reponse = resultat;
+                return READ_SUCCESS;
             }
+
         }
         else{
-            Serial::print("Tu t'es planté d'ID !");
-            // Si on est pas sur le bon AX12, faut réfléchir un peu !!1!
+            // Plein de cas d'erreur à tester, à voir à la page 12 de la datasheet
         }
+        */
     }
     
 public:
@@ -218,6 +217,8 @@ public:
         // Définit les angles mini et maxi
         writeData (AX_CW_ANGLE_LIMIT_L, 2, AX_angle_CW);
         writeData (AX_CCW_ANGLE_LIMIT_L, 2, AX_angle_CCW);
+        writeData (AX_RETURN_LEVEL, 1, 2);
+        writeData (AX_RETURN_DELAY_TIME, 1, 1);
 	}
 
     AX(uint8_t id)  // Constructeur de la classe pour faire tourner l'AX12 en continu
@@ -272,11 +273,25 @@ public:
     
 
     /// Goto - Envoyer un angle en DEGRES entre angleMin et angleMax
-    void goTo(uint16_t angle)
+    uint16_t goTo(uint16_t angle)
     {
         writeData(AX_GOAL_POSITION_L, 2, (uint16_t)(1023.*angle/300.));
     }
 
+    uint16_t viderBuffer()
+    {
+        uint8_t buffer1;
+        uint8_t status = READ_SUCCESS;
+        uint16_t timeout=3000;
+        Debug::print("\nVidage du buffer :");
+        do{
+            //buffer2 = buffer1;
+            status = Serial::read_char(buffer1, timeout);
+            Debug::print(buffer1);
+            if (status == READ_TIMEOUT) return status;
+        } while (1 /*buffer1 != 0xFF && buffer2 != 0xFF*/);
+    }
+    
     /// Changement de l'angle min
     void changeAngleMIN(uint16_t angleCW)
     {
@@ -329,37 +344,61 @@ public:
     {
         writeData(adresse, n, val);
     }
-    /*
+    
     // Récupération de la position
-    uint16_t readPosition()
+    int16_t readPosition(int8_t &codeErreur)
     {
-        readData(AX_PRESENT_POSITION_L, 2);
+        int16_t reponse = 1;
+        codeErreur = readData(reponse, AX_PRESENT_POSITION_L, 2);
+        return reponse;
     }
 
-    // Récupération de la vitesse de rotation
-    uint16_t readSpeed()
+    int16_t readPosition()
     {
-        readData(AX_PRESENT_SPEED_L, 2);
+        int8_t erreur;
+        return readPosition(erreur);
+    }
+
+    
+
+    // Récupération de la vitesse de rotation
+    int16_t readSpeed(int8_t &codeErreur)
+    {
+        int16_t reponse;
+        codeErreur = readData(reponse, AX_PRESENT_SPEED_L, 2);
+        return reponse;
+    }
+
+    int16_t readSpeed()
+    {
+        int8_t erreur;
+        return readSpeed(erreur);
     }
 
     // Récupération de la charge (peut être utile pour ne pas exploser un AX12)
-    uint16_t readLoad()
+    int16_t readLoad(int8_t &codeErreur)
     {
-        readData(AX_PRESENT_LOAD_L, 2);
+        int16_t reponse;
+        codeErreur = readData(reponse, AX_PRESENT_LOAD_L, 2);
+        return reponse;
     }
 
     // Récupération de la tension actuelle à laquelle est soumis l'AX12
-    uint16_t readVoltage()
+    int16_t readVoltage(int8_t &codeErreur)
     {
-        readData(AX_PRESENT_VOLTAGE, 1);
+        int16_t reponse;        
+        codeErreur = readData(reponse, AX_PRESENT_VOLTAGE, 1);
+        return reponse;
     }
 
     // Récupération de la temperature actuelle
-    uint16_t readTemperature()
+    int16_t readTemperature(int8_t &codeErreur)
     {
-        readData(AX_PRESENT_TEMPERATURE, 1);
+        int16_t reponse;
+        readData(reponse, AX_PRESENT_TEMPERATURE, 1);
+        return reponse;
     }
-    */
+    
     
 };
 

@@ -23,7 +23,7 @@
 #define AX_ANGLECW              198
 #define AX_ANGLECCW             800
 
-// Vitesse de rotation des AX12 (je crois entre 0 et 1024, pas sûr)
+// Vitesse de rotation des AX12 (je crois entre 0 et 1023, pas sûr)
 #define AX_SPEED                1000
 
 /******************************** 
@@ -60,7 +60,7 @@
 
 
 typedef Serial<0> serial_PC_;
-typedef Serial<1> serial_t_;
+typedef Serial<1> serial_AX_;
 
 
 
@@ -70,15 +70,18 @@ int main(int argc, char const *argv[])
 
     serial_PC_::init();
     serial_PC_::change_baudrate(BAUD_RATE_SERIE);
+    serial_AX_::init();
+    serial_AX_::change_baudrate(BAUD_RATE_SERIE);
     
     // REANIMATION_MODE :
     uint8_t debug_baudrate = 0x00;
 
  
 
-    AX<serial_t_, BAUD_RATE_AX12> AX4(4, 0, 0x3ff);
-    AX<serial_t_, BAUD_RATE_AX12> AX1337(0xFE, 0, 0x3ff);
-    AX<serial_t_, BAUD_RATE_AX12> Tableau_AX[] = {AX4, AX1337};
+    AX<serial_AX_, BAUD_RATE_AX12, serial_PC_> AX4(0, 0, 0x3ff);
+    AX<serial_AX_, BAUD_RATE_AX12, serial_PC_> AX1337(0xFE, 0, 0x3ff);
+
+    AX<serial_AX_, BAUD_RATE_AX12, serial_PC_> Tableau_AX[] = {AX4, AX1337};
 
     while(1){
             
@@ -118,14 +121,14 @@ int main(int argc, char const *argv[])
             }
               
             // GoTo angle
-            else if(strcmp(buffer, "goto") == 0)
+            else if(strcmp(buffer, "g") == 0)
             {
                 uint8_t id;
                 uint16_t angle;
                 
-                serial_PC_::read(id);
+                //serial_PC_::read(id);
                 serial_PC_::read(angle);
-                Tableau_AX[id].goTo((uint16_t)(1023.*angle/300.)); //Angle d'entrée commandé
+                Tableau_AX[0].goTo(angle); //Angle d'entrée commandé
                 serial_PC_::print("Déplacement effectué\n");
             }
 
@@ -283,6 +286,87 @@ int main(int argc, char const *argv[])
                 Tableau_AX[id].reanimationMode();
                 serial_PC_::print("AX12 reflaché !\n");
             }
+
+            else if (strcmp(buffer, "*") == 0)
+            {
+                uint8_t id;
+                int16_t rep;
+                int8_t codeErreur;
+                //serial_PC_::read(id);
+                rep = Tableau_AX[0].readPosition(codeErreur);
+                serial_PC_::print("Reponse : ");
+                serial_PC_::print(rep);
+                serial_PC_::print("Code erreur : ");
+                serial_PC_::print(codeErreur);
+
+            }
+
+            else if (strcmp(buffer, "$") == 0)
+            {
+                Tableau_AX[0].viderBuffer();
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            else if (strcmp(buffer, "bambou") == 0)
+            {
+                uint8_t id;
+                uint16_t angle;
+                serial_PC_::read(id);
+                serial_PC_::read(angle);
+                Tableau_AX[id].goTo(angle);
+
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             else
             {
