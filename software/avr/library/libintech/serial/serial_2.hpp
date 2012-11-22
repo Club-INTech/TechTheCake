@@ -61,6 +61,16 @@ inline void Serial<2>::disable_rx() {
 	UCSR2B &= ~(1 << RXEN2);
 }
 
+template<>
+inline void Serial<2>::enable_tx() {
+	UCSR2B |= (1 << TXEN2);
+}
+
+template<>
+inline void Serial<2>::disable_tx() {
+	UCSR2B &= ~(1 << TXEN2);
+}
+
 ISR(USART2_RX_vect) {
     unsigned char c = UDR2;
     Serial < 2 > ::store_char(c);

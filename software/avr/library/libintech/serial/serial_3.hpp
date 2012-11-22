@@ -61,6 +61,16 @@ inline void Serial<3>::disable_rx() {
 	UCSR3B &= ~(1 << RXEN3);
 }
 
+template<>
+inline void Serial<3>::enable_tx() {
+	UCSR3B |= (1 << TXEN3);
+}
+
+template<>
+inline void Serial<3>::disable_tx() {
+	UCSR3B &= ~(1 << TXEN3);
+}
+
 ISR(USART3_RX_vect) {
     unsigned char c = UDR3;
     Serial < 3 > ::store_char(c);

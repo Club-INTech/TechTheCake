@@ -60,6 +60,18 @@ public:
      * 
      */
     static inline void disable_rx();
+	
+	/**
+     * Active la transmission
+     * 
+     */
+    static inline void enable_tx();
+    
+    /**
+     * Désactive la transmission
+     * 
+     */
+    static inline void disable_tx();
 
     /**
      * Fixe le baudrate (défaut à 57600)
