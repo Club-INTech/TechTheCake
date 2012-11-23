@@ -101,21 +101,21 @@ int main()
 
 
         // infrarouge
-        if (strcmp(buffer, "iAv")==0)
+        if (strcmp(buffer, "i")==0) //minuscule: avant. Majuscule: arrière
             serial_t_::print(capteur_infrarouge_1.value());
 
-        else if (strcmp(buffer, "iAr")==0)
+        else if (strcmp(buffer, "I")==0)
             serial_t_::print(capteur_infrarouge_2.value());
 
         else if (strcmp(buffer, "u")==0) //debug (valeur brute, à ne pas utiliser directement)
             serial_t_::print(capteur_infrarouge_1.value_brut());
 
         // Ultrasons SRF05
-        else if (strcmp(buffer, "sAr")==0)
-            serial_t_::print((capteur_srf05_t_1.value()+capteur_srf05_t_2.value())/2);
+        else if (strcmp(buffer, "S")==0)
+            serial_t_::print(capteur_srf05_t_1.value());
 
-        else if (strcmp(buffer, "sAv")==0)
-            serial_t_::print((capteur_srf05_t_1.value()+capteur_srf05_t_2.value())/2);
+        else if (strcmp(buffer, "s")==0)
+            serial_t_::print(capteur_srf05_t_2.value());
 
 
         else if (strcmp(buffer, "?")==0) //serial de la carte (ping)
@@ -131,7 +131,7 @@ ISR(TIMER2_OVF_vect) //overflow du timer 2, qui appelle le refresh d'un ou des c
     if(overflow==0)
     {
         capteur_srf05_t_1.refresh();
-        capteur_srf05_t_2.refresh();
+//        capteur_srf05_t_2.refresh();
     }
     overflow++;
     overflow%=5;
@@ -142,6 +142,6 @@ ISR(TIMER1_OVF_vect)    //MÊME SI ELLE EST VIDE, IL EST OBLIGATOIRE DE DEFINIR 
 ISR(PCINT0_vect)
 {
    capteur_srf05_t_1.interruption();
-   capteur_srf05_t_2.interruption();
+//   capteur_srf05_t_2.interruption();
 }
 
