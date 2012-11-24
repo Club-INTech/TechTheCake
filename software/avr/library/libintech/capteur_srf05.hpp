@@ -1,6 +1,8 @@
 #ifndef CAPTEUR_SRF05_HPP
 #define CAPTEUR_SRF05_HPP
 
+//Angle du cône de vision: 38°
+
 // Librairie standard :
 #include <stdint.h>
 #include <avr/io.h>
@@ -15,7 +17,7 @@
 // Librarie INTech permettant l'utilisation simplifiée des ports et pin
 #include <libintech/register.hpp>
 
-#define NB_VALEURS_MEDIANE  4   //une puissance de 2 OBLIGATOIREMENT! (ainsi, on remplace %, opération coûteuse, par &)
+#define NB_VALEURS_MEDIANE_SRF  4   //une puissance de 2 OBLIGATOIREMENT! (ainsi, on remplace %, opération coûteuse, par &)
 
 /** @file libintech/capteur_srf05.hpp
  *  @brief Ce fichier crée une classe capteur_srf05 pour pouvoir utiliser simplement les capteurs SRF05.
@@ -46,7 +48,7 @@ class CapteurSRF
 {
     uint16_t origineTimer;			//origine du timer afin de détecter une durée (le timer est une horloge)
     uint16_t derniereDistance;		//contient la dernière distance acquise, prête à être envoyée
-    uint16_t ringBufferValeurs[NB_VALEURS_MEDIANE];      //contient un certain nombre de valeurs provenant des capteurs dont on va prendre la médiane
+    uint16_t ringBufferValeurs[NB_VALEURS_MEDIANE_SRF];      //contient un certain nombre de valeurs provenant des capteurs dont on va prendre la médiane
     uint8_t  indiceBuffer;
 
    public:	//constructeur
@@ -105,10 +107,10 @@ class CapteurSRF
             ringBufferValeurs[indiceBuffer++]=((Timer::value()+Timer::value_max()-origineTimer)&Timer::value_max())*(1700-0.0000325*F_CPU)/1800.;
                          /*interpolation linéaire entre deux valeurs
                          mesurées: 1050/1800 à 20MHz, 1180/1800 à 16MHz*/
-            if(!(indiceBuffer&=(NB_VALEURS_MEDIANE-1))) //calcul de la médiane
+            if(!(indiceBuffer&=(NB_VALEURS_MEDIANE_SRF-1))) //calcul de la médiane
             {
-                tri_fusion(0, NB_VALEURS_MEDIANE-1);
-                derniereDistance=ringBufferValeurs[NB_VALEURS_MEDIANE/2];
+                tri_fusion(0, NB_VALEURS_MEDIANE_SRF-1);
+                derniereDistance=ringBufferValeurs[NB_VALEURS_MEDIANE_SRF/2];
             }
 
         }
@@ -117,7 +119,7 @@ class CapteurSRF
 
     void fusionner(uint8_t deb, uint8_t milieu, uint8_t fin) {
     uint8_t i1=deb, i2=milieu+1, i3=0, i;
-    uint16_t tabAux[NB_VALEURS_MEDIANE];
+    uint16_t tabAux[NB_VALEURS_MEDIANE_SRF];
 
     while(i1<=milieu && i2<=fin)
     {
