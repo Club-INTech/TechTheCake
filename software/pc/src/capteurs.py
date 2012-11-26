@@ -5,7 +5,8 @@ class Capteurs(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def mesurer(self,marche_arriere):
         pass
-
+    def _fusion(self, valeur1, valeur2):
+        return max(valeur1, valeur2)
     
 
 class CapteursSerie(Capteurs):
@@ -18,34 +19,37 @@ class CapteursSerie(Capteurs):
         self.serie = serie
         self.config = config
         self.log = log
+        
+        self.nb_capteurs_infrarouge_avant=int((self.serie.communiquer("capteurs_actionneurs",["nbI"], 1))[0])
+        self.nb_capteurs_infrarouge_arriere=int((self.serie.communiquer("capteurs_actionneurs",["nbi"], 1))[0])
+        self.nb_capteurs_ultrason_avant=int((self.serie.communiquer("capteurs_actionneurs",["nbS"], 1))[0])
+        self.nb_capteurs_ultrason_arriere=int((self.serie.communiquer("capteurs_actionneurs",["nbs"], 1))[0])
+        
 
-    def mesurer(self, marche_arriere): #cette méthode retourne une médiane d'un grand nombre de valeurs provenant des capteurs
+#cette méthode retourne une médiane d'un grand nombre de valeurs provenant des capteurs
+    def mesurer(self, marche_arriere=False):
 
-        nbValeurs=3 #le nombre de valeurs d'où est extraite la médiane. A passer en paramètre?
-
-        valeurs=[] #cette liste contiendra les m valeurs
-        for i in range(nbValeurs):
-            if(marche_arriere):
-                retour = self.serie.communiquer("capteurs_actionneurs",["sAr"], 1)
+        if marche_arriere:
+            if self.nb_capteurs_ultrason_avant>=1:
+                capteurUltrason = int((self.serie.communiquer("capteurs_actionneurs",["S"], self.nb_capteurs_ultrason_avant))[0])
             else:
-                retour = self.serie.communiquer("capteurs_actionneurs",["sAv"], 1)
-            valeurs.append(int(retour[0]))
-
-        valeurs.sort()	#les valeurs sont triées dans l'ordre croissant
-
-        capteurUltrason=valeurs[nbValeurs//2]
-
-        valeurs=[]
-        for i in range(nbValeurs): #idem, mais avec les infrarouges
-            if(marche_arriere): 
-                retour = self.serie.communiquer("capteurs_actionneurs",["iAr"], 1)
+                capteurUltrason = 5000
+        else:
+            if self.nb_capteurs_ultrason_arriere>=1:
+                capteurUltrason = int((self.serie.communiquer("capteurs_actionneurs",["s"], self.nb_capteurs_ultrason_arriere))[0])
             else:
-                retour = self.serie.communiquer("capteurs_actionneurs",["iAv"], 1)
-            valeurs.append(int(retour[0]))
+                capteurUltrason = 5000
 
-        valeurs.sort()
-
-        capteurInfrarouge=valeurs[nbValeurs//2]
+        if marche_arriere:
+            if self.nb_capteurs_infrarouge_avant>=1:
+                capteurInfrarouge = int((self.serie.communiquer("capteurs_actionneurs",["I"], self.nb_capteurs_infrarouge_avant))[0])
+            else:
+                capteurInfrarouge = 5000
+        else:
+            if self.nb_capteurs_infrarouge_arriere>=1:
+                capteurInfrarouge = int((self.serie.communiquer("capteurs_actionneurs",["i"], self.nb_capteurs_infrarouge_arriere))[0])
+            else:
+                capteurInfrarouge = 5000
 
         self.log.debug("Appel capteurs et récupération de valeurs: OK")
 
@@ -63,8 +67,11 @@ class CapteursSimulateur(Capteurs):
         self.config = config
         self.log = log
 
-    def mesurer(self,marche_arriere): 
-        distance = self.simulateur.getRobotSensorValue()
+    def mesurer(self,marche_arriere=False):
+        if marche_arriere:
+            distance = self.simulateur.getSensorValue(0)
+        else:
+            distance = self.simulateur.getSensorValue(1)
         if distance==-1:
             return 5000
         else:

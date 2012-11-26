@@ -1,6 +1,8 @@
 #ifndef CAPTEUR_SRF05_HPP
 #define CAPTEUR_SRF05_HPP
 
+//Angle du cône de vision: 38°
+
 // Librairie standard :
 #include <stdint.h>
 #include <avr/io.h>
@@ -15,6 +17,7 @@
 // Librarie INTech permettant l'utilisation simplifiée des ports et pin
 #include <libintech/register.hpp>
 
+#define NB_VALEURS_MEDIANE_SRF  4   //une puissance de 2 OBLIGATOIREMENT! (ainsi, on remplace %, opération coûteuse, par &)
 
 /** @file libintech/capteur_srf05.hpp
  *  @brief Ce fichier crée une classe capteur_srf05 pour pouvoir utiliser simplement les capteurs SRF05.
@@ -40,20 +43,23 @@
  *  détecté.  
  */
 
-template< class Timer, class PinRegisterIn, class PinRegisterOut >
+template< class Timer, class PinRegisterIn, class PinRegisterOut >  //in et out sont par rapport à l'avr, ils sont donc inversés par rapport à la doc du srf!
 class CapteurSRF
 {
     uint16_t origineTimer;			//origine du timer afin de détecter une durée (le timer est une horloge)
     uint16_t derniereDistance;		//contient la dernière distance acquise, prête à être envoyée
+    uint16_t ringBufferValeurs[NB_VALEURS_MEDIANE_SRF];      //contient un certain nombre de valeurs provenant des capteurs dont on va prendre la médiane
+    uint8_t  indiceBuffer;
 
    public:	//constructeur
    CapteurSRF() :
-	derniereDistance(0)
+	derniereDistance(0),
+    indiceBuffer(0)
     {
         PinRegisterOut::set_output();
         PinRegisterIn::set_input();
-        PinRegisterOut::clear_interrupt();
-        PinRegisterIn::set_interrupt();
+        PinRegisterOut::clear_interrupt();  //nos envois ne déclencheront pas d'interruption
+        PinRegisterIn::set_interrupt();     //au contraire des réponses
     }
 
     uint16_t value()
@@ -82,9 +88,8 @@ class CapteurSRF
     void interruption()
     {
         // Front montant si bit == 1, descendant sinon.
-        uint8_t bit = PinRegisterIn::read();
         static uint8_t ancienBit=0;
-
+        uint8_t bit = PinRegisterIn::read();
 
         // Début de l'impulsion
         if (bit && bit!=ancienBit)
@@ -99,12 +104,50 @@ class CapteurSRF
         {
             ancienBit=bit;
                 //Enregistrement de la dernière distance calculée, mais pas envoyer (l'envoi se fait par la méthode value)
-            derniereDistance=((Timer::value()+Timer::value_max()-origineTimer)&Timer::value_max())*(1700-0.0000325*F_CPU)/1800.;
+            ringBufferValeurs[indiceBuffer++]=((Timer::value()+Timer::value_max()-origineTimer)&Timer::value_max())*(1700-0.0000325*F_CPU)/1800.;
                          /*interpolation linéaire entre deux valeurs
                          mesurées: 1050/1800 à 20MHz, 1180/1800 à 16MHz*/
+            if(!(indiceBuffer&=(NB_VALEURS_MEDIANE_SRF-1))) //calcul de la médiane
+            {
+                tri_fusion(0, NB_VALEURS_MEDIANE_SRF-1);
+                derniereDistance=ringBufferValeurs[NB_VALEURS_MEDIANE_SRF/2];
+            }
 
         }
     }
+    private:
+
+    void fusionner(uint8_t deb, uint8_t milieu, uint8_t fin) {
+    uint8_t i1=deb, i2=milieu+1, i3=0, i;
+    uint16_t tabAux[NB_VALEURS_MEDIANE_SRF];
+
+    while(i1<=milieu && i2<=fin)
+    {
+        if(ringBufferValeurs[i1]<ringBufferValeurs[i2])
+            tabAux[i3++]=ringBufferValeurs[i1++];
+        else
+            tabAux[i3++]=ringBufferValeurs[i2++];
+    }
+    while(i1<=milieu)
+        tabAux[i3++]=ringBufferValeurs[i1++];
+
+    while(i2<=fin)
+        tabAux[i3++]=ringBufferValeurs[i2++];
+    for(i=0; i<=fin-deb; i++)
+        ringBufferValeurs[i+deb]=tabAux[i];
+    }
+
+    void tri_fusion(uint8_t debut, uint8_t fin) { //testé et fonctionnel
+    if(debut < fin)
+    {
+        uint8_t milieu=(fin+debut)/2;
+        tri_fusion(debut, milieu);
+        tri_fusion(milieu+1, fin);
+        fusionner(debut, milieu, fin);
+    }
+    }
+
 };
+
 
 #endif
