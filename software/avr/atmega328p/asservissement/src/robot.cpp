@@ -48,12 +48,12 @@ void Robot::asservir()
 	int32_t pwmRotation;
 
 	if (etat_rot_)
-		pwmRotation = rotation.pwm(mesure_angle_,10);
+		pwmRotation = rotation.pwm(mesure_angle_,0);
 	else
 		pwmRotation = 0;
 
 	if(etat_tra_)
-		pwmTranslation = translation.pwm(mesure_distance_,20);
+		pwmTranslation = translation.pwm(mesure_distance_,0);
 	else
 		pwmTranslation = 0;
 	
