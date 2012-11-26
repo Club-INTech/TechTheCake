@@ -39,12 +39,24 @@ inline void Serial<0>::change_baudrate(uint32_t new_baudrate) {
 
 template<>
 inline void Serial<0>::enable_rx() {
+	UCSR0B |= (1 << RXCIE0);
 	UCSR0B |= (1 << RXEN0);
 }
 
 template<>
 inline void Serial<0>::disable_rx() {
+	UCSR0B &= ~(1 << RXCIE0);
 	UCSR0B &= ~(1 << RXEN0);
+}
+
+template<>
+inline void Serial<0>::enable_tx() {
+	UCSR0B |= (1 << TXEN0);
+}
+
+template<>
+inline void Serial<0>::disable_tx() {
+	UCSR0B &= ~(1 << TXEN0);
 }
 
 #endif /* SERIAL_0_HPP_ */

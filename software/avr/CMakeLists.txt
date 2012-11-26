@@ -32,3 +32,4 @@ endmacro()
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/atmega324p)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/atmega328p)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/atmega1280)

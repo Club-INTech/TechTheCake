@@ -51,12 +51,24 @@ void Serial < 2 > ::change_baudrate(uint32_t new_baudrate) {
 
 template<>
 inline void Serial<2>::enable_rx() {
+	UCSR2B |= (1 << RXCIE2);
 	UCSR2B |= (1 << RXEN2);
 }
 
 template<>
 inline void Serial<2>::disable_rx() {
+	UCSR2B &= ~(1 << RXCIE2);
 	UCSR2B &= ~(1 << RXEN2);
+}
+
+template<>
+inline void Serial<2>::enable_tx() {
+	UCSR2B |= (1 << TXEN2);
+}
+
+template<>
+inline void Serial<2>::disable_tx() {
+	UCSR2B &= ~(1 << TXEN2);
 }
 
 ISR(USART2_RX_vect) {
