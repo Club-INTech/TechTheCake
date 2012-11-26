@@ -265,7 +265,7 @@ public:
     template<class T>
     static inline void print_noln(T val) {
         write(val);
-		write("\r");
+		send_char('\r');
     }
 
     /**
