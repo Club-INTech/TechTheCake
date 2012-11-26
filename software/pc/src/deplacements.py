@@ -113,7 +113,7 @@ class DeplacementsSerie(Deplacements):
         """
         blocage = False
         
-        moteur_force = PWMmoteurGauche > 45 or PWMmoteurDroit > 45
+        moteur_force = abs(PWMmoteurGauche) > 45 or abs(PWMmoteurDroit) > 45
         bouge_pas = derivee_erreur_rotation==0 and derivee_erreur_translation==0
             
         if (bouge_pas and moteur_force):
@@ -137,8 +137,8 @@ class DeplacementsSerie(Deplacements):
         et détermine si le robot est arrivé à sa position de consigne
         retourne la valeur du booléen enMouvement (attribut de robot)
         """
-        rotation_stoppe = erreur_rotation < 105
-        translation_stoppe = erreur_translation < 100
+        rotation_stoppe = abs(erreur_rotation) < 105
+        translation_stoppe = abs(erreur_translation) < 100
         bouge_pas = derivee_erreur_rotation == 0 and derivee_erreur_translation == 0
         
         return not(rotation_stoppe and translation_stoppe and bouge_pas)
@@ -232,19 +232,19 @@ class DeplacementsSerie(Deplacements):
         envoi.append(float(kd_rotation[valeur-1]))
         envoi.append(int(vb_rotation[valeur-1]))
         self.serie.communiquer("asservissement",envoi, 0)
-            
+        
     def get_infos_stoppage_enMouvement(self):
         infos_string = self.serie.communiquer("asservissement","?infos",4)
-        infos_string = list(map(lambda x: int(x), infos_string))
+        infos_int = list(map(lambda x: int(x), infos_string))
         
-        deriv_erreur_rot = infos_string[2] - self.infos_stoppage_enMouvement["erreur_rotation"]
-        deriv_erreur_tra = infos_string[3] - self.infos_stoppage_enMouvement["erreur_translation"]
+        deriv_erreur_rot = infos_int[2] - self.infos_stoppage_enMouvement["erreur_rotation"]
+        deriv_erreur_tra = infos_int[3] - self.infos_stoppage_enMouvement["erreur_translation"]
         
         self.infos_stoppage_enMouvement={
-            "PWMmoteurGauche" : infos_string[0],
-            "PWMmoteurDroit" : infos_string[1],
-            "erreur_rotation" : infos_string[2],
-            "erreur_translation" : infos_string[3],
+            "PWMmoteurGauche" : infos_int[0],
+            "PWMmoteurDroit" : infos_int[1],
+            "erreur_rotation" : infos_int[2],
+            "erreur_translation" : infos_int[3],
             "derivee_erreur_rotation" : deriv_erreur_rot,
             "derivee_erreur_translation" : deriv_erreur_tra
             }
