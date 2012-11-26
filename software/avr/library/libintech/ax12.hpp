@@ -196,16 +196,7 @@ public:
     {
         writeData(AX_ID, 1, nouvel_id);
     }
-
-    void init(uint16_t AX_angle_CW, uint16_t AX_angle_CCW, uint16_t AX_speed)
-    {
-         // Définit les angles mini et maxi
-        writeData (AX_CW_ANGLE_LIMIT_L, 2, AX_angle_CW);
-        writeData (AX_CCW_ANGLE_LIMIT_L, 2, AX_angle_CCW);
-        // Définit la vitesse de rotation
-        writeData (AX_GOAL_SPEED_L, 2, AX_speed);
     
-    }
     /// Goto - Envoyer un angle en DEGRES entre angleMin et angleMax
     void goTo(uint16_t angle)
     {
