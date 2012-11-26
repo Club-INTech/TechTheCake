@@ -74,7 +74,7 @@
 #define AX_SYNC_WRITE               131
 
 
-template<class Serial, uint32_t baudrate>
+template<class Serial_AX12, uint32_t baudrate>
 class AX
 {
 private:
@@ -88,22 +88,43 @@ private:
     void sendPacket(uint8_t datalength, uint8_t instruction, uint8_t *data)
     {
         uint8_t checksum = 0;
-        Serial::disable_rx();             //désactiver la série
-        Serial::send_char(0xFF);
-        Serial::send_char(0xFF);
-        Serial::send_char(id_);
-        Serial::send_char(datalength + 2);
-        Serial::send_char(instruction);
+        Serial_AX12::disable_rx();             //désactiver la série
+        Serial_AX12::send_char(0xFF);
+        Serial_AX12::send_char(0xFF);
+        Serial_AX12::send_char(id_);
+        Serial_AX12::send_char(datalength + 2);
+        Serial_AX12::send_char(instruction);
         
         checksum += id_ + datalength + 2 + instruction;
         
         for (uint8_t f=0; f<datalength; f++) {
-			checksum += data[f];
-			Serial::send_char(data[f]);
+            checksum += data[f];
+            Serial_AX12::send_char(data[f]);
         }
         
-        Serial::send_char(~checksum);
-        Serial::enable_rx();                //réactiver la série
+        Serial_AX12::send_char(~checksum);
+        Serial_AX12::enable_rx();                //réactiver la série
+    }
+
+    void static sendPacketB(uint8_t datalength, uint8_t instruction, uint8_t *data)
+    {
+        uint8_t checksum = 0;
+        Serial_AX12::disable_rx();             //désactiver la série
+        Serial_AX12::send_char(0xFF);
+        Serial_AX12::send_char(0xFF);
+        Serial_AX12::send_char(0xFE);
+        Serial_AX12::send_char(datalength + 2);
+        Serial_AX12::send_char(instruction);
+        
+        checksum += 254 + datalength + 2 + instruction;
+        
+        for (uint8_t f=0; f<datalength; f++) {
+            checksum += data[f];
+            Serial_AX12::send_char(data[f]);
+        }
+        
+        Serial_AX12::send_char(~checksum);
+        Serial_AX12::enable_rx();                //réactiver la série
     }
     
     /// Ecriture d'une séquence de bits 
@@ -113,6 +134,14 @@ private:
         data[1] = value&0xFF;
         if (reglength > 1) {data[2] = (value&0xFF00)>>8;}
         sendPacket(reglength+1, AX_WRITE_DATA, data);
+    }
+
+    void static writeDataB(uint8_t regstart, uint8_t reglength, uint16_t value) {
+        uint8_t data [reglength+1];
+        data[0] = regstart;
+        data[1] = value&0xFF;
+        if (reglength > 1) {data[2] = (value&0xFF00)>>8;}
+        sendPacketB(reglength+1, AX_WRITE_DATA, data);
     }
     
 public:
@@ -148,7 +177,7 @@ public:
         // d'écoute un signal de reset.
         while (debug_baudrate < 0xFF)
         {
-            Serial::change_baudrate(2000000/(debug_baudrate + 1));
+            Serial_AX12::change_baudrate(2000000/(debug_baudrate + 1));
             writeData(AX_BAUD_RATE, 1, 9600);
             debug_baudrate++;
         }
@@ -158,7 +187,7 @@ public:
 
         //writeData(0xFE, AX_BAUD_RATE, 1, uint8_t(2000000/baud_rate - 1));
         
-        //Serial::change_baudrate(baud_rate);
+        //Serial_AX12::change_baudrate(baud_rate);
         // Si l'id est différente du broadcast, alors on la reflash.
     }
     
@@ -182,24 +211,48 @@ public:
     {
         writeData(AX_GOAL_POSITION_L, 2, (uint16_t)(1023.*angle/300.));
     }
+
+    void static goToB(uint16_t angle)
+    {
+        writeDataB(AX_GOAL_POSITION_L, 2, (uint16_t)(1023.*angle/300.));
+    }
     
+
     /// Changement de l'angle min
     void changeAngleMIN(uint16_t angleCW)
     {
         writeData(AX_CW_ANGLE_LIMIT_L, 2, angleCW);
     }
 
+    void static changeAngleMINB(uint16_t angleCW)
+    {
+        writeDataB(AX_CW_ANGLE_LIMIT_L, 2, angleCW);
+    }
+
+
     /// Changement de l'angle max
     void changeAngleMAX(uint16_t angleCCW)
     {
         writeData(AX_CCW_ANGLE_LIMIT_L, 2, angleCCW);
     }
+
+    void static changeAngleMAXB(uint16_t angleCCW)
+    {
+        writeDataB(AX_CCW_ANGLE_LIMIT_L, 2, angleCCW);
+    }
     
+
     /// Changement de la vitesse de rotation
     void changeSpeed(uint16_t vitesse)
     {
         writeData(AX_GOAL_SPEED_L, 2, vitesse);
     }
+
+    void static changeSpeedB(uint16_t vitesse)
+    {
+        writeDataB(AX_GOAL_SPEED_L, 2, vitesse);
+    }
+
 
     /// Désasservissement d'un AX12 branché.
     void unasserv()
@@ -207,11 +260,23 @@ public:
         writeData(AX_TORQUE_ENABLE, 1, 0);
     }
 
+    void static unasservB()
+    {
+        writeDataB(AX_TORQUE_ENABLE, 1, 0);
+    }
+
+
     // Changement de la limite de température
     void changeT(uint8_t temperature)
     {
         writeData(AX_LIMIT_TEMPERATURE, 1, temperature);
     }
+
+    void static changeTB(uint8_t temperature)
+    {
+        writeDataB(AX_LIMIT_TEMPERATURE, 1, temperature);
+    }
+
 
     // Changement du voltage maximal
     void changeVMax(uint8_t volt)
@@ -219,11 +284,23 @@ public:
         writeData(AX_UP_LIMIT_VOLTAGE, 1, volt);
     }
 
+    void static changeVMaxB(uint8_t volt)
+    {
+        writeDataB(AX_UP_LIMIT_VOLTAGE, 1, volt);
+    }
+
+
     // Changement du voltage minimal
     void changeVMin(uint8_t volt)
     {
         writeData(AX_DOWN_LIMIT_VOLTAGE, 1, volt);
     }
+
+    void static changeVMinB(uint8_t volt)
+    {
+        writeDataB(AX_DOWN_LIMIT_VOLTAGE, 1, volt);
+    }
+
 
     // LEDs d'alarme
     void led(uint8_t type)
@@ -231,9 +308,20 @@ public:
         writeData(AX_ALARM_LED, 1, type);
     }
 
+    void static ledB(uint8_t type)
+    {
+        writeDataB(AX_ALARM_LED, 1, type);
+    }
+
+    // Pour envoyer un message comme un grand !
     void message(uint8_t adresse, uint8_t n, uint16_t val)
     {
         writeData(adresse, n, val);
+    }
+
+    void static messageB(uint8_t adresse, uint8_t n, uint16_t val)
+    {
+        writeDataB(adresse, n, val);
     }
 };
 
