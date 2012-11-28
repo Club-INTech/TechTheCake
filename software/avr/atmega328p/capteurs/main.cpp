@@ -24,7 +24,11 @@
  ********************************/
 
 #define BAUD_RATE_SERIE         9600
-
+#define ACQUITTER               serial_t_::print("_")
+#define NB_SRF_AVANT            1
+#define NB_SRF_ARRIERE          1
+#define NB_INFRAROUGE_AVANT     1
+#define NB_INFRAROUGE_ARRIERE   1
 
 /** Ce fichier gère la carte qui fait le lien entre les AX12, les capteurs ultrasons,
  *  le jumper de début de match et la carte PCI.
@@ -100,27 +104,62 @@ int main()
         /// *********************************************** ///
 
 
+
+        if (strcmp(buffer, "nbI")==0)   //pour l'initialisation en python du nombre de capteurs
+        {
+            ACQUITTER;
+            serial_t_::print(NB_INFRAROUGE_AVANT);
+        }
+        else if (strcmp(buffer, "nbi")==0)
+        {
+            ACQUITTER;
+            serial_t_::print(NB_INFRAROUGE_ARRIERE);
+        }
+        else if (strcmp(buffer, "nbS")==0)
+        {
+            ACQUITTER;
+            serial_t_::print(NB_SRF_AVANT);
+        }
+        else if (strcmp(buffer, "nbs")==0)
+        {
+            ACQUITTER;
+            serial_t_::print(NB_SRF_ARRIERE);
+        }
+
         // infrarouge
-        if (strcmp(buffer, "iAv")==0)
+        else if (strcmp(buffer, "i")==0) //minuscule: arrière. Majuscule: avant
+        {
+            ACQUITTER;
             serial_t_::print(capteur_infrarouge_1.value());
-
-        else if (strcmp(buffer, "iAr")==0)
+        }
+        else if (strcmp(buffer, "I")==0)
+        {
+            ACQUITTER;
             serial_t_::print(capteur_infrarouge_2.value());
-
+        }
         else if (strcmp(buffer, "u")==0) //debug (valeur brute, à ne pas utiliser directement)
+        {
+            ACQUITTER;
             serial_t_::print(capteur_infrarouge_1.value_brut());
+        }
 
         // Ultrasons SRF05
-        else if (strcmp(buffer, "sAr")==0)
-            serial_t_::print((capteur_srf05_t_1.value()+capteur_srf05_t_2.value())/2);
-
-        else if (strcmp(buffer, "sAv")==0)
-            serial_t_::print((capteur_srf05_t_1.value()+capteur_srf05_t_2.value())/2);
-
-
-        else if (strcmp(buffer, "?")==0) //serial de la carte (ping)
+        else if (strcmp(buffer, "S")==0)
+        {
+            ACQUITTER;
+            serial_t_::print(capteur_srf05_t_1.value());
+        }
+        else if (strcmp(buffer, "s")==0)
+        {
+            ACQUITTER;
+            serial_t_::print(capteur_srf05_t_2.value());
+        }
+        //serial de la carte (ping)
+        else if (strcmp(buffer, "?")==0)
+        {
+            ACQUITTER;
             serial_t_::print(3);
-
+        }
     }
     return 0;
 }
@@ -131,7 +170,8 @@ ISR(TIMER2_OVF_vect) //overflow du timer 2, qui appelle le refresh d'un ou des c
     if(overflow==0)
     {
         capteur_srf05_t_1.refresh();
-        capteur_srf05_t_2.refresh();
+//        capteur_srf05_t_2.refresh();
+        capteur_infrarouge_1.refresh();
     }
     overflow++;
     overflow%=5;
@@ -142,6 +182,6 @@ ISR(TIMER1_OVF_vect)    //MÊME SI ELLE EST VIDE, IL EST OBLIGATOIRE DE DEFINIR 
 ISR(PCINT0_vect)
 {
    capteur_srf05_t_1.interruption();
-   capteur_srf05_t_2.interruption();
+//   capteur_srf05_t_2.interruption();
 }
 

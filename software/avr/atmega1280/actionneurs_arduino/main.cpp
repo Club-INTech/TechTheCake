@@ -57,56 +57,35 @@
 // matériel. Vérifier la masse, puis faire revérifier la masse par un 2A
     #define REANIMATION_MODE        0
 
-
-
 typedef Serial<0> serial_PC_;
 typedef Serial<1> serial_AX_;
 
-
-
+typedef AX<serial_AX_, BAUD_RATE_AX12> AX12;
 
 int main(int argc, char const *argv[])
 {
+    serial_AX_::init();
+    serial_AX_::change_baudrate(BAUD_RATE_SERIE);
 
     serial_PC_::init();
     serial_PC_::change_baudrate(BAUD_RATE_SERIE);
-    serial_AX_::init();
-    serial_AX_::change_baudrate(BAUD_RATE_SERIE);
     
     // REANIMATION_MODE :
-    uint8_t debug_baudrate = 0x00;
+    //uint8_t debug_baudrate = 0x00;
 
  
+    AX12 AX4(4, 0, 0x3ff);
 
-    AX<serial_AX_, BAUD_RATE_AX12, serial_PC_> AX4(0, 0, 0x3ff);
-    AX<serial_AX_, BAUD_RATE_AX12, serial_PC_> AX1337(0xFE, 0, 0x3ff);
-
-    AX<serial_AX_, BAUD_RATE_AX12, serial_PC_> Tableau_AX[] = {AX4, AX1337};
+    AX12 Tableau_AX[] = {AX4};
 
     while(1){
             
             char buffer[17];
             serial_PC_::read(buffer);
 
-            // Ping
-            if(strcmp(buffer, "?") == 0)
+            if (strcmp(buffer, "?") == 0)
             {
-                serial_PC_::print(3);
-            }
-            
-            
-            // Easter Egg
-            else if(strcmp(buffer, "sopa") == 0)
-            {
-                serial_PC_::print("SOPAL'INT\n\r-------\n\n\rSopal'INT VA VOUS METTRE\n\r\
-                                    LA RACE !!!!\n\r***********");
-                serial_PC_::print("STOP SOPA ! START SOPAL'INT\n");
-            }
-            
-            // AIDE
-            else if(strcmp(buffer, "!") == 0)
-            {
-                serial_PC_::print("Salut vieux ! Comment vas-tu aujourd'hui ?\n");
+                serial_PC_::print(0);
             }
             
             /// *********************************************** ///
@@ -114,11 +93,11 @@ int main(int argc, char const *argv[])
             /// *********************************************** ///
             
             // Initialisation des AX12
-            else if(strcmp(buffer, "i") == 0)
+            /*else if(strcmp(buffer, "i") == 0)
             {
                 AX1337.init(AX_ANGLECW, AX_ANGLECCW, AX_SPEED);
                 serial_PC_::print("AX12 initialisés\n");
-            }
+            }*/
               
             // GoTo angle
             else if(strcmp(buffer, "g") == 0)
@@ -126,23 +105,19 @@ int main(int argc, char const *argv[])
                 uint8_t id;
                 uint16_t angle;
                 
-                //serial_PC_::read(id);
+                serial_PC_::read(id);
                 serial_PC_::read(angle);
-                Tableau_AX[0].goTo(angle); //Angle d'entrée commandé
+                Tableau_AX[id].goTo(angle); //Angle d'entrée commandé
                 serial_PC_::print("Déplacement effectué\n");
             }
 
-            // Movement relatif
-            else if(strcmp(buffer, "move") == 0)
+            else if(strcmp(buffer, "gb") == 0)
             {
-                uint8_t id;
-                uint8_t angle;
-                serial_PC_::read(id);
+                uint16_t angle;
                 serial_PC_::read(angle);
-                Tableau_AX[id].goTo((AX_PRESENT_POSITION_L + (uint16_t)(1023.*angle/300.)));
+                AX12::goToB(angle); //Angle d'entrée commandé
                 serial_PC_::print("Déplacement effectué\n");
             }
-            
             
             // Changement de vitesse
             else if(strcmp(buffer, "ch_vit") == 0)
@@ -171,7 +146,7 @@ int main(int argc, char const *argv[])
             }
             
             // Changement de l'angle CCW (max)
-            else if(strcmp(buffer, "m") == 0)
+            else if(strcmp(buffer, "M") == 0)
             {
                 uint8_t id;
                 uint16_t angle;
@@ -183,7 +158,7 @@ int main(int argc, char const *argv[])
                 serial_PC_::print("Angle maximum modifié\n");                
             }             
             
-            // Reflashage des Ids de tous les servos branchés
+            // Reflashage de l'ID d'un AX12
             else if(strcmp(buffer, "f") == 0)
             {
                 uint8_t ancien_id;
@@ -286,87 +261,6 @@ int main(int argc, char const *argv[])
                 Tableau_AX[id].reanimationMode();
                 serial_PC_::print("AX12 reflaché !\n");
             }
-
-            else if (strcmp(buffer, "*") == 0)
-            {
-                uint8_t id;
-                int16_t rep;
-                int8_t codeErreur;
-                //serial_PC_::read(id);
-                rep = Tableau_AX[0].readPosition(codeErreur);
-                serial_PC_::print("Reponse : ");
-                serial_PC_::print(rep);
-                serial_PC_::print("Code erreur : ");
-                serial_PC_::print(codeErreur);
-
-            }
-
-            else if (strcmp(buffer, "$") == 0)
-            {
-                Tableau_AX[0].viderBuffer();
-            }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            else if (strcmp(buffer, "bambou") == 0)
-            {
-                uint8_t id;
-                uint16_t angle;
-                serial_PC_::read(id);
-                serial_PC_::read(angle);
-                Tableau_AX[id].goTo(angle);
-
-            }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
             else
             {

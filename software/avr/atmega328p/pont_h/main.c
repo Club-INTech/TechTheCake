@@ -31,12 +31,12 @@
 	int32_t derivee = 0;
 	int32_t pwm1;
 	int32_t integrale;
-	double kp=0.01;
-	double ki=0.001;
-	double kd=0.1;
+	double kp=0.1;
+	double ki=0.000;
+	double kd=0.01;
 	bool moteur_force;
 	bool bouge_pas;
-	uint8_t vitesse_max = 75;
+	uint8_t vitesse_max = 255;
 	uint8_t i = 0;
 
 int main()
@@ -97,14 +97,14 @@ ISR(TIMER1_OVF_vect)
 	pwm1 = kp * erreur + ki * integrale + kd * (erreur - erreur_ancienne);
 	moteur.envoyerPwm(pwm1);
 	Serial<0>::print(roue1);
+	derivee = erreur - erreur_ancienne;
 	erreur_ancienne = erreur;
 
 	/*
 	Si blocage moteur:
 	*/
-	derivee = erreur - erreur_ancienne;
 	bouge_pas = derivee == 0;
-	moteur_force = pwm1 > 30;
+	moteur_force = (pwm1 > 30) || (pwm1 < -30);
 	if (bouge_pas && moteur_force)
 	{
 		++i;
