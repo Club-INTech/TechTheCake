@@ -5,3 +5,4 @@ software/build/*
 *.kate-swp
 /software/.kdev4/software.kdev4
 /software/pc/logs/*
+/software/avr/library/libintech/#ax12.hpp#
