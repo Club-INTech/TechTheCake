@@ -62,8 +62,10 @@ typedef Serial<1> serial_AX_;
 
 typedef AX<serial_AX_, BAUD_RATE_AX12> AX12;
 
-int main(int argc, char const *argv[])
-{
+
+int main () {
+  
+
     serial_AX_::init();
     serial_AX_::change_baudrate(BAUD_RATE_SERIE);
 
@@ -79,7 +81,7 @@ int main(int argc, char const *argv[])
     AX12 Tableau_AX[] = {AX4};
 
     while(1){
-            
+          
             char buffer[17];
             serial_PC_::read(buffer);
 
@@ -110,14 +112,6 @@ int main(int argc, char const *argv[])
                 Tableau_AX[id].goTo(angle); //Angle d'entrée commandé
                 serial_PC_::print("Déplacement effectué\n");
             }
-
-	    else if(strcmp(buffer, "r") == 0 ) {
-		uint8_t id;
-		uint16_t angle;
-		serial_PC_::read(id);
-		Tableau_AX[id].goTo(150);
-		serial_PC_::print("Position réinitialisée à 150°\n");
-	    }
 
             else if(strcmp(buffer, "gb") == 0)
             {
@@ -277,11 +271,3 @@ int main(int argc, char const *argv[])
     }
     return 0;
 }
-
-
-
-
-
-
-
-
