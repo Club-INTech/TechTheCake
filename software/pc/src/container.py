@@ -69,16 +69,16 @@ class Container:
         else:
             #enregistrement du service Serie
             self.assembler.register("serie", Serie, requires = ["log"])
-            #enregistrement du service des déplacements pour la série
-            self.assembler.register("deplacements",DeplacementsSerie, requires=["serie","config","log"])
-            #enregistrement du service des capteurs pour la série
-            self.assembler.register("capteurs",CapteursSerie, requires=["serie","config","log"])
+            ##enregistrement du service des déplacements pour la série
+            #self.assembler.register("deplacements",DeplacementsSerie, requires=["serie","config","log"])
+            ##enregistrement du service des capteurs pour la série
+            #self.assembler.register("capteurs",CapteursSerie, requires=["serie","config","log"])
         
-        #enregistrement du service robot
-        self.assembler.register("robot", Robot, requires=["deplacements","capteurs","config","log"])
+        ##enregistrement du service robot
+        #self.assembler.register("robot", Robot, requires=["deplacements","capteurs","config","log"])
         
-        #enregistrement du service robotChrono
-        self.assembler.register("robotChrono", RobotChrono, requires=["log"])
+        ##enregistrement du service robotChrono
+        #self.assembler.register("robotChrono", RobotChrono, requires=["log"])
         
         """
         #enregistrement du service donnant des infos sur la table
