@@ -23,6 +23,8 @@
 #define AX_ANGLECW              205
 #define AX_ANGLECCW             818
 
+
+
 // Vitesse de rotation des AX12 (je crois entre 0 et 1023, pas sûr)
 #define AX_SPEED                1000
 
@@ -73,7 +75,6 @@ int main(int argc, char const *argv[])
     // REANIMATION_MODE :
     //uint8_t debug_baudrate = 0x00;
 
- 
     AX12 AX4(4, AX_ANGLECW, AX_ANGLECCW);
 
     AX12 Tableau_AX[] = {AX4};
@@ -89,6 +90,7 @@ int main(int argc, char const *argv[])
                 
                 serial_PC_::read(angle);
                 Tableau_AX[0].goTo(angle); //Angle d'entrée commandé
+
                 serial_PC_::print("Déplacement effectué\n");
             }
             
