@@ -59,6 +59,8 @@
 // matériel. Vérifier la masse, puis faire revérifier la masse par un 2A
     #define REANIMATION_MODE        0
 
+#define AQUITTER serial_PC_::print("_");
+
 typedef Serial<0> serial_PC_;
 typedef Serial<1> serial_AX_;
 
@@ -83,15 +85,17 @@ int main(int argc, char const *argv[])
             
             char buffer[17];
             serial_PC_::read(buffer);
+            AQUITTER;
 
             if(strcmp(buffer, "g") == 0)
             {
                 uint16_t angle;
                 
                 serial_PC_::read(angle);
+                AQUITTER;
                 Tableau_AX[0].goTo(angle); //Angle d'entrée commandé
 
-                serial_PC_::print("Déplacement effectué\n");
+                // serial_PC_::print("Déplacement effectué\n");
             }
             
             // Changement de vitesse
@@ -100,14 +104,20 @@ int main(int argc, char const *argv[])
                 uint16_t speed;
                 
                 serial_PC_::read(speed);
+                AQUITTER;
                 
                 Tableau_AX[0].changeSpeed(speed);
-                serial_PC_::print("Vitesse modifiée\n");
+                // serial_PC_::print("Vitesse modifiée\n");
+            }
+            
+            else if(strcmp(buffer, "?") ==0)
+            {
+            	serial_PC_::print("6");
             }
 
             else
             {
-                serial_PC_::print("Donne moi une commande que je connais !\n");
+                // serial_PC_::print("Donne moi une commande que je connais !\n");
             } 
     }
     return 0;
