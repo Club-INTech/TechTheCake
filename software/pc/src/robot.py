@@ -27,10 +27,12 @@ class Robot:
             self.sleep_boucle_acquittement = 0.1
             self.frequence_maj_arc_de_cercle = 20
             self.pas = 100
+            self.vitesse_rotation_arc_cercle = 10
         else:
             self.sleep_boucle_acquittement = 0.1
             self.frequence_maj_arc_de_cercle = 20
             self.pas = 100
+            self.vitesse_rotation_arc_cercle = 10
         
         #couleur du robot
         if self.config["mode_simulateur"]:
@@ -266,9 +268,11 @@ class Robot:
     def _acquittement(self):
         #récupérations des informations d'acquittement
         infos = self.deplacements.get_infos_stoppage_enMouvement()
+        
         #print("infos :")
         #for i in infos:
             #print(i+" : "+str(infos[i]))
+            
         #robot bloqué ?
         if self.blocage or self.deplacements.gestion_blocage(**infos):
             self.blocage = True
@@ -285,12 +289,8 @@ class Robot:
     def arc_de_cercle(self,xM,yM,hooks=[]):
         #effectue un arc de cercle à partir de la position courante vers le projetté de M sur le cercle passant par la position courante
         
-        
         pas = self.pas
         
-        self.set_vitesse_rotation(1)
-        self.set_vitesse_translation(1)
-                
         self.log.debug("effectue un arc de cercle entre ("+str(self.x)+", "+str(self.y)+") et ("+str(xM)+", "+str(yM)+")")
         self.blocage = False
         
@@ -328,10 +328,15 @@ class Robot:
         #calcul de l'angle de A (point de départ)
         tA = atan2(self.y-yO,self.x-xO)
         
+        self.set_vitesse_rotation(1)
         if (pas < 0) != self.marche_arriere:
             self.tourner(tA-pi/2)
         else:
             self.tourner(tA+pi/2)
+        
+        #vitesses pour l'arc de cercle
+        self.set_vitesse_translation(1)
+        self.deplacements.serie.communiquer("asservissement",["crv",1.5,2.0,self.vitesse_rotation_arc_cercle], 0)
         
         while 1:
             #calcul de l'angle de A (point de départ)
@@ -360,6 +365,7 @@ class Robot:
                     return acq
             else:
                 self.log.debug("abscisse curviligne atteinte, on fixe la consigne au point d'arrivé")
+                self.set_vitesse_rotation(1)
                 #proche de la consigne, dernière mise à jour du point virtuel 
                 self.consigne_x = xB
                 self.consigne_y = yB

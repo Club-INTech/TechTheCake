@@ -62,8 +62,10 @@ typedef Serial<1> serial_AX_;
 
 typedef AX<serial_AX_, BAUD_RATE_AX12> AX12;
 
-int main(int argc, char const *argv[])
-{
+
+int main () {
+  
+
     serial_AX_::init();
     serial_AX_::change_baudrate(BAUD_RATE_SERIE);
 
@@ -79,7 +81,7 @@ int main(int argc, char const *argv[])
     AX12 Tableau_AX[] = {AX4};
 
     while(1){
-            
+          
             char buffer[17];
             serial_PC_::read(buffer);
 
@@ -269,11 +271,3 @@ int main(int argc, char const *argv[])
     }
     return 0;
 }
-
-
-
-
-
-
-
-
