@@ -45,9 +45,9 @@ class Robot:
         self._consigne_x = 0
         self._consigne_y = 0
         if self.couleur == "bleu":
-            self._consigne_orientation = pi
-        else:
             self._consigne_orientation = 0
+        else:
+            self._consigne_orientation = pi
         
         self._blocage = False
         self._enMouvement = True

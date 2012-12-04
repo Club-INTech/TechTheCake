@@ -53,8 +53,10 @@ class Container:
                 client.service.setTableDimension(3000,2000)
                 client.service.defineCoordinateSystem(1,0,0,-1,1500,2000)
                 client.service.defineRobot({"list":[{"float":[-200.,-200.]},{"float":[-200.,200.]},{"float":[200.,200.]},{"float":[200.,-200.]}]})
-                client.service.addSensor(0,{"list":[{"int":[0,400]},{"int":[-500.,1000.]},{"int":[500,1000]}]})
-                client.service.addSensor(1,{"list":[{"int":[0,-400]},{"int":[-500.,-1000.]},{"int":[500,-1000]}]})
+                client.service.addSensor(0,{"list":[{"int":[0,-400]},{"int":[-135.,-1100.]},{"int":[135,-1100]}]}) #nombre pair: infrarouge. Nombre impair: ultrasons
+                client.service.addSensor(2,{"list":[{"int":[0,400]},{"int":[-135.,1100.]},{"int":[135,1100]}]})
+                client.service.addSensor(1,{"list":[{"int":[0,-400]},{"int":[-600.,-1600.]},{"int":[600,-1600]}]})
+                client.service.addSensor(3,{"list":[{"int":[0,400]},{"int":[-600.,1600.]},{"int":[600,1600]}]})
                 client.service.setRobotAngle(0)
                 client.service.setRobotPosition(-1200,300)
                 client.service.addEnemy(30,"black")
