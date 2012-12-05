@@ -10,8 +10,9 @@ sys.path.insert(0, os.path.join(chemin, "src/"))
 
 #module d'injection de dépendances
 from assemblage import assembler
+from mutex import Mutex
 
-#modules
+#modules -> services
 from read_ini import Config
 from robot import *
 from robotChrono import RobotChrono
@@ -25,6 +26,7 @@ from log import Log
 class Container:
     def __init__(self):
         self.assembler = assembler()
+        self.mutex = Mutex()
         
         #enregistrement du service de configuration
         def make_conf():
@@ -71,16 +73,16 @@ class Container:
         else:
             #enregistrement du service Serie
             self.assembler.register("serie", Serie, requires = ["log"])
-            ##enregistrement du service des déplacements pour la série
-            #self.assembler.register("deplacements",DeplacementsSerie, requires=["serie","config","log"])
-            ##enregistrement du service des capteurs pour la série
-            #self.assembler.register("capteurs",CapteursSerie, requires=["serie","config","log"])
+            #enregistrement du service des déplacements pour la série
+            self.assembler.register("deplacements",DeplacementsSerie, requires=["serie","config","log"])
+            #enregistrement du service des capteurs pour la série
+            self.assembler.register("capteurs",CapteursSerie, requires=["serie","config","log"])
         
-        ##enregistrement du service robot
-        #self.assembler.register("robot", Robot, requires=["deplacements","capteurs","config","log"])
+        #enregistrement du service robot
+        self.assembler.register("robot", Robot, requires=["deplacements","capteurs","config","log"])
         
-        ##enregistrement du service robotChrono
-        #self.assembler.register("robotChrono", RobotChrono, requires=["log"])
+        #enregistrement du service robotChrono
+        self.assembler.register("robotChrono", RobotChrono, requires=["log"])
         
         """
         #enregistrement du service donnant des infos sur la table
@@ -94,5 +96,7 @@ class Container:
         """
         
     def get_service(self,id):
-        return self.assembler.provide(id)
+        #mutex pour éviter la duplication d'un service à cause d'un thread (danger !)
+        with self.mutex:
+            return self.assembler.provide(id)
         

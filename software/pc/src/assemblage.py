@@ -24,9 +24,6 @@ class assembler(object):
         factory = factory or (lambda *deps : self.__build(type, deps))
         self.services[id] = type_information(type, factory, dependencies, cacheable)
         
-        #les services doivent être mis en cache dès le register, si on veut utiliser des singletons dans différents threads
-        self.provide(id)
-
     def __build(self, type, dependencies): #@ReservedAssignment
         return type(*dependencies)
     
