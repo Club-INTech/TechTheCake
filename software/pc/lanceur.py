@@ -30,5 +30,14 @@ from time import sleep
 #strat.robot.recaler()
 #strat.scripts["pipeau"].agit()
 
-#robot = container.get_service("robot")
-#robot.recaler()
+sleep(0.4)
+
+
+robot = container.get_service("robot")
+table = container.get_service("table")
+#attente de la mise à jour des coordonnées du robot
+while not robot.y:
+    sleep(0.1)
+    
+robot.recaler()
+
