@@ -19,8 +19,9 @@ from robotChrono import RobotChrono
 from deplacements import DeplacementsSimulateur, DeplacementsSerie
 from capteurs import CapteursSerie, CapteursSimulateur
 from serie import Serie
-from table import TableSimulateur
+from table import Table
 from suds.client import Client
+from recherche_de_chemin.rechercheChemin import RechercheChemin
 from strategie import Strategie
 from log import Log
 
@@ -68,10 +69,6 @@ class Container:
             #enregistrement du service des déplacements pour le simulateur
             self.assembler.register("deplacements",DeplacementsSimulateur, requires=["simulateur","config","log"])
             
-            #enregistrement du service donnant des infos sur la table
-            self.assembler.register("table", TableSimulateur, requires=["config","log"])
-            
-            
         else:
             #enregistrement du service Serie
             self.assembler.register("serie", Serie, requires = ["log"])
@@ -86,15 +83,15 @@ class Container:
         #enregistrement du service robotChrono
         self.assembler.register("robotChrono", RobotChrono, requires=["log"])
         
-        #enregistrement du service de stratégie
-        self.assembler.register("strategie", Strategie, requires=["robot", "robotChrono", "config", "log"])
+        #enregistrement du service donnant des infos sur la table
+        self.assembler.register("table", Table, requires=["config","log"])
         
-        
-        """
         #enregistrement du service de recherche de chemin
-        self.assembler.register("recherche_chemin", RechercheChemin, requires=["table","log"])
+        self.assembler.register("rechercheChemin", RechercheChemin, requires=["table","config","log"])
         
-        """
+        #enregistrement du service de stratégie
+        self.assembler.register("strategie", Strategie, requires=["robot", "robotChrono","rechercheChemin", "config", "log"])
+        
         
     def get_service(self,id):
         #mutex pour éviter la duplication d'un service à cause d'un thread (danger !)
