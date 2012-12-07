@@ -24,7 +24,7 @@ class Robot:
         
         #TODO variables à ajuster puis passer dans le service config
         if self.config["mode_simulateur"]:
-            self.sleep_boucle_acquittement = 0.5
+            self.sleep_boucle_acquittement = 0.05
             self.frequence_maj_arc_de_cercle = 20
             self.pas = 100
             self.vitesse_rotation_arc_cercle = 10
@@ -62,6 +62,9 @@ class Robot:
         
         #durée de jeu TODO : à muter dans Table ?
         self.debut_jeu = time()
+        
+        #le robot n'est pas prêt tant qu'il n'a pas recu ses coordonnées initiales par le thread de mise à jour
+        self.pret = False
         
         
     #####################################################################################

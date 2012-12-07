@@ -12,6 +12,11 @@ sys.path.insert(0, os.path.join(chemin, "src/"))
 from assemblage import assembler
 from mutex import Mutex
 
+#module pour les threads
+from threading import Thread
+#fonction lancée dans le thread de MAJ
+from thread_MAJ import fonction_MAJ
+
 #modules -> services
 from read_ini import Config
 from robot import *
@@ -92,7 +97,33 @@ class Container:
         #enregistrement du service de stratégie
         self.assembler.register("strategie", Strategie, requires=["robot", "robotChrono","rechercheChemin", "config", "log"])
         
+        #lancement des threads
+        self.start_threads()
         
+        
+    def start_threads(self):
+        
+        #fonction qui lance les threads
+        def lancement_des_threads():
+            #lancement du thread de mise à jour des coordonnées
+            thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":self})
+            thread_MAJ.start()
+            #attente d'une première mise à jour pour la suite
+            robot = self.get_service("robot")
+            while not robot.pret:
+                sleep(0.1)
+        
+        #conditions sur le lancement des threads
+        if self.config["mode_simulateur"]:
+            #si on est en mode simulateur...
+            lancement_des_threads()
+        else:
+            #...ou si l'asservissement en série est présent
+            serie = self.get_service("serie")
+            if hasattr(serie.peripheriques["asservissement"],'serie'):
+                lancement_des_threads()
+                
+                
     def get_service(self,id):
         #mutex pour éviter la duplication d'un service à cause d'un thread (danger !)
         with self.mutex:
