@@ -2,13 +2,13 @@ from time import sleep
 from scripts import *
 
 class Strategie:
-    def __init__(self, container):
+    def __init__(self, robot, robotChrono, config, log):
         
         #services importés
-        self.config = container.get_service("config")
-        self.log = container.get_service("log")
-        self.robot = container.get_service("robot")
-        self.robotChrono = container.get_service("robotChrono")
+        self.robot = robot
+        self.robotChrono = robotChrono
+        self.config = config
+        self.log = log
         
         self.scripts = {"bougies":ScriptBougies, "pipeau":ScriptPipeau}
     

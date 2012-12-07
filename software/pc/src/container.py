@@ -21,7 +21,7 @@ from capteurs import CapteursSerie, CapteursSimulateur
 from serie import Serie
 from table import TableSimulateur
 from suds.client import Client
-from scripts import Script, ScriptBougies
+from strategie import Strategie
 from log import Log
 
 class Container:
@@ -86,14 +86,14 @@ class Container:
         #enregistrement du service robotChrono
         self.assembler.register("robotChrono", RobotChrono, requires=["log"])
         
+        #enregistrement du service de stratégie
+        self.assembler.register("strategie", Strategie, requires=["robot", "robotChrono", "config", "log"])
+        
+        
         """
-        
-        
         #enregistrement du service de recherche de chemin
         self.assembler.register("recherche_chemin", RechercheChemin, requires=["table","log"])
         
-        #enregistrement du service de scripts
-        self.assembler.register("script", Script, requires=["robot","config","log"])
         """
         
     def get_service(self,id):
