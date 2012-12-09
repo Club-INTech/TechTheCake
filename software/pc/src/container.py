@@ -12,6 +12,11 @@ sys.path.insert(0, os.path.join(chemin, "src/"))
 from assemblage import assembler
 from mutex import Mutex
 
+#module pour les threads
+from threading import Thread
+#fonction lancée dans le thread de MAJ
+from thread_MAJ import fonction_MAJ
+
 #modules -> services
 from read_ini import Config
 from robot import *
@@ -19,8 +24,10 @@ from robotChrono import RobotChrono
 from deplacements import DeplacementsSimulateur, DeplacementsSerie
 from capteurs import CapteursSerie, CapteursSimulateur
 from serie import Serie
+from table import Table
 from suds.client import Client
-from scripts import Script, ScriptBougies
+from recherche_de_chemin.rechercheChemin import RechercheChemin
+from strategie import Strategie
 from log import Log
 
 class Container:
@@ -49,52 +56,74 @@ class Container:
         if (self.config["mode_simulateur"]):
             #enregistrement du service Simulateur
             def make_simu():
+                #client SOAP pour le simulateur
                 client=Client("http://localhost:8090/INTechSimulator?wsdl")
-                #initialisation de la table TODO : prendre les valeurs dans Table
+                #initialisation de la table
                 client.service.reset()
-                client.service.setTableDimension(3000,2000)
-                client.service.defineCoordinateSystem(1,0,0,-1,1500,2000)
+                client.service.setTableDimension(self.config["table_x"],self.config["table_y"])
+                client.service.defineCoordinateSystem(1,0,0,-1,self.config["table_x"]/2,self.config["table_y"])
+                #déclaration du robot
                 client.service.defineRobot({"list":[{"float":[-200.,-200.]},{"float":[-200.,200.]},{"float":[200.,200.]},{"float":[200.,-200.]}]})
-                client.service.addSensor(0,{"list":[{"int":[0,-400]},{"int":[-135.,-1100.]},{"int":[135,-1100]}]}) #nombre pair: infrarouge. Nombre impair: ultrasons
-                client.service.addSensor(2,{"list":[{"int":[0,400]},{"int":[-135.,1100.]},{"int":[135,1100]}]})
-                client.service.addSensor(1,{"list":[{"int":[0,-400]},{"int":[-600.,-1600.]},{"int":[600,-1600]}]})
-                client.service.addSensor(3,{"list":[{"int":[0,400]},{"int":[-600.,1600.]},{"int":[600,1600]}]})
-                client.service.setRobotAngle(0)
-                client.service.setRobotPosition(-1200,300)
+                #déclaration d'un robot adverse
                 client.service.addEnemy(30,"black")
                 return client.service
+                
             self.assembler.register("simulateur",  None, factory=make_simu)
-            
-            #enregistrement du service des déplacements pour le simulateur
-            self.assembler.register("deplacements",DeplacementsSimulateur, requires=["simulateur","config","log"])
             #enregistrement du service des capteurs pour le simulateur
             self.assembler.register("capteurs",CapteursSimulateur, requires=["simulateur","config","log"])
+            #enregistrement du service des déplacements pour le simulateur
+            self.assembler.register("deplacements",DeplacementsSimulateur, requires=["simulateur","config","log"])
             
         else:
             #enregistrement du service Serie
             self.assembler.register("serie", Serie, requires = ["log"])
-            #enregistrement du service des déplacements pour la série
-            self.assembler.register("deplacements",DeplacementsSerie, requires=["serie","config","log"])
             #enregistrement du service des capteurs pour la série
             self.assembler.register("capteurs",CapteursSerie, requires=["serie","config","log"])
+            #enregistrement du service des déplacements pour la série
+            self.assembler.register("deplacements",DeplacementsSerie, requires=["serie","config","log"])
         
         #enregistrement du service robot
-        self.assembler.register("robot", Robot, requires=["deplacements","capteurs","config","log"])
+        self.assembler.register("robot", Robot, requires=["capteurs","deplacements","config","log"])
         
         #enregistrement du service robotChrono
         self.assembler.register("robotChrono", RobotChrono, requires=["log"])
         
-        """
         #enregistrement du service donnant des infos sur la table
         self.assembler.register("table", Table, requires=["config","log"])
         
         #enregistrement du service de recherche de chemin
-        self.assembler.register("recherche_chemin", RechercheChemin, requires=["table","log"])
+        self.assembler.register("rechercheChemin", RechercheChemin, requires=["table","config","log"])
         
-        #enregistrement du service de scripts
-        self.assembler.register("script", Script, requires=["robot","config","log"])
-        """
+        #enregistrement du service de stratégie
+        self.assembler.register("strategie", Strategie, requires=["robot", "robotChrono","rechercheChemin", "config", "log"])
         
+        #lancement des threads
+        self.start_threads()
+        
+        
+    def start_threads(self):
+        
+        #fonction qui lance les threads
+        def lancement_des_threads():
+            #lancement du thread de mise à jour des coordonnées
+            thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":self})
+            thread_MAJ.start()
+            #attente d'une première mise à jour pour la suite
+            robot = self.get_service("robot")
+            while not robot.pret:
+                sleep(0.1)
+        
+        #conditions sur le lancement des threads
+        if self.config["mode_simulateur"]:
+            #si on est en mode simulateur...
+            lancement_des_threads()
+        else:
+            #...ou si l'asservissement en série est présent
+            serie = self.get_service("serie")
+            if hasattr(serie.peripheriques["asservissement"],'serie'):
+                lancement_des_threads()
+                
+                
     def get_service(self,id):
         #mutex pour éviter la duplication d'un service à cause d'un thread (danger !)
         with self.mutex:

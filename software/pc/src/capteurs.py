@@ -60,7 +60,13 @@ class CapteursSimulateur(Capteurs):
         self.simulateur = simulateur
         self.config = config
         self.log = log
-#definir ici la zone de capteur
+        
+        #definition des zones des capteurs
+        self.simulateur.addSensor(0,{"list":[{"int":[0,-400]},{"int":[-135.,-1100.]},{"int":[135,-1100]}]}) #nombre pair: infrarouge. Nombre impair: ultrasons
+        self.simulateur.addSensor(2,{"list":[{"int":[0,400]},{"int":[-135.,1100.]},{"int":[135,1100]}]})
+        self.simulateur.addSensor(1,{"list":[{"int":[0,-400]},{"int":[-600.,-1600.]},{"int":[600,-1600]}]})
+        self.simulateur.addSensor(3,{"list":[{"int":[0,400]},{"int":[-600.,1600.]},{"int":[600,1600]}]})
+        
 
     def mesurer(self,marche_arriere=False):
         if marche_arriere:

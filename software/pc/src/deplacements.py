@@ -3,6 +3,7 @@ import abc
 
 from time import time
 from mutex import Mutex
+from math import pi
 
 ################################################
 ## CLASSE D'INTERFACE POUR LES DEPLACEMENTS  ###
@@ -270,6 +271,14 @@ class DeplacementsSimulateur(Deplacements):
         self.simulateur = simulateur
         self.config=config
         self.log=log
+        
+        #initialisation de la position du robot sur le simulateur
+        if config["couleur"] == "bleu":
+            self.simulateur.setRobotAngle(0)
+            self.simulateur.setRobotPosition(-1200,300)
+        else:
+            self.simulateur.setRobotAngle(pi)
+            self.simulateur.setRobotPosition(1200,300)
         
     def gestion_blocage(self, **useless):
         """

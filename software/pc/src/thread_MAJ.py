@@ -13,10 +13,20 @@ def fonction_MAJ(container):
     #importation des services nécessaires
     log = container.get_service("log")
     robot = container.get_service("robot")
-    #table = container.get_service("table")
-    #capteurs = container.get_service("capteurs")
     
     log.debug("lancement du thread de mise à jour")
+    
+    #le reste du code attend une première mise à jour des coordonnées
+    robot_pret = False
+    while not robot_pret:
+        try:
+            robot.update_x_y_orientation()
+            robot_pret = True
+        except Exception as e:
+            print(e)
+        sleep(0.1)
+    robot.pret = True
+    
     while 42:
     
         #mise à jour des coordonnées dans robot
@@ -26,4 +36,3 @@ def fonction_MAJ(container):
             print(e)
         
         sleep(0.1)
-                    

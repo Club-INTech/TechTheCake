@@ -3,7 +3,7 @@ from time import time,sleep
 from mutex import Mutex
 
 class Robot:
-    def __init__(self,deplacements,capteurs,config,log):
+    def __init__(self,capteurs,deplacements,config,log):
         self.mutex = Mutex()
         
         #instances des dépendances
@@ -24,10 +24,12 @@ class Robot:
         
         #TODO variables à ajuster puis passer dans le service config
         if self.config["mode_simulateur"]:
-            self.sleep_boucle_acquittement = 0.1
+            self.sleep_boucle_acquittement = 0.05
             self.frequence_maj_arc_de_cercle = 20
             self.pas = 100
             self.vitesse_rotation_arc_cercle = 10
+            
+            
         else:
             self.sleep_boucle_acquittement = 0.1
             self.frequence_maj_arc_de_cercle = 20
@@ -35,10 +37,7 @@ class Robot:
             self.vitesse_rotation_arc_cercle = 10
         
         #couleur du robot
-        if self.config["mode_simulateur"]:
-            self.couleur = "bleu"
-        else:
-            self.couleur = "rouge"
+        self.couleur = self.config["couleur"]
             
         self._x = 0
         self._y = 0
@@ -63,6 +62,9 @@ class Robot:
         
         #durée de jeu TODO : à muter dans Table ?
         self.debut_jeu = time()
+        
+        #le robot n'est pas prêt tant qu'il n'a pas recu ses coordonnées initiales par le thread de mise à jour
+        self.pret = False
         
         
     #####################################################################################
@@ -217,7 +219,6 @@ class Robot:
             if acq:
                 return acq
             
-            
             if self.config["mode_simulateur"]:
                 #sleep nécessaire pour le simulateur
                 sleep(self.sleep_boucle_acquittement/2.)
@@ -277,8 +278,6 @@ class Robot:
         if self.blocage or self.deplacements.gestion_blocage(**infos):
             self.blocage = True
             #abandon car blocage
-            #TODO préciser les exceptions
-            raise Exception
             return 2
         #robot arrivé ?
         if not self.deplacements.update_enMouvement(**infos):
@@ -383,48 +382,65 @@ class Robot:
         
     def recaler(self):
         
-        #TODO utiliser table
-        LONGUEUR_TABLE = 3000
-        LARGEUR_ROBOT = 240
-        
         self.log.debug("début du recalage")
         
+        print("on recule lentement jusqu'à bloquer sur le bord")
         self.set_vitesse_translation(1)
         self.set_vitesse_rotation(1)
         self.marche_arriere = True
         self.avancer(-1000)
-        self.marche_arriere = False
-        self.deplacements.desactiver_asservissement_rotation()
-        self.set_vitesse_translation(2)
-        # self.avancer(-300)
-        if self.couleur == "bleu":
-            self.x = -LONGUEUR_TABLE/2. + LARGEUR_ROBOT/1.999
-            self.orientation = 0.0
-        else:
-            self.x = LONGUEUR_TABLE/2. - LARGEUR_ROBOT/1.999
-            self.orientation = pi
-        self.deplacements.activer_asservissement_rotation()
-        self.set_vitesse_translation(1)
-        self.avancer(100)
-        self.tourner(pi/2)
-        self.marche_arriere = True
-        self.avancer(-1000)
+        input()
+        print("on désactive l'asservissement en rotation pour se mettre parallèle au bord")
         self.deplacements.desactiver_asservissement_rotation()
         self.set_vitesse_translation(2)
         self.avancer(-300)
+        input()
+        print("initialisation de la coordonnée x et de l'orientation")
+        if self.couleur == "bleu":
+            self.x = -self.config["table_x"]/2. + self.config["largeur_robot"]/2.
+            self.orientation = 0.0
+        else:
+            self.x = self.config["table_x"]/2. - self.config["largeur_robot"]/2.
+            self.orientation = pi
+        input()
+        print("on avance doucement, en réactivant l'asservissement en rotation")
         self.marche_arriere = False
-        self.y = LARGEUR_ROBOT/1.999
+        self.deplacements.activer_asservissement_rotation()
+        self.set_vitesse_translation(1)
+        self.avancer(100)
+        input()
+        print("on se tourne pour le deuxième recalage")
+        self.tourner(pi/2)
+        input()
+        print("on recule lentement jusqu'à bloquer sur le bord")
+        self.marche_arriere = True
+        self.avancer(-1000)
+        input()
+        print("on désactive l'asservissement en rotation pour se mettre parallèle au bord")
+        self.deplacements.desactiver_asservissement_rotation()
+        self.set_vitesse_translation(2)
+        self.avancer(-300)
+        input()
+        print("initialisation de la coordonnée y et de l'orientation")
+        self.y = self.config["largeur_robot"]/2.
         self.orientation = pi/2.
+        input()
+        print("on avance doucement, en réactivant l'asservissement en rotation")
+        self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
         self.set_vitesse_translation(1)
         self.avancer(150)
+        input()
+        print("on prend l'orientation initiale pour le match, en fonction de la couleur")
         if self.couleur == "bleu":
             self.tourner(0.0)
         else:
             self.tourner(pi)
+        input()
+        print("vitesse initiales pour le match")
         self.set_vitesse_translation(2)
         self.set_vitesse_rotation(2)
-        
+       
         self.log.debug("recalage terminé")
         
     #############################################################################################################
