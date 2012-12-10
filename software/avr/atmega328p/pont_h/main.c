@@ -9,7 +9,8 @@
 
 #include "compteur.h"
 
-#define valeur_critique 30 // ~ 1 sec
+#define valeur_critique 15 // ~ 1 sec
+#define AQUITTER Serial<0>::print("_")
 /**
 
 *Pin 13 -> dir
@@ -32,11 +33,11 @@
 	int32_t pwm1;
 	int32_t integrale;
 	double kp=0.1;
-	double ki=0.000;
+	double ki=0.0001;
 	double kd=0.01;
 	bool moteur_force;
 	bool bouge_pas;
-	uint8_t vitesse_max = 255;
+	uint8_t vitesse_max = 175;
 	uint8_t i = 0;
 
 int main()
@@ -55,6 +56,25 @@ int main()
 		{
 			Serial<0>::print("Position voulue?");
 			Serial<0>::read(pos);
+			integrale = 0;
+			i = 0;
+		}
+		if (strcmp(ordre, "?") == 0) // Position voulue
+		{
+			AQUITTER;
+			Serial<0>::print("2");
+		}
+		if (strcmp(ordre, "haut") == 0) // Hauteur d'un verre
+		{
+			AQUITTER;
+			pos = 46000;
+			integrale = 0;
+			i = 0;
+		}
+		if (strcmp(ordre, "bas") == 0) // en bas
+		{
+			AQUITTER;
+			pos = 0;
 			integrale = 0;
 			i = 0;
 		}
@@ -96,14 +116,13 @@ ISR(TIMER1_OVF_vect)
 	integrale += erreur;
 	pwm1 = kp * erreur + ki * integrale + kd * (erreur - erreur_ancienne);
 	moteur.envoyerPwm(pwm1);
-	Serial<0>::print(roue1);
 	derivee = erreur - erreur_ancienne;
 	erreur_ancienne = erreur;
 
 	/*
 	Si blocage moteur:
 	*/
-	bouge_pas = derivee == 0;
+	bouge_pas = derivee <= 30 && derivee >= -30;
 	moteur_force = (pwm1 > 30) || (pwm1 < -30);
 	if (bouge_pas && moteur_force)
 	{
@@ -112,6 +131,11 @@ ISR(TIMER1_OVF_vect)
 		{
 			pos = roue1;
 			integrale = 0;
+			/*if ((roue1 >= 1000) && (pos == 0))
+			{
+				roue1 = 0;
+				pos = 0;
+			}*/
 		}
 	}
 	else
