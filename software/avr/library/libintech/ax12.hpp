@@ -236,7 +236,7 @@ public:
     /// Changement de la vitesse de rotation
     void changeSpeed(uint16_t vitesse)
     {
-        writeData(AX_GOAL_SPEED_L, 2, vitesse);
+        writeData(AX_GOAL_SPEED_L, 2, 1023.*vitesse/100.);
     }
 
     void static changeSpeedB(uint16_t vitesse)
