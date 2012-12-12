@@ -2,59 +2,37 @@
 # FICHIER conf.ini #
 ####################
 
-Ce fichier rassemble les constantes "modifiables", comme le temps d'un match,
+Ce fichier rassemble les constantes d'usine du robot, comme le temps d'un match,
 les poids de certaines stratégies (j'invente, hein)... 
 
-    STRUCTURE :
-    ----------------------------
+	Structure : 
+	-----------------------------
+	
+	[global]
+	variable1=valeur1
+	variable2=valeur2
+	...
 
-    [global]
-    mode=MODE_A_UTILISER
-
-    [mode1]
-    variable_a_modifier1=valeur
-    variable_a_modifier2=valeur
-    ...
-
-    [mode2]
-    variable_a_modifier5=valeur
-    ...
-
-    ...
-
-    [default]
-    variable1=valeur
-    variable2=valeur
-    variable3=valeur
-    ...
-
-    ---------------------------
-
-    La dernière catégorie [default] rassemble l'ensemble des valeurs par défaut. Si le mode
-    choisi est différent du mode [default], alors les variables nécessaires seront remplacées
     
 
 ##########################
-# FICHIER constantes.ini #
+# FICHIER global.ini #
 ##########################
 
-Ce fichier rassemble l'ensemble des variables non modifiables pour les tests, comme
-par exemple la taille de la table en [x,y]... 
+Ce fichier (s'il n'existe pas, il sera créé automatiquement) permet
+de se faire des modes en local pour une configuration de test.
 
-    STRUCTURE :
-    ---------------------------
-
-    [categorie1]
-    variable1=valeur
-    variable2=valeur
-    ...
-
-    [categorie2]
-    variable1=valeur
-    variable2=valeur
-    ...
-
-    ...
-    --------------------------
-
-    Un exemple de catégorie peut-être [table] avec comme variables x et y.
+	Structure :
+	------------------------------
+	
+	[global]
+	mode=mode_choisi
+	
+	[mode1]
+	variable_a_surcharger_1 = valeur1
+	variable_a_surcharger_2 = valeur2
+	
+	[mode2]
+	variable_a_surcharger_1 = valeur12
+	variable_a_surcharger_3 = valeur3
+	...
