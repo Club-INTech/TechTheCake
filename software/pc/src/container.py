@@ -23,6 +23,7 @@ from robot import *
 from robotChrono import RobotChrono
 from deplacements import DeplacementsSimulateur, DeplacementsSerie
 from capteurs import CapteursSerie, CapteursSimulateur
+from actionneurs import ActionneursSerie, ActionneursSimulateur
 from serie import Serie
 from table import Table
 from suds.client import Client
@@ -71,6 +72,8 @@ class Container:
             self.assembler.register("simulateur",  None, factory=make_simu)
             #enregistrement du service des capteurs pour le simulateur
             self.assembler.register("capteurs",CapteursSimulateur, requires=["simulateur","config","log"])
+            #enregistrement du servide des actionneurs pour le simulateur
+            self.assembler.register("actionneurs",ActionneursSimulateur, requires=["simulateur","config","log"])
             #enregistrement du service des déplacements pour le simulateur
             self.assembler.register("deplacements",DeplacementsSimulateur, requires=["simulateur","config","log"])
             
@@ -79,11 +82,13 @@ class Container:
             self.assembler.register("serie", Serie, requires = ["log"])
             #enregistrement du service des capteurs pour la série
             self.assembler.register("capteurs",CapteursSerie, requires=["serie","config","log"])
+            #enregistrement du service des actionneurs pour la série
+            self.assembler.register("actionneurs",ActionneursSerie, requires=["serie","config","log"])
             #enregistrement du service des déplacements pour la série
             self.assembler.register("deplacements",DeplacementsSerie, requires=["serie","config","log"])
         
         #enregistrement du service robot
-        self.assembler.register("robot", Robot, requires=["capteurs","deplacements","config","log"])
+        self.assembler.register("robot", Robot, requires=["capteurs","actionneurs","deplacements","config","log"])
         
         #enregistrement du service robotChrono
         self.assembler.register("robotChrono", RobotChrono, requires=["log"])
