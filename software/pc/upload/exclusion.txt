@@ -4,3 +4,4 @@ logs/*
 *.pyc
 *#
 upload/*
+config/local.ini

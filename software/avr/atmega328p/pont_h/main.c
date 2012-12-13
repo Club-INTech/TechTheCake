@@ -52,6 +52,7 @@ int main()
 	while (1)
 	{
 		Serial<0>::read(ordre);
+		AQUITTER;
 		if (strcmp(ordre, "pos") == 0) // Position voulue
 		{
 			Serial<0>::print("Position voulue?");
@@ -61,19 +62,16 @@ int main()
 		}
 		if (strcmp(ordre, "?") == 0) // Position voulue
 		{
-			AQUITTER;
 			Serial<0>::print("2");
 		}
 		if (strcmp(ordre, "haut") == 0) // Hauteur d'un verre
 		{
-			AQUITTER;
 			pos = 46000;
 			integrale = 0;
 			i = 0;
 		}
 		if (strcmp(ordre, "bas") == 0) // en bas
 		{
-			AQUITTER;
 			pos = 0;
 			integrale = 0;
 			i = 0;
