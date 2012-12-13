@@ -7,6 +7,7 @@ template<class Moteur>
 class Ascenceur
 {
 	public:
+		Ascenceur();
 
 };
 
