@@ -2,18 +2,15 @@
 
 Actionneurs::Actionneurs()
 {
-	//serie::init();
-	//serie::change_baudrate(9600);
+	serie::init();
+	serie::change_baudrate(9600);
+		
 }
-
-/*
-void Actionneurs::execute(char *ordre)
+void Actionneurs::execute(char * buffer)
 {
 	serie::print("_");
-	
 	if (strcmp(ordre, "?") == 0)
 	{
 		serie::print("2");
 	}
 }
-*/
