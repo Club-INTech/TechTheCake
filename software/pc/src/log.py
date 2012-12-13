@@ -62,7 +62,7 @@ class Log:
         self.dossier            = self.config["log_nom_dossier"]
         self.dossier_tmp        = self.config["log_nom_dossier_tmp"]
         self.taille_dossier_tmp = self.config["log_maxsize_tmp"]
-        
+        self.ramdisk            = self.config["log_ramdisk"]
         self.initialisation()
 
     def initialisation(self):
@@ -70,8 +70,8 @@ class Log:
         if not (self.logs_level in self.levels and self.stderr_level in self.levels):
             raise Exception("Erreur sur les noms de logs")
         
-        if not (self.logs in (0,1) and self.stderr in (0,1)) :
-            raise Exception("Erreur sur les attributs log_affichage ou log_sauvegarde de config.ini")
+        if not (self.logs in (0,1) and self.stderr in (0,1) and self.ramdisk in (0,1)) :
+            raise Exception("Erreur sur les attributs log_affichage, log_sauvegarde, ramdisk de config.ini")
         
         # Création du logger
         self.logger = logging.getLogger(self.nom)
@@ -119,7 +119,8 @@ class Log:
             os.makedirs(self.dossier_tmp_abs)
         
         # Montage du dossier ramdisk en RAM
-        os.system("sudo mount -t tmpfs -o size=" + self.taille_dossier_tmp + " tmpfs " + self.dossier_tmp_abs)
+        if self.ramdisk:
+            os.system("sudo mount -t tmpfs -o size=" + self.taille_dossier_tmp + " tmpfs " + self.dossier_tmp_abs)
         
         
     def revision_disponible(self):

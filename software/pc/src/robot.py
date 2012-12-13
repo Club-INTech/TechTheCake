@@ -3,11 +3,12 @@ from time import time,sleep
 from mutex import Mutex
 
 class Robot:
-    def __init__(self,capteurs,deplacements,config,log):
+    def __init__(self,capteurs,actionneurs,deplacements,config,log):
         self.mutex = Mutex()
         
         #instances des dépendances
         self.deplacements = deplacements
+        self.actionneurs = actionneurs
         self.capteurs=capteurs
         self.config = config
         self.log = log
@@ -509,3 +510,10 @@ class Robot:
     def set_vitesse_rotation(self, valeur):
         self.deplacements.set_vitesse_rotation(valeur)
         self.vitesse_rotation = int(valeur)
+        
+    def ouvrir_cadeau(self):
+    	self.actionneurs.ouvrir_cadeau()
+    	
+    def fermer_cadeau(self):
+    	self.actionneurs.fermer_cadeau()
+    	
