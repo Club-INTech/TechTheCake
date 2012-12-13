@@ -7,5 +7,4 @@ container = Container()
 from src.strategie import Strategie
 strategie = container.get_service("strategie")
 
-strategie.robot.avancer(1000)
-strategie.robot.tourner(1.57)
+strategie.robot.recaler()
