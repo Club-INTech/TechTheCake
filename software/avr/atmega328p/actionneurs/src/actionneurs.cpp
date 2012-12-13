@@ -6,9 +6,10 @@ Actionneurs::Actionneurs()
 	serie::change_baudrate(9600);
 		
 }
-void Actionneurs::execute(char * buffer)
+void Actionneurs::execute(char *ordre)
 {
 	serie::print("_");
+	
 	if (strcmp(ordre, "?") == 0)
 	{
 		serie::print("2");
