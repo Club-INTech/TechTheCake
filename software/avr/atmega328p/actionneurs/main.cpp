@@ -1,4 +1,6 @@
-#include <stdint.h>
+#include <libintech/serial/serial_0_interrupt.hpp>
+#include <libintech/serial/serial_0.hpp>
+
 #include "actionneurs.h"
 
 int main() 
@@ -12,3 +14,8 @@ int main()
         actionneurs.execute(buffer);
     }
 }
+
+/**
+ * Placer ici les interruptions, minimiser le code (appels aux méthodes du singleton actionneurs)
+ * 
+ */
