@@ -30,6 +30,7 @@ from suds.client import Client
 from recherche_de_chemin.rechercheChemin import RechercheChemin
 from strategie import Strategie
 from log import Log
+from hooks import HookGenerator
 
 class Container:
     def __init__(self):
@@ -99,8 +100,11 @@ class Container:
         #enregistrement du service de recherche de chemin
         self.assembler.register("rechercheChemin", RechercheChemin, requires=["table","config","log"])
         
+        #enregistrement du service de génération des hooks
+        self.assembler.register("hookGenerator", HookGenerator, requires=["config","log"])
+        
         #enregistrement du service de stratégie
-        self.assembler.register("strategie", Strategie, requires=["robot", "robotChrono","rechercheChemin", "config", "log"])
+        self.assembler.register("strategie", Strategie, requires=["robot", "robotChrono", "hookGenerator", "rechercheChemin", "config", "log"])
         
         #lancement des threads
         self.start_threads()

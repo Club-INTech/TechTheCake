@@ -165,8 +165,9 @@ class Robot:
         self.deplacements.tourner(angle)
         while 1:
             #vérification des hooks
+            infosRobot={"robotX" : self.x,"robotY" : self.y,"robotOrientation" : self.orientation}
             for hook in hooks:
-                hook.evaluate()
+                hook.evaluate(**infosRobot)
                 
             #acquittement du déplacement : sort de la boucle avec un return si arrivé ou bloqué
             acq = self._acquittement()
@@ -211,8 +212,9 @@ class Robot:
             
         while 1:
             #vérification des hooks
+            infosRobot={"robotX" : self.x,"robotY" : self.y,"robotOrientation" : self.orientation}
             for hook in hooks:
-                hook.evaluate()
+                hook.evaluate(**infosRobot)
                 
             #mise à jour des consignes en translation et rotation
             if self.config["correction_trajectoire"]:
@@ -356,8 +358,9 @@ class Robot:
                     self.deplacements.simulateur.drawPoint(self.consigne_x,self.consigne_y,"green",False)
                 
                 #vérification des hooks
+                infosRobot={"robotX" : self.x,"robotY" : self.y,"robotOrientation" : self.orientation}
                 for hook in hooks:
-                    hook.evaluate()
+                    hook.evaluate(**infosRobot)
                     
                 #mise à jour des consignes en translation et rotation
                 self._mise_a_jour_consignes()
@@ -374,8 +377,9 @@ class Robot:
                 self.consigne_y = yB
                 
                 #vérification des hooks
+                infosRobot={"robotX" : self.x,"robotY" : self.y,"robotOrientation" : self.orientation}
                 for hook in hooks:
-                    hook.evaluate()
+                    hook.evaluate(**infosRobot)
                     
                 acq = self._acquittement()
                 if acq:
@@ -516,4 +520,3 @@ class Robot:
     	
     def fermer_cadeau(self):
     	self.actionneurs.fermer_cadeau()
-    	
