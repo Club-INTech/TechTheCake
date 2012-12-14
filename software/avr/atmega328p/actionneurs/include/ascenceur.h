@@ -7,11 +7,7 @@ template<class Moteur>
 class Ascenceur
 {
 public:
-	Ascenceur()
-	{
-		moteur.maxPWM(255);
-	}
-	
+	Ascenceur();
 private:
 	Moteur moteur;
 

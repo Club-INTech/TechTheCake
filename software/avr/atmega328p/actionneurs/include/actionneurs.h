@@ -6,7 +6,7 @@
 #include <libintech/pwm.hpp>
 #include <libintech/moteur.hpp>
 
-#include "ascenceur.hpp"
+#include "ascenceur.h"
 
 /**
  * Gestion des actionneurs
