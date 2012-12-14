@@ -202,12 +202,11 @@ class Robot:
         if not virage_initial:
             #sans virage : la première rotation est blocante
             self.tourner(angle)
-            self.log.debug("rotation initiale terminée, va maintenant au point ("+str(x)+", "+str(y)+")")
+            
             self.deplacements.avancer(distance)
         else:
             self._consigne_orientation = angle
             self.deplacements.tourner(angle)
-            print("1ère rotation: cour="+str(self.orientation)+" cons="+str(self._consigne_orientation))
             self.deplacements.avancer(distance)
             
         while 1:
@@ -392,18 +391,18 @@ class Robot:
         
         self.log.debug("début du recalage")
         
-        print("on recule lentement jusqu'à bloquer sur le bord")
+        self.log.debug("recalage : on recule lentement jusqu'à bloquer sur le bord")
         self.set_vitesse_translation(1)
         self.set_vitesse_rotation(1)
         self.marche_arriere = True
         self.gestion_avancer(-1000)
         #input()
-        print("on désactive l'asservissement en rotation pour se mettre parallèle au bord")
+        self.log.debug("recalage : on désactive l'asservissement en rotation pour se mettre parallèle au bord")
         self.deplacements.desactiver_asservissement_rotation()
         self.set_vitesse_translation(2)
         self.gestion_avancer(-300)
         #input()
-        print("initialisation de la coordonnée x et de l'orientation")
+        self.log.debug("recalage : initialisation de la coordonnée x et de l'orientation")
         if self.couleur == "bleu":
             self.x = -self.config["table_x"]/2. + self.config["largeur_robot"]/2.
             self.orientation = 0.0
@@ -411,38 +410,38 @@ class Robot:
             self.x = self.config["table_x"]/2. - self.config["largeur_robot"]/2.
             self.orientation = pi
         #input()
-        print("on avance doucement, en réactivant l'asservissement en rotation")
+        self.log.debug("recalage : on avance doucement, en réactivant l'asservissement en rotation")
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
         self.set_vitesse_translation(1)
         self.gestion_avancer(100)
         #input()
-        print("on se tourne pour le deuxième recalage")
+        self.log.debug("recalage : on se tourne pour le deuxième recalage")
         self.gestion_tourner(pi/2)
         #input()
-        print("on recule lentement jusqu'à bloquer sur le bord")
+        self.log.debug("recalage : on recule lentement jusqu'à bloquer sur le bord")
         self.marche_arriere = True
         self.gestion_avancer(-1000)
         #input()
-        print("on désactive l'asservissement en rotation pour se mettre parallèle au bord")
+        self.log.debug("recalage : on désactive l'asservissement en rotation pour se mettre parallèle au bord")
         self.deplacements.desactiver_asservissement_rotation()
         self.set_vitesse_translation(2)
         self.gestion_avancer(-300)
         #input()
-        print("initialisation de la coordonnée y et de l'orientation")
+        self.log.debug("recalage : initialisation de la coordonnée y et de l'orientation")
         self.y = self.config["largeur_robot"]/2.
         self.orientation = pi/2.
         #input()
-        print("on avance doucement, en réactivant l'asservissement en rotation")
+        self.log.debug("recalage : on avance doucement, en réactivant l'asservissement en rotation")
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
         self.set_vitesse_translation(1)
         self.gestion_avancer(150)
         #input()
-        print("on prend l'orientation initiale pour le match")
+        self.log.debug("recalage : on prend l'orientation initiale pour le match")
         self.gestion_tourner(pi)
         #input()
-        print("vitesse initiales pour le match")
+        self.log.debug("recalage : vitesse initiales pour le match")
         self.set_vitesse_translation(2)
         self.set_vitesse_rotation(2)
        
@@ -510,11 +509,10 @@ class Robot:
     def set_vitesse_translation(self, valeur):
         self.deplacements.set_vitesse_translation(valeur)
         self.vitesse_translation = int(valeur)
-    
     def set_vitesse_rotation(self, valeur):
         self.deplacements.set_vitesse_rotation(valeur)
         self.vitesse_rotation = int(valeur)
-        
+    
     def ouvrir_cadeau(self):
     	self.actionneurs.ouvrir_cadeau()
     	
