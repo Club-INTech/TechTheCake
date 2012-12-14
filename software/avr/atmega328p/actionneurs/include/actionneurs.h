@@ -16,12 +16,12 @@ class Actionneurs : public Singleton<Actionneurs>
 {
 	public:
 		typedef Serial<0> serie;
-
+		typedef Moteur< PWM<0,ModeFastPwm,1,'A'>, AVR_PORTB <PORTB5> >  moteur_avant_t;
 		/**
 		 * Ascenceur avant, dépend d'un moteur
 		 * 
 		 */
-		Ascenceur< Moteur< PWM<0,ModeFastPwm,1,'A'>, AVR_PORTB <PORTB5> > > ascenceur_avant;
+		Ascenceur< moteur_avant_t > ascenceur_avant;
 
 	public:
 		Actionneurs();

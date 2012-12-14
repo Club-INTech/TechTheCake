@@ -1,9 +1,10 @@
 #include <libintech/moteur.hpp>
 #include "ascenceur.h"
+#include "actionneurs.h"
 
 template<class Moteur>
 Ascenceur<Moteur>::Ascenceur(){
 		moteur.maxPWM(255);
 }
 
-template class Ascenceur< Moteur< PWM<0,ModeFastPwm,1,'A'>, AVR_PORTB <PORTB5> > >;
+template class Ascenceur<Actionneurs::moteur_avant_t>;
