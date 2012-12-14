@@ -55,7 +55,7 @@ class ScriptTestHooks(Script):
             print("appel du callback : "+texte)
             
         hooks = []
-        hooks.append(self.hookGenerator.get_hook("position", Point(910,300), aFaire, "lapin"))
+        hooks.append(self.hookGenerator.get_hook("position", Point(910,300), aFaire, "lapin", unique = False))
         hooks.append(self.hookGenerator.get_hook("orientation", pi, aFaire, "chèvre"))
         
         self.robot.gestion_avancer(300,hooks)
