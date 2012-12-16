@@ -7,4 +7,4 @@ software/build/*
 /software/pc/logs/*
 /software/avr/library/libintech/#ax12.hpp#
 /software/pc/config/local.ini
-/software/pc/lanceur_perso.py
+/software/pc/*.py

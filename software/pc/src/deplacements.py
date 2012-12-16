@@ -308,7 +308,9 @@ class DeplacementsSimulateur(Deplacements):
     def tourner(self, angle):
         try:
             with self.mutex:
-                self.simulateur.turnRobot(angle, True)
+                last = round(self.simulateur.getAngle(),4)
+                if not angle == last:
+                    self.simulateur.turnRobot(angle, True)
         except Exception as e:
             print(e)     
     
@@ -354,4 +356,4 @@ class DeplacementsSimulateur(Deplacements):
         UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
         """
         with self.mutex:
-            return [self.simulateur.getX(), self.simulateur.getY(), self.simulateur.getAngle()*1000]
+            return [self.simulateur.getX(), self.simulateur.getY(), int(self.simulateur.getAngle()*1000)]

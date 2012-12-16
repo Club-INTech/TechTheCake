@@ -46,6 +46,7 @@ class Robot:
         
         self._consigne_x = 0
         self._consigne_y = 0
+        
         if self.couleur == "bleu":
             self._consigne_orientation = 0
         else:
@@ -143,15 +144,17 @@ class Robot:
     ### MÉTHODES DE DÉPLACEMENTS DE BASE , AVEC GESTION DES ACQUITTEMENTS ET CAPTEURS ###
     #####################################################################################
     
+    def stopper(self):
+        self.log.debug("stoppage du robot")
+        self.blocage = True
+        self.deplacements.stopper()
+        
     def avancer(self, distance, hooks=[]):
         self.log.debug("avancer de "+str(distance))
         
         consigne_x = self.x + distance*cos(self._consigne_orientation)
         consigne_y = self.y + distance*sin(self._consigne_orientation)
         
-        print("avancer.")
-        print("orientation courante : "+str(self.orientation))
-        print("orientation consigne : "+str(self._consigne_orientation))
         return self.va_au_point(consigne_x,consigne_y,hooks,False)
         
         
@@ -160,11 +163,11 @@ class Robot:
         self.blocage = False
         self._consigne_orientation = angle
         self.deplacements.tourner(angle)
-        print("tourner: cour="+str(self.orientation)+" cons="+str(self._consigne_orientation))
         while 1:
             #vérification des hooks
+            infosRobot={"robotX" : self.x,"robotY" : self.y,"robotOrientation" : self.orientation}
             for hook in hooks:
-                hook.evaluate()
+                hook.evaluate(**infosRobot)
                 
             #acquittement du déplacement : sort de la boucle avec un return si arrivé ou bloqué
             acq = self._acquittement()
@@ -199,21 +202,22 @@ class Robot:
         if not virage_initial:
             #sans virage : la première rotation est blocante
             self.tourner(angle)
-            self.log.debug("rotation initiale terminée, va maintenant au point ("+str(x)+", "+str(y)+")")
+            
             self.deplacements.avancer(distance)
         else:
             self._consigne_orientation = angle
             self.deplacements.tourner(angle)
-            print("1ère rotation: cour="+str(self.orientation)+" cons="+str(self._consigne_orientation))
             self.deplacements.avancer(distance)
             
         while 1:
             #vérification des hooks
+            infosRobot={"robotX" : self.x,"robotY" : self.y,"robotOrientation" : self.orientation}
             for hook in hooks:
-                hook.evaluate()
+                hook.evaluate(**infosRobot)
                 
             #mise à jour des consignes en translation et rotation
-            self._mise_a_jour_consignes()
+            if self.config["correction_trajectoire"]:
+                self._mise_a_jour_consignes()
             
             #acquittement du déplacement : sort de la boucle avec un return si arrivé ou bloqué
             acq = self._acquittement()
@@ -353,8 +357,9 @@ class Robot:
                     self.deplacements.simulateur.drawPoint(self.consigne_x,self.consigne_y,"green",False)
                 
                 #vérification des hooks
+                infosRobot={"robotX" : self.x,"robotY" : self.y,"robotOrientation" : self.orientation}
                 for hook in hooks:
-                    hook.evaluate()
+                    hook.evaluate(**infosRobot)
                     
                 #mise à jour des consignes en translation et rotation
                 self._mise_a_jour_consignes()
@@ -371,8 +376,9 @@ class Robot:
                 self.consigne_y = yB
                 
                 #vérification des hooks
+                infosRobot={"robotX" : self.x,"robotY" : self.y,"robotOrientation" : self.orientation}
                 for hook in hooks:
-                    hook.evaluate()
+                    hook.evaluate(**infosRobot)
                     
                 acq = self._acquittement()
                 if acq:
@@ -385,60 +391,57 @@ class Robot:
         
         self.log.debug("début du recalage")
         
-        print("on recule lentement jusqu'à bloquer sur le bord")
+        self.log.debug("recalage : on recule lentement jusqu'à bloquer sur le bord")
         self.set_vitesse_translation(1)
         self.set_vitesse_rotation(1)
         self.marche_arriere = True
-        self.avancer(-1000)
-        input()
-        print("on désactive l'asservissement en rotation pour se mettre parallèle au bord")
+        self.gestion_avancer(-1000)
+        #input()
+        self.log.debug("recalage : on désactive l'asservissement en rotation pour se mettre parallèle au bord")
         self.deplacements.desactiver_asservissement_rotation()
         self.set_vitesse_translation(2)
-        self.avancer(-300)
-        input()
-        print("initialisation de la coordonnée x et de l'orientation")
+        self.gestion_avancer(-300)
+        #input()
+        self.log.debug("recalage : initialisation de la coordonnée x et de l'orientation")
         if self.couleur == "bleu":
             self.x = -self.config["table_x"]/2. + self.config["largeur_robot"]/2.
             self.orientation = 0.0
         else:
             self.x = self.config["table_x"]/2. - self.config["largeur_robot"]/2.
             self.orientation = pi
-        input()
-        print("on avance doucement, en réactivant l'asservissement en rotation")
+        #input()
+        self.log.debug("recalage : on avance doucement, en réactivant l'asservissement en rotation")
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
         self.set_vitesse_translation(1)
-        self.avancer(100)
-        input()
-        print("on se tourne pour le deuxième recalage")
-        self.tourner(pi/2)
-        input()
-        print("on recule lentement jusqu'à bloquer sur le bord")
+        self.gestion_avancer(100)
+        #input()
+        self.log.debug("recalage : on se tourne pour le deuxième recalage")
+        self.gestion_tourner(pi/2)
+        #input()
+        self.log.debug("recalage : on recule lentement jusqu'à bloquer sur le bord")
         self.marche_arriere = True
-        self.avancer(-1000)
-        input()
-        print("on désactive l'asservissement en rotation pour se mettre parallèle au bord")
+        self.gestion_avancer(-1000)
+        #input()
+        self.log.debug("recalage : on désactive l'asservissement en rotation pour se mettre parallèle au bord")
         self.deplacements.desactiver_asservissement_rotation()
         self.set_vitesse_translation(2)
-        self.avancer(-300)
-        input()
-        print("initialisation de la coordonnée y et de l'orientation")
+        self.gestion_avancer(-300)
+        #input()
+        self.log.debug("recalage : initialisation de la coordonnée y et de l'orientation")
         self.y = self.config["largeur_robot"]/2.
         self.orientation = pi/2.
-        input()
-        print("on avance doucement, en réactivant l'asservissement en rotation")
+        #input()
+        self.log.debug("recalage : on avance doucement, en réactivant l'asservissement en rotation")
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
         self.set_vitesse_translation(1)
-        self.avancer(150)
-        input()
-        print("on prend l'orientation initiale pour le match, en fonction de la couleur")
-        if self.couleur == "bleu":
-            self.tourner(0.0)
-        else:
-            self.tourner(pi)
-        input()
-        print("vitesse initiales pour le match")
+        self.gestion_avancer(150)
+        #input()
+        self.log.debug("recalage : on prend l'orientation initiale pour le match")
+        self.gestion_tourner(pi)
+        #input()
+        self.log.debug("recalage : vitesse initiales pour le match")
         self.set_vitesse_translation(2)
         self.set_vitesse_rotation(2)
        
@@ -453,6 +456,7 @@ class Robot:
         if retour == 1:
             print("translation terminée !")
         elif retour == 2:
+            self.stopper()
             print("translation arrêtée car blocage !")
         elif retour == 3:
             self.stopper()
@@ -468,6 +472,7 @@ class Robot:
         if retour == 1:
             print("rotation terminée !")
         elif retour == 2:
+            self.stopper()
             print("rotation arrêtée car blocage !")
         elif retour == 3:
             self.stopper()
@@ -504,14 +509,12 @@ class Robot:
     def set_vitesse_translation(self, valeur):
         self.deplacements.set_vitesse_translation(valeur)
         self.vitesse_translation = int(valeur)
-    
     def set_vitesse_rotation(self, valeur):
         self.deplacements.set_vitesse_rotation(valeur)
         self.vitesse_rotation = int(valeur)
-        
+    
     def ouvrir_cadeau(self):
     	self.actionneurs.ouvrir_cadeau()
     	
     def fermer_cadeau(self):
     	self.actionneurs.fermer_cadeau()
-    	

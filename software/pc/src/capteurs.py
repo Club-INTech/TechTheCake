@@ -25,13 +25,16 @@ class CapteursSerie(Capteurs):
         self.config = config
         self.log = log
         
-        self.nb_capteurs_infrarouge_avant=int((self.serie.communiquer("capteurs_actionneurs",["nbI"], 1))[0])
-        self.nb_capteurs_infrarouge_arriere=int((self.serie.communiquer("capteurs_actionneurs",["nbi"], 1))[0])
-        self.nb_capteurs_ultrason_avant=int((self.serie.communiquer("capteurs_actionneurs",["nbS"], 1))[0])
-        self.nb_capteurs_ultrason_arriere=int((self.serie.communiquer("capteurs_actionneurs",["nbs"], 1))[0])
+        try:
+            self.nb_capteurs_infrarouge_avant=int((self.serie.communiquer("capteurs_actionneurs",["nbI"], 1))[0])
+            self.nb_capteurs_infrarouge_arriere=int((self.serie.communiquer("capteurs_actionneurs",["nbi"], 1))[0])
+            self.nb_capteurs_ultrason_avant=int((self.serie.communiquer("capteurs_actionneurs",["nbS"], 1))[0])
+            self.nb_capteurs_ultrason_arriere=int((self.serie.communiquer("capteurs_actionneurs",["nbs"], 1))[0])
 
-        self.log.debug("Il y a ", self.nb_capteurs_infrarouge_avant, "capteurs infrarouge à l'avant, ", self.nb_capteurs_infrarouge_arriere, "à l'arrière.")
-        self.log.debug("Il y a ", self.nb_capteurs_ultrason_avant, "capteurs ultrason à l'avant, ", self.nb_capteurs_ultrason_arriere, "à l'arrière.")
+            self.log.debug("Il y a ", self.nb_capteurs_infrarouge_avant, "capteurs infrarouge à l'avant, ", self.nb_capteurs_infrarouge_arriere, "à l'arrière.")
+            self.log.debug("Il y a ", self.nb_capteurs_ultrason_avant, "capteurs ultrason à l'avant, ", self.nb_capteurs_ultrason_arriere, "à l'arrière.")
+        except:
+            self.log.warning("la carte capteur n'a pas été atteinte lors de la construction du service")
         
     def mesurer(self, marche_arriere=False):
 
