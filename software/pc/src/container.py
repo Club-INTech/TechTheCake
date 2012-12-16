@@ -59,7 +59,11 @@ class Container:
             #enregistrement du service Simulateur
             def make_simu():
                 #client SOAP pour le simulateur
-                client=Client("http://localhost:8090/INTechSimulator?wsdl")
+                try:
+                    client=Client("http://localhost:8090/INTechSimulator?wsdl")
+                except:
+                    print("\n\nle serveur de simulation est introuvable !")
+                    input()
                 #initialisation de la table
                 client.service.reset()
                 client.service.setTableDimension(self.config["table_x"],self.config["table_y"])
