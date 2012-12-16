@@ -72,9 +72,9 @@ class ScriptTestCadeaux(Script):
 
         hooks = []
         hooks.append(self.hookGenerator.get_hook("position", Point(1300,250), self.robot.ouvrir_cadeau))
-        hooks.append(self.hookGenerator.get_hook("position", Point(910,300), self.robot.fermer_cadeau))
-        hooks.append(self.hookGenerator.get_hook("position", Point(910,300), self.robot.ouvrir_cadeau))
-        hooks.append(self.hookGenerator.get_hook("position", Point(910,300), self.robot.fermer_cadeau))
+        hooks.append(self.hookGenerator.get_hook("position", Point(1320,250), self.robot.fermer_cadeau))
+        hooks.append(self.hookGenerator.get_hook("position", Point(1450,250), self.robot.ouvrir_cadeau))
+        hooks.append(self.hookGenerator.get_hook("position", Point(1470,250), self.robot.fermer_cadeau))
           
         
         self.robot.gestion_avancer(600,hooks)

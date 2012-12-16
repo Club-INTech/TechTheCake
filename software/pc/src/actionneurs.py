@@ -20,10 +20,10 @@ class ActionneursSerie(Actionneurs) : #héritage
         self.log = log
 
     def ouvrir_cadeau(self) :
-        self.serie.communiquer("cadeaux",["g",110],0)
+        self.serie.communiquer("cadeaux",["g",240],0)
     
     def fermer_cadeau(self) :
-        self.serie.communiquer("cadeaux",["g",0],0)
+        self.serie.communiquer("cadeaux",["g",150],0)
         
 class ActionneursSimulateur(Actionneurs) :
      
