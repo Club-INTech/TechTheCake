@@ -68,11 +68,14 @@ class ScriptTestCadeaux(Script):
     def execute(self):
         
         
-        self.robot.gestion_va_au_point(1000,200)
+        #self.robot.gestion_va_au_point(1000,200)
 
         hooks = []
+        hooks.append(self.hookGenerator.get_hook("position", Point(1300,250), self.robot.ouvrir_cadeau))
+        hooks.append(self.hookGenerator.get_hook("position", Point(910,300), self.robot.fermer_cadeau))
         hooks.append(self.hookGenerator.get_hook("position", Point(910,300), self.robot.ouvrir_cadeau))
         hooks.append(self.hookGenerator.get_hook("position", Point(910,300), self.robot.fermer_cadeau))
+          
         
-        self.robot.gestion_avancer(300,hooks)
-        self.robot.gestion_tourner(pi/2,hooks)
+        self.robot.gestion_avancer(600,hooks)
+        #self.robot.gestion_tourner(pi/2,hooks)
