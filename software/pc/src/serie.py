@@ -33,6 +33,12 @@ class Serie:
         #liste les chemins trouvés dans /dev
         sources = os.popen('ls -1 /dev/ttyUSB* 2> /dev/null').readlines()
         sources.extend(os.popen('ls -1 /dev/ttyACM* 2> /dev/null').readlines())
+        
+        if not sources:
+            print("\nAucun périphérique trouvé. Seconde tentative en sudo...")
+            sources = os.popen('sudo ls -1 /dev/ttyUSB* 2> /dev/null').readlines()
+            sources.extend(os.popen('ls -1 /dev/ttyACM* 2> /dev/null').readlines())
+            
         for k in range(len(sources)):
             sources[k] = sources[k].replace("\n","")
         
