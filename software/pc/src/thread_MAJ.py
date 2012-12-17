@@ -32,10 +32,6 @@ def fonction_MAJ(container):
         #mise à jour des coordonnées dans robot
         try:
             robot.update_x_y_orientation()
-            print("######")
-            print(robot.x)
-            print(robot.y)
-            print(robot.orientation)
         except Exception as e:
             print(e)
         
