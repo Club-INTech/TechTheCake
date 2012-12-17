@@ -12,7 +12,7 @@ class Strategie:
         self.config = config
         self.log = log
         
-        self.scripts = {"bougies":ScriptBougies, "pipeau":ScriptPipeau, "hooks":ScriptTestHooks, "testCadeaux":ScriptTestCadeaux}
+        self.scripts = {"bougies":ScriptBougies, "hooks":ScriptTestHooks, "testCadeaux":ScriptTestCadeaux}
     
         for script,classe in self.scripts.items():
             self.scripts[script] = classe()

@@ -39,14 +39,6 @@ class ScriptBougies(Script):
     def execute(self):
         pass
     
-    
-class ScriptPipeau(Script):
-    
-    def execute(self):
-        self.robot.gestion_avancer(300)
-        self.robot.gestion_tourner(pi/2)
-        self.robot.gestion_avancer(500)
-        
 class ScriptTestHooks(Script):
     
     def execute(self):
@@ -58,9 +50,9 @@ class ScriptTestHooks(Script):
         hooks.append(self.hookGenerator.get_hook("position", Point(910,300), aFaire, "lapin", unique = False))
         hooks.append(self.hookGenerator.get_hook("orientation", pi, aFaire, "chèvre"))
         
-        self.robot.gestion_avancer(300,hooks)
-        self.robot.gestion_tourner(pi/2,hooks)
-        self.robot.gestion_avancer(500,hooks)
+        self.robot.avancer(300,hooks)
+        self.robot.tourner(pi/2,hooks)
+        self.robot.avancer(500,hooks)
         
         
 class ScriptTestCadeaux(Script):
@@ -68,11 +60,11 @@ class ScriptTestCadeaux(Script):
     def execute(self):
         
         
-        self.robot.gestion_va_au_point(1000,200)
+        self.robot.va_au_point(1000,200)
 
         hooks = []
-        hooks.append(self.hookGenerator.get_hook("position", Point(910,300), self.robot.ouvrir_cadeau))
-        hooks.append(self.hookGenerator.get_hook("position", Point(910,300), self.robot.fermer_cadeau))
+        hooks.append(self.hookGenerator.get_hook("position", Point(910,300), self.robot.actionneurs.ouvrir_cadeau))
+        hooks.append(self.hookGenerator.get_hook("position", Point(910,300), self.robot.actionneurs.fermer_cadeau))
         
-        self.robot.gestion_avancer(300,hooks)
-        self.robot.gestion_tourner(pi/2,hooks)
+        self.robot.avancer(300,hooks)
+        self.robot.tourner(pi/2,hooks)
