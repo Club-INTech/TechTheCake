@@ -69,7 +69,11 @@ class Container:
                 client.service.setTableDimension(self.config["table_x"],self.config["table_y"])
                 client.service.defineCoordinateSystem(1,0,0,-1,self.config["table_x"]/2,self.config["table_y"])
                 #déclaration du robot
-                client.service.defineRobot({"list":[{"float":[-200.,-200.]},{"float":[-200.,200.]},{"float":[200.,200.]},{"float":[200.,-200.]}]})
+                if self.config["couleur"] == "bleu":
+                    couleur = "blue"
+                else:
+                    couleur = "red"
+                client.service.defineRobot({"list":[{"float":[-200.,-200.]},{"float":[-200.,200.]},{"float":[200.,200.]},{"float":[200.,-200.]}]},couleur)
                 #déclaration d'un robot adverse
                 client.service.addEnemy(30,"black")
                 return client.service
