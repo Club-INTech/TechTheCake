@@ -120,7 +120,7 @@ ISR(TIMER1_OVF_vect)
 	/*
 	Si blocage moteur:
 	*/
-	bouge_pas = derivee <= 30 && derivee >= -30;
+	bouge_pas = derivee <= 30 || derivee >= -30;
 	moteur_force = (pwm1 > 30) || (pwm1 < -30);
 	if (bouge_pas && moteur_force)
 	{
