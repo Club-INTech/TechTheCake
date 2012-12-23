@@ -3,6 +3,9 @@ from time import time,sleep
 from mutex import Mutex
 
 class Robot:
+    """
+    classe implémentant le robot.
+    """
     def __init__(self,capteurs,actionneurs,deplacements,config,log):
         self.mutex = Mutex()
         

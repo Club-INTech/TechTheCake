@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-
-import os
-import sys
+import os,sys
 import datetime
 import logging
 
@@ -40,14 +37,13 @@ class Log:
     Classe permettant de gérer les logs
     A besoin d'une instance Config pour se lancer (fournie par l'injecteur de données)
     Après avoir été instanciée, la methode self.set_chemin(chemin) doit être appellée
-      afin de fournir à la classe le chemin vers le dossier où seront enregistrés les logs.
-      (si cette méthode n'est pas appellée, les logs ne fonctionneront pas).
+    afin de fournir à la classe le chemin vers le dossier où seront enregistrés les logs.
+    (si cette méthode n'est pas appellée, les logs ne fonctionneront pas).
     
     Une fois tous ces préparatifs faits, l'utilisateur peut appeller 3 niveaux de log :
-        Log.debug(message)      ---> Message de débug.             (DEBUG)
-        Log.warning(message)    ---> Message d'avertissement.      (WARNING)
-        Log.critical(message)   ---> Message d'erreur critique.    (CRITICAL)
-    
+    Log.debug(message)      ---> Message de débug.             (DEBUG)
+    Log.warning(message)    ---> Message d'avertissement.      (WARNING)
+    Log.critical(message)   ---> Message d'erreur critique.    (CRITICAL)
     
     """
     def __init__(self, config):

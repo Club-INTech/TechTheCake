@@ -101,14 +101,10 @@ class Serie:
         """
         
         with self.mutex:
-            #annonce clairement l'absence du destinataire
-            if not hasattr(self.peripheriques[destinataire],'serie'):
-                self.log.critical("le périphérique "+destinataire+" n'est pas accessible !")
-                raise Exception
-            
             if not type(messages) is list:
                 #permet l'envoi d'un seul message, sans structure de liste
                 messages = [messages]
+            
             #parcourt la liste des messages envoyés
             for message in messages:
                 #print(str(message)+"<")
