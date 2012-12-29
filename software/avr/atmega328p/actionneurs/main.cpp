@@ -14,9 +14,14 @@ int main()
         Actionneurs::serie::read(buffer);
         actionneurs.execute(buffer);
     }
+	return 0;
 }
 
 /**
  * Placer ici les interruptions, minimiser le code (appels aux méthodes du singleton actionneurs)
  * 
  */
+ ISR(TIMER0_OVF_vect)
+ {
+	Actionneurs &actionneurs = Actionneurs::Instance(); 
+ }

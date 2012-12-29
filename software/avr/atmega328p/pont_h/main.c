@@ -60,7 +60,7 @@ int main()
 			integrale = 0;
 			i = 0;
 		}
-		if (strcmp(ordre, "?") == 0) // Position voulue
+		if (strcmp(ordre, "?") == 0)
 		{
 			Serial<0>::print("2");
 		}
@@ -129,11 +129,6 @@ ISR(TIMER1_OVF_vect)
 		{
 			pos = roue1;
 			integrale = 0;
-			/*if ((roue1 >= 1000) && (pos == 0))
-			{
-				roue1 = 0;
-				pos = 0;
-			}*/
 		}
 	}
 	else

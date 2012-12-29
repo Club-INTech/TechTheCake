@@ -6,11 +6,11 @@
 template<class Moteur>
 class Ascenceur
 {
-public:
-	Ascenceur();
-private:
-	Moteur moteur;
-
+	public:
+		Ascenceur();
+		void asservir();
+	private:
+		Moteur moteur;
 };
 
 #endif
