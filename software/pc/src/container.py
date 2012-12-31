@@ -33,6 +33,11 @@ from log import Log
 from hooks import HookGenerator
 
 class Container:
+    """
+    Cette classe se charge de contenir une instance unique de chaque service nécessité (et demandé) par le code.
+    Elle utilise la bibliothèque d'injection de dépendances Assemblage.
+    Les services chargés dépendent de la configuration (simulation/série) et sont ensuite utilisés de manière transparente.
+    """
     def __init__(self):
         self.assembler = assembler()
         self.mutex = Mutex()
@@ -115,11 +120,13 @@ class Container:
         self.assembler.register("strategie", Strategie, requires=["robot", "robotChrono", "hookGenerator", "rechercheChemin", "config", "log"])
         
         #lancement des threads
-        self.start_threads()
+        self._start_threads()
         
         
-    def start_threads(self):
-        
+    def _start_threads(self):
+        """
+        Le lancement des thread (et leur attente d'une initialisation) est gérée ici.
+        """
         #fonction qui lance les threads
         def lancement_des_threads():
             #lancement du thread de mise à jour des coordonnées
@@ -142,6 +149,9 @@ class Container:
                 
                 
     def get_service(self,id):
+        """
+        Méthode de génération d'un service. Elle renvoie toujours la même instance d'un service, qui n'est construite qu'à la première demande.
+        """
         #mutex pour éviter la duplication d'un service à cause d'un thread (danger !)
         with self.mutex:
             return self.assembler.provide(id)

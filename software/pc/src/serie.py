@@ -1,22 +1,25 @@
 from serial import Serial
 from mutex import Mutex
 import os
-from time import sleep
-        
         
 class Peripherique:
     """
-    structure décrivant un périphérique série :
+    Structure décrivant un périphérique série :
     id : ping attendu de la carte (0 pour l'asservissement...)
-    baudrate : (9600, 57600...)
-    serie : chemin du périphérique (/dev/ttyACM0...)
+    baudrate : (9600, 57600...).
+    Si le périphérique serie associé est trouvé, un attribut serie sera créé : il contient le chemin vers le périphérique ("/dev/ttyACM0"...)
     """
     def __init__(self,id,baudrate):
         self.id = id
         self.baudrate = baudrate
         
 class Serie:
-        
+    """
+    Classe générique de gestion des périphériques série, utilisés via un seul service.
+    Elle permet de détecter et stocker les chemins pour communiquer avec chaque carte dans des objets de la classe Peripherique.
+    Elle permet d'envoyer une trame sur un périphérique et d'en recevoir une en retour.
+    Des mécanismes augmentant la proofitude des échanges ont été ajoutés ;)
+    """
     def __init__(self, log):
         
         #instances des dépendances
@@ -30,6 +33,9 @@ class Serie:
         self.attribuer()
         
     def attribuer(self):
+        """
+        Cette méthode invoquée au lancement du service série permet de détecter et stocker les chemins pour communiquer avec chaque carte dans des objets de la classe Peripherique.
+        """
         #liste les chemins trouvés dans /dev
         sources = os.popen('ls -1 /dev/ttyUSB* 2> /dev/null').readlines()
         sources.extend(os.popen('ls -1 /dev/ttyACM* 2> /dev/null').readlines())
@@ -63,7 +69,7 @@ class Serie:
                     #évacuation de l'acquittement
                     instanceSerie.readline()
                     #réception de l'id de la carte
-                    rep = self.clean_string(str(instanceSerie.readline(),"utf-8"))
+                    rep = self._clean_string(str(instanceSerie.readline(),"utf-8"))
                     #fermeture du périphérique
                     instanceSerie.close()
                     #tentative de cast pour extraire un id
@@ -86,18 +92,20 @@ class Serie:
             else:
                 self.log.warning(destinataire+" non trouvé !")
         
-    def clean_string(self, chaine):
-        #suppressions des caractères spéciaux sur la série
+    def _clean_string(self, chaine):
+        """
+        supprime des caractères spéciaux sur la chaine
+        """
         return chaine.replace("\n","").replace("\r","").replace("\0","")         
         
     def communiquer(self, destinataire, messages, nb_lignes_reponse):
         """
-        méthode de communication via la série
-        envoi d'abord au destinataire une liste de trames au périphériques 
-        (celles ci sont toutes acquittées une par une pour éviter le flood)
-        puis récupère nb_lignes_reponse trames sous forme de liste
+        Méthode de communication via la série.
+        Envoie d'abord au destinataire une liste de trames au périphériques 
+        (celles ci sont toutes acquittées une par une pour éviter le flood),
+        puis récupère nb_lignes_reponse trames sous forme de liste.
         
-        une liste messages d'un seul élément : ["chaine"] peut éventuellement être remplacée par l'élément simple : "chaine"  #userFriendly
+        Une liste messages d'un seul élément : ["chaine"] peut éventuellement être remplacée par l'élément simple : "chaine".  #userFriendly
         """
         
         with self.mutex:
@@ -112,7 +120,7 @@ class Serie:
                 #chaque envoi est acquité par le destinataire, pour permettre d'émettre en continu sans flooder la série
                 acquittement = ""
                 while acquittement != "_":
-                    acquittement = self.clean_string(str(self.peripheriques[destinataire].serie.readline(),"utf-8"))
+                    acquittement = self._clean_string(str(self.peripheriques[destinataire].serie.readline(),"utf-8"))
                     #print("\t>"+acquittement)
                     
             #liste des réponses
@@ -120,5 +128,5 @@ class Serie:
             for i in range(nb_lignes_reponse):
                 reponse = str(self.peripheriques[destinataire].serie.readline(),"utf-8")
                 #print("\t>"+reponse)
-                reponses.append(self.clean_string(reponse))
+                reponses.append(self._clean_string(reponse))
         return reponses
