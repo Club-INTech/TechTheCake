@@ -34,9 +34,9 @@ logging.StreamHandler.emit = add_coloring_to_emit_ansi(logging.StreamHandler.emi
 
 class Log:
     """
-    Classe permettant de gérer les logs
-    A besoin d'une instance Config pour se lancer (fournie par l'injecteur de données)
-    Après avoir été instanciée, la methode self.set_chemin(chemin) doit être appellée
+    Classe permettant de gérer les logs.
+    A besoin d'une instance Config pour se lancer (fournie par l'injecteur de dépendances).
+    Après avoir été instanciée, la methode self.set_chemin(chemin) doit être appellée,
     afin de fournir à la classe le chemin vers le dossier où seront enregistrés les logs.
     (si cette méthode n'est pas appellée, les logs ne fonctionneront pas).
     
