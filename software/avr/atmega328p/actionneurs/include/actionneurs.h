@@ -7,6 +7,7 @@
 #include <libintech/moteur.hpp>
 #include <libintech/timer.hpp>
 
+#include "compteur.h"
 #include "ascenceur.h"
 
 /**
@@ -19,7 +20,7 @@ class Actionneurs : public Singleton<Actionneurs>
 		typedef Serial<0> serie;
 		typedef Moteur< PWM<0,ModeFastPwm,1,'A'>, AVR_PORTB <PORTB5> >  moteur_avant_t;
 		typedef Moteur< PWM<0,ModeFastPwm,1,'B'>, AVR_PORTB <PORTB4> > moteur_arriere_t;
-		typedef Timer<0,128> Timer0; //Timer  0 8 bits, il faut peut être changer la valeur du préscalaire
+		typedef Timer<0,1> timer_asserv;
 		/**
 		 * Ascenceur avant, dépend d'un moteur
 		 * 

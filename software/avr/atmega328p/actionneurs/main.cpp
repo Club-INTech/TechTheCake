@@ -23,5 +23,6 @@ int main()
  */
  ISR(TIMER0_OVF_vect)
  {
-	Actionneurs &actionneurs = Actionneurs::Instance(); 
+	Actionneurs &actionneurs = Actionneurs::Instance();
+	actionneurs.ascenceur_avant.asservir();
  }
