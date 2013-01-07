@@ -7,8 +7,8 @@
 #include <libintech/moteur.hpp>
 #include <libintech/timer.hpp>
 
-#include "compteur.h"
 #include "ascenceur.h"
+#include "compteur_1.h"
 
 /**
  * Gestion des actionneurs
@@ -18,9 +18,9 @@ class Actionneurs : public Singleton<Actionneurs>
 {
 	public:
 		typedef Serial<0> serie;
-		typedef Moteur< PWM<0,ModeFastPwm,1,'A'>, AVR_PORTB <PORTB5> >  moteur_avant_t;
+		typedef Moteur< PWM<0,ModeFastPwm,1,'A'>, AVR_PORTB <PORTB5> > moteur_avant_t;
 		typedef Moteur< PWM<0,ModeFastPwm,1,'B'>, AVR_PORTB <PORTB4> > moteur_arriere_t;
-		typedef Timer<0,1> timer_asserv;
+		typedef Timer<1,8> timer_asserv;
 		/**
 		 * Ascenceur avant, dépend d'un moteur
 		 * 
@@ -30,7 +30,6 @@ class Actionneurs : public Singleton<Actionneurs>
 
 	public:
 		Actionneurs();
-		
 		/**
 		 * Execute les ordres reçus sur la série
 		 * 

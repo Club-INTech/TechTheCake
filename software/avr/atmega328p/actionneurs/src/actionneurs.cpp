@@ -7,7 +7,6 @@ Actionneurs::Actionneurs()
 	timer_asserv::init();
 	sei();
 	compteur_init();
-		
 }
 void Actionneurs::execute(char *ordre)
 {
@@ -24,5 +23,17 @@ void Actionneurs::execute(char *ordre)
 	else if (strcmp(ordre, "bas") == 0) // Aller en bas
 	{	
 		ascenceur_avant.consigne(ASCENSEUR_BAS);
+	}
+	else if (strcmp(ordre, "!") == 0)
+	{
+		serie::print(ascenceur_avant.codeuse());
+	}
+	else if (strcmp(ordre, "consigne") == 0)
+	{
+		serie::print("valeur ? ");
+		int32_t consigne;
+		serie::read(consigne);
+		ascenceur_avant.consigne(consigne);
+		serie::print(consigne);
 	}
 }

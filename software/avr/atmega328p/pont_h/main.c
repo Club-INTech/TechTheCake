@@ -116,6 +116,7 @@ ISR(TIMER1_OVF_vect)
 	moteur.envoyerPwm(pwm1);
 	derivee = erreur - erreur_ancienne;
 	erreur_ancienne = erreur;
+	Serial<0>::print(roue1);
 
 	/*
 	Si blocage moteur:

@@ -4,7 +4,7 @@
 #include <libintech/moteur.hpp>
 #include <libintech/asservissement.hpp>
 
-#define COMPTEUR_BLOCAGE_MAX 15 // ~ 1 sec (à vérifier)
+#define COMPTEUR_BLOCAGE_MAX 30 // ~ 1 sec (à vérifier)
 
 enum AscenseurPosition {ASCENSEUR_HAUT = 46000, ASCENSEUR_BAS = 0};
 
@@ -15,8 +15,11 @@ class Ascenceur
 		
 		Ascenceur();
 		void asservir();
+		void consigne(int32_t consigne);
 		void consigne(AscenseurPosition);
-				
+		void codeuse(int32_t);
+		int32_t codeuse();
+						
 	private:
 	
 		Moteur _moteur;
