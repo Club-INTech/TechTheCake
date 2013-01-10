@@ -2,24 +2,24 @@ from time import sleep
 from scripts import *
 
 class Strategie:
-    def __init__(self, robot, robotChrono, hookGenerator, rechercheChemin, config, log, table, timer):
+    def __init__(self, robot, robotChrono, hookGenerator, rechercheChemin, table, timer, config, log):
 
         #services importés
         self.robot = robot
         self.robotChrono = robotChrono
+        self.hookGenerator = hookGenerator
         self.rechercheChemin = rechercheChemin
-        self.config = config
-        self.hookGenerator=hookGenerator
-        self.log = log
         self.table = table
         self.timer = timer
+        self.config = config
+        self.log = log
         
-        self.scripts = {"bougies":ScriptBougies, "pipeau":ScriptTestHooks}
+        self.scripts = {"bougies":ScriptBougies, "hooks":ScriptTestHooks, "recalcul":ScriptTestRecalcul}
         self.liste_points_entree = ["cadeau", "verreNous", "verreEnnemi", "Pipeau"]
 
         for script,classe in self.scripts.items():
             self.scripts[script] = classe()
-            self.scripts[script].set_dependencies(self.robot, self.robotChrono, self.hookGenerator, self.log, self.config)
+            self.scripts[script].set_dependencies(self.robot, self.robotChrono, self.hookGenerator, self.rechercheChemin, self.config, self.log)
         
     def boucle_pipeau(self):
         while not timer.fin_match:

@@ -1,6 +1,6 @@
 from outils_maths.point import Point
-from math import cos
-from math import sin
+from math import cos,sin
+from time import sleep
 
 def fonction_capteurs(container):
     """

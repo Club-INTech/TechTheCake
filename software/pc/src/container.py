@@ -122,7 +122,7 @@ class Container:
         self.assembler.register("hookGenerator", HookGenerator, requires=["config","log"])
         
         #enregistrement du service de stratégie
-        self.assembler.register("strategie", Strategie, requires=["robot", "robotChrono", "hookGenerator", "rechercheChemin", "config", "log", "table", "timer"])
+        self.assembler.register("strategie", Strategie, requires=["robot", "robotChrono", "hookGenerator", "rechercheChemin", "table", "timer", "config", "log"])
 
         #lancement des threads
         self._start_threads()
