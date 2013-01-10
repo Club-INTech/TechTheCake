@@ -5,6 +5,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+
 /*
  *  Pins des codeurs
  */
@@ -16,7 +17,8 @@
 /*
  *  Position roues
  */
-extern volatile int32_t codeuse;
+extern volatile int32_t roue1;
+extern volatile int32_t roue2;
 
 /*
  *  Initialisations

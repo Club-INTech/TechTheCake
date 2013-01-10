@@ -1,13 +1,10 @@
 from time import sleep
-from robot import Robot
-from serie import Serie
-from log import Log
 
 def fonction_MAJ(container):
     """
-    cette fonction sera lancée dans un thread parallèle à la stratégie
-    il met à jour les attributs "physiques" du robot (coordonnées, acquittement...)
-    et stoppe automatiquement le robot en cas de blocage
+    Cette fonction sera lancée dans un thread parallèle à la stratégie.
+    Celui-ci met à jour les attributs "physiques" du robot (coordonnées x, y et orientation).
+    Au démarrage, il bloque les autres threads, afin d'attendre une première mise à jour des coordonnées.
     """
     
     #importation des services nécessaires

@@ -33,6 +33,11 @@ from log import Log
 from hooks import HookGenerator
 
 class Container:
+    """
+    Cette classe se charge de contenir une instance unique de chaque service nécessité (et demandé) par le code.
+    Elle utilise la bibliothèque d'injection de dépendances Assemblage.
+    Les services chargés dépendent de la configuration (simulation/série) et sont ensuite utilisés de manière transparente.
+    """
     def __init__(self):
         self.assembler = assembler()
         self.mutex = Mutex()
@@ -59,13 +64,21 @@ class Container:
             #enregistrement du service Simulateur
             def make_simu():
                 #client SOAP pour le simulateur
-                client=Client("http://localhost:8090/INTechSimulator?wsdl")
+                try:
+                    client=Client("http://localhost:8090/INTechSimulator?wsdl")
+                except:
+                    print("\n\nle serveur de simulation est introuvable !")
+                    input()
                 #initialisation de la table
                 client.service.reset()
                 client.service.setTableDimension(self.config["table_x"],self.config["table_y"])
                 client.service.defineCoordinateSystem(1,0,0,-1,self.config["table_x"]/2,self.config["table_y"])
                 #déclaration du robot
-                client.service.defineRobot({"list":[{"float":[-200.,-200.]},{"float":[-200.,200.]},{"float":[200.,200.]},{"float":[200.,-200.]}]})
+                if self.config["couleur"] == "bleu":
+                    couleur = "blue"
+                else:
+                    couleur = "red"
+                client.service.defineRobot({"list":[{"float":[-200.,-200.]},{"float":[-200.,200.]},{"float":[200.,200.]},{"float":[200.,-200.]}]},couleur)
                 #déclaration d'un robot adverse
                 client.service.addEnemy(30,"black")
                 return client.service
@@ -107,11 +120,13 @@ class Container:
         self.assembler.register("strategie", Strategie, requires=["robot", "robotChrono", "hookGenerator", "rechercheChemin", "config", "log"])
         
         #lancement des threads
-        self.start_threads()
+        self._start_threads()
         
         
-    def start_threads(self):
-        
+    def _start_threads(self):
+        """
+        Le lancement des thread (et leur attente d'une initialisation) est gérée ici.
+        """
         #fonction qui lance les threads
         def lancement_des_threads():
             #lancement du thread de mise à jour des coordonnées
@@ -134,6 +149,9 @@ class Container:
                 
                 
     def get_service(self,id):
+        """
+        Méthode de génération d'un service. Elle renvoie toujours la même instance d'un service, qui n'est construite qu'à la première demande.
+        """
         #mutex pour éviter la duplication d'un service à cause d'un thread (danger !)
         with self.mutex:
             return self.assembler.provide(id)

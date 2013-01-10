@@ -76,7 +76,10 @@ class CapteursSimulateur(Capteurs):
             distance = [self.simulateur.getSensorValue(0),self.simulateur.getSensorValue(1)]
         else:
             distance = [self.simulateur.getSensorValue(2),self.simulateur.getSensorValue(3)]
-        if distance[0]==-1: #A mettre du côté simulateur directement!
-            return 5000
-        else:
-            return self._fusion(distance)
+            
+        #convention lorsque rien de détecté
+        for i in range(len(distance)):
+            if distance[i] == -1:
+                distance[i] = 5000
+            
+        return self._fusion(distance)

@@ -3,6 +3,9 @@ from time import time,sleep
 from mutex import Mutex
 
 class Robot:
+    """
+    classe implémentant le robot.
+    """
     def __init__(self,capteurs,actionneurs,deplacements,config,log):
         self.mutex = Mutex()
         
@@ -13,47 +16,35 @@ class Robot:
         self.config = config
         self.log = log
         
-        """
-        attributs des coordonnées du robot.
-        sont mis à jour automatiquement par un thread dédié communiquant via la série.
-        dans le code, on peut utiliser directement :
-        self.x, self.y, self.orientation : coordonnées courantes
-        self.blocage : booléen True si le robot est considéré comme bloqué hors de la consigne
-        self.enMouvement : booléen True si le robot est encore en mouvement
-        les écritures et lectures sur ces attributs passent par des mutex gérant les accès mémoire, et communiquent avec la série si nécessaire
-        """
         
-        #TODO variables à ajuster puis passer dans le service config
-        if self.config["mode_simulateur"]:
-            self.sleep_boucle_acquittement = 0.05
-            self.frequence_maj_arc_de_cercle = 20
-            self.pas = 100
-            self.vitesse_rotation_arc_cercle = 10
-            
-            
-        else:
-            self.sleep_boucle_acquittement = 0.1
-            self.frequence_maj_arc_de_cercle = 20
-            self.pas = 100
-            self.vitesse_rotation_arc_cercle = 10
-        
-        #couleur du robot
-        self.couleur = self.config["couleur"]
-            
+        ###############################################
+        #attributs des coordonnées et états du robot.
+        #sont mis à jour automatiquement par un thread dédié communiquant via la série.
+
+        #self.x, self.y, self.orientation : coordonnées courantes
+        # (leurs valeurs initiales n'importent pas : le lanceur attend que le thread de mise à jour soit lancé)
         self._x = 0
         self._y = 0
         self._orientation = 0
         
+        #self.blocage : booléen True si le robot est considéré comme bloqué hors de la consigne
+        self._blocage = False
+        #self.enMouvement : booléen True si le robot est encore en mouvement
+        self._enMouvement = True
+        
+        #les écritures et lectures sur ces attributs (sans _devant) passent par des mutex gérant les accès mémoire, et communiquent avec la série si nécessaire
+        ###############################################
+        
+        
+        #point consigne pour la méthode va_au_point()
         self._consigne_x = 0
         self._consigne_y = 0
         
-        if self.couleur == "bleu":
+        #orientation initiale du robot : self._consigne_orientation est utilisé pour le fonctionnement de self._avancer()
+        if self.config["couleur"] == "bleu":
             self._consigne_orientation = 0
         else:
             self._consigne_orientation = pi
-        
-        self._blocage = False
-        self._enMouvement = True
         
         #sauvegarde des vitesses courantes du robot
         self.vitesse_translation = 2
@@ -62,11 +53,16 @@ class Robot:
         #mode marche arrière
         self.marche_arriere = False
         
-        #durée de jeu TODO : à muter dans Table ?
-        self.debut_jeu = time()
-        
         #le robot n'est pas prêt tant qu'il n'a pas recu ses coordonnées initiales par le thread de mise à jour
         self.pret = False
+        
+        #sleep pour la boucle d'acquittement : divisé en 2 pour le simulateur, car il ne peut pas tourner et avancer en même temps
+        if self.config["mode_simulateur"]:
+            self.sleep_milieu_boucle_acquittement = self.config["sleep_acquit_simu"]/2.
+            self.sleep_fin_boucle_acquittement = self.config["sleep_acquit_simu"]/2.
+        else:
+            self.sleep_milieu_boucle_acquittement = self.config["sleep_acquit_serie"]
+            self.sleep_fin_boucle_acquittement = 0.
         
         
     #####################################################################################
@@ -117,6 +113,7 @@ class Robot:
             self.__dict__["_consigne_y"] = value
      
     def set_orientation(self, value):
+        #l'attribut self._consigne_orientation doit etre mis à jour à chaque changement d'orientation pour le fonctionnement de self._avancer()
         self._consigne_orientation = value
         self.deplacements.set_orientation(value)
         
@@ -144,23 +141,30 @@ class Robot:
     ### MÉTHODES DE DÉPLACEMENTS DE BASE , AVEC GESTION DES ACQUITTEMENTS ET CAPTEURS ###
     #####################################################################################
     
-    def stopper(self):
-        self.log.debug("stoppage du robot")
-        self.blocage = True
-        self.deplacements.stopper()
         
-    def avancer(self, distance, hooks=[]):
-        self.log.debug("avancer de "+str(distance))
+    def _avancer(self, distance, hooks=[]):
+        """
+        Cette méthode permet d'effectuer une translation en visant un point consigne devant le robot,
+        au lieu d'avancer "en aveugle" : l'orientation est corrigée en cas de déviation
+        Les hooks sont transmis à la méthode va_au_point()
+        """
         
+        #récupération de la dernière consigne d'orientation, et placement d'un point consigne au devant du robot
         consigne_x = self.x + distance*cos(self._consigne_orientation)
         consigne_y = self.y + distance*sin(self._consigne_orientation)
         
-        return self.va_au_point(consigne_x,consigne_y,hooks,False)
+        return self._va_au_point(consigne_x,consigne_y,hooks,False)
         
         
-    def tourner(self, angle, hooks=[]):
-        self.log.debug("tourner à "+str(angle))
+    def _tourner(self, angle, hooks=[]):
+        """
+        Méthode de rotation en place.
+        Les hooks sont évalués, et une boucle d'acquittement générique est utilisée.
+        """
+        
+        #comme à toute consigne initiale de mouvement, le robot est débloqué
         self.blocage = False
+        #l'attribut self._consigne_orientation doit etre mis à jour à chaque deplacements.tourner() pour le fonctionnement de self._avancer()
         self._consigne_orientation = angle
         self.deplacements.tourner(angle)
         while 1:
@@ -169,42 +173,42 @@ class Robot:
             for hook in hooks:
                 hook.evaluate(**infosRobot)
                 
-            #acquittement du déplacement : sort de la boucle avec un return si arrivé ou bloqué
+            #acquittement du déplacement : sort de la boucle (avec un return) si robot arrivé ou bloqué
             acq = self._acquittement()
             if acq:
                 return acq
             
-            if self.config["mode_simulateur"]:
-                #sleep nécessaire pour le simulateur
-                sleep(self.sleep_boucle_acquittement/2.)
-            else:
-                sleep(self.sleep_boucle_acquittement)
+            sleep(self.sleep_milieu_boucle_acquittement)
         
-    def va_au_point(self, x, y, hooks=[], virage_initial=False):
-        
-        self.set_vitesse_rotation(1)
-        self.set_vitesse_translation(1)
+    def _va_au_point(self, x, y, hooks=[], virage_initial=False):
+        """
+        Méthode pour parcourir un segment : le robot se rend en (x,y) en corrigeant dynamiquement ses consignes en rotation et translation.
+        Si le paramètre virage_initial=False, le robot évite d'effectuer un virage, et donc tourne sur lui meme avant la translation.
+        Les hooks sont évalués, et une boucle d'acquittement générique est utilisée.
+        """
                 
-        self.log.debug("va au point ("+str(x)+", "+str(y)+"), virage inital : "+str(virage_initial))
-        
+        #comme à toute consigne initiale de mouvement, le robot est débloqué
         self.blocage = False
+        
+        #mise en place d'un point consigne, à atteindre (en attribut pour persister dans _mise_a_jour_consignes() )
         self.consigne_x = x
         self.consigne_y = y
         
-        #au moins un déplacement
+        #au moins un déplacement, avant la boucle (équivalent à do...while)
         delta_x = self.consigne_x-self.x
         delta_y = self.consigne_y-self.y
         distance = round(sqrt(delta_x**2 + delta_y**2),2)
         angle = round(atan2(delta_y,delta_x),4)
+        #mode marche_arriere
         if self.marche_arriere:
             distance *= -1
             angle += pi 
         if not virage_initial:
             #sans virage : la première rotation est blocante
-            self.tourner(angle)
-            
+            self._tourner(angle)
             self.deplacements.avancer(distance)
         else:
+            #l'attribut self._consigne_orientation doit etre mis à jour à chaque deplacements.tourner() pour le fonctionnement de self._avancer()
             self._consigne_orientation = angle
             self.deplacements.tourner(angle)
             self.deplacements.avancer(distance)
@@ -224,62 +228,41 @@ class Robot:
             if acq:
                 return acq
             
-            if self.config["mode_simulateur"]:
-                #sleep nécessaire pour le simulateur
-                sleep(self.sleep_boucle_acquittement/2.)
-            else:
-                sleep(self.sleep_boucle_acquittement)
+            sleep(self.sleep_milieu_boucle_acquittement)
     
-    # Met à jour les consignes en translation et rotation (vise un point)
     def _mise_a_jour_consignes(self):
+        """
+        Met à jour les consignes en translation et rotation (vise un point consigne)
+        """
         delta_x = self.consigne_x-self.x
         delta_y = self.consigne_y-self.y
         distance = round(sqrt(delta_x**2 + delta_y**2),2)
-        if distance > 30:
-            ############################
+        #mise à jour des consignes en translation et rotation en dehors d'un disque de tolérance
+        if distance > self.config["disque_tolerance"]:
             angle = round(atan2(delta_y,delta_x),4)
-            #self.log.debug("distance calculée : "+str(distance))
-            #self.log.debug("angle calculé : "+str(angle))
-            ############################
-            #if delta_x == 0:
-                #if delta_y > 0:
-                    #angle = pi/2
-                #else:
-                    #angle = -pi/2
-            #else:
-                #angle = atan(delta_y/delta_x)
-            #if delta_x < 0:
-                #if distance < 150:
-                    #distance = -distance
-                #elif delta_y > 0:
-                    #angle += pi
-                #else:
-                    #angle -= pi
-            ############################
+            #mode marche_arriere
             if self.marche_arriere:
                 distance *= -1
                 angle += pi 
                 
+            #l'attribut self._consigne_orientation doit etre mis à jour à chaque deplacements.tourner() pour le fonctionnement de self._avancer()
             self._consigne_orientation = angle
             self.deplacements.tourner(angle)
-            if self.config["mode_simulateur"]:
-                #sleep nécessaire pour le simulateur
-                sleep(self.sleep_boucle_acquittement/2.)
+            #ce sleep est nécessaire au simulateur : les sleeps séparant rotation->translation et translation->rotation doivent etre les memes...
+            sleep(self.sleep_fin_boucle_acquittement)
             self.deplacements.avancer(distance)
-        else:
-            #self.log.debug("robot dans le disque de tolérance, pas de mise à jour des consignes.")
-            pass
             
-    # S'utilise dans la boucle d'acquittement. Remonte des exceptions en cas d'arrêt anormal (blocage, capteur etc...)
+    
     def _acquittement(self):
+        """
+        Boucle d'acquittement générique. Retourne des valeurs spécifiques en cas d'arrêt anormal (blocage, capteur)
+        """
         #récupérations des informations d'acquittement
+        #utilisées plusieurs fois : la notation **args permet aux méthodes appelées de n'utiliser que les paramètres dont elles ont besoin.
         infos = self.deplacements.get_infos_stoppage_enMouvement()
         
-        #print("infos :")
-        #for i in infos:
-            #print(i+" : "+str(infos[i]))
-            
         #robot bloqué ?
+        #self.deplacements.gestion_blocage() n'indique qu'un NOUVEAU blocage : garder le ou logique avant l'ancienne valeur (attention aux threads !)
         if self.blocage or self.deplacements.gestion_blocage(**infos):
             self.blocage = True
             #abandon car blocage
@@ -290,14 +273,20 @@ class Robot:
             return 1
             
             
-    def arc_de_cercle(self,xM,yM,hooks=[]):
-        #effectue un arc de cercle à partir de la position courante vers le projetté de M sur le cercle passant par la position courante
+    def _arc_de_cercle(self,xM,yM,hooks=[]):
+        """
+        Effectue un arc de cercle à partir de la position courante vers le projetté de M sur le cercle passant par la position courante.
+        Faites pas cette tête, c'est intuitif.
+        Les hooks sont évalués, et une boucle d'acquittement générique est utilisée.
+        """
         
-        pas = self.pas
+        #distance, sur l'abscisse curviligne, à laquelle placer le point consigne au devant du robot
+        pas = self.config["pas_arc_de_cercle"]
         
-        self.log.debug("effectue un arc de cercle entre ("+str(self.x)+", "+str(self.y)+") et ("+str(xM)+", "+str(yM)+")")
+        #comme à toute consigne initiale de mouvement, le robot est débloqué
         self.blocage = False
         
+        #TODO : utiliser le service de table pour le gateau ?
         #####################
         ##si gateau en haut :
         ##sens de parcours
@@ -324,28 +313,30 @@ class Robot:
         yB = yO + (r/s)*(yM-yO)
         tB = atan2(yB-yO,xB-xO)
         
-        #TODO : visualisation à enlever
-        if self.config["mode_simulateur"]:
-            self.deplacements.simulateur.drawPoint(xB,yB,"red",True)
-        
         #s'aligner sur la tangente au cercle :
         #calcul de l'angle de A (point de départ)
         tA = atan2(self.y-yO,self.x-xO)
         
+        #vitesse de rotation pour atteindre la tangente
         self.set_vitesse_rotation(1)
-        if (pas < 0) != self.marche_arriere:
-            self.tourner(tA-pi/2)
-        else:
-            self.tourner(tA+pi/2)
         
-        #vitesses pour l'arc de cercle
+        #ou exclusif entre le sens de parcours de l'abscisse curviligne (ie le sens de pas) et le mode marche arrière
+        #afin de s'orienter perpendiculairement au rayon du cercle, dans la bonne direction
+        if (pas < 0) != self.marche_arriere:
+            self._tourner(tA-pi/2)
+        else:
+            self._tourner(tA+pi/2)
+        
+        #vitesses pour le parcours de l'arc de cercle
+        #TODO : passer ca dans déplacements ?
         self.set_vitesse_translation(1)
-        self.deplacements.serie.communiquer("asservissement",["crv",1.5,2.0,self.vitesse_rotation_arc_cercle], 0)
+        self.deplacements.serie.communiquer("asservissement",["crv",1.5,2.0,self.config["vitesse_rot_arc_cercle"]], 0)
         
         while 1:
             #calcul de l'angle de A (point de départ)
             tA = atan2(self.y-yO,self.x-xO)
             
+            #il reste au moins le pas à parcourir
             if (pas > 0 and r*tA+pas < r*tB) or (pas < 0 and r*tA+pas > r*tB):
                 #nouveau point consigne : incrémenter l'abscisse curviligne de A du pas en mm
                 #angle absolu pour C
@@ -353,8 +344,6 @@ class Robot:
                 #coordonnées de C, prochain point consigne
                 self.consigne_x = xO + r*cos(tC)
                 self.consigne_y = yO + r*sin(tC)
-                if self.config["mode_simulateur"]:
-                    self.deplacements.simulateur.drawPoint(self.consigne_x,self.consigne_y,"green",False)
                 
                 #vérification des hooks
                 infosRobot={"robotX" : self.x,"robotY" : self.y,"robotOrientation" : self.orientation}
@@ -369,9 +358,12 @@ class Robot:
                 if acq:
                     return acq
             else:
-                self.log.debug("abscisse curviligne atteinte, on fixe la consigne au point d'arrivé")
+                #disque de tolérance atteint : on fixe la consigne au point d'arrivée
+                
+                #vitesse de rotation classique
                 self.set_vitesse_rotation(1)
-                #proche de la consigne, dernière mise à jour du point virtuel 
+                
+                #dernière mise à jour du point virtuel 
                 self.consigne_x = xB
                 self.consigne_y = yB
                 
@@ -380,79 +372,37 @@ class Robot:
                 for hook in hooks:
                     hook.evaluate(**infosRobot)
                     
+                #acquittement du déplacement : sort de la boucle avec un return si arrivé ou bloqué
                 acq = self._acquittement()
                 if acq:
                     return acq
             
-            sleep(1./self.frequence_maj_arc_de_cercle)
-            
+            #on utilise ici une fréquence de mise à jour du point consigne
+            sleep(1./self.config["freq_maj_arc_de_cercle"])
         
-    def recaler(self):
-        
-        self.log.debug("début du recalage")
-        
-        self.log.debug("recalage : on recule lentement jusqu'à bloquer sur le bord")
-        self.set_vitesse_translation(1)
-        self.set_vitesse_rotation(1)
-        self.marche_arriere = True
-        self.gestion_avancer(-1000)
-        #input()
-        self.log.debug("recalage : on désactive l'asservissement en rotation pour se mettre parallèle au bord")
-        self.deplacements.desactiver_asservissement_rotation()
-        self.set_vitesse_translation(2)
-        self.gestion_avancer(-300)
-        #input()
-        self.log.debug("recalage : initialisation de la coordonnée x et de l'orientation")
-        if self.couleur == "bleu":
-            self.x = -self.config["table_x"]/2. + self.config["largeur_robot"]/2.
-            self.orientation = 0.0
-        else:
-            self.x = self.config["table_x"]/2. - self.config["largeur_robot"]/2.
-            self.orientation = pi
-        #input()
-        self.log.debug("recalage : on avance doucement, en réactivant l'asservissement en rotation")
-        self.marche_arriere = False
-        self.deplacements.activer_asservissement_rotation()
-        self.set_vitesse_translation(1)
-        self.gestion_avancer(100)
-        #input()
-        self.log.debug("recalage : on se tourne pour le deuxième recalage")
-        self.gestion_tourner(pi/2)
-        #input()
-        self.log.debug("recalage : on recule lentement jusqu'à bloquer sur le bord")
-        self.marche_arriere = True
-        self.gestion_avancer(-1000)
-        #input()
-        self.log.debug("recalage : on désactive l'asservissement en rotation pour se mettre parallèle au bord")
-        self.deplacements.desactiver_asservissement_rotation()
-        self.set_vitesse_translation(2)
-        self.gestion_avancer(-300)
-        #input()
-        self.log.debug("recalage : initialisation de la coordonnée y et de l'orientation")
-        self.y = self.config["largeur_robot"]/2.
-        self.orientation = pi/2.
-        #input()
-        self.log.debug("recalage : on avance doucement, en réactivant l'asservissement en rotation")
-        self.marche_arriere = False
-        self.deplacements.activer_asservissement_rotation()
-        self.set_vitesse_translation(1)
-        self.gestion_avancer(150)
-        #input()
-        self.log.debug("recalage : on prend l'orientation initiale pour le match")
-        self.gestion_tourner(pi)
-        #input()
-        self.log.debug("recalage : vitesse initiales pour le match")
-        self.set_vitesse_translation(2)
-        self.set_vitesse_rotation(2)
-       
-        self.log.debug("recalage terminé")
-        
-    #############################################################################################################
-    ### MÉTHODES DE DÉPLACEMENTS DE HAUT NIVEAU (TROUVÉES DANS LES SCRIPTS), AVEC RELANCES EN CAS DE PROBLÈME ###
-    #############################################################################################################
+    #######################################################################################################################
+    ### MÉTHODES PUBLIQUES DE DÉPLACEMENTS DE HAUT NIVEAU (TROUVÉES DANS LES SCRIPTS), AVEC RELANCES EN CAS DE PROBLÈME ###
+    #######################################################################################################################
     
-    def gestion_avancer(self, distance, hooks=[]):
-        retour = self.avancer(distance, hooks)
+    def stopper(self):
+        """
+        Stoppe le robot en l'asservissant sur place
+        """
+        self.log.debug("stoppage du robot")
+        self.blocage = True
+        self.deplacements.stopper()
+        
+    def avancer(self, distance, hooks=[]):
+        """
+        Cette méthode est une surcouche intelligente sur les déplacements.
+        Elle permet d'effectuer une translation en visant un point consigne devant le robot,
+        au lieu d'avancer "en aveugle" : l'orientation est corrigée en cas de déviation.
+        Les hooks sont executés, et différentes relances sont implémentées en cas de retour particulier.
+        """
+        
+        self.log.debug("avancer de "+str(distance))
+        
+        retour = self._avancer(distance, hooks)
         if retour == 1:
             print("translation terminée !")
         elif retour == 2:
@@ -462,13 +412,22 @@ class Robot:
             self.stopper()
             print("capteurs !")
         
-    def gestion_tourner(self, angle, hooks=[]):
+    def tourner(self, angle, hooks=[]):
+        """
+        Cette méthode est une surcouche intelligente sur les déplacements.
+        Elle effectue une rotation en place. La symétrie est prise en compte.
+        Les hooks sont executés, et différentes relances sont implémentées en cas de retour particulier.
+        """
         
+        self.log.debug("tourner à "+str(angle))
+        
+        #le mode marche arrière n'effectue pas de symétrie pour la couleur : on l'utilise justement pour ca. (actionneurs sur le côté)
         if not self.marche_arriere:
-            if self.couleur == "bleu":
+            if self.config["couleur"] == "bleu":
+                #symétrie de la consigne d'orientation
                 angle = pi - angle
                 
-        retour = self.tourner(angle, hooks)
+        retour = self._tourner(angle, hooks)
         if retour == 1:
             print("rotation terminée !")
         elif retour == 2:
@@ -478,12 +437,22 @@ class Robot:
             self.stopper()
             print("capteurs !")
             
-    def gestion_va_au_point(self, x, y, hooks=[], virage_initial=False):
+    def va_au_point(self, x, y, hooks=[], virage_initial=False):
+        """
+        Cette méthode est une surcouche intelligente sur les déplacements.
+        Elle permet de parcourir un segment : le robot se rend en (x,y) en corrigeant dynamiquement ses consignes en rotation et translation.
+        La symétrie est prise en compte.
+        Si le paramètre virage_initial=False, le robot évite d'effectuer un virage, et donc tourne sur lui meme avant la translation.
+        Les hooks sont executés, et différentes relances sont implémentées en cas de retour particulier.
+        """
         
-        if self.couleur == "bleu":
+        self.log.debug("va au point ("+str(x)+", "+str(y)+"), virage inital : "+str(virage_initial))
+        
+        if self.config["couleur"] == "bleu":
+            #symétrie du point consigne
             x *= -1
                 
-        retour = self.va_au_point(x, y, hooks, virage_initial)
+        retour = self._va_au_point(x, y, hooks, virage_initial)
         if retour == 1:
             print("point de destination atteint !")
         elif retour == 2:
@@ -492,12 +461,21 @@ class Robot:
             self.stopper()
             print("capteurs !")
             
-    def gestion_arc_de_cercle(self,xM,yM,hooks=[]):
+    def arc_de_cercle(self,xM,yM,hooks=[]):
+        """
+        Cette méthode est une surcouche intelligente sur les déplacements.
+        Elle permet d'effectuer un arc de cercle à partir de la position courante vers le projetté de M sur le cercle passant par la position courante.
+        Faites pas cette tête, c'est intuitif.
+        Les hooks sont executés, et différentes relances sont implémentées en cas de retour particulier.
+        """
         
-        if self.couleur == "bleu":
+        self.log.debug("effectue un arc de cercle entre ("+str(self.x)+", "+str(self.y)+") et ("+str(xM)+", "+str(yM)+")")
+        
+        if self.config["couleur"] == "bleu":
+            #symétrie du point consigne
             xM *= -1
                 
-        retour = self.arc_de_cercle(xM,yM,hooks)
+        retour = self._arc_de_cercle(xM,yM,hooks)
         if retour == 1:
             print("point de destination atteint !")
         elif retour == 2:
@@ -506,15 +484,79 @@ class Robot:
             self.stopper()
             print("capteurs !")
         
+    def recaler(self):
+        """
+        Recalage du robot sur les bords de la table, pour initialiser ses coordonnées.
+        """
+        
+        self.log.debug("début du recalage")
+        
+        #on recule lentement jusqu'à bloquer sur le bord
+        self.set_vitesse_translation(1)
+        self.set_vitesse_rotation(1)
+        self.marche_arriere = True
+        self.avancer(-1000)
+        
+        #on désactive l'asservissement en rotation pour se mettre parallèle au bord
+        self.deplacements.desactiver_asservissement_rotation()
+        self.set_vitesse_translation(2)
+        self.avancer(-300)
+        
+        #initialisation de la coordonnée x et de l'orientation
+        if self.config["couleur"] == "bleu":
+            self.x = -self.config["table_x"]/2. + self.config["largeur_robot"]/2.
+            self.orientation = 0.0
+        else:
+            self.x = self.config["table_x"]/2. - self.config["largeur_robot"]/2.
+            self.orientation = pi
+        
+        #on avance doucement, en réactivant l'asservissement en rotation
+        self.marche_arriere = False
+        self.deplacements.activer_asservissement_rotation()
+        self.set_vitesse_translation(1)
+        self.avancer(100)
+        
+        #on se tourne pour le deuxième recalage
+        self.tourner(pi/2)
+        
+        #on recule lentement jusqu'à bloquer sur le bord
+        self.marche_arriere = True
+        self.avancer(-1000)
+        
+        #on désactive l'asservissement en rotation pour se mettre parallèle au bord
+        self.deplacements.desactiver_asservissement_rotation()
+        self.set_vitesse_translation(2)
+        self.avancer(-300)
+        
+        #initialisation de la coordonnée y et de l'orientation
+        self.y = self.config["largeur_robot"]/2.
+        self.orientation = pi/2.
+        
+        #on avance doucement, en réactivant l'asservissement en rotation
+        self.marche_arriere = False
+        self.deplacements.activer_asservissement_rotation()
+        self.set_vitesse_translation(1)
+        self.avancer(150)
+        
+        #on prend l'orientation initiale pour le match (la symétrie est automatique pour les déplacements)
+        self.tourner(pi)
+        
+        #vitesse initiales pour le match
+        self.set_vitesse_translation(2)
+        self.set_vitesse_rotation(2)
+       
+        self.log.debug("recalage terminé")
+        
     def set_vitesse_translation(self, valeur):
+        """
+        modifie la vitesse de translation du robot et adapte les constantes d'asservissement
+        """
         self.deplacements.set_vitesse_translation(valeur)
         self.vitesse_translation = int(valeur)
+        
     def set_vitesse_rotation(self, valeur):
+        """
+        modifie la vitesse de rotation du robot et adapte les constantes d'asservissement
+        """
         self.deplacements.set_vitesse_rotation(valeur)
         self.vitesse_rotation = int(valeur)
-    
-    def ouvrir_cadeau(self):
-    	self.actionneurs.ouvrir_cadeau()
-    	
-    def fermer_cadeau(self):
-    	self.actionneurs.fermer_cadeau()

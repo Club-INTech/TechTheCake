@@ -60,7 +60,7 @@ int main()
 			integrale = 0;
 			i = 0;
 		}
-		if (strcmp(ordre, "?") == 0) // Position voulue
+		if (strcmp(ordre, "?") == 0)
 		{
 			Serial<0>::print("2");
 		}
@@ -116,11 +116,12 @@ ISR(TIMER1_OVF_vect)
 	moteur.envoyerPwm(pwm1);
 	derivee = erreur - erreur_ancienne;
 	erreur_ancienne = erreur;
+	Serial<0>::print(roue1);
 
 	/*
 	Si blocage moteur:
 	*/
-	bouge_pas = derivee <= 30 && derivee >= -30;
+	bouge_pas = derivee <= 30 || derivee >= -30;
 	moteur_force = (pwm1 > 30) || (pwm1 < -30);
 	if (bouge_pas && moteur_force)
 	{
@@ -129,11 +130,6 @@ ISR(TIMER1_OVF_vect)
 		{
 			pos = roue1;
 			integrale = 0;
-			/*if ((roue1 >= 1000) && (pos == 0))
-			{
-				roue1 = 0;
-				pos = 0;
-			}*/
 		}
 	}
 	else
