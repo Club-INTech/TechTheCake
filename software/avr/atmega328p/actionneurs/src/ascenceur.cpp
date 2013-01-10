@@ -8,7 +8,9 @@
 template<class Moteur>
 Ascenceur<Moteur>::Ascenceur():
 	_asservissement(0.1,0,0),
-	_compteur_blocage(0)
+	_compteur_blocage(0),
+	_asservir(1),
+	_bloc_en_bas(0)
 {
 	_moteur.maxPWM(150);
 }
@@ -18,7 +20,15 @@ void Ascenceur<Moteur>::asservir()
 {
 	int32_t pwm = _asservissement.pwm(_codeuse);
 	int32_t derivee_erreur = _asservissement.erreur_d();
-	_moteur.envoyerPwm(pwm);
+	Serial<0>::print(_codeuse);
+	if (_asservir)
+	{
+		_moteur.envoyerPwm(pwm);
+	}
+	else
+	{
+		_moteur.envoyerPwm(0);
+	}
 	
 	//Si blocage moteur:
 	
@@ -29,13 +39,16 @@ void Ascenceur<Moteur>::asservir()
 		++_compteur_blocage;
 		if (_compteur_blocage >= COMPTEUR_BLOCAGE_MAX)
 		{
-			/*// Recalage si blocage en bas
-			if (_asservissement.consigne() == ASCENSEUR_BAS)
+			// Recalage si blocage en bas
+			if (_asservissement.consigne() == ASCENSEUR_BAS) // Si l'ascenceur bloc en bas, alors la codeuse est mise à 0 (fait dans le main)
 			{
-				_codeuse = ASCENSEUR_BAS;
-			}*/
+				_bloc_en_bas = 1;
+			}
+			else
+			{
+				_bloc_en_bas = 0;
+			}
 			_asservissement.consigne(_codeuse);
-			Serial<0>::print("bloc");
 		}
 	}
 	else
@@ -44,12 +57,24 @@ void Ascenceur<Moteur>::asservir()
 	}
 }
 
+/**
+ * Envoi de la consigne au moteur
+ * en fonction du type enum AscenseurPosition
+ * (limité)
+ */
+
 template<class Moteur>
 void Ascenceur<Moteur>::consigne(AscenseurPosition consigne)
 {
 	_asservissement.consigne(consigne);
 	_compteur_blocage = 0;
 }
+
+/**
+ * Envoi de la consigne au moteur
+ * pour d'autres valeurs
+ * (général)
+ */
 
 template<class Moteur>
 void Ascenceur<Moteur>::consigne(int32_t consigne)
@@ -58,16 +83,44 @@ void Ascenceur<Moteur>::consigne(int32_t consigne)
 	_compteur_blocage = 0;
 }
 
+/**
+ * Récupère la valeur de la codeuse associé au moteur
+ */
+
 template<class Moteur>
 void Ascenceur<Moteur>::codeuse(int32_t c)
 {
 	_codeuse = c;
 }
 
+/**
+ * Accesseur codeuse
+ */
+
 template<class Moteur>
 int32_t Ascenceur<Moteur>::codeuse()
 {
 	return _codeuse;
+}
+
+/**
+ * Désasservir 
+ */
+
+template<class Moteur>
+void Ascenceur<Moteur>::desasservir()
+{
+	_asservir = 0;
+}
+
+/*
+ * Réasservir
+ */
+
+template<class Moteur>
+void Ascenceur<Moteur>::reasservir()
+{
+	_asservir =1;
 }
 
 template class Ascenceur<Actionneurs::moteur_avant_t>;
