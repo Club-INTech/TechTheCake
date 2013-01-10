@@ -1,6 +1,7 @@
 
 from time import time
 from math import sqrt
+from mutex import Mutex
 
 
 class Obstacle:
@@ -27,6 +28,7 @@ class Table:
     
         self.config = config
         self.log = log
+        self.mutex = Mutex()
         self.cadeaux = [	
 	{"position":(975,0),"ouvert":False},
 	{"position":(375,0),"ouvert":False},
@@ -90,43 +92,53 @@ class Table:
 # Permet de savoir l'état d'une bougie.
     def etat_bougie(self,id) :
         return self.bougies[id]["traitee"]
-	
-# A utiliser lorsqu'un verre est déjà utilisé.
-    def verre_recupere(self,id) :
-        self.verres[id]["present"]=False
+
+# A utiliser lorsque notre robot récupère un verre
+    def recuperer_verre(self,id) :
+        with self.mutex :
+            self._retirer_verre(id)
+            
+# A utiliser lorsqu'un verre est déjà utilisé (privé).
+    def _retirer_verre(self,id) :
+            self.verres[id]["present"]=False
 	
 # Permet de savoir l'état d'un verre.
     def etat_verre(self,id) :
-        return self.verres[id]["present"]
+        with self.mutex :
+            return self.verres[id]["present"]
  
 # Change l'état du verre si le robot adverse passe trop près.
-    def actualise_verres(self,listeRobots) :
-        for k in range(12):
-            for robot in listeRobots:
-                dx = self.verres[k]["position"][0] - robot.position.x
-                dy = self.verres[k]["position"][1] - robot.position.y
-                if sqrt(dx**2 + dy ** 2) < robot.rayon + self.config["tolerance_verre_actif"] :
-                    self. verre_recupere(k)
+    def _actualise_verres(self,listeRobots) :
+            for k in range(12):
+                for robot in listeRobots:
+                    dx = self.verres[k]["position"][0] - robot.position.x
+                    dy = self.verres[k]["position"][1] - robot.position.y
+                    if sqrt(dx**2 + dy ** 2) < robot.rayon + self.config["tolerance_verre_actif"] :
+                        self._retirer_verre(k)
                 
 # Actualise la position et la vitesse des robots adverses.
     def actualise_robotsAdversesBalise(self,positions,vitesses,ids) :
-        for id in ids :    
-            if id < len(self.robotsAdversesBalise) :
-                self.robotsAdversesBalise[id].position = positions[id]
-                self.robotsAdversesBalise[id].vitesse = vitesses[id]
-            elif id > len(self.robotsAdversesBalise) - 1 :
-                self.robotsAdversesBalise.append(RobotAdverseBalise(positions[id],self.config["rayon_robot_adverse"],vitesses[id]))
-        self.actualise_verres(self.robotsAdversesBalise)
+        with self.mutex :
+            for id in ids :    
+                if id < len(self.robotsAdversesBalise) :
+                    self.robotsAdversesBalise[id].position = positions[id]
+                    self.robotsAdversesBalise[id].vitesse = vitesses[id]
+                elif id > len(self.robotsAdversesBalise) - 1 :
+                    self.robotsAdversesBalise.append(RobotAdverseBalise(positions[id],self.config["rayon_robot_adverse"],vitesses[id]))
+            self._actualise_verres(self.robotsAdversesBalise)
         
     def cree_obstaclesCapteur(self, position) :
-        self.obstaclesCapteurs.insert(0,ObstacleCapteur(position,self.config["rayon_robot_adverse"]))
-        self.actualise_verres(self.obstaclesCapteurs[:1])
+        with self.mutex :
+            self.obstaclesCapteurs.insert(0,ObstacleCapteur(position,self.config["rayon_robot_adverse"]))
+            self._actualise_verres(self.obstaclesCapteurs[:1])
             
     def maj_obstaclesCapteur(self,premierAButer) :
-        self.obstaclesCapteurs = self.obstaclesCapteurs[:premierAButer]
+        with self.mutex :
+            self.obstaclesCapteurs = self.obstaclesCapteurs[:premierAButer]
         
     def get_obstaclesCapteur(self) :
-        return self.obstaclesCapteurs
+        with self.mutex :
+            return self.obstaclesCapteurs
         
         
 	
