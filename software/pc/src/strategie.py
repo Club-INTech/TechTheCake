@@ -1,9 +1,13 @@
 from time import sleep
+from time import time
 from scripts import *
 
 class Strategie:
     def __init__(self, robot, robotChrono,rechercheChemin, config, log, table):
+
+        self.date_debut = time.time()
         
+
         #services importés
         self.robot = robot
         self.robotChrono = robotChrono
@@ -11,17 +15,18 @@ class Strategie:
         self.config = config
         self.log = log
         self.table = table
-        self.terminated=False
+        self.terminated = False
         
         self.scripts = {"bougies":ScriptBougies, "pipeau":ScriptPipeau}
         self.liste_points_entree = ["cadeau", "verreNous", "verreEnnemi", "Pipeau"]
-    
+
         for script,classe in self.scripts.items():
             self.scripts[script] = classe()
             self.scripts[script].set_dependencies(self.robot, self.robotChrono, self.log, self.config)
         
     def boucle_pipeau(self):
-        while not self.terminated :
+#        while not self.terminated :
+        while (time.time()-self.date_debut)<self.config["temps_match"]:
             for point_entree in self.liste_points_entree:
                 self.robotChrono.temps_action(point_entree)
                 self.table.distance_ennemi(point_entree)
@@ -32,6 +37,8 @@ class Strategie:
             self.log.debug("La stratégie a décidé d'aller au point d'entrée: ", (ici le point d'entrée))
             self.log.debug(str(self.robot.get_x())+", "+str(self.robot.get_y())+", "+str(self.robot.get_orientation()))
             sleep(0.1)
+
+    
 
     def stop(self):
         self.terminated = True	
