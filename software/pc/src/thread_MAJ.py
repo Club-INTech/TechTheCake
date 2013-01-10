@@ -10,6 +10,7 @@ def fonction_MAJ(container):
     #importation des services nécessaires
     log = container.get_service("log")
     robot = container.get_service("robot")
+    timer = container.get_service("timer")
     
     log.debug("lancement du thread de mise à jour")
     
@@ -24,7 +25,7 @@ def fonction_MAJ(container):
         sleep(0.1)
     robot.pret = True
     
-    while 42:
+    while not timer.fin_match:
     
         #mise à jour des coordonnées dans robot
         try:

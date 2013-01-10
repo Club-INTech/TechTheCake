@@ -16,7 +16,7 @@ void Actionneurs::execute(char *ordre)
 	{
 		serie::print("2");
 	}
-	else if (strcmp(ordre, "haut") == 0) //Hauteur d'un verre
+	else if (strcmp(ordre, "haut") == 0) // Hauteur d'un verre
 	{
 		ascenceur_avant.consigne(ASCENSEUR_HAUT);
 	}
@@ -24,16 +24,22 @@ void Actionneurs::execute(char *ordre)
 	{	
 		ascenceur_avant.consigne(ASCENSEUR_BAS);
 	}
-	else if (strcmp(ordre, "!") == 0)
+	else if (strcmp(ordre, "!") == 0) // Donne sur la série la valeur de la codeuse
 	{
 		serie::print(ascenceur_avant.codeuse());
 	}
-	else if (strcmp(ordre, "consigne") == 0)
+	else if (strcmp(ordre, "consigne") == 0) // Demander de rentrer une consigne
 	{
-		serie::print("valeur ? ");
 		int32_t consigne;
-		serie::read(consigne);
+		serie::read(consigne); // Donner une consigne particulière
 		ascenceur_avant.consigne(consigne);
-		serie::print(consigne);
+	}
+	else if (strcmp(ordre, "da") == 0) // Désasservir moteur avant
+	{
+		ascenceur_avant.desasservir();
+	}
+	else if (strcmp(ordre, "ra") == 0) // Résasservir moteur avant
+	{
+		ascenceur_avant.reasservir();
 	}
 }

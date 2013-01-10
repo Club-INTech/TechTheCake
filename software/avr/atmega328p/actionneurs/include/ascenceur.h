@@ -19,6 +19,8 @@ class Ascenceur
 		void consigne(AscenseurPosition);
 		void codeuse(int32_t);
 		int32_t codeuse();
+		void desasservir();
+		void reasservir();
 						
 	private:
 	
@@ -26,6 +28,11 @@ class Ascenceur
 		Asservissement _asservissement;		
 		int32_t _codeuse;
 		uint8_t _compteur_blocage;
+		bool _asservir;
+	
+	public:
+
+		bool _bloc_en_bas;
 		
 };
 
