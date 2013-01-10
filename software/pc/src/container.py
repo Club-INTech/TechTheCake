@@ -14,8 +14,9 @@ from mutex import Mutex
 
 #module pour les threads
 from threading import Thread
-#fonction lancée dans le thread de MAJ
+#fonctions pour les thread de mises à jour
 from thread_MAJ import fonction_MAJ
+from thread_capteurs import fonction_capteurs
 
 #modules -> services
 from read_ini import Config
@@ -129,9 +130,11 @@ class Container:
         """
         #fonction qui lance les threads
         def lancement_des_threads():
-            #lancement du thread de mise à jour des coordonnées
+            #lancement des threads de mise à jour
             thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":self})
             thread_MAJ.start()
+            thread_capteurs = Thread(None, fonction_capteurs, None, (), {"container":self})
+            thread_capteurs.start()
             #attente d'une première mise à jour pour la suite
             robot = self.get_service("robot")
             while not robot.pret:

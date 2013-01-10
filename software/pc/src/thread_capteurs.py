@@ -1,3 +1,5 @@
+from outils_maths.point import Point
+
 def fonction_capteurs(container):
     """
     Cette fonction sera lancée dans un thread parallèle à la stratégie.
@@ -14,11 +16,11 @@ def fonction_capteurs(container):
     log.debug("lancement du thread de capteurs")
 
     while 1:
-        self.distance=capteurs.mesurer(robot.marche_arriere)
-        if self.distance>=0:
-            self.x=robot.x+distance*cos(robot.orientation)
-            self.y=robot.y+distance*sin(robot.orientation)
-            if x<5 or y<5 or x>config.["table_x"]-5 or y>config.["table_y"]-5:
-                table.cree_obstaclesCapteur('(' + str(self.x) + ',' + str(self.y) + ')')
+        distance=capteurs.mesurer(robot.marche_arriere)
+        if distance>=0:
+            x=robot.x+distance*cos(robot.orientation)
+            y=robot.y+distance*sin(robot.orientation)
+            if not (x<(-config.["table_x"]/2) or y<0 or x>config.["table_x"]/2 or y>config.["table_y"]):
+                table.cree_obstaclesCapteur(Point(x,y))
         sleep(0.1)
 

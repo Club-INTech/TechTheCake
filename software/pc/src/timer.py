@@ -18,9 +18,9 @@ class Timer():
     def suppression_obstacles()
         timestamp_obstacles=self.table.get_obstaclesCapteur()
         i=0
-        while i<timestamp_obstacles.length and timestamp_obstacles[i]>(time.time()-date_debut):   #une recherche dichotomique serait peut-être plus efficace, mais comme l'indice recherché est probablement petit... ça se discute.
+        while i<len(timestamp_obstacles) and timestamp_obstacles[i]>(time.time()-date_debut):   #une recherche dichotomique serait peut-être plus efficace, mais comme l'indice recherché est probablement petit... ça se discute.
             i=i+1
-        if i>=0:
+        if i<len(timestamp_obstacles):
             self.table.maj_obstaclesCapteur(i)
 
     def thread_timer()
