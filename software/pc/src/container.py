@@ -27,6 +27,7 @@ from capteurs import CapteursSerie, CapteursSimulateur
 from actionneurs import ActionneursSerie, ActionneursSimulateur
 from serie import Serie
 from table import Table
+from timer import Timer
 from suds.client import Client
 from recherche_de_chemin.rechercheChemin import RechercheChemin
 from strategie import Strategie
@@ -111,6 +112,9 @@ class Container:
         #enregistrement du service donnant des infos sur la table
         self.assembler.register("table", Table, requires=["config","log"])
         
+        #enregistrement du service timer
+        self.assembler.register("timer", Timer, requires=["robot","table","capteurs"])
+
         #enregistrement du service de recherche de chemin
         self.assembler.register("rechercheChemin", RechercheChemin, requires=["table","config","log"])
         
@@ -118,8 +122,8 @@ class Container:
         self.assembler.register("hookGenerator", HookGenerator, requires=["config","log"])
         
         #enregistrement du service de stratégie
-        self.assembler.register("strategie", Strategie, requires=["robot", "robotChrono", "hookGenerator", "rechercheChemin", "config", "log"])
-        
+        self.assembler.register("strategie", Strategie, requires=["robot", "robotChrono", "hookGenerator", "rechercheChemin", "config", "log", "table", "timer"])
+
         #lancement des threads
         self._start_threads()
         

@@ -7,15 +7,16 @@ class Timer():
         self.robot = robot
         self.table = table
         self.capteurs = capteurs
-#       self.actionneurs = actionneurs
         self.match_demarre = False
+        self.fin_match = False
 
-    def initialisation()
+    def initialisation():
         while not self.capteurs.demarrage_match():
-        match_demarre = True
+            sleep(.5)
+        self.match_demarre = True
         self.date_debut = time.time()
 
-    def suppression_obstacles()
+    def suppression_obstacles():
         timestamp_obstacles=self.table.get_obstaclesCapteur()
         i=0
         while i<len(timestamp_obstacles) and timestamp_obstacles[i]>(time.time()-date_debut):   #une recherche dichotomique serait peut-être plus efficace, mais comme l'indice recherché est probablement petit... ça se discute.
@@ -23,13 +24,12 @@ class Timer():
         if i<len(timestamp_obstacles):
             self.table.maj_obstaclesCapteur(i)
 
-    def thread_timer()
+    def thread_timer():
         self.initialisation()
-        while (time.time()-date_debut)<self.config.["temps_match"]:
+        while (time.time()-date_debut)<self.config["temps_match"]:
             self.suppression_obstacles()
             sleep(.5)
-#        self.?.stop() #on arrête la stratégie avant le robot, sinon le robot risque de repartir avant qu'on arrête la stratégie
-#pour l'instant, la stratégie s'arrête toute seule
+        self.fin_match = True
         self.capteurs.stop()
         self.robot.stopper()
         sleep(.500) #afin d'être sûr que le robot a eu le temps de s'arrêter
