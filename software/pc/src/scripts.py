@@ -27,14 +27,10 @@ class Script:
             self.dernierChemin = self.rechercheChemin.get_chemin(Point(self.robot.x,self.robot.y),position)
             self.dateDernierChemin = time()
         try:
-            print("dernierChemin : "+str(self.dernierChemin[-1])+", positionConsigne : "+str(position))
-            print(self.dernierChemin[-1] != position)
-            print(time() - self.dateDernierChemin > self.config["duree_peremption_chemin"])
             if self.dernierChemin[-1] != position or time() - self.dateDernierChemin > self.config["duree_peremption_chemin"]:
                 #le chemin est périmé et doit être recalculé
                 calcule_chemin(position)
-        except Exception as e:
-            print(e)
+        except:
             #le chemin n'a jamais été calculé
             calcule_chemin(position)
         self.robot.suit_chemin(self.dernierChemin)
