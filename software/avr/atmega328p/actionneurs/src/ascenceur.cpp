@@ -20,7 +20,6 @@ void Ascenceur<Moteur>::asservir()
 {
 	int32_t pwm = _asservissement.pwm(_codeuse);
 	int32_t derivee_erreur = _asservissement.erreur_d();
-	Serial<0>::print(_codeuse);
 	if (_asservir)
 	{
 		_moteur.envoyerPwm(pwm);
