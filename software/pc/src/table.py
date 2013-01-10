@@ -123,7 +123,7 @@ class Table:
                 if id < len(self.robotsAdversesBalise) :
                     self.robotsAdversesBalise[id].position = positions[id]
                     self.robotsAdversesBalise[id].vitesse = vitesses[id]
-                elif id > len(self.robotsAdversesBalise) - 1 :
+                else:
                     self.robotsAdversesBalise.append(RobotAdverseBalise(positions[id],self.config["rayon_robot_adverse"],vitesses[id]))
             self._actualise_verres(self.robotsAdversesBalise)
         
