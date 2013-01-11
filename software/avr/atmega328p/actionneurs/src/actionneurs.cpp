@@ -32,6 +32,7 @@ void Actionneurs::execute(char *ordre)
 	{
 		int32_t consigne;
 		serie::read(consigne); // Donner une consigne particulière
+		serie::print("_");
 		ascenceur_avant.consigne(consigne);
 	}
 	else if (strcmp(ordre, "da") == 0) // Désasservir moteur avant

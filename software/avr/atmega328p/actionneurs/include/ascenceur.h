@@ -6,7 +6,7 @@
 
 #define COMPTEUR_BLOCAGE_MAX 30 // ~ 1 sec (à vérifier)
 
-enum AscenseurPosition {ASCENSEUR_HAUT = 46000, ASCENSEUR_BAS = 0};
+enum AscenseurPosition {ASCENSEUR_HAUT = 46000, ASCENSEUR_BAS = -75000};
 
 template<class Moteur>
 class Ascenceur
@@ -28,11 +28,7 @@ class Ascenceur
 		Asservissement _asservissement;		
 		int32_t _codeuse;
 		uint8_t _compteur_blocage;
-		bool _asservir;
-	
-	public:
-
-		bool _bloc_en_bas;
+		bool _est_asservi;
 		
 };
 
