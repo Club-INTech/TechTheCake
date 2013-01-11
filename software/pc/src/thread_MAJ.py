@@ -34,3 +34,5 @@ def fonction_MAJ(container):
             print(e)
         
         sleep(0.1)
+    log.debug("Arrêt du thread de mise à jour")
+
