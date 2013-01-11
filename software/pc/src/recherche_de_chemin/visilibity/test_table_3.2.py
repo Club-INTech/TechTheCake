@@ -4,60 +4,62 @@ from time import time
 # Used in the create_cone function
 import math
 
+
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        
+    def __str__(self) :
+        return "("+str(self.x)+"," + str(self.y) + ")"
+        
+def visPoints_to_Points(visListe):
+    """
+    Convertit le type Visibility_Point en type Point.
+    Retire le point de départ de la liste.
+    """
+    liste = []
+    for i in range(1,visListe.size()):
+        liste.append(Point(visListe[i].x,visListe[i].y))
+    return liste
+        
 def testVisilibity():
     
+    #BENCHMARK
     debut_timer_environnement = time()
     
-    # Define an epsilon value (should be != 0.0)
-    epsilon = 0.0000001
+    # tolerance de précision (différent de 0.0)
+    tolerance = 0.0000001
     
-    # Create the outer boundary polygon
-    walls = vis.Polygon([vis.Point(-1500,0), vis.Point(1500,0), vis.Point(1500,2000), vis.Point(-1500,2000)])
+    # bords de la carte
+    bords = vis.Polygon([vis.Point(-1500,0), vis.Point(1500,0), vis.Point(1500,2000), vis.Point(-1500,2000)])
+
+    # Définition des polygones d'obstacles. Ils doivent être non croisés et définis dans le sens des aiguilles d'une montre.
+    obstacle = vis.Polygon([vis.Point(100, 300),vis.Point(100, 500),vis.Point(150, 500),vis.Point(150, 300)])
+    obstacle1 = vis.Polygon([vis.Point(525, 875),vis.Point(525, 1125),vis.Point(775, 1125),vis.Point(775, 875)])
+    obstacle2 = vis.Polygon([vis.Point(-775, 875),vis.Point(-775, 1125),vis.Point(-525, 1125),vis.Point(-525, 875)])
     
-    # Define the point of the "observer"
-    observer = vis.Point(1470,460)
+    # Création de l'environnement, le polygone des bords en premier, ceux des obstacles après.
+    env = vis.Environment([bords, obstacle, obstacle1, obstacle2])
     
-    # Now we define some holes for our environment. The holes must be inside 
-    # our outer boundary polygon. A hole blocks the observer vision, it works as
-    # an obstacle in his vision sensor.
+    # Vérification de la validité de l'environnement : polygones non croisés et définis dans le sens des aiguilles d'une montre.
+    if not env.is_valid(tolerance):
+        raise Exception
     
-    # The smalles point should be first. The point of a hole must be in CLOCK-WISE(cw) order.
-    
-    hole = vis.Polygon([vis.Point(100, 300),vis.Point(100, 500),vis.Point(150, 500),vis.Point(150, 300)])
-    hole1 = vis.Polygon([vis.Point(525, 875),vis.Point(525, 1125),vis.Point(775, 1125),vis.Point(775, 875)])
-    hole2 = vis.Polygon([vis.Point(-775, 875),vis.Point(-775, 1125),vis.Point(-525, 1125),vis.Point(-525, 875)])
-    
-    # Create environment, wall will be the outer boundary because
-    # is the first polygon in the list. The other polygons will be holes
-    env = vis.Environment([walls, hole, hole1, hole2])
-    
-    # Check if the environment is valid
-    print('Environment is valid : '+str(env.is_valid(epsilon)))
-    
-    
-    # Define another point, could be used to check if the observer see it, to 
-    # check the shortest path from one point to the other, etc.
-    end = vis.Point(-1300, 1800)
-    
-    # Necesary to generate the visibility polygon
-    observer.snap_to_boundary_of(env, epsilon)
-    observer.snap_to_vertices_of(env, epsilon)
-        
+    #BENCHMARK
     debut_timer_path_finding = time()
     
-    # Obtein the shortest path from 'observer' to 'end'
-    # in the environment previously define
-    shortest_path = env.shortest_path(observer, end, epsilon)
+    depart = vis.Point(1470,460)
+    arrivee = vis.Point(-1300, 1800)
+    chemin = env.shortest_path(depart, arrivee, tolerance)
     
-    # Print the length of the path
-    print("Shortest Path length from observer to end: "+str(shortest_path.length()))
-
-    print("############ CHEMIN ############")
-    for i in range(shortest_path.size()):
-        print(str(shortest_path[i]))
-    
-    print("################################")
+    print("########### BENCHMARK ###########")
     print("environnement chargé en "+str(debut_timer_path_finding - debut_timer_environnement)+" sec.")
     print("recherche de chemin chargée en "+str(time() - debut_timer_path_finding)+" sec.")
+    
+    return visPoints_to_Points(chemin)
 
-testVisilibity()
+chemin = testVisilibity()
+print("############ CHEMIN ############")
+for point in chemin:
+    print(point)
