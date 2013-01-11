@@ -12,7 +12,7 @@ class Robot:
         #instances des dépendances
         self.deplacements = deplacements
         self.actionneurs = actionneurs
-        self.capteurs=capteurs
+        self.capteurs = capteurs
         self.config = config
         self.log = log
         
@@ -560,3 +560,10 @@ class Robot:
         """
         self.deplacements.set_vitesse_rotation(valeur)
         self.vitesse_rotation = int(valeur)
+
+	def traiter_bougie(self):
+        """
+        teste la couleur puis enfonce si c'est la bonne couleur
+        """
+        pass
+		

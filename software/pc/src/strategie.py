@@ -13,7 +13,7 @@ class Strategie:
         self.table = table
         self.terminated=False
         
-        self.scripts = {"bougies":ScriptBougies, "pipeau":ScriptPipeau}
+	self.scripts = {"bougies":ScriptBougies, "pipeau":ScriptPipeau, "testCapteurCouleur":ScriptCapteurCouleur}
         self.liste_points_entree = ["cadeau", "verreNous", "verreEnnemi", "Pipeau"]
     
         for script,classe in self.scripts.items():

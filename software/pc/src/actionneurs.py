@@ -25,6 +25,15 @@ class ActionneursSerie(Actionneurs) : #héritage
     def fermer_cadeau(self) :
         self.serie.communiquer("cadeaux",["g",150],0)
         
+    def initialiser_bras_bougie(self) : 
+	self.serie.communiquer("couleur",["g",240],0)
+
+    def enfoncer_bougie(self) :
+	self.serie.communiquer("couleur",["g",220],0)
+
+    def rentrer_bras_bougie(self) : 
+	self.serie.communiquer("couleur",["g",150],0)
+
 class ActionneursSimulateur(Actionneurs) :
      
     def __init__(self,simulateur,config,log):
