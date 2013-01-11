@@ -437,6 +437,13 @@ class Robot:
             self.stopper()
             print("capteurs !")
             
+    def suit_chemin(self, chemin, hooks=[]):
+        """
+        Cette méthode parcourt un chemin déjà calculé. Elle appelle va_au_point() sur chaque point de la liste chemin.
+        """
+        for position in chemin:
+            self.va_au_point(position.x, position.y, hooks)
+            
     def va_au_point(self, x, y, hooks=[], virage_initial=False):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.

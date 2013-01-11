@@ -1,6 +1,7 @@
 from outils_maths.point import Point
-from math import cos
-from math import sin
+from math import cos,sin
+from time import sleep
+from time import time
 
 def fonction_capteurs(container):
     """
@@ -15,14 +16,23 @@ def fonction_capteurs(container):
     capteurs = container.get_service("capteurs")
     table = container.get_service("table")
     timer = container.get_service("timer")
-    log.debug("lancement du thread de capteurs")
+
+    log.debug("Lancement du thread de capteurs")
+
+    while not timer.match_demarre:
+        sleep(0.1)
+
+    tempo=config["temporisation_obstacles"]         #on attendra 500 ms avant d'enregistrer un nouvel obstacle. Valeur à tester expérimentalement.
+    dernier_ajout=timer.date_debut-tempo            #on retire self.tempo afin de pouvoir directement ajouter un nouvel objet dès le début du match. Attention: le match doit être démarré pour utiliser date_debut
 
     while not timer.fin_match:
         distance=capteurs.mesurer(robot.marche_arriere)
-        if distance>=0:
+        if distance>=0:                             #cette condition ne sert que dans le simulateur (les conventions pour les objets à l'infini diffèrent)
             x=robot.x+distance*cos(robot.orientation)
             y=robot.y+distance*sin(robot.orientation)
-            if not x<(-config["table_x"]/2) or y<0 or x>config["table_x"]/2 or y>config["table_y"]:
+            if x>(-config["table_x"]/2) and y>0 and x<config["table_x"]/2 and y<config["table_y"] and time()-dernier_ajout>tempo:
                 table.cree_obstaclesCapteur(Point(x,y))
+                dernier_ajout=time()
         sleep(0.1)
+    log.debug("Arrêt du thread de capteurs")
 
