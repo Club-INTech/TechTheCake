@@ -3,34 +3,39 @@ from time import sleep
 
 class Timer():
 
-    def __init__(self, robot, table, capteurs):
+    def __init__(self, log, config, robot, table, capteurs):
+        self.log = log
+        self.config = config
         self.robot = robot
         self.table = table
         self.capteurs = capteurs
         self.match_demarre = False
         self.fin_match = False
 
-    def initialisation():
-        while not self.capteurs.demarrage_match():
-            sleep(.5)
+    def initialisation(self):
+        if not self.config["mode_simulateur"]:  #si on est en mode simulateur, on commence de suite
+            while not self.capteurs.demarrage_match():
+                sleep(.5)
+        self.log.debug("Le match a commencé!")
         self.match_demarre = True
-        self.date_debut = time.time()
+        self.date_debut = time()
 
-    def suppression_obstacles():
-        timestamp_obstacles=self.table.get_obstaclesCapteur()
+    def suppression_obstacles(self):
+        dates_naissance_obstacles=self.table.get_obstaclesCapteur()
+        print(dates_naissance_obstacles)
         i=0
-        while i<len(timestamp_obstacles) and timestamp_obstacles[i]>(time.time()-date_debut):   #une recherche dichotomique serait peut-être plus efficace, mais comme l'indice recherché est probablement petit... ça se discute.
+        while i<len(dates_naissance_obstacles) and (dates_naissance_obstacles[i]+self.config["duree_peremption_obstacles"])>time():   #une recherche dichotomique serait peut-être plus efficace, mais comme l'indice recherché est probablement petit... ça se discute.
             i=i+1
-        if i<len(timestamp_obstacles):
+        if i<len(dates_naissance_obstacles):
             self.table.maj_obstaclesCapteur(i)
 
-    def thread_timer():
+    def thread_timer(self):
+        self.log.debug("Lancement du thread timer")
         self.initialisation()
-        while (time.time()-date_debut)<self.config["temps_match"]:
+        while (time()-self.date_debut)<self.config["temps_match"]:
             self.suppression_obstacles()
             sleep(.5)
         self.fin_match = True
-        self.capteurs.stop()
         self.robot.stopper()
         sleep(.500) #afin d'être sûr que le robot a eu le temps de s'arrêter
         self.robot.deplacements.desactiver_asservissement_translation()

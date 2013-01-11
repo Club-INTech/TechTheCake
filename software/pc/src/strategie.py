@@ -34,8 +34,12 @@ class Strategie:
 
             self.log.debug("La stratégie a décidé d'aller au point d'entrée: ")
             self.log.debug(str(self.robot.get_x())+", "+str(self.robot.get_y())+", "+str(self.robot.get_orientation()))
-            script.agit()
+            if not timer.fin_match:
+                self.robot.avancer(50)
+                script.agit()
             sleep(0.1)
+        log.debug("Arrêt de la stratégie.")
+
 
     
 #TODO

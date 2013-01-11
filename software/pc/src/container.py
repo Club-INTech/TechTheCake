@@ -113,7 +113,7 @@ class Container:
         self.assembler.register("table", Table, requires=["config","log"])
         
         #enregistrement du service timer
-        self.assembler.register("timer", Timer, requires=["robot","table","capteurs"])
+        self.assembler.register("timer", Timer, requires=["log","config","robot","table","capteurs"])
 
         #enregistrement du service de recherche de chemin
         self.assembler.register("rechercheChemin", RechercheChemin, requires=["table","config","log"])
@@ -139,6 +139,9 @@ class Container:
             thread_MAJ.start()
             thread_capteurs = Thread(None, fonction_capteurs, None, (), {"container":self})
             thread_capteurs.start()
+            timer = self.get_service("timer")
+            thread_service_timer = Thread(None, timer.thread_timer, None, (), {})
+            thread_service_timer.start()
             #attente d'une première mise à jour pour la suite
             robot = self.get_service("robot")
             while not robot.pret:
