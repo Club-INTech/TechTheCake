@@ -11,6 +11,10 @@ class Capteurs(metaclass=abc.ABCMeta):
             return 5000
         else:
             return sorted(capteur_values, reverse=True)[0]
+            
+    @abc.abstractmethod
+    def demarrage_match(self):
+        pass
 
 class CapteursSerie(Capteurs):
     """
@@ -50,6 +54,9 @@ class CapteursSerie(Capteurs):
 
         return self._fusion(capteur_values)
 
+    def demarrage_match(self):
+        #TODO : jumper
+        return True
 
 class CapteursSimulateur(Capteurs):
     """
@@ -76,3 +83,5 @@ class CapteursSimulateur(Capteurs):
 
         return self._fusion(distance)
 
+    def demarrage_match(self):
+        return True

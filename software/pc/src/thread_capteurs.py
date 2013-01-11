@@ -20,7 +20,7 @@ def fonction_capteurs(container):
     log.debug("Lancement du thread de capteurs")
 
     while not timer.match_demarre:
-        pass
+        sleep(0.1)
 
     tempo=config["temporisation_obstacles"]         #on attendra 500 ms avant d'enregistrer un nouvel obstacle. Valeur à tester expérimentalement.
     dernier_ajout=timer.date_debut-tempo            #on retire self.tempo afin de pouvoir directement ajouter un nouvel objet dès le début du match. Attention: le match doit être démarré pour utiliser date_debut
