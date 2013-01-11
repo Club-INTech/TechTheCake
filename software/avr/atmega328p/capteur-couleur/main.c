@@ -8,50 +8,60 @@
 typedef enum {RAS,BLEU,ROUGE,INDECIS} Couleur;
 
 int main(){
-  cbi(DDRB, DDB3); //lecture de la mesure
-  sbi(DDRB, DDB4); //mode output sur le pin
-  sbi(DDRB, DDB5);
+  cbi(DDRB, DDB3); //lecture de la mesure couleur
+  sbi(DDRB, DDB1); //sortie pour la couleur des leds
+  sbi(DDRB, DDB2);
+
+  sbi(PORTB, PORTB4);
+  cbi(PORTB, PORTB5);
 
   Serial<0>::init();
   Serial<0>::change_baudrate(9600);
   Serial<0>::print("initialisation de la serie");
 
-  sbi(PORTB, PORTB4);
-  cbi(PORTB, PORTB5);
-  Couleur couleur;
   while(1){
-    couleur=RAS;
-    sbi(PORTB, PORTB4);
-    cbi(PORTB, PORTB5);
-    _delay_ms(25);//on attend un peu
-    if( !rbi(PINB, PORTB3) ){ //ROUGE, le capteur est à 0 quand il y a reception!
-      couleur=ROUGE;
-    }
-    cbi(PORTB, PORTB4);
-    sbi(PORTB, PORTB5);
-    _delay_ms(25);
-    if( !rbi(PINB, PORTB3) ){ //BLEU
-      if(couleur==ROUGE){
-        couleur=INDECIS;
-      }else{
-        couleur=BLEU;
+    char buffer[17];
+    Serial<0>::read(buffer);
+
+    if(strcmp(buffer, "?") == 0){
+      Serial<0>::print("0");
+
+    }else if(strcmp(buffer, "c") == 0){
+      Couleur couleur=RAS;
+      sbi(PORTB, PORTB1);
+      cbi(PORTB, PORTB2);
+      _delay_ms(100);//on attend un peu
+      if( !rbi(PINB, PORTB3) ){ //ROUGE, le capteur est à 0 quand il y a reception!
+        couleur=ROUGE;
+      }
+      cbi(PORTB, PORTB1);
+      sbi(PORTB, PORTB2);
+      _delay_ms(100);
+      if( !rbi(PINB, PORTB3) ){ //BLEU
+        if(couleur==ROUGE){
+          couleur=INDECIS;
+        }else{
+          couleur=BLEU;
+        }
+      }
+      switch(couleur){
+        case RAS:
+          Serial<0>::print("ras");
+          break;
+        case BLEU:
+          Serial<0>::print("bleu");
+          break;
+        case ROUGE:
+          Serial<0>::print("rouge");
+          break;
+        case INDECIS:
+          Serial<0>::print("indecis");
+          break;
       }
     }
-    switch(couleur){
-      case RAS:
-        Serial<0>::print("ras");
-        break;
-      case BLEU:
-        Serial<0>::print("bleu");
-        break;
-      case ROUGE:
-        Serial<0>::print("rouge");
-        break;
-      case INDECIS:
-        Serial<0>::print("indecis");
-        break;
-    }
+
   }
+
   return 0;
 }
 

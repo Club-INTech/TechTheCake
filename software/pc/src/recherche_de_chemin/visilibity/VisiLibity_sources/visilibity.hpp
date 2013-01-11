@@ -49,8 +49,8 @@ License along with VisiLibity.  If not, see <http://www.gnu.org/licenses/>.
 //Microsoft Visual Studio
 /*
 #include <limits>
-#define NAN std::numeric_limits<double>::quiet_NaN()
-#define INFINITY std::numeric_limits<double>::infinity()
+#define NAN std::numeric_limits<float>::quiet_NaN()
+#define INFINITY std::numeric_limits<float>::infinity()
 #define M_PI 3.141592653589793238462643
 #define and &&
 #define or ||
@@ -116,7 +116,7 @@ namespace VisiLibity
    * \warning  performance degrades as upper_bound - lower_bound
    * approaches RAND_MAX.
    */  
-  double uniform_random_sample(double lower_bound, double upper_bound);
+  float uniform_random_sample(float lower_bound, float upper_bound);
 
 
   /** \brief  rectangle with sides parallel to the x- and y-axes
@@ -124,7 +124,7 @@ namespace VisiLibity
    * \author  Karl J. Obermeyer
    * Useful for enclosing other geometric objects.
    */
-  struct Bounding_Box { double x_min, x_max, y_min, y_max; };
+  struct Bounding_Box { float x_min, x_max, y_min, y_max; };
 
 
   /// Point in the plane represented by Cartesian coordinates
@@ -139,13 +139,13 @@ namespace VisiLibity
      */
     Point() : x_(NAN) , y_(NAN) { }
     /// costruct from raw coordinates
-    Point(double x_temp, double y_temp)
+    Point(float x_temp, float y_temp)
     { x_=x_temp; y_=y_temp; }
     //Accessors
     /// get x coordinate
-    double x () const { return x_; }
+    float x () const { return x_; }
     /// get y coordinate
-    double y () const { return y_; }
+    float y () const { return y_; }
     /** \brief closest Point on \a line_segment_temp
      *
      * \author  Karl J. Obermeyer
@@ -220,7 +220,7 @@ namespace VisiLibity
      * of vertices of \a polygon_temp
      */
     bool on_boundary_of(const Polygon& polygon_temp,
-			double epsilon=0.0) const;
+			float epsilon=0.0) const;
     /** \brief  true iff w/in \a epsilon of boundary of \a environment_temp
      *
      * \author  Karl J. Obermeyer
@@ -232,7 +232,7 @@ namespace VisiLibity
      * of vertices of \a environment_temp
      */   
     bool on_boundary_of(const Environment& environment_temp,
-			double epsilon=0.0) const;
+			float epsilon=0.0) const;
     /** \brief true iff w/in \a epsilon of \a line_segment_temp
      *
      * \author  Karl J. Obermeyer
@@ -242,7 +242,7 @@ namespace VisiLibity
      * \a epsilon of the (closed) Line_Segment \a line_segment_temp
      */
     bool in(const Line_Segment& line_segment_temp,
-	    double epsilon=0.0) const;
+	    float epsilon=0.0) const;
     /** \brief true iff w/in \a epsilon of interior but greater than 
      *         \a espilon away from endpoints of \a line_segment_temp
      *
@@ -254,7 +254,7 @@ namespace VisiLibity
      * than epsilon from \a line_segment_temp 's endpoints.
      */
     bool in_relative_interior_of(const Line_Segment& line_segment_temp,
-				 double epsilon=0.0) const;
+				 float epsilon=0.0) const;
     /** \brief  true iff w/in \a epsilon of \a polygon_temp
      *
      * \author  Karl J. Obermeyer
@@ -270,7 +270,7 @@ namespace VisiLibity
      * in \a polygon_temp
      */
     bool in(const Polygon& polygon_temp,
-	    double epsilon=0.0) const;
+	    float epsilon=0.0) const;
     /** \brief  true iff w/in \a epsilon of \a environment_temp
      *
      * \author  Karl J. Obermeyer
@@ -285,7 +285,7 @@ namespace VisiLibity
      * vertices in \a environment_temp
      */
     bool in(const Environment& environment_temp,
-	    double epsilon=0.0) const;
+	    float epsilon=0.0) const;
     /** \brief  true iff w/in \a epsilon of some endpoint 
      *          of \a line_segment_temp
      *
@@ -295,12 +295,12 @@ namespace VisiLibity
      * than \a epsilon from some endpoint of \a line_segment_temp
      */
     bool is_endpoint_of(const Line_Segment& line_segment_temp,
-			double epsilon=0.0) const;
+			float epsilon=0.0) const;
     //Mutators
     /// change x coordinate
-    void set_x(double x_temp) { x_ = x_temp;}
+    void set_x(float x_temp) { x_ = x_temp;}
     /// change y coordinate
-    void set_y(double y_temp) { y_ = y_temp;}
+    void set_y(float y_temp) { y_ = y_temp;}
     /** \brief relocate to closest vertex if w/in \a epsilon of some
      *         vertex (of \a polygon_temp)
      *
@@ -314,7 +314,7 @@ namespace VisiLibity
      * vertices in \a polygon_temp.
      */
     void snap_to_vertices_of(const Polygon& polygon_temp,
-			     double epsilon=0.0);
+			     float epsilon=0.0);
     /** \brief relocate to closest vertex if w/in \a epsilon of some
      *         vertex (of \a environment_temp)
      *
@@ -328,7 +328,7 @@ namespace VisiLibity
      * vertices in \a environment_temp.
      */
     void snap_to_vertices_of(const Environment& environment_temp,
-			     double epsilon=0.0);
+			     float epsilon=0.0);
     /** \brief relocate to closest Point on boundary if w/in \a epsilon
      *	       of the boundary (of \a polygon_temp)
      *
@@ -342,7 +342,7 @@ namespace VisiLibity
      * vertices in \a polygon_temp.
      */
     void snap_to_boundary_of(const Polygon& polygon_temp,
-			     double epsilon=0.0);
+			     float epsilon=0.0);
     /** \brief relocate to closest Point on boundary if w/in \a epsilon
      *	       of the boundary (of \a environment_temp)
      *
@@ -356,10 +356,10 @@ namespace VisiLibity
      * vertices in \a environment_temp.
      */
     void snap_to_boundary_of(const Environment& environment_temp,
-			     double epsilon=0.0);
+			     float epsilon=0.0);
   protected:
-    double x_;
-    double y_;
+    float x_;
+    float y_;
   };
   
   
@@ -422,9 +422,9 @@ namespace VisiLibity
  
 
   /// simple scaling treats the Point as a vector
-  Point operator *  (double scalar, const Point& point2); 
+  Point operator *  (float scalar, const Point& point2); 
   /// simple scaling treats the Point as a vector
-  Point operator *  (const Point&  point1, double scalar);
+  Point operator *  (const Point&  point1, float scalar);
 
 
   /** \brief  cross product (signed) magnitude treats the Points as vectors
@@ -434,14 +434,14 @@ namespace VisiLibity
    * \remarks This is equal to the (signed) area of the parallelogram created
    * by the Points viewed as vectors.
    */
-  double cross(const Point& point1, const Point& point2);
+  float cross(const Point& point1, const Point& point2);
 
 
   /** \brief  Euclidean distance between Points
    *
    * \pre  Points' data are numbers
    */
-  double distance(const Point& point1, const Point& point2);
+  float distance(const Point& point1, const Point& point2);
 
 
   /** \brief  Euclidean distance between a Point and a Line_Segment
@@ -449,14 +449,14 @@ namespace VisiLibity
    * \author  Karl J. Obermeyer
    * \pre  Point's data are numbers and the Line_Segment is nonempty
    */
-  double distance(const Point& point_temp,
+  float distance(const Point& point_temp,
 		  const Line_Segment& line_segment_temp);
   /** \brief  Euclidean distance between a Point and a Line_Segment
    *
    * \author  Karl J. Obermeyer
    * \pre  Point's data are numbers and the Line_Segment is nonempty
    */
-  double distance(const Line_Segment& line_segment_temp,
+  float distance(const Line_Segment& line_segment_temp,
 		  const Point& point_temp);
 
 
@@ -465,14 +465,14 @@ namespace VisiLibity
    * \author  Karl J. Obermeyer
    * \pre  Point's and Ray's data are numbers
    */
-  double distance(const Point& point_temp,
+  float distance(const Point& point_temp,
 		  const Ray& ray_temp);
   /** \brief  Euclidean distance between a Point and a Ray
    *
    * \author  Karl J. Obermeyer
    * \pre  Point's and Ray's data are numbers
    */
-  double distance(const Ray& ray_temp,
+  float distance(const Ray& ray_temp,
 		  const Point& point_temp);
 
 
@@ -481,14 +481,14 @@ namespace VisiLibity
    * \author  Karl J. Obermeyer
    * \pre  Point's data are numbers and the Polyline is nonempty
    */
-  double distance(const Point& point_temp,
+  float distance(const Point& point_temp,
 		  const Polyline& polyline_temp);
   /** \brief  Euclidean distance between a Point and a Polyline
    *
    * \author  Karl J. Obermeyer
    * \pre  Point's data are numbers and the Polyline is nonempty
    */
-  double distance(const Polyline& polyline_temp,
+  float distance(const Polyline& polyline_temp,
 		  const Point& point_temp);
 
 
@@ -497,14 +497,14 @@ namespace VisiLibity
    * \author  Karl J. Obermeyer
    * \pre  Point's data are numbers and the Polygon is nonempty
    */
-  double boundary_distance(const Point& point_temp,
+  float boundary_distance(const Point& point_temp,
 			   const Polygon& polygon_temp);
   /** \brief  Euclidean distance between a Point and a Polygon's boundary
    *
    * \author  Karl J. Obermeyer
    * \pre  Point's data are numbers and the Polygon is nonempty
    */
-  double boundary_distance(const Polygon& polygon_temp,
+  float boundary_distance(const Polygon& polygon_temp,
 			   const Point& point_temp);
 
 
@@ -513,14 +513,14 @@ namespace VisiLibity
    * \author  Karl J. Obermeyer
    * \pre  Point's data are numbers and the Environment is nonempty
    */
-  double boundary_distance(const Point& point_temp,
+  float boundary_distance(const Point& point_temp,
 			   const Environment& environment_temp);
   /** \brief  Euclidean distance between a Point and a Environment's boundary
    *
    * \author  Karl J. Obermeyer
    * \pre  Point's data are numbers and the Environment is nonempty
    */
-  double boundary_distance(const Environment& environment_temp,
+  float boundary_distance(const Environment& environment_temp,
 			   const Point& point_temp);
 
 
@@ -545,7 +545,7 @@ namespace VisiLibity
     Line_Segment(const Point& point_temp);
     /// Line_Segment pointing from first_point_temp to second_point_temp
     Line_Segment(const Point& first_point_temp,
-		 const Point& second_point_temp, double epsilon=0);
+		 const Point& second_point_temp, float epsilon=0);
     //Accessors 
     /** \brief  first endpoint
      *
@@ -580,7 +580,7 @@ namespace VisiLibity
      *
      * \pre size() > 0
      */
-    double length() const;
+    float length() const;
     /** \brief  true iff vertices in lex. order
      *
      * \pre  size() > 0
@@ -599,14 +599,14 @@ namespace VisiLibity
      * endpoint, the coordinates of \a point_temp are used and size is set to 
      * 1 as appropriate
      */
-    void set_first(const Point& point_temp, double epsilon=0.0);
+    void set_first(const Point& point_temp, float epsilon=0.0);
     /** \brief set second endpoint
      *
      * \remarks  if \a point_temp is w/in a distance \a epsilon of an existing 
      * endpoint, the coordinates of \a point_temp are used and size is set to 
      * 1 as appropriate
      */
-    void set_second(const Point& point_temp, double epsilon=0.0);
+    void set_second(const Point& point_temp, float epsilon=0.0);
     /** \brief  reverse order of endpoints
      *
      * \post order of endpoints is reversed.
@@ -656,7 +656,7 @@ namespace VisiLibity
    * match up
    */
   bool equivalent(Line_Segment line_segment1,
-		  Line_Segment line_segment2, double epsilon=0);
+		  Line_Segment line_segment2, float epsilon=0);
 
 
   /** \brief  Euclidean distance between Line_Segments
@@ -664,7 +664,7 @@ namespace VisiLibity
    * \author  Karl J. Obermeyer
    * \pre  \a line_segment1.size() > 0 and \a line_segment2.size() > 0
    */
-  double distance(const Line_Segment& line_segment1,
+  float distance(const Line_Segment& line_segment1,
 		  const Line_Segment& line_segment2);
 
 
@@ -674,7 +674,7 @@ namespace VisiLibity
    * \author  Karl J. Obermeyer
    * \pre  \a line_segment.size() > 0 and \a polygon.n() > 0
    */
-  double boundary_distance(const Line_Segment& line_segment,
+  float boundary_distance(const Line_Segment& line_segment,
 			   const Polygon& polygon);
 
 
@@ -684,7 +684,7 @@ namespace VisiLibity
    * \author  Karl J. Obermeyer
    * \pre  \a line_segment.size() > 0 and \a polygon.n() > 0
    */
-  double boundary_distance(const Polygon& polygon,
+  float boundary_distance(const Polygon& polygon,
 			   const Line_Segment& line_segment);
 
 
@@ -696,7 +696,7 @@ namespace VisiLibity
    */
   bool intersect(const Line_Segment& line_segment1,
 		 const Line_Segment& line_segment2,
-		 double epsilon=0.0);
+		 float epsilon=0.0);
 
 
   /** \brief  true iff line segments intersect properly w/in epsilon,
@@ -711,7 +711,7 @@ namespace VisiLibity
    */
   bool intersect_proper(const Line_Segment& line_segment1,
 			const Line_Segment& line_segment2,
-			double epsilon=0.0);
+			float epsilon=0.0);
 
 
   /** \brief  intersection of Line_Segments
@@ -729,7 +729,7 @@ namespace VisiLibity
    */
   Line_Segment intersection(const Line_Segment& line_segment1,
 			    const Line_Segment& line_segment2,
-			    double epsilon=0.0);
+			    float epsilon=0.0);
 
 
   /// print a Line_Segment
@@ -754,17 +754,17 @@ namespace VisiLibity
      */
     Angle() : angle_radians_(NAN) { }
     /// construct from real value, mod into interval [0, 2*M_PI)
-    Angle(double data_temp);
+    Angle(float data_temp);
     /** \brief construct using 4 quadrant inverse tangent into [0, 2*M_PI),
      *         where 0 points along the x-axis
      */ 
-    Angle(double rise_temp, double run_temp);
+    Angle(float rise_temp, float run_temp);
     //Accessors
     /// get radians
-    double get() const { return angle_radians_; }
+    float get() const { return angle_radians_; }
     //Mutators
     /// set angle, mod into interval [0, 2*PI)
-    void set(double data_temp);
+    void set(float data_temp);
     /** \brief  set angle data to 2*M_PI
      *
      * \remarks  sometimes it is necessary to set the angle value to
@@ -775,7 +775,7 @@ namespace VisiLibity
     /// set to new random angle in [0, 2*M_PI)
     void randomize();
   private:
-    double angle_radians_;
+    float angle_radians_;
   };
 
 
@@ -806,7 +806,7 @@ namespace VisiLibity
    * \author  Karl J. Obermeyer
    * \pre  \a angle1 and \a angle2 data are numbers
    */
-  double geodesic_distance(const Angle& angle1, const Angle& angle2);
+  float geodesic_distance(const Angle& angle1, const Angle& angle2);
 
 
   /** \brief  1.0 => geodesic path from angle1 to angle2 
@@ -815,7 +815,7 @@ namespace VisiLibity
    * \author  Karl J. Obermeyer
    * \pre  \a angle1 and \a angle2 data are numbers
    */
-  double geodesic_direction(const Angle& angle1, const Angle& angle2); 
+  float geodesic_direction(const Angle& angle1, const Angle& angle2); 
 
 
   /// print Angle
@@ -851,7 +851,7 @@ namespace VisiLibity
      */
     Polar_Point(const Point& polar_origin_temp,
 		const Point& point_temp,
-		double epsilon=0.0);
+		float epsilon=0.0);
     //Accessors
     /** \brief  origin of the polar coordinate system in which the point is
      *          represented
@@ -859,7 +859,7 @@ namespace VisiLibity
     Point polar_origin() const { return polar_origin_; }
     /// Euclidean distance from the point represented to the origin of
     /// the polar coordinate system
-    double       range() const { return range_; }
+    float       range() const { return range_; }
     /// bearing from polar origin w.r.t. direction parallel to x-axis
     Angle      bearing() const { return bearing_; }
     //Mutators
@@ -874,19 +874,19 @@ namespace VisiLibity
      * \remarks  polar_origin held constant, bearing and range modified
      * accordingly
      */
-    void set_x(double x_temp);
+    void set_x(float x_temp);
     /** \brief  set y
      *
      * \remarks  polar_origin held constant, bearing and range modified
      * accordingly
      */
-    void set_y(double y_temp);
+    void set_y(float y_temp);
     /** \brief set range
      *
      * \remarks  polar_origin held constant, x and y modified
      * accordingly
      */
-    void set_range(double range_temp);
+    void set_range(float range_temp);
     /** \brief set bearing
      *
      * \remarks  polar_origin and range held constant, x and y modified
@@ -906,7 +906,7 @@ namespace VisiLibity
     Point  polar_origin_;
     //Polar coordinates where radius always positive, and angle
     //measured ccw from the world coordinate system's x-axis.
-    double range_;
+    float range_;
     Angle  bearing_;
   };
 
@@ -1025,7 +1025,7 @@ namespace VisiLibity
    */
   Line_Segment intersection(const Ray ray_temp,
 			    const Line_Segment& line_segment_temp,
-			    double epsilon=0.0);
+			    float epsilon=0.0);
   /** \brief compute the intersection of a Line_Segment with a Ray
    *
    * \author  Karl J. Obermeyer
@@ -1037,7 +1037,7 @@ namespace VisiLibity
    */
   Line_Segment intersection(const Line_Segment& line_segment_temp,
 			    const Ray& ray_temp,
-			    double epsilon=0.0);
+			    float epsilon=0.0);
 
 
   ///oriented polyline in the plane represented by list of vertices
@@ -1071,7 +1071,7 @@ namespace VisiLibity
     unsigned size() const
     { return vertices_.size(); }
     /// Euclidean length of the Polyline
-    double length() const;
+    float length() const;
     /** \brief  Euclidean diameter
      *
      * \pre  Polyline has greater than 0 vertices
@@ -1080,7 +1080,7 @@ namespace VisiLibity
      * \remarks  time complexity O(n^2), where n is the number of
      * vertices representing the Polyline
      */
-    double diameter() const;
+    float diameter() const;
     //a box which fits snugly around the Polyline
     Bounding_Box bbox() const;
     //Mutators
@@ -1112,9 +1112,9 @@ namespace VisiLibity
      * \remarks time complexity O(n), where n is the number of
      * vertices representing the Polyline.  
      */
-    void eliminate_redundant_vertices(double epsilon=0.0);
+    void eliminate_redundant_vertices(float epsilon=0.0);
     //Reduce number of vertices in representation...
-    //void smooth(double epsilon);
+    //void smooth(float epsilon);
     /// reverse order of vertices
     void reverse();
     /// append the points from another polyline
@@ -1191,7 +1191,7 @@ namespace VisiLibity
      * consequence of these conditions is that there can be no
      * redundant vertices.
      */
-    bool is_simple(double epsilon=0.0) const;
+    bool is_simple(float epsilon=0.0) const;
     /** \brief true iff lexicographically smallest vertex is first in 
      *         the list of vertices representing the Polygon
      *
@@ -1201,7 +1201,7 @@ namespace VisiLibity
      */
     bool is_in_standard_form() const;
     /// perimeter length
-    double boundary_length() const;
+    float boundary_length() const;
     /** oriented area of the Polygon
      *
      * \author  Karl J. Obermeyer
@@ -1211,7 +1211,7 @@ namespace VisiLibity
      * \remarks O(n) time complexity, where n is the number
      * of vertices representing the Polygon
      */
-    double area() const;
+    float area() const;
     /** \brief  Polygon's centroid (center of mass)
      *
      * \author  Karl J. Obermeyer
@@ -1227,7 +1227,7 @@ namespace VisiLibity
      * \remarks  time complexity O(n^2), where n is the number of
      * vertices representing the Polygon
      */
-    double diameter() const;
+    float diameter() const;
     /** \brief box which fits snugly around the Polygon
      *
      * \author  Karl J. Obermeyer
@@ -1236,7 +1236,7 @@ namespace VisiLibity
     Bounding_Box bbox() const;
     // Returns a vector of n pts randomly situated in the polygon.
     std::vector<Point> random_points(const unsigned& count,
-				     double epsilon=0.0) const;
+				     float epsilon=0.0) const;
     /** \brief  write list of vertices to *.polygon file 
      *
      * \author  Karl J. Obermeyer
@@ -1282,7 +1282,7 @@ namespace VisiLibity
      * \remarks  time complexity O(n), where n is the number of
      * vertices representing the the Polygon  
      */
-    void eliminate_redundant_vertices(double epsilon=0.0);
+    void eliminate_redundant_vertices(float epsilon=0.0);
     /** \brief  reverse (cyclic) order of vertices
      *
      * \remarks  vertex first in list is held first
@@ -1318,7 +1318,7 @@ namespace VisiLibity
    * vertices representing the polygon
    */
   bool equivalent(Polygon polygon1, Polygon polygon2,
-		  double epsilon=0.0);
+		  float epsilon=0.0);
 
 
   /** \brief  Euclidean distance between Polygons' boundaries
@@ -1326,7 +1326,7 @@ namespace VisiLibity
    * \author  Karl J. Obermeyer
    * \pre  \a polygon1 and \a polygon2 each have greater than 0 vertices
    */
-  double boundary_distance( const Polygon& polygon1,
+  float boundary_distance( const Polygon& polygon1,
 			    const Polygon& polygon2 );
 
   
@@ -1432,21 +1432,21 @@ namespace VisiLibity
      * holes and n is the number of vertices representing the
      * Environment
      */
-    bool is_valid(double epsilon=0.0) const;
+    bool is_valid(float epsilon=0.0) const;
     /** \brief  sum of perimeter lengths of outer boundary and holes
      *
      * \author  Karl J. Obermeyer
      * \remarks O(n) time complexity, where n is the number of
      * vertices representing the Environment
      */
-    double boundary_length() const;
+    float boundary_length() const;
     /** \brief (obstacle/hole free) area of the Environment
      *
      * \author  Karl J. Obermeyer
      * \remarks  O(n) time complexity, where n is the number of
      * vertices representing the Environment
      */
-    double area() const;
+    float area() const;
     /** \brief  Euclidean diameter
      *
      * \author  Karl J. Obermeyer
@@ -1456,7 +1456,7 @@ namespace VisiLibity
      * \remarks  time complexity O(n^2), where n is the number of
      * vertices representing the Environment
      */
-    double diameter() const { return outer_boundary_.diameter(); }
+    float diameter() const { return outer_boundary_.diameter(); }
     /** \brief box which fits snugly around the Environment
      *
      * \author  Karl J. Obermeyer
@@ -1470,7 +1470,7 @@ namespace VisiLibity
      * \pre  the Environment has positive area
      */
     std::vector<Point> random_points(const unsigned& count,
-				     double epsilon=0.0) const;
+				     float epsilon=0.0) const;
     /** \brief  compute a shortest path between 2 Points
      *
      * Uses the classical visibility graph method as described, e.g.,
@@ -1496,7 +1496,7 @@ namespace VisiLibity
     Polyline shortest_path(const Point& start,
 			   const Point& finish,
 			   const Visibility_Graph& visibility_graph,
-			   double epsilon=0.0);
+			   float epsilon=0.0);
     /** \brief  compute shortest path between 2 Points
      *
      * \author  Karl J. Obermeyer
@@ -1511,7 +1511,7 @@ namespace VisiLibity
      */
     Polyline shortest_path(const Point& start,
 			   const Point& finish,
-			   double epsilon=0.0);
+			   float epsilon=0.0);
     /** \brief  compute the faces (partition cells) of an arrangement
      *          of Line_Segments inside the Environment
      *
@@ -1520,7 +1520,7 @@ namespace VisiLibity
      */
     std::vector<Polygon> compute_partition_cells( std::vector<Line_Segment> 
 						  partition_inducing_segments,
-						  double epsilon=0.0 )
+						  float epsilon=0.0 )
     {
       std::vector<Polygon> cells;
       return cells;
@@ -1585,7 +1585,7 @@ namespace VisiLibity
      * \remarks time complexity O(n), where n is the number of
      * vertices representing the the Environment
      */
-    void eliminate_redundant_vertices(double epsilon=0.0);
+    void eliminate_redundant_vertices(float epsilon=0.0);
     /** \brief  reverse (cyclic) order of vertices belonging to holes
      *          only
      *
@@ -1620,14 +1620,14 @@ namespace VisiLibity
       //pointer to parent in search tree.
       std::list<Shortest_Path_Node>::iterator parent_search_tree_location;
       //Geodesic distance from start Point.
-      double cost_to_come;
+      float cost_to_come;
       //Euclidean distance to finish Point.
-      double estimated_cost_to_go;
+      float estimated_cost_to_go;
       //std::vector<Shortest_Path_Node> expand();
       bool operator < (const Shortest_Path_Node& spn2) const
       { 
-	double f1 = this->cost_to_come + this->estimated_cost_to_go;
-	double f2 = spn2.cost_to_come + spn2.estimated_cost_to_go;
+	float f1 = this->cost_to_come + this->estimated_cost_to_go;
+	float f2 = spn2.cost_to_come + spn2.estimated_cost_to_go;
 	if( f1 < f2 )
 	  return true;
 	else if( f2 < f1 )
@@ -1692,11 +1692,11 @@ namespace VisiLibity
     /// true iff positions are lexicographically ordered
     bool are_lex_ordered() const;
     /// true iff no two guards are w/in epsilon of each other
-    bool noncolocated(double epsilon=0.0) const;
+    bool noncolocated(float epsilon=0.0) const;
     /// true iff all guards are located in \a polygon_temp
-    bool in(const Polygon& polygon_temp, double epsilon=0.0) const;
+    bool in(const Polygon& polygon_temp, float epsilon=0.0) const;
     /// true iff all guards are located in \a environment_temp
-    bool in(const Environment& environment_temp, double epsilon=0.0) const;
+    bool in(const Environment& environment_temp, float epsilon=0.0) const;
     /** \brief  Euclidean diameter
      *
      * \author  Karl J. Obermeyer
@@ -1706,7 +1706,7 @@ namespace VisiLibity
      * \remarks  time complexity O(N^2), where N is the number of
      * guards
      */
-    double diameter() const;
+    float diameter() const;
     /** \brief box which fits snugly around the Guards
      *
      * \author  Karl J. Obermeyer
@@ -1760,7 +1760,7 @@ namespace VisiLibity
      * and n is the number of vertices in \a environment_temp.
      */
     void snap_to_vertices_of(const Environment& environment_temp,
-			     double epsilon=0.0);
+			     float epsilon=0.0);
 
     /** \brief relocate each guard to closest vertex if within
      *         \a epsilon of some vertex (of \a environment_temp)
@@ -1775,7 +1775,7 @@ namespace VisiLibity
      * and n is the number of vertices in \a polygon_temp
      */
     void snap_to_vertices_of(const Polygon& polygon_temp,
-			     double epsilon=0.0);
+			     float epsilon=0.0);
     /** \brief  relocate each guard to closest Point on boundary if
      *	        within \a epsilon of the boundary (of \a environment_temp)
      *
@@ -1789,7 +1789,7 @@ namespace VisiLibity
      * n is the number of vertices in \a environment_temp
      */
     void snap_to_boundary_of(const Environment& environment_temp,
-			     double epsilon=0.0);
+			     float epsilon=0.0);
     /** \brief  relocate each guard to closest Point on boundary if
      *	        within \a epsilon of the boundary (of \a polygon_temp)
      *
@@ -1803,7 +1803,7 @@ namespace VisiLibity
      * n is the number of vertices in \a polygon_temp
      */
     void snap_to_boundary_of(const Polygon& polygon_temp,
-			     double epsilon=0.0);
+			     float epsilon=0.0);
   private:
     std::vector<Point> positions_;
   };
@@ -1856,7 +1856,7 @@ namespace VisiLibity
      */
     Visibility_Polygon(const Point& observer,
 		       const Environment& environment_temp,
-		       double epsilon=0.0); 
+		       float epsilon=0.0); 
     /** \brief visibility set of a Point in a Polygon
      *
      * \pre \a observer is in \a polygon_temp (w/in \a epsilon ) and
@@ -1872,9 +1872,9 @@ namespace VisiLibity
      */
     Visibility_Polygon(const Point& observer, 
 		       const Polygon& polygon_temp,
-		       double epsilon=0.0); 
+		       float epsilon=0.0); 
     //Accessors
-    //std::vector<bool> get_gap_edges(double epsilon=0.0) { return gap_edges_; }
+    //std::vector<bool> get_gap_edges(float epsilon=0.0) { return gap_edges_; }
     /// location of observer which induced the visibility polygon
     Point observer() const
     { return observer_; }
@@ -1939,11 +1939,11 @@ namespace VisiLibity
     {
       const Point *const observer_pointer;
       const Polar_Point_With_Edge_Info *const current_vertex_pointer;
-      double epsilon;
+      float epsilon;
     public:
       Incident_Edge_Compare(const Point& observer,
 			    const Polar_Point_With_Edge_Info& current_vertex,
-			    double epsilon_temp) :
+			    float epsilon_temp) :
 	observer_pointer(&observer), 
 	current_vertex_pointer(&current_vertex),
 	epsilon(epsilon_temp) { }
@@ -1986,17 +1986,17 @@ namespace VisiLibity
 		   const Point& point1,
 		   const Point& point2,
 		   const Point& point3, 
-		   double epsilon=0.0 ) const;
+		   float epsilon=0.0 ) const;
     
     //For eliminating spikes as they appear.  In the
     //Visibility_Polygon constructors, these are checked every time a
     //Point is added to vertices.
     void chop_spikes_at_back(const Point& observer,
-			     double epsilon);
+			     float epsilon);
     void chop_spikes_at_wrap_around(const Point& observer,
-				    double epsilon);
+				    float epsilon);
     void chop_spikes(const Point& observer,
-		     double epsilon);
+		     float epsilon);
     //For debugging Visibility_Polygon constructors.
     //Prints current_vertex and active_edge data to screen.
     void print_cv_and_ae(const Polar_Point_With_Edge_Info& current_vertex,
@@ -2043,7 +2043,7 @@ namespace VisiLibity
      * Visibility_Polygon class, and (2) its apparent robustness.
      * Implementing the optimal algorithm robustly is future work.
      */
-    Visibility_Graph(const Environment& environment, double epsilon=0.0);
+    Visibility_Graph(const Environment& environment, float epsilon=0.0);
     //Constructors
     /** \brief  construct the visibility graph of Points in an Environment
      *
@@ -2060,7 +2060,7 @@ namespace VisiLibity
      * Motion Planning" by J.C. Latombe p.157.
      */
     Visibility_Graph(const std::vector<Point> points,
-		     const Environment& environment, double epsilon=0.0);
+		     const Environment& environment, float epsilon=0.0);
     //Constructors
     /** \brief  construct the visibility graph of Guards in an Environment
      *
@@ -2079,7 +2079,7 @@ namespace VisiLibity
      * J.C. Latombe p.157.
      */
     Visibility_Graph(const Guards& guards,
-		     const Environment& environment, double epsilon=0.0);
+		     const Environment& environment, float epsilon=0.0);
     //Accessors
     /** \brief  raw access to adjacency matrix data
      *

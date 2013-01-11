@@ -25,10 +25,6 @@ ISR(TIMER1_OVF_vect)
 	Actionneurs &actionneurs = Actionneurs::Instance();
 	actionneurs.ascenceur_avant.codeuse(roue1);
 	actionneurs.ascenceur_avant.asservir();
-	if ( actionneurs.ascenceur_avant._bloc_en_bas )
-	{
-		roue1 = 0;
-	}
 }
 
 ISR(TIMER0_OVF_vect)

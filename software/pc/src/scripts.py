@@ -1,4 +1,4 @@
-from time import sleep
+from time import sleep,time
 from math import pi
 from outils_maths.point import Point
 
@@ -7,21 +7,49 @@ class Script:
     classe mère des scripts
     se charge des dépendances
     """
-    def set_dependencies(self, robot, robotChrono, hookGenerator, log, config):
-        
+    def set_dependencies(self, robot, robotChrono, hookGenerator, rechercheChemin, config, log):
+        """
+        Gère les services nécessaires aux scripts. On n'utilise pas de constructeur.
+        """
         self.robotVrai = robot
         self.robotChrono = robotChrono
         self.hookGenerator = hookGenerator
-        self.log = log
+        self.rechercheChemin = rechercheChemin
         self.config = config
+        self.log = log
+        
+    def va_au_point(self,position):
+        """
+        Méthode pour atteindre un point de la carte après avoir effectué une recherche de chemin.
+        Le chemin n'est pas recalculé s'il a été exploré récemment.
+        """
+        def calcule_chemin(position):
+            self.dernierChemin = self.rechercheChemin.get_chemin(Point(self.robot.x,self.robot.y),position)
+            self.dateDernierChemin = time()
+        try:
+            if self.dernierChemin[-1] != position or time() - self.dateDernierChemin > self.config["duree_peremption_chemin"]:
+                #le chemin est périmé et doit être recalculé
+                calcule_chemin(position)
+        except:
+            #le chemin n'a jamais été calculé
+            calcule_chemin(position)
+        self.robot.suit_chemin(self.dernierChemin)
 
     def agit(self):
+        """
+        L'appel script.agit() effectue vraiment les instructions contenues dans execute().
+        C'est à dire : envoi de trames sur la série, ou utilisation du simulateur.
+        """
         self.robot = self.robotVrai
         self.execute()
         
     def calcule(self):
+        """
+        L'appel script.calcule() retourne la durée estimée des actions contenues dans execute().
+        """
         self.robot = self.robotChrono
         self.robot.reset_compteur()
+        self.robot.maj_x_y_o(self.robotVrai.x, self.robotVrai.y, self.robotVrai.orientation)
         self.execute()
         return self.robot.get_compteur()
     
@@ -60,7 +88,7 @@ class ScriptTestHooks(Script):
         
         
 class ScriptTestCadeaux(Script):
-    
+        
     def execute(self):
         
         self.robot.va_au_point(1150,250)
@@ -72,3 +100,11 @@ class ScriptTestCadeaux(Script):
         hooks.append(self.hookGenerator.get_hook("position", Point(780,250), self.robot.actionneurs.fermer_cadeau))
           
         self.robot.avancer(600,hooks)
+        
+        
+class ScriptTestRecalcul(Script):
+    
+    def execute(self):
+        self.va_au_point(Point(0,300))
+        self.va_au_point(Point(-100,500))
+        

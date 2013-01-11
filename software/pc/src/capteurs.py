@@ -10,9 +10,11 @@ class Capteurs(metaclass=abc.ABCMeta):
         if capteur_values==[]:
             return 5000
         else:
-            sorted(capteur_values, reverse=True)
-            return capteur_values[0]
-
+            return sorted(capteur_values, reverse=True)[0]
+            
+    @abc.abstractmethod
+    def demarrage_match(self):
+        pass
 
 class CapteursSerie(Capteurs):
     """
@@ -35,7 +37,7 @@ class CapteursSerie(Capteurs):
             self.log.debug("Il y a ", self.nb_capteurs_ultrason_avant, "capteurs ultrason à l'avant, ", self.nb_capteurs_ultrason_arriere, "à l'arrière.")
         except:
             self.log.warning("la carte capteur n'a pas été atteinte lors de la construction du service")
-        
+
     def mesurer(self, marche_arriere=False):
 
         if marche_arriere:
@@ -52,6 +54,9 @@ class CapteursSerie(Capteurs):
 
         return self._fusion(capteur_values)
 
+    def demarrage_match(self):
+        #TODO : jumper
+        return True
 
 class CapteursSimulateur(Capteurs):
     """
@@ -69,17 +74,14 @@ class CapteursSimulateur(Capteurs):
         self.simulateur.addSensor(2,{"list":[{"int":[0,400]},{"int":[-135.,1100.]},{"int":[135,1100]}]})
         self.simulateur.addSensor(1,{"list":[{"int":[0,-400]},{"int":[-600.,-1600.]},{"int":[600,-1600]}]})
         self.simulateur.addSensor(3,{"list":[{"int":[0,400]},{"int":[-600.,1600.]},{"int":[600,1600]}]})
-        
 
     def mesurer(self,marche_arriere=False):
         if marche_arriere:
             distance = [self.simulateur.getSensorValue(0),self.simulateur.getSensorValue(1)]
         else:
             distance = [self.simulateur.getSensorValue(2),self.simulateur.getSensorValue(3)]
-            
-        #convention lorsque rien de détecté
-        for i in range(len(distance)):
-            if distance[i] == -1:
-                distance[i] = 5000
-            
+
         return self._fusion(distance)
+
+    def demarrage_match(self):
+        return True

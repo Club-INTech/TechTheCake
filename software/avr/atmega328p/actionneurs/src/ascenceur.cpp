@@ -9,8 +9,7 @@ template<class Moteur>
 Ascenceur<Moteur>::Ascenceur():
 	_asservissement(0.1,0,0),
 	_compteur_blocage(0),
-	_asservir(1),
-	_bloc_en_bas(0)
+	_est_asservi(true)
 {
 	_moteur.maxPWM(150);
 }
@@ -20,8 +19,7 @@ void Ascenceur<Moteur>::asservir()
 {
 	int32_t pwm = _asservissement.pwm(_codeuse);
 	int32_t derivee_erreur = _asservissement.erreur_d();
-	Serial<0>::print(_codeuse);
-	if (_asservir)
+	if (_est_asservi)
 	{
 		_moteur.envoyerPwm(pwm);
 	}
@@ -30,7 +28,7 @@ void Ascenceur<Moteur>::asservir()
 		_moteur.envoyerPwm(0);
 	}
 	
-	//Si blocage moteur:
+	// Si blocage moteur
 	
 	bool bouge_pas = (derivee_erreur <= 30) || (derivee_erreur >= -30);
 	bool moteur_force = (pwm >= 30) || (pwm <= -30);
@@ -42,12 +40,10 @@ void Ascenceur<Moteur>::asservir()
 			// Recalage si blocage en bas
 			if (_asservissement.consigne() == ASCENSEUR_BAS) // Si l'ascenceur bloc en bas, alors la codeuse est mise à 0 (fait dans le main)
 			{
-				_bloc_en_bas = 1;
+				roue1 = 0;
+				_codeuse = 0;
 			}
-			else
-			{
-				_bloc_en_bas = 0;
-			}
+			_compteur_blocage = 0;
 			_asservissement.consigne(_codeuse);
 		}
 	}
@@ -110,17 +106,17 @@ int32_t Ascenceur<Moteur>::codeuse()
 template<class Moteur>
 void Ascenceur<Moteur>::desasservir()
 {
-	_asservir = 0;
+	_est_asservi = false;
 }
 
-/*
+/**
  * Réasservir
  */
 
 template<class Moteur>
 void Ascenceur<Moteur>::reasservir()
 {
-	_asservir =1;
+	_est_asservi = true;
 }
 
 template class Ascenceur<Actionneurs::moteur_avant_t>;
