@@ -65,11 +65,11 @@ class ScriptBougies(Script):
         self.bougies = {"bougie1" : False, "bougie2" : True, "bougie3" : True, "bougie4" : True}
         
     def execute(self):
-	    #self.robot.va_au_point(#,#)
-	    if(self.robot.capteurCouleur.lire_couleur() == self.robot.couleur):
+        #self.robot.va_au_point(#,#)
+        if(self.robot.capteurCouleur.lire_couleur() == self.robot.couleur):
             self.robot.actionneur.enfoncer_bougie()
             self.robot.actionneurs.initialiser_bras_bougie()
-		           
+                    
     
 class ScriptTestHooks(Script):
     

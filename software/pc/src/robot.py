@@ -568,9 +568,8 @@ class Robot:
         self.deplacements.set_vitesse_rotation(valeur)
         self.vitesse_rotation = int(valeur)
 
-	def traiter_bougie(self):
+    def traiter_bougie(self):
         """
         teste la couleur puis enfonce si c'est la bonne couleur
         """
         pass
-		
