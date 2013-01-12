@@ -24,7 +24,7 @@ class Timer():
         dates_naissance_obstacles=self.table.get_obstaclesCapteur()
         #print(dates_naissance_obstacles)
         i=0
-        while i<len(dates_naissance_obstacles) and (dates_naissance_obstacles[i]+self.config["duree_peremption_obstacles"])>time():   #une recherche dichotomique serait peut-être plus efficace, mais comme l'indice recherché est probablement petit... ça se discute.
+        while i<len(dates_naissance_obstacles) and (dates_naissance_obstacles[i].naissance+self.config["duree_peremption_obstacles"])>time():   #une recherche dichotomique serait peut-être plus efficace, mais comme l'indice recherché est probablement petit... ça se discute.
             i=i+1
         if i<len(dates_naissance_obstacles):
             self.table.maj_obstaclesCapteur(i)
