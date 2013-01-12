@@ -1,10 +1,6 @@
 import visilibity as vis
 from time import time
 
-# Used in the create_cone function
-import math
-
-
 class Point:
     def __init__(self, x, y):
         self.x = x
