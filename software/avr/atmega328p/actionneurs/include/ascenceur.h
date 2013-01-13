@@ -6,7 +6,7 @@
 
 #define COMPTEUR_BLOCAGE_MAX 30 // ~ 1 sec (à vérifier)
 
-enum AscenseurPosition {ASCENSEUR_HAUT = 46000, ASCENSEUR_BAS = -75000};
+enum AscenseurPosition {ASCENSEUR_HAUT = 55000, ASCENSEUR_BAS = -75000};
 
 template<class Moteur>
 class Ascenceur
