@@ -74,7 +74,7 @@
 #define AX_SYNC_WRITE               131
 
 
-template<class Serial_AX12, uint32_t baudrate>
+template<class Serial_AX12>
 class AX
 {
 private:
