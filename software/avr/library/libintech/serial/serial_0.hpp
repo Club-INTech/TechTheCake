@@ -4,7 +4,7 @@
 #include <libintech/serial/serial_impl.hpp>
 
 #define USE_SERIAL_0
-#define INIT_BAUDRATE_0 57600
+#define INIT_BAUDRATE_0 9600
 
 template<>
 inline void Serial<0>::init() {

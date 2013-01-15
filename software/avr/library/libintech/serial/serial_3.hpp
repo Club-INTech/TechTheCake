@@ -15,7 +15,7 @@
 	|| defined (__AVR_ATmega2561__)
 
 #include <libintech/serial/serial_impl.hpp>
-#define INIT_BAUDRATE_3 57600
+#define INIT_BAUDRATE_3 9600
 
 template<>
 void Serial < 3 > ::init() {
