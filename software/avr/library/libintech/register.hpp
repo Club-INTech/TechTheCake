@@ -11,18 +11,19 @@
 
 #include <stdint.h>
 #include <avr/io.h>
+#include "utils.h"
 
 /// PORT D
 template<uint16_t bit>
 struct AVR_PORTD {
 
     static void set_interrupt() {
-        sbi(PCMSK0, bit); // PCINT18 pour PORTC2
-        sbi(PCICR, PCIE0);//active PCINT
+        sbi(PCMSK2, bit);
+        sbi(PCICR, PCIE2); //PCIE2 correspond aux PCINT 16 à 23
     }
 
     static void clear_interrupt() {
-       cbi(PCMSK0,bit);
+       cbi(PCMSK2,bit);
     }
 
     static void set_input() {
@@ -51,12 +52,12 @@ template<uint16_t bit>
 struct AVR_PORTC {
 
     static void set_interrupt() {
-        sbi(PCMSK0, bit); // PCINT18 pour PORTC2
-        sbi(PCICR, PCIE0);//active PCINT
+        sbi(PCMSK1, bit);
+        sbi(PCICR, PCIE1); //PCIE2 correspond aux PCINT 8 à 14 (pas de PCINT15 car pas de PC7)
     }
 
     static void clear_interrupt() {
-        cbi(PCMSK0, bit);
+        cbi(PCMSK1, bit);
     }
 
     static void set_input() {
@@ -87,7 +88,7 @@ struct AVR_PORTB {
 
     static void set_interrupt() {
         sbi(PCMSK0, bit);
-        sbi(PCICR, PCIE0);
+        sbi(PCICR, PCIE0); //PCIE2 correspond aux PCINT 0 à 7
     }
 
     static void clear_interrupt() {
