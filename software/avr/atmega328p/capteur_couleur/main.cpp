@@ -5,6 +5,8 @@
 #include <libintech/serial/serial_0_interrupt.hpp>
 #include <libintech/serial/serial_0.hpp>
 
+#define AQUITTEMENT Serial<0>::print("_")
+
 typedef enum {RAS,BLEU,ROUGE,INDECIS} Couleur;
 
 int main(){
@@ -22,6 +24,7 @@ int main(){
   while(1){
     char buffer[17];
     Serial<0>::read(buffer);
+    AQUITTEMENT;
 
     if(strcmp(buffer, "?") == 0){
       Serial<0>::print("1");
