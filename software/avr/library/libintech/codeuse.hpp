@@ -6,8 +6,10 @@
 template<class PinA, class PinB>
 class Codeuse
 {
+
 private:
 	int32_t _compteur;
+	uint8_t mb;  //Mise en mémoire de l'ancienne valeur de cb
 
 public:
 	Codeuse():
@@ -20,15 +22,13 @@ public:
 		// Initialisation interruptions codeurs
 		PinA::set_interrupt();
 		PinB::set_interrupt();
-	}
 
+		mb = PinB::read();
+	}
 	inline void interruption()
 	{
-		uint8_t mb = PinB::read(); //Mise en mémoire de l'ancienne valeur de cb
-
 		if(PinA::read() == mb) ++_compteur; // Test du sens de rotation de la roue. Ecrire la table de vérité pour comprendre.
 		else --_compteur;
-
 		mb = PinB::read(); //Mise en mémoire de l'ancienne valeur de cb
 	}
 
