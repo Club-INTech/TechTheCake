@@ -67,7 +67,7 @@ class ScriptBougies(Script):
     def execute(self):
         #self.robot.va_au_point(#,#)
         if(self.robot.capteurCouleur.lire_couleur() == self.robot.couleur):
-            self.robot.actionneur.enfoncer_bougie()
+            self.robot.actionneurs.enfoncer_bougie()
             self.robot.actionneurs.initialiser_bras_bougie()
                     
     

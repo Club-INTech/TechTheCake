@@ -14,27 +14,34 @@ class Strategie:
         self.config = config
         self.log = log
 
-        self.scripts = {"bougies":ScriptBougies, "hooks":ScriptTestHooks, "recalcul":ScriptTestRecalcul,"testCapteurCouleur":ScriptCapteurCouleur}
+        self.scripts = {"recalcul":ScriptTestRecalcul}
         self.liste_points_entree = ["cadeau", "verreNous", "verreEnnemi", "Pipeau"]
+        self.points={"cadeau":4*4, "verreNous":6*5, "verreEnnemi": 6*4, "gateau":10*4, "deposer_verre":0}
+        self.note={"cadeau":0, "verreNous":0, "verreEnnemi": 0, "gateau":0, "deposer_verre":0}
 
         for script,classe in self.scripts.items():
             self.scripts[script] = classe()
             self.scripts[script].set_dependencies(self.robot, self.robotChrono, self.hookGenerator, self.rechercheChemin, self.config, self.log)
         
-    def boucle_pipeau(self):
-        while not timer.fin_match:
+    def boucle_strategie(self):
+        self.log.debug("Stratégie lancée.")
+        while not self.timer.fin_match:
             liste_chemin=[]
             for script in self.scripts:
-                dureeScript=script.calcule()
+                self.log.debug("Notation de l'action: "+script)
+                dureeScript=self.scripts[script].calcule()
+
+                self.table.RobotAdverseBalise
+                self.table.
+
                 distanceEnnemi=self.table.distance_ennemi(point_entree)
 
         #point est géré par stratégie
 #                note{point_entree}=(calcul de la note en fonction de ce qu'il y a au dessus)
 #           on trie note, et on active l'actionneur lié au point d'entrée avec la meilleure note
 
-            self.log.debug("La stratégie a décidé d'aller au point d'entrée: ")
-            self.log.debug(str(self.robot.get_x())+", "+str(self.robot.get_y())+", "+str(self.robot.get_orientation()))
-            if not timer.fin_match:
+            self.log.debug("La stratégie a décidé d'aller au point d'entrée")
+            if not self.timer.fin_match:
                 self.robot.avancer(50)
                 script.agit()
             sleep(0.1)
