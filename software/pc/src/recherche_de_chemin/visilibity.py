@@ -250,6 +250,9 @@ class Point(_object):
         
     def __str__(self):
         return "("+str(self.get_x())+", "+str(self.get_y())+")"
+        
+    def __eq__(self,other):
+        return (self.get_x() == other.x and self.get_y() == other.y)
     
     def get_x(self, *args): return _visilibity.Point_x(self)
     def get_y(self, *args): return _visilibity.Point_y(self)
