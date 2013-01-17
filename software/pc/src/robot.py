@@ -572,7 +572,10 @@ class Robot:
         """
         teste la couleur puis enfonce si c'est la bonne couleur
         """
-        pass
+        if(self.capteurs.lire_couleur() == self.couleur):
+            self.actionneurs.enfoncer_bougie()
+            sleep(1)
+            self.actionneurs.initialiser_bras_bougie()
     
     def ouvrir_cadeau(self):
         

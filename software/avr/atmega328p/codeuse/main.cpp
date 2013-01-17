@@ -9,6 +9,7 @@ typedef Codeuse< AVR_PORTD <PORTD2>,AVR_PORTD <PORTD3> > codeuse;
 typedef Serial<0> serialPC;
 codeuse c;
 
+
 int main()
 {
 	sei();
@@ -23,5 +24,5 @@ int main()
 
 ISR (PCINT2_vect)
 {
-	c.interruption();
+		c.interruption();
 }

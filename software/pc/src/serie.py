@@ -28,7 +28,7 @@ class Serie:
         #mutex évitant les écritures/lectures simultanées sur la série
         self.mutex = Mutex()
         #dictionnaire des périphériques recherchés
-        self.peripheriques = {"asservissement": Peripherique(0,9600),"capteurs_actionneurs" : Peripherique(3,9600), "capteur_couleur" : Peripherique(7,9600), "cadeaux" : Peripherique(6,9600), "ascenseur": Peripherique(2,9600),"pince_verre": Peripherique(8,9600), "actionneur_bougies": Peripherique(1,9600)}
+        self.peripheriques = {"asservissement": Peripherique(0,9600),"capteurs_actionneurs" : Peripherique(3,9600), "capteur_couleur" : Peripherique(1,9600), "cadeaux" : Peripherique(6,9600), "ascenseur": Peripherique(2,9600),"pince_verre": Peripherique(8,9600), "actionneur_bougies": Peripherique(7,9600)}
         #attribution initiale des périphériques
         self.attribuer()
         
@@ -60,7 +60,7 @@ class Serie:
             print("liste des pings pour le baudrate "+str(baudrate)+" :")
             for source in sources:
                 try:
-                    instanceSerie = Serial(source, baudrate, timeout=0.1)
+                    instanceSerie = Serial(source, baudrate, timeout=1.0)
                     
                     #vide le buffer de l'avr
                     instanceSerie.flushInput()
@@ -88,7 +88,7 @@ class Serie:
                 source = pings[self.peripheriques[destinataire].id]
                 self.log.debug(destinataire+" OK sur "+source)
                 self.peripheriques[destinataire].chemin = source
-                self.peripheriques[destinataire].serie = Serial(source, self.peripheriques[destinataire].baudrate, timeout=0.1)
+                self.peripheriques[destinataire].serie = Serial(source, self.peripheriques[destinataire].baudrate, timeout=1.0)
             else:
                 self.log.warning(destinataire+" non trouvé !")
         
@@ -121,12 +121,12 @@ class Serie:
                 acquittement = ""
                 while acquittement != "_":
                     acquittement = self._clean_string(str(self.peripheriques[destinataire].serie.readline(),"utf-8"))
-                    #print("\t>"+acquittement)
+                    #print("\t a>"+destinataire+acquittement)
                     
             #liste des réponses
             reponses = []
             for i in range(nb_lignes_reponse):
                 reponse = str(self.peripheriques[destinataire].serie.readline(),"utf-8")
-                #print("\t>"+reponse)
+                #print("\t r>"+destinataire+reponse)
                 reponses.append(self._clean_string(reponse))
         return reponses
