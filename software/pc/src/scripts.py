@@ -107,4 +107,21 @@ class ScriptTestRecalcul(Script):
     def execute(self):
         self.va_au_point(Point(0,300))
         self.va_au_point(Point(-100,500))
-        
+
+
+    #scripts pipeau utilisés dans les test de la stratégie.
+class ScriptPipeauStrategie1(Script):
+    
+    def execute(self):
+        self.va_au_point(Point(0,300))
+
+class ScriptPipeauStrategie2(Script):
+    
+    def execute(self):
+        self.va_au_point(Point(1000,300))
+
+class ScriptPipeauStrategie3(Script):
+    
+    def execute(self):
+        self.va_au_point(Point(500,0))
+
