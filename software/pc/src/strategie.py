@@ -16,7 +16,7 @@ class Strategie:
 
         self.scripts = {"recalcul":ScriptTestRecalcul}
         self.liste_points_entree = ["cadeau", "verreNous", "verreEnnemi", "Pipeau"]
-        self.points={"cadeau":4*4, "verreNous":6*5, "verreEnnemi": 6*4, "gateau":10*4, "deposer_verre":0}
+        self.points={"cadeau":0, "verres": 0, "gateau":0, "deposer_verre":0}
         self.note={"cadeau":0, "verreNous":0, "verreEnnemi": 0, "gateau":0, "deposer_verre":0}
 
         for script,classe in self.scripts.items():
@@ -25,30 +25,44 @@ class Strategie:
         
     def boucle_strategie(self):
         self.log.debug("Stratégie lancée.")
+        for script in self.points:
+            self.points[script]=0
+        self.points["deposer_verre"]=6#(nb verre)
+        for element in self.table.bougies:
+            if not element["traitee"]:
+                self.points["gateau"]=self.points["gateau"]+2 #chaque bougie rapporte 4 points, mais la moitié des bougies sont à l'ennemi...
+        for element in self.table.verres:
+            if element["present"]:
+                self.points["verres"]=self.points["verres"]+6
+        
+
         while not self.timer.fin_match:
-            liste_chemin=[]
             for script in self.scripts:
-                self.log.debug("Notation de l'action: "+script)
+                self.log.debug("Note du script "+script+": "+str(50))
                 dureeScript=self.scripts[script].calcule()
+                distanceE=self.distance_ennemi()
+                
+#dans robot, il faut le nombre de verres dans chaque ascenseur. dans config, le nombre de verres max?
 
-#                self.table.RobotAdverseBalise
-#                self.table.
-
-                distanceEnnemi=self.table.distance_ennemi(point_entree)
-
-        #point est géré par stratégie
 #                note{point_entree}=(calcul de la note en fonction de ce qu'il y a au dessus)
 #           on trie note, et on active l'actionneur lié au point d'entrée avec la meilleure note
+            scriptAFaire="recalcul"
 
-            self.log.debug("La stratégie a décidé d'aller au point d'entrée")
+            self.log.debug("La stratégie a décidé d'exécuter le script: "+scriptAFaire)
             if not self.timer.fin_match:
                 self.robot.avancer(50)
-                script.agit()
+                self.scripts[scriptAFaire].agit()
 #màj point
+
+
             sleep(0.1)
         log.debug("Arrêt de la stratégie.")
 
+    def distance_ennemi(self):
 
+#                self.table.RobotAdverseBalise
+#                self.table.
+        pass
     
 #TODO
 #la méthode temps_action(un point d'entrée) dans le service robotChrono qui renvoie le temps nécessaire à aller à ce point d'entrée et à faire l'action correspondante (pousser les cadeaux, prendre les verre, ...)
