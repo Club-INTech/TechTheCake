@@ -1,0 +1,27 @@
+###
+sources de la bibliothèque [visilibity.org] de graphes de visibilité et de recherche de chemin. Accesseurs modifiés par [deboc] pour coder plus facilement. Le makefile a été adapté pour compiler pour processeur ARM.
+###
+
+0) paquets nécessaires au binding :
+swig2.0 (binding avec du C++)
+python3-dev (paquet pour développeur python)
+
+1.a)
+copiez la bibliothèque _visilibity.so correspondant à votre architecture dans /bin
+et rapattriez là dans le dossier recherche_de_chemin.
+$cp bin/<architecture>/_visilibity.so ../_visilibity.so
+
+ou
+
+1.b) compiler la bibliothèque partagée de binding :
+$cd VisiLibity_sources/
+$make python
+--> les fichiers _visilibity.so et visilibity.py sont générés.
+Ne pas conserver visilibity.py et utiliser le fichier visilibity.py déjà dans le dépot : certains accesseurs sont modifiés.
+Une copie de ce fichier modifié est gardée dans VisiLibity_sources/visilibity.py.new
+
+2) importer le module dans un script python
+Les fichiers visilibity.py et _visilibity.so doivent être présents dans le répertoire courant.
+$python3
+>>>import visilibity
+>>>WHAT THE SHIT U WANT
