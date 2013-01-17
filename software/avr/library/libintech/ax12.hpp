@@ -154,6 +154,7 @@ public:
         // Définit les angles mini et maxi
         writeData (AX_CW_ANGLE_LIMIT_L, 2, AX_angle_CW);
         writeData (AX_CCW_ANGLE_LIMIT_L, 2, AX_angle_CCW);
+        writeData (AX_BAUD_RATE, 1, 0xCF);
 	}
 
     AX(uint8_t id)  // Constructeur de la classe pour faire tourner l'AX12 en continu
@@ -161,6 +162,7 @@ public:
         id_ = id;
         // Active l'asservissement du servo
         writeData (AX_TORQUE_ENABLE, 1, 1);
+        writeData (AX_BAUD_RATE, 1, 0xCF);
     }
     
     /// Reset de l'AX12

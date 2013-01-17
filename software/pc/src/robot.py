@@ -573,3 +573,11 @@ class Robot:
         teste la couleur puis enfonce si c'est la bonne couleur
         """
         pass
+    
+    def ouvrir_cadeau(self):
+        
+        self.actionneurs.ouvrir_cadeau()
+        
+    def fermer_cadeau(self):
+        
+        self.actionneurs.fermer_cadeau()
