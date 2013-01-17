@@ -30,7 +30,7 @@ int main () {
   serial_AX_::init();
   serial_AX_::change_baudrate(BAUD_RATE_SERIE);
 
-  AX12 AX12_BRAS(0, AX_ANGLECW, AX_ANGLECCW);
+  AX12 AX12_BRAS(1, AX_ANGLECW, AX_ANGLECCW);
 
   while(1){
     

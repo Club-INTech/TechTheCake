@@ -59,7 +59,7 @@ class CapteursSerie(Capteurs):
         return self._fusion(capteur_values)
 
     def lire_couleur(self):
-        return self.serie.communiquer("capteur_couleur",["c"],1)
+        return self.serie.communiquer("capteur_couleur",["c"],1)[0]
 
     def demarrage_match(self):
         #TODO : jumper
