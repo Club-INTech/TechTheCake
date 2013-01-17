@@ -31,8 +31,8 @@ class Strategie:
                 self.log.debug("Notation de l'action: "+script)
                 dureeScript=self.scripts[script].calcule()
 
-                self.table.RobotAdverseBalise
-                self.table.
+#                self.table.RobotAdverseBalise
+#                self.table.
 
                 distanceEnnemi=self.table.distance_ennemi(point_entree)
 
@@ -44,9 +44,11 @@ class Strategie:
             if not self.timer.fin_match:
                 self.robot.avancer(50)
                 script.agit()
+#màj point
             sleep(0.1)
         log.debug("Arrêt de la stratégie.")
 
+    def 
 
     
 #TODO
