@@ -20,8 +20,8 @@
 #define BAUD_RATE_AX12          2000000/(BAUD_RATE_SERIE+1)
 
 // Angles MIN et MAX en tics (compris entre 0 et 1024, cf. datasheet)
-#define AX_ANGLECW              205
-#define AX_ANGLECCW             818
+#define AX_ANGLECW              600
+#define AX_ANGLECCW             800
 
 
 
@@ -64,7 +64,7 @@
 typedef Serial<0> serial_PC_;
 typedef Serial<1> serial_AX_;
 
-typedef AX<serial_AX_, BAUD_RATE_AX12> AX12;
+typedef AX<serial_AX_> AX12;
 
 int main(int argc, char const *argv[])
 {
