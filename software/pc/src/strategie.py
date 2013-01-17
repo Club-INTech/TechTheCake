@@ -48,7 +48,6 @@ class Strategie:
             sleep(0.1)
         log.debug("Arrêt de la stratégie.")
 
-    def 
 
     
 #TODO
