@@ -11,6 +11,10 @@ class Capteurs(metaclass=abc.ABCMeta):
             return 5000
         else:
             return sorted(capteur_values, reverse=True)[0]
+
+    @abc.abstractmethod
+    def lire_couleur(self):
+        pass
             
     @abc.abstractmethod
     def demarrage_match(self):
@@ -54,6 +58,9 @@ class CapteursSerie(Capteurs):
 
         return self._fusion(capteur_values)
 
+    def lire_couleur(self):
+        return self.serie.communiquer("capteur_couleur",["c"],1)
+
     def demarrage_match(self):
         #TODO : jumper
         return True
@@ -82,6 +89,9 @@ class CapteursSimulateur(Capteurs):
             distance = [self.simulateur.getSensorValue(2),self.simulateur.getSensorValue(3)]
 
         return self._fusion(distance)
+
+    def lire_couleur(self):
+        pass
 
     def demarrage_match(self):
         return True

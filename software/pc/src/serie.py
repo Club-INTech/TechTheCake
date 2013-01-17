@@ -28,7 +28,7 @@ class Serie:
         #mutex évitant les écritures/lectures simultanées sur la série
         self.mutex = Mutex()
         #dictionnaire des périphériques recherchés
-        self.peripheriques = {"asservissement": Peripherique(0,9600),"capteurs_actionneurs" : Peripherique(3,9600), "couleur" : Peripherique(7,9600), "cadeaux" : Peripherique(6,9600), "ascenseur": Peripherique(2,9600),"pince_verre": Peripherique(8,9600)}
+        self.peripheriques = {"asservissement": Peripherique(0,9600),"capteurs_actionneurs" : Peripherique(3,9600), "capteur_couleur" : Peripherique(7,9600), "cadeaux" : Peripherique(6,9600), "ascenseur": Peripherique(2,9600),"pince_verre": Peripherique(8,9600), "actionneur_bougies": Peripherique(1,9600)}
         #attribution initiale des périphériques
         self.attribuer()
         

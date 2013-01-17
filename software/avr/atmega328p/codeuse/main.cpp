@@ -13,7 +13,9 @@ int main()
 {
 	sei();
 	serialPC::init();
-	while(1){
+	
+	while(1)
+	{
 		serialPC::print(c.compteur());
 	}
 	return 0;
