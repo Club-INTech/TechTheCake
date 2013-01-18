@@ -5,6 +5,7 @@
 
 int main() 
 {
+	sei();
 	Actionneurs &actionneurs = Actionneurs::Instance();
     
     while(1)
@@ -20,11 +21,17 @@ int main()
  * Placer ici les interruptions, minimiser le code (appels aux méthodes du singleton actionneurs)
  * 
  */
-ISR(TIMER1_OVF_vect)
+ISR (TIMER1_OVF_vect)
 {
 	Actionneurs &actionneurs = Actionneurs::Instance();
-	actionneurs.ascenceur_avant.codeuse(roue1);
-	actionneurs.ascenceur_avant.asservir();
+	Actionneurs::timer_asserv::value(54000); // On met une valeur sur le timer d'asservissement  pour accéder plus rapidement au prochain overflow
+	actionneurs.ascenseur_avant.asservir();
+}
+
+ISR (PCINT2_vect)
+{
+	Actionneurs &actionneurs = Actionneurs::Instance();
+	actionneurs.ascenseur_avant.libcodeuse.interruption();
 }
 
 ISR(TIMER0_OVF_vect)

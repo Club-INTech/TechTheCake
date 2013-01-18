@@ -6,7 +6,6 @@ Actionneurs::Actionneurs()
 	serie::change_baudrate(9600);
 	timer_asserv::init();
 	sei();
-	compteur_init();
 }
 void Actionneurs::execute(char *ordre)
 {
@@ -18,29 +17,46 @@ void Actionneurs::execute(char *ordre)
 	}
 	else if (strcmp(ordre, "haut") == 0) // Hauteur d'un verre
 	{
-		ascenceur_avant.consigne(ASCENSEUR_HAUT);
+		ascenseur_avant.consigne(ASCENSEUR_HAUT);
 	}
 	else if (strcmp(ordre, "bas") == 0) // Aller en bas
 	{	
-		ascenceur_avant.consigne(ASCENSEUR_BAS);
+		ascenseur_avant.consigne(ASCENSEUR_BAS);
 	}
 	else if (strcmp(ordre, "!") == 0) // Donne sur la série la valeur de la codeuse
 	{
-		serie::print(ascenceur_avant.codeuse());
+		serie::print(ascenseur_avant.codeuse());
 	}
 	else if (strcmp(ordre, "consigne") == 0) // Demander de rentrer une consigne
 	{
 		int32_t consigne;
 		serie::read(consigne); // Donner une consigne particulière
 		serie::print("_");
-		ascenceur_avant.consigne(consigne);
+		ascenseur_avant.consigne(consigne);
 	}
 	else if (strcmp(ordre, "da") == 0) // Désasservir moteur avant
 	{
-		ascenceur_avant.desasservir();
+		ascenseur_avant.desasservir();
 	}
 	else if (strcmp(ordre, "ra") == 0) // Résasservir moteur avant
 	{
-		ascenceur_avant.reasservir();
+		ascenseur_avant.reasservir();
+	}
+	else if (strcmp(ordre, "changerConstantes") == 0)
+	{
+		int8_t pwm;
+		float kp;
+		float kd;
+		float ki;
+		serie::read(pwm);
+		serie::print("_");
+		serie::read(kp);
+		serie::print("_");
+		serie::read(kd);
+		serie::print("_");
+		serie::read(ki);
+		serie::print("_");
+		ascenseur_avant.modifierVitesseKpKdKi(pwm, kp, kd, ki);
+
 	}
 }
