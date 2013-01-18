@@ -63,10 +63,62 @@ class Environnement:
         rayon = math.sqrt((rectangle[0].x - rectangle[2].x)**2 + (rectangle[0].y - rectangle[2].y)**2)/2.
         return Cercle(centre,rayon)
         
+    def _get_polygone_convexe(self,id):
+        """
+        renvoi le polygone convexe minimal contenant l'obstacle
+        """
+        polyConvexe = []
+        for k in range(self.polygones[id].n()):
+            polyConvexe.append(vis.Point(self.polygones[id][k].x, self.polygones[id][k].y))
+        
+        def get_angle(a,o,b):
+            oa = vis.Point(a.x-o.x,a.y-o.y)
+            ob = vis.Point(b.x-o.x,b.y-o.y)
+            theta = math.atan2(ob.y,ob.x) - math.atan2(oa.y,oa.x)
+            if theta > math.pi :theta -= 2*math.pi
+            elif theta <= -math.pi :theta += 2*math.pi
+            return theta
+            
+        def avancerSurPolygone(poly,position):
+                if position < len(poly)-1: return position + 1
+                else: return 0
+        
+        def reculerSurPolygone(poly,position):
+                if position > 0: return position - 1
+                else: return len(poly)-1
+                
+        o = 0
+        a = avancerSurPolygone(polyConvexe,o)
+        b = avancerSurPolygone(polyConvexe,a)
+        depart = False
+        termine = False
+        while not termine:
+            angle = get_angle(polyConvexe[o],polyConvexe[a],polyConvexe[b])
+            if angle <= 0:
+                #concavité
+                deleted = a
+                a = o
+                o = reculerSurPolygone(polyConvexe,o)
+                if o >= deleted: o-= 1
+                if a >= deleted: a-= 1
+                if b >= deleted: b-= 1
+                del polyConvexe[deleted]
+            else:
+                o = a
+                a = b
+                b = avancerSurPolygone(polyConvexe,b)
+            if o == 2:
+                depart = True
+            if depart and o == 0:
+                termine = True
+        return vis.Polygon(polyConvexe)
+        
     def _cercle_circonscrit_du_polygone(self,polygone):
         """
         méthode de conversion polygone -> cercle circonscrit
         """
+        
+        #méthode du plus long segment comme diamètre
         parcourt = {"lgr":0}
         for i in range(polygone.n()):
             for j in range(i,polygone.n()):
@@ -75,10 +127,35 @@ class Environnement:
                     parcourt["lgr"] = lgr
                     parcourt["point1"] = polygone[i]
                     parcourt["point2"] = polygone[j]
-            
         centre = vis.Point((parcourt["point1"].x + parcourt["point2"].x)/2,(parcourt["point1"].y + parcourt["point2"].y)/2)
-        rayon = parcourt["lgr"]/2.
+        parcourt["rayon"] = 0
+        for i in range(polygone.n()):
+            ray = math.sqrt((polygone[i].x - centre.x)**2 + (polygone[i].y - centre.y)**2)
+            if ray > parcourt["rayon"]:
+                parcourt["rayon"] = ray
+        rayon = parcourt["rayon"]
         return Cercle(centre,rayon)
+        
+        """
+        #méthode du cercle circonscrit à la bounding box
+        parcourt = {"minX":9999,"minY":9999,"maxX":-9999,"maxY":-9999}
+        for i in range(polygone.n()):
+            parcourt["minX"] = min(parcourt["minX"],polygone[i].x)
+            parcourt["minY"] = min(parcourt["minY"],polygone[i].y)
+            parcourt["maxX"] = max(parcourt["maxX"],polygone[i].x)
+            parcourt["maxY"] = max(parcourt["maxY"],polygone[i].y)
+        a = vis.Point(parcourt["minX"],parcourt["maxY"])
+        b = vis.Point(parcourt["maxX"],parcourt["maxY"])
+        c = vis.Point(parcourt["maxX"],parcourt["minY"])
+        d = vis.Point(parcourt["minX"],parcourt["minY"])
+        return self._cercle_circonscrit_du_rectangle([a,b,c,d])
+        """
+        
+        """
+        #méthode de l'angle le plus aigu :
+        #parcourir le polygone convexe pour obtenir l'angle le plus aigu avec un coté arbitraire, et faire un cercle par 3 points
+        
+        """
         
     def ajoute_cercle(self, cercle):
         self.cercles.append(cercle)
