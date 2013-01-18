@@ -7,9 +7,12 @@ chemin = directory[:directory.index(racine)]+racine
 #répertoires d'importation
 sys.path.insert(0, os.path.join(chemin, "src/"))
 
-import recherche_de_chemin.visilibity as vis
-from outils_maths.point import Point
+try:
+    import recherche_de_chemin.visilibity as vis
+except:
+    input("\n\nProblème avec la bibliothèque compilée _visilibity.so !\nConsultez le README dans src/recherche_de_chemin/visilibity/\n")
 import math
+import recherche_de_chemin.collisions as collisions
 
 class Cercle:
     def __init__(self,centre,rayon):
@@ -17,7 +20,7 @@ class Cercle:
         self.rayon = rayon
         
     def copy(self):
-        return Cercle(Point(self.centre.x, self.centre.y), self.rayon)
+        return Cercle(vis.Point(self.centre.x, self.centre.y), self.rayon)
         
 class Environnement:
     
@@ -83,8 +86,12 @@ class Environnement:
     
     def ajoute_rectangle(self, rectangle):
         self.polygones.append(rectangle)
-        self.cercles.append(self._cercle_circonscrit_du_polygone(rectangle))
-        #self.cercles.append(self._cercle_circonscrit_du_rectangle(rectangle))
+        self.cercles.append(self._cercle_circonscrit_du_rectangle(rectangle))
+        
+    def ajoute_polygone(self, listePoints):
+        polygone = vis.Polygon(list(map(lambda p: vis.Point(p.x,p.y), listePoints)))
+        self.polygones.append(polygone)
+        self.cercles.append(self._cercle_circonscrit_du_polygone(polygone))
         
     
 class RechercheChemin:
@@ -97,7 +104,6 @@ class RechercheChemin:
         self.log = log
         
         # tolerance de précision (différent de 0.0)
-        #self.tolerance = 0.0000001
         self.tolerance = 0.001
         
         # bords de la carte
@@ -114,31 +120,119 @@ class RechercheChemin:
         self.environnement_complet = self.environnement_initial.copy()
         
         
-    def _collision_polygone_point(self,polygone,point):
-        """
-        Test de collision pour l'accessibilité du point d'arrivée
-        """
-        def test_segment(a,b):
-            if ((b.x-a.x)*(point.y-a.y) - (b.y-a.y)*(point.x-a.x) > 0):
-                return False
-            return True
-        for i in range(polygone.n()-1):
-            if not test_segment(polygone[i],polygone[i+1]): return False
-        if not test_segment(polygone[polygone.n()-1],polygone[0]): return False
-        return True
-        
     ### Pour l'environnement dynamique #########
     def ajoute_obstacle_cercle(self, centre, rayon):
         cercle = Cercle(centre,rayon)
         self.environnement_complet.ajoute_cercle(cercle)
+        self._fusionner_avec_obstacles_en_contact()
             
     def retirer_obstacles_dynamiques(self):
         #on retourne à l'environnement initial, en évitant de le modifier
         self.environnement_complet = self.environnement_initial.copy()
     ############################################
     
-    def _fusionner_obstacles_en_contact(self):
-        pass
+    def _fusionner_avec_obstacles_en_contact(self):
+        #TODO SUPPRIMER :
+        #WATCHDOG
+        #
+        
+        #teste tous les polygones avec le dernier ajouté
+        for i in range(len(self.environnement_complet.polygones)-1):
+            #alias pour la clarté. Les polygones NE SONT PAS dupliqués (pointeurs)
+            cercle1 = self.environnement_complet.cercles[i]
+            cercle2 = self.environnement_complet.cercles[-1]
+            #test rapide de collision entre les cercles circonscrits aux 2 polygones
+            if not collisions.collision_2_cercles(cercle1,cercle2):
+                self.log.warning("pas de collision cercle")
+                continue
+            
+            polygone1 = self.environnement_complet.polygones[i]
+            polygone2 = self.environnement_complet.polygones[-1]
+            #identifiants des points de parcourt
+            a1 = None
+            #élection d'un point de polygone1 qui n'est pas dans polygone2
+            for k in range(polygone1.n()):
+                if not collisions.collisionPolygonePoint(polygone2,polygone1[k]):
+                    a1 = k
+                    break
+            if type(a1) == int:
+                #on note poly1 le polygone où commence le parcourt, en partant de a1
+                poly1 = polygone1
+                poly2 = polygone2
+            else:
+                #élection d'un point de polygone2 qui n'est pas dans polygone1
+                for k in range(polygone2.n()):
+                    if not collisions.collisionPolygonePoint(polygone1,polygone2[k]):
+                        a1 = k
+                        break
+                if type(a1) == int:
+                    #on note poly1 le polygone où commence le parcourt, en partant de a1
+                    poly1 = polygone2
+                    poly2 = polygone1
+                else:
+                    #les deux polygones sont strictement inclus l'un dans l'autre
+                    self.log.critical("WTF IS GOING ON ???")
+                    raise Exception
+            
+            def avancerSurPolygone(poly,position):
+                if position < poly.n()-1: return position + 1
+                else: return 0
+                    
+            #création de l'obstacle de merge
+            mergeObstacle = []
+            #on va considérer le segment allant jusqu'au point voisin de a1
+            b1 = avancerSurPolygone(poly1,a1)
+            WATCHDOG = 0
+            auMoinsUneCollision = False
+            condition = True
+            while condition :
+                WATCHDOG += 1
+                #tests de collision du segment [a1,b1] de poly1 avec les segments de poly2
+                collision = False
+                pointCollision = None
+                for a2 in range(poly2.n()):
+                    b2 = avancerSurPolygone(poly2,a2)
+                    pCollision = collisions.collisionSegmentSegment(poly1[a1],poly1[b1],poly2[a2],poly2[b2])
+                    if pCollision:
+                        pointCollision = pCollision[1]
+                        collision = True
+                        auMoinsUneCollision = True
+                        break
+                if collision:
+                    mergeObstacle.append(pointCollision)
+                    #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
+                    sopalin = poly1
+                    poly1 = poly2
+                    poly2 = sopalin
+                    #toujours dans le sens horaire : vers les indices croissants
+                    if 0 in [a2,b2] and poly1.n()-1 in [a2,b2]: a1 = 0
+                    else: a1 = max(a2,b2)
+                    #TODO : autres collisions sur le segment [pointCollision,a1]
+                    #parcourt du segment suivant sur l'ex poly2
+                    mergeObstacle.append(poly1[a1])
+                    b1 = avancerSurPolygone(poly1,a1)
+                else :
+                    #parcourt du segment suivant
+                    a1 = b1
+                    b1 = avancerSurPolygone(poly1,a1)
+                    mergeObstacle.append(poly1[a1])
+                condition = (poly1[b1] != mergeObstacle[0] and WATCHDOG<100)
+            if WATCHDOG == 100:
+                self.log.critical("récursion non terminale pour le polygone de fusion !")
+                raise Exception
+                
+            if auMoinsUneCollision:
+                self.log.warning("cet obstacle rentre en collision avec un autre obstacle. Ils ont été fusionnés.")
+                #remplacement du premier obstacle par l'obstacle de fusion 
+                mergePolygon = vis.Polygon(mergeObstacle)
+                self.environnement_complet.polygones[i] = mergePolygon
+                self.environnement_complet.cercles[i] = self.environnement_complet._cercle_circonscrit_du_polygone(mergePolygon)
+                #suppression du deuxième obstacle
+                del self.environnement_complet.polygones[-1]
+                del self.environnement_complet.cercles[-1]
+            else:
+                self.log.warning("cet obstacle ne rentre pas en collision avec un autre obstacle.")
+                    
         
     def get_obstacles(self):
         return (self.environnement_complet.polygones)
@@ -153,11 +247,11 @@ class RechercheChemin:
             self.log.critical("Le point d'arrivée n'est pas dans la table !")
             raise Exception
         for obstacle in self.environnement_complet.polygones:
-            if self._collision_polygone_point(obstacle,arrivee):
+            if collisions.collisionPointPoly(arrivee,obstacle):
                 self.log.critical("Le point d'arrivée n'est pas accessible !")
                 raise Exception
             
-        #conversion en type PointVisibility
+        #conversion en type vis.PointVisibility
         departVis = vis.Point(depart.x,depart.y)
         arriveeVis = vis.Point(arrivee.x, arrivee.y)
         
@@ -171,8 +265,8 @@ class RechercheChemin:
         #recherche de chemin
         cheminVis = env.shortest_path(departVis, arriveeVis, self.tolerance)
         
-        #conversion en type Point
+        #conversion en type vis.Point
         chemin = []
         for i in range(cheminVis.size()):
-            chemin.append(Point(cheminVis[i].x,cheminVis[i].y))
+            chemin.append(vis.Point(cheminVis[i].x,cheminVis[i].y))
         return chemin
