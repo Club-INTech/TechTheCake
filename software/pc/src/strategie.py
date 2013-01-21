@@ -1,8 +1,10 @@
 from time import sleep
+from time import time
+from math import sqrt
 from scripts import *
 
 class Strategie:
-    def __init__(self, robot, robotChrono, hookGenerator, rechercheChemin, table, timer, config, log):
+    def __init__(self, robot, robotChrono, hookGenerator, rechercheChemin, table, timer, config, log): #retirer robot
 
         #services importés
         self.robot = robot
@@ -14,7 +16,8 @@ class Strategie:
         self.config = config
         self.log = log
 
-        self.scripts = {"pipeau1":ScriptPipeauStrategie1, "pipeau2":ScriptPipeauStrategie2, "pipeau3":ScriptPipeauStrategie3,"bougies":ScriptBougies, "hooks":ScriptTestHooks, "recalcul":ScriptTestRecalcul}
+        self.scripts = {"pipeau1":ScriptPipeauStrategie1, "pipeau2":ScriptPipeauStrategie2, "pipeau3":ScriptPipeauStrategie3}
+#        self.scripts = {"pipeau1":ScriptPipeauStrategie1, "pipeau2":ScriptPipeauStrategie2, "pipeau3":ScriptPipeauStrategie3,"bougies":ScriptBougies, "hooks":ScriptTestHooks, "recalcul":ScriptTestRecalcul}
         self.liste_points_entree = ["cadeau", "verreNous", "verreEnnemi", "Pipeau"]
         self.points={"cadeau":0, "verres": 0, "gateau":0, "deposer_verre":0, "pipeau1":6, "pipeau2": 12, "pipeau3":8}
 
@@ -34,33 +37,43 @@ class Strategie:
                 if not element["traitee"]:
                     self.points["gateau"]+=2 #chaque bougie rapporte 4 points, mais la moitié des bougies sont à l'ennemi...
             for element in self.table.verres:
-                if element["present"]:
+                if element["present"]:       #à pondérer si l'ascenseur est plutôt plein ou plutôt vide
                     self.points["verres"]+=6
             for element in self.table.cadeaux:
                 if not element["ouvert"]:
                     self.points["cadeau"]+=4
 
             for script in self.scripts:
-                dureeScript=self.scripts[script].calcule()
-                distanceE=self.distance_ennemi()
-                note[script]=10000000*self.points[script]/(dureeScript*dureeScript*dureeScript*distanceE*distanceE) #cette formule est aussi valable pour deposer_verres
+                dureeScript=self.scripts[script].calcule()+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
+                distanceE=self.distance_ennemi()+1              #idem
+
+                if dureeScript<(self.config["temps_match"]-time()+self.timer.date_debut): #si on a le temps de faire l'action avant la fin du match
+                    note[script]=10000000*self.points[script]/(dureeScript*dureeScript*dureeScript*distanceE*distanceE) #cette formule est aussi valable pour deposer_verres
+                else:
+                    note[script]=0
                 self.log.debug("Note du script "+script+": "+str(note[script]))
 
             noteInverse = dict(map(lambda item: (item[1],item[0]),note.items()))
             scriptAFaire=noteInverse[max(noteInverse.keys())]   #ce script a reçu la meilleure note
+            scriptAFaire="pipeau2"
 
             self.log.debug("La stratégie a décidé d'exécuter le script: "+scriptAFaire)
             if not self.timer.fin_match:
                 self.scripts[scriptAFaire].agit()
 
             sleep(0.1)
-        log.debug("Arrêt de la stratégie.")
+        self.log.debug("Arrêt de la stratégie.")
 
-    def distance_ennemi(self):
+    def distance_ennemi(self): #on prend la distance euclidienne, à vol d'oiseau
+        distance_min=3000 #une distance très grande, borne sup de la valeur renvoyée.
+        for obstacle in self.table.robotsAdversesBalise+self.table.obstaclesCapteurs:
+            delta_x=self.robot.x-obstacle.position.x
+            delta_y=self.robot.y-obstacle.position.y
+            d=round(sqrt(delta_x**2 + delta_y**2),2)
+            if d<distance_min:
+                distance_min=d
 
-#                self.table.RobotAdverseBalise
-#                self.table.
-        return 42
+        return distance_min
     
 #TODO
-#dans robot, il faut le nombre de verres dans chaque ascenseur. dans config, le nombre de verres max?
+#dans robot, il faut le nombre de verres dans chaque ascenseur.
