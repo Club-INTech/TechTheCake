@@ -63,62 +63,77 @@ class Environnement:
         rayon = math.sqrt((rectangle[0].x - rectangle[2].x)**2 + (rectangle[0].y - rectangle[2].y)**2)/2.
         return Cercle(centre,rayon)
         
-    def _get_polygone_convexe(self,id):
-        """
-        renvoi le polygone convexe minimal contenant l'obstacle
-        """
-        polyConvexe = []
-        for k in range(self.polygones[id].n()):
-            polyConvexe.append(vis.Point(self.polygones[id][k].x, self.polygones[id][k].y))
+    #def _get_polygone_convexe(self,id):
+        #"""
+        #renvoi le polygone convexe minimal contenant l'obstacle
+        #"""
+        #polyConvexe = []
+        #for k in range(self.polygones[id].n()):
+            #polyConvexe.append(vis.Point(self.polygones[id][k].x, self.polygones[id][k].y))
         
-        def get_angle(a,o,b):
-            oa = vis.Point(a.x-o.x,a.y-o.y)
-            ob = vis.Point(b.x-o.x,b.y-o.y)
-            theta = math.atan2(ob.y,ob.x) - math.atan2(oa.y,oa.x)
-            if theta > math.pi :theta -= 2*math.pi
-            elif theta <= -math.pi :theta += 2*math.pi
-            return theta
+        #def get_angle(a,o,b):
+            #oa = vis.Point(a.x-o.x,a.y-o.y)
+            #ob = vis.Point(b.x-o.x,b.y-o.y)
+            #theta = math.atan2(ob.y,ob.x) - math.atan2(oa.y,oa.x)
+            #if theta > math.pi :theta -= 2*math.pi
+            #elif theta <= -math.pi :theta += 2*math.pi
+            #return theta
             
-        def avancerSurPolygone(poly,position):
-                if position < len(poly)-1: return position + 1
-                else: return 0
+        #def avancerSurPolygone(poly,position):
+                #if position < len(poly)-1: return position + 1
+                #else: return 0
         
-        def reculerSurPolygone(poly,position):
-                if position > 0: return position - 1
-                else: return len(poly)-1
+        #def reculerSurPolygone(poly,position):
+                #if position > 0: return position - 1
+                #else: return len(poly)-1
                 
-        o = 0
-        a = avancerSurPolygone(polyConvexe,o)
-        b = avancerSurPolygone(polyConvexe,a)
-        depart = False
-        termine = False
-        while not termine:
-            angle = get_angle(polyConvexe[o],polyConvexe[a],polyConvexe[b])
-            if angle <= 0:
-                #concavité
-                deleted = a
-                a = o
-                o = reculerSurPolygone(polyConvexe,o)
-                if o >= deleted: o-= 1
-                if a >= deleted: a-= 1
-                if b >= deleted: b-= 1
-                del polyConvexe[deleted]
-            else:
-                o = a
-                a = b
-                b = avancerSurPolygone(polyConvexe,b)
-            if o == 2:
-                depart = True
-            if depart and o == 0:
-                termine = True
-        return vis.Polygon(polyConvexe)
+        #o = 0
+        #a = avancerSurPolygone(polyConvexe,o)
+        #b = avancerSurPolygone(polyConvexe,a)
+        #depart = False
+        #termine = False
+        #while not termine:
+            #angle = get_angle(polyConvexe[o],polyConvexe[a],polyConvexe[b])
+            #if angle <= 0:
+                ##concavité
+                #deleted = a
+                #a = o
+                #o = reculerSurPolygone(polyConvexe,o)
+                #if o >= deleted: o-= 1
+                #if a >= deleted: a-= 1
+                #if b >= deleted: b-= 1
+                #del polyConvexe[deleted]
+            #else:
+                #o = a
+                #a = b
+                #b = avancerSurPolygone(polyConvexe,b)
+            #if o == 2:
+                #depart = True
+            #if depart and o == 0:
+                #termine = True
+        #return vis.Polygon(polyConvexe)
+    
         
     def _cercle_circonscrit_du_polygone(self,polygone):
         """
-        méthode de conversion polygone -> cercle circonscrit
+        méthode de conversion polygone -> cercle le contenant grossièrement
         """
         
-        #méthode du plus long segment comme diamètre
+        #méthode du cercle circonscrit à la bounding box
+        parcourt = {"minX":9999,"minY":9999,"maxX":-9999,"maxY":-9999}
+        for i in range(polygone.n()):
+            parcourt["minX"] = min(parcourt["minX"],polygone[i].x)
+            parcourt["minY"] = min(parcourt["minY"],polygone[i].y)
+            parcourt["maxX"] = max(parcourt["maxX"],polygone[i].x)
+            parcourt["maxY"] = max(parcourt["maxY"],polygone[i].y)
+        a = vis.Point(parcourt["minX"],parcourt["maxY"])
+        b = vis.Point(parcourt["maxX"],parcourt["maxY"])
+        c = vis.Point(parcourt["maxX"],parcourt["minY"])
+        d = vis.Point(parcourt["minX"],parcourt["minY"])
+        return self._cercle_circonscrit_du_rectangle([a,b,c,d])
+        
+        """
+        #méthode du centre au milieu du plus long segment (cercle plus précis, méthode plus lente)
         parcourt = {"lgr":0}
         for i in range(polygone.n()):
             for j in range(i,polygone.n()):
@@ -135,26 +150,11 @@ class Environnement:
                 parcourt["rayon"] = ray
         rayon = parcourt["rayon"]
         return Cercle(centre,rayon)
-        
-        """
-        #méthode du cercle circonscrit à la bounding box
-        parcourt = {"minX":9999,"minY":9999,"maxX":-9999,"maxY":-9999}
-        for i in range(polygone.n()):
-            parcourt["minX"] = min(parcourt["minX"],polygone[i].x)
-            parcourt["minY"] = min(parcourt["minY"],polygone[i].y)
-            parcourt["maxX"] = max(parcourt["maxX"],polygone[i].x)
-            parcourt["maxY"] = max(parcourt["maxY"],polygone[i].y)
-        a = vis.Point(parcourt["minX"],parcourt["maxY"])
-        b = vis.Point(parcourt["maxX"],parcourt["maxY"])
-        c = vis.Point(parcourt["maxX"],parcourt["minY"])
-        d = vis.Point(parcourt["minX"],parcourt["minY"])
-        return self._cercle_circonscrit_du_rectangle([a,b,c,d])
         """
         
         """
-        #méthode de l'angle le plus aigu :
+        #méthode de l'angle le plus aigu (cercle minimal, méthode la plus lente, et plus compliquée)
         #parcourir le polygone convexe pour obtenir l'angle le plus aigu avec un coté arbitraire, et faire un cercle par 3 points
-        
         """
         
     def ajoute_cercle(self, cercle):
@@ -184,7 +184,7 @@ class RechercheChemin:
         self.tolerance = 0.001
         
         # bords de la carte
-        self.bords = vis.Polygon([vis.Point(-1500,0), vis.Point(1500,0), vis.Point(1500,2000), vis.Point(-1500,2000)])
+        self.bords = vis.Polygon([vis.Point(-self.config["table_x"]/2,0), vis.Point(self.config["table_x"]/2,0), vis.Point(self.config["table_x"]/2,self.config["table_y"]), vis.Point(-self.config["table_x"]/2,self.config["table_y"])])
         
         # environnement initial : obstacles fixes sur la carte
         self.environnement_initial = Environnement()
@@ -201,6 +201,7 @@ class RechercheChemin:
     def ajoute_obstacle_cercle(self, centre, rayon):
         cercle = Cercle(centre,rayon)
         self.environnement_complet.ajoute_cercle(cercle)
+        self._recouper_aux_bords_table()
         self._fusionner_avec_obstacles_en_contact()
             
     def retirer_obstacles_dynamiques(self):
@@ -208,28 +209,164 @@ class RechercheChemin:
         self.environnement_complet = self.environnement_initial.copy()
     ############################################
     
+    def _recouper_aux_bords_table(self):
+        #TODO SUPPRIMER : WATCHDOG
+        
+        #alias pour la clarté. Les polygones NE SONT PAS dupliqués (pointeurs)
+        poly1 = self.environnement_complet.polygones[-1]
+        poly2 = self.bords
+        #élection d'un point du poly1 qui ne sort pas de la table
+        a1 = None
+        for k in range(poly1.n()):
+            if collisions.collisionPointPoly(poly1[k],poly2):
+                a1 = k
+                break
+        if not type(a1) == int:
+            #Le polygone n'a aucun sommet dans la table. On considère qu'on peut l'ignorer.
+            self.log.warning("L'obstacle n'est pas dans la table.")
+            del self.environnement_complet.polygones[-1]
+            del self.environnement_complet.cercles[-1]
+            return None
+        
+        def avancerSurPolygone(poly,position):
+            if poly == self.bords:
+                if position > 0: return position - 1
+                else: return poly.n()-1
+            else:
+                if position < poly.n()-1: return position + 1
+                else: return 0
+                
+        #création de l'obstacle recoupé
+        troncateObstacle = []
+        #on va considérer le segment allant jusqu'au point voisin de a1
+        b1 = avancerSurPolygone(poly1,a1)
+        WATCHDOG = 0
+        auMoinsUneCollision = False
+        conditionBouclage = True
+        def ajouterTroncateObstacle(point):
+            nonlocal conditionBouclage
+            try:
+                if point == troncateObstacle[0]:
+                    conditionBouclage = False
+                else:
+                    if conditionBouclage:
+                        troncateObstacle.append(point)
+            except:
+                troncateObstacle.append(point)
+        ajouterTroncateObstacle(poly1[a1])
+        while conditionBouclage and WATCHDOG < 100:
+            WATCHDOG += 1
+            #print(poly1[a1],poly1[b1])#@
+            #input("parcourir ce segment !")#@
+            #tests de collision du segment [a1,b1] de poly1 avec les segments de poly2
+            collision = False
+            pointCollision = None
+            for a2 in range(poly2.n()):
+                b2 = avancerSurPolygone(poly2,a2)
+                pCollision = collisions.collisionSegmentSegment(poly1[a1],poly1[b1],poly2[a2],poly2[b2])
+                if pCollision:
+                    #self.log.critical("collision à "+str(pCollision[1]))#@
+                    pointCollision = pCollision[1]
+                    collision = True
+                    auMoinsUneCollision = True
+                    break
+            if collision:
+                ajouterTroncateObstacle(pointCollision)
+                #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
+                sopalin = poly1
+                poly1 = poly2
+                poly2 = sopalin
+                #toujours dans le sens horaire : à partir du plus petit indice
+                if poly1 == self.bords:
+                    if 0 in [a2,b2] and poly1.n()-1 in [a2,b2]: a1 = poly1.n()-1
+                    else: a1 = min(a2,b2)
+                else:
+                    if 0 in [a2,b2] and poly1.n()-1 in [a2,b2]: a1 = 0
+                    else: a1 = max(a2,b2)
+                
+                #------------------------
+                continueSurSegment = True
+                while continueSurSegment:
+                    #print("collision sur du "+str(poly2.n())+" sur "+str(poly1.n())+" à "+str(pointCollision))#@
+                    #input("voir les autres collisions sur le meme segment !")#@
+                    collision = False
+                    for a2 in range(poly2.n()):
+                        b2 = avancerSurPolygone(poly2,a2)
+                        pCollision = collisions.collisionSegmentSegment(pointCollision,poly1[a1],poly2[a2],poly2[b2])
+                        if pCollision:
+                            #self.log.warning("autre collision à "+str(pCollision[1]))#@
+                            pointCollision = pCollision[1]
+                            collision = True
+                            break
+                    if collision:
+                        ajouterTroncateObstacle(pointCollision)
+                        #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
+                        sopalin = poly1
+                        poly1 = poly2
+                        poly2 = sopalin
+                        #toujours dans le sens horaire : à partir du plus petit indice
+                        if poly1 == self.bords:
+                            if 0 in [a2,b2] and poly1.n()-1 in [a2,b2]: a1 = poly1.n()-1
+                            else: a1 = min(a2,b2)
+                        else:
+                            if 0 in [a2,b2] and poly1.n()-1 in [a2,b2]: a1 = 0
+                            else: a1 = max(a2,b2)
+                    else:
+                        continueSurSegment = False
+                        ajouterTroncateObstacle(poly1[a1])
+                        #parcourt du segment suivant sur l'ex poly2
+                        b1 = avancerSurPolygone(poly1,a1)
+                #------------------------
+                
+            else :
+                #self.log.debug("ajout de "+str(poly1[a1])+" au polygone")#@
+                #parcourt du segment suivant
+                a1 = b1
+                b1 = avancerSurPolygone(poly1,a1)
+                ajouterTroncateObstacle(poly1[a1])
+        if WATCHDOG == 100:
+            self.log.critical("récursion non terminale pour le polygone tronqué !")
+            raise Exception
+            
+        if auMoinsUneCollision:
+            self.log.warning("cet obstacle rentre en collision avec les bords de la table. Il a été tronqué.")
+            #remplacement de l'obstacle par l'obstacle tronqué
+            #print("########")#@
+            for i in range(len(troncateObstacle)):
+                #print(troncateObstacle[i])#@
+                if troncateObstacle[i].x < -self.config["table_x"]/2+self.tolerance:
+                    troncateObstacle[i].x = -self.config["table_x"]/2+2*self.tolerance
+                elif troncateObstacle[i].x > self.config["table_x"]/2-self.tolerance:
+                    troncateObstacle[i].x = self.config["table_x"]/2-2*self.tolerance
+                if troncateObstacle[i].y < self.tolerance:
+                    troncateObstacle[i].y = 2*self.tolerance
+                elif troncateObstacle[i].y > self.config["table_y"]-self.tolerance:
+                    troncateObstacle[i].y = self.config["table_y"]-2*self.tolerance
+                
+            troncPolygon = vis.Polygon(troncateObstacle)
+            self.environnement_complet.polygones[-1] = troncPolygon
+            self.environnement_complet.cercles[-1] = self.environnement_complet._cercle_circonscrit_du_polygone(troncPolygon)
+        else:
+            self.log.warning("cet obstacle ne rentre pas en collision avec les bords de la table.")
+        
+        
     def _fusionner_avec_obstacles_en_contact(self):
-        #TODO SUPPRIMER :
-        #WATCHDOG
-        #
+        #TODO SUPPRIMER WATCHDOG
         
         #teste tous les polygones avec le dernier ajouté
-        for i in range(len(self.environnement_complet.polygones)-1):
-            #alias pour la clarté. Les polygones NE SONT PAS dupliqués (pointeurs)
-            cercle1 = self.environnement_complet.cercles[i]
-            cercle2 = self.environnement_complet.cercles[-1]
+        for i in range(len(self.environnement_complet.polygones)-1,0,-1):
             #test rapide de collision entre les cercles circonscrits aux 2 polygones
-            if not collisions.collision_2_cercles(cercle1,cercle2):
+            if not collisions.collision_2_cercles(self.environnement_complet.cercles[i],self.environnement_complet.cercles[-1]):
                 self.log.warning("pas de collision cercle")
                 continue
             
+            #alias pour la clarté. Les polygones NE SONT PAS dupliqués (pointeurs)
             polygone1 = self.environnement_complet.polygones[i]
             polygone2 = self.environnement_complet.polygones[-1]
-            #identifiants des points de parcourt
-            a1 = None
             #élection d'un point de polygone1 qui n'est pas dans polygone2
+            a1 = None
             for k in range(polygone1.n()):
-                if not collisions.collisionPolygonePoint(polygone2,polygone1[k]):
+                if not collisions.collisionPointPoly(polygone1[k],polygone2):
                     a1 = k
                     break
             if type(a1) == int:
@@ -239,7 +376,7 @@ class RechercheChemin:
             else:
                 #élection d'un point de polygone2 qui n'est pas dans polygone1
                 for k in range(polygone2.n()):
-                    if not collisions.collisionPolygonePoint(polygone1,polygone2[k]):
+                    if not collisions.collisionPointPoly(polygone2[k],polygone1):
                         a1 = k
                         break
                 if type(a1) == int:
@@ -261,8 +398,18 @@ class RechercheChemin:
             b1 = avancerSurPolygone(poly1,a1)
             WATCHDOG = 0
             auMoinsUneCollision = False
-            condition = True
-            while condition :
+            conditionBouclage = True
+            def ajouterMergeObstacle(point):
+                nonlocal conditionBouclage
+                try:
+                    if point == mergeObstacle[0]:
+                        conditionBouclage = False
+                    else:
+                        if conditionBouclage:
+                            mergeObstacle.append(point)
+                except:
+                    mergeObstacle.append(point)
+            while conditionBouclage and WATCHDOG < 100:
                 WATCHDOG += 1
                 #tests de collision du segment [a1,b1] de poly1 avec les segments de poly2
                 collision = False
@@ -276,7 +423,7 @@ class RechercheChemin:
                         auMoinsUneCollision = True
                         break
                 if collision:
-                    mergeObstacle.append(pointCollision)
+                    ajouterMergeObstacle(pointCollision)
                     #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
                     sopalin = poly1
                     poly1 = poly2
@@ -284,16 +431,41 @@ class RechercheChemin:
                     #toujours dans le sens horaire : vers les indices croissants
                     if 0 in [a2,b2] and poly1.n()-1 in [a2,b2]: a1 = 0
                     else: a1 = max(a2,b2)
-                    #TODO : autres collisions sur le segment [pointCollision,a1]
-                    #parcourt du segment suivant sur l'ex poly2
-                    mergeObstacle.append(poly1[a1])
-                    b1 = avancerSurPolygone(poly1,a1)
+                    
+                    #------------------------
+                    continueSurSegment = True
+                    while continueSurSegment:
+                        #print("collision sur du "+str(poly2.n())+" sur "+str(poly1.n())+" à "+str(pointCollision))#@
+                        #input("voir les autres collisions sur le meme segment !")#@
+                        collision = False
+                        for a2 in range(poly2.n()):
+                            b2 = avancerSurPolygone(poly2,a2)
+                            pCollision = collisions.collisionSegmentSegment(pointCollision,poly1[a1],poly2[a2],poly2[b2])
+                            if pCollision:
+                                #self.log.warning("autre collision à "+str(pCollision[1]))#@
+                                pointCollision = pCollision[1]
+                                collision = True
+                                break
+                        if collision:
+                            ajouterMergeObstacle(pointCollision)
+                            #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
+                            sopalin = poly1
+                            poly1 = poly2
+                            poly2 = sopalin
+                            #toujours dans le sens horaire : à partir du plus petit indice
+                            if 0 in [a2,b2] and poly1.n()-1 in [a2,b2]: a1 = 0
+                            else: a1 = max(a2,b2)
+                        else:
+                            continueSurSegment = False
+                            ajouterMergeObstacle(poly1[a1])
+                            #parcourt du segment suivant sur l'ex poly2
+                            b1 = avancerSurPolygone(poly1,a1)
+                    #------------------------
                 else :
                     #parcourt du segment suivant
                     a1 = b1
                     b1 = avancerSurPolygone(poly1,a1)
-                    mergeObstacle.append(poly1[a1])
-                condition = (poly1[b1] != mergeObstacle[0] and WATCHDOG<100)
+                    ajouterMergeObstacle(poly1[a1])
             if WATCHDOG == 100:
                 self.log.critical("récursion non terminale pour le polygone de fusion !")
                 raise Exception
@@ -302,11 +474,11 @@ class RechercheChemin:
                 self.log.warning("cet obstacle rentre en collision avec un autre obstacle. Ils ont été fusionnés.")
                 #remplacement du premier obstacle par l'obstacle de fusion 
                 mergePolygon = vis.Polygon(mergeObstacle)
-                self.environnement_complet.polygones[i] = mergePolygon
-                self.environnement_complet.cercles[i] = self.environnement_complet._cercle_circonscrit_du_polygone(mergePolygon)
+                self.environnement_complet.polygones[-1] = mergePolygon
+                self.environnement_complet.cercles[-1] = self.environnement_complet._cercle_circonscrit_du_polygone(mergePolygon)
                 #suppression du deuxième obstacle
-                del self.environnement_complet.polygones[-1]
-                del self.environnement_complet.cercles[-1]
+                del self.environnement_complet.polygones[i]
+                del self.environnement_complet.cercles[i]
             else:
                 self.log.warning("cet obstacle ne rentre pas en collision avec un autre obstacle.")
                     

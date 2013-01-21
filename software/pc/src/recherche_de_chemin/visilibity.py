@@ -253,6 +253,15 @@ class Point(_object):
         
     def __eq__(self,other):
         return (self.get_x() == other.x and self.get_y() == other.y)
+        
+    def __add__(self,other):
+        return Point(self.get_x() + other.x, self.get_y() + other.y)
+        
+    def __sub__(self,other):
+        return Point(self.get_x() - other.x, self.get_y() - other.y)
+    
+    def __mul__(self,other):
+        return Point(self.get_x()*other, self.get_y()*other)
     
     def get_x(self, *args): return _visilibity.Point_x(self)
     def get_y(self, *args): return _visilibity.Point_y(self)
