@@ -252,7 +252,7 @@ class Point(_object):
         return "("+str(self.get_x())+", "+str(self.get_y())+")"
         
     def __eq__(self,other):
-        return (self.get_x() == other.x and self.get_y() == other.y)
+        return (round(self.get_x(),3) == round(other.x,3) and round(self.get_y(),3) == round(other.y,3))
         
     def __add__(self,other):
         return Point(self.get_x() + other.x, self.get_y() + other.y)
