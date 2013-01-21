@@ -27,7 +27,7 @@ class Strategie:
         
     def boucle_strategie(self):
         self.log.debug("Stratégie lancée.")
-        while not self.timer.fin_match:
+        while not self.timer.get_fin_match():
             note={"cadeau":0, "verreNous":0, "verreEnnemi": 0, "gateau":0, "deposer_verres":0, "pipeau1":0, "pipeau2":0, "pipeau3":0}
 
         #        for script in self.points: #retiré pour la durée des tests (tant que les vrais scripts ne sont pas dispo...)
@@ -47,7 +47,7 @@ class Strategie:
                 dureeScript=self.scripts[script].calcule()+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
                 distanceE=self.distance_ennemi()+1              #idem
 
-                if dureeScript<(self.config["temps_match"]-time()+self.timer.date_debut): #si on a le temps de faire l'action avant la fin du match
+                if dureeScript<(self.config["temps_match"]-time()+self.timer.get_date_debut()): #si on a le temps de faire l'action avant la fin du match
                     note[script]=10000000*self.points[script]/(dureeScript*dureeScript*dureeScript*distanceE*distanceE) #cette formule est aussi valable pour deposer_verres
                 else:
                     note[script]=0
@@ -58,7 +58,7 @@ class Strategie:
             scriptAFaire="pipeau2"
 
             self.log.debug("La stratégie a décidé d'exécuter le script: "+scriptAFaire)
-            if not self.timer.fin_match:
+            if not self.timer.get_fin_match():
                 self.scripts[scriptAFaire].agit()
 
             sleep(0.1)
@@ -66,7 +66,7 @@ class Strategie:
 
     def distance_ennemi(self): #on prend la distance euclidienne, à vol d'oiseau
         distance_min=3000 #une distance très grande, borne sup de la valeur renvoyée.
-        for obstacle in self.table.robotsAdversesBalise+self.table.obstaclesCapteurs:
+        for obstacle in self.table.get_robotsAdversesBalise()+self.table.get_obstaclesCapteur():
             delta_x=self.robot.x-obstacle.position.x
             delta_y=self.robot.y-obstacle.position.y
             d=round(sqrt(delta_x**2 + delta_y**2),2)

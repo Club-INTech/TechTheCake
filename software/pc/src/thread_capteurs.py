@@ -25,7 +25,7 @@ def fonction_capteurs(container):
     tempo=config["temporisation_obstacles"]         #on attendra 500 ms avant d'enregistrer un nouvel obstacle. Valeur à tester expérimentalement.
     dernier_ajout=timer.date_debut-tempo            #on retire self.tempo afin de pouvoir directement ajouter un nouvel objet dès le début du match. Attention: le match doit être démarré pour utiliser date_debut
 
-    while not timer.fin_match:
+    while not timer.get_fin_match():
         distance=capteurs.mesurer(robot.marche_arriere)
         if distance>=0:                             #cette condition ne sert que dans le simulateur (les conventions pour les objets à l'infini diffèrent)
             x=robot.x+distance*cos(robot.orientation)

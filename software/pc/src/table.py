@@ -140,5 +140,8 @@ class Table:
         with self.mutex :
             return self.obstaclesCapteurs
         
+    def get_robotsAdversesBalise(self) :
+        with self.mutex :
+            return self.robotsAdversesBalise
         
 	

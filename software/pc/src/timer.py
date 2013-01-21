@@ -1,5 +1,6 @@
 from time import time
 from time import sleep
+from mutex import Mutex
 
 class Timer():
 
@@ -11,14 +12,16 @@ class Timer():
         self.capteurs = capteurs
         self.match_demarre = False
         self.fin_match = False
+        self.mutex=Mutex()
 
     def initialisation(self):
-        if not self.config["mode_simulateur"]:  #si on est en mode simulateur, on commence de suite
+        if not self.config["mode_simulateur"]:  #si on est en mode simulateur, on commence de suite (apparemment inutile?)
             while not self.capteurs.demarrage_match():
                 sleep(.5)
         self.log.debug("Le match a commencé!")
-        self.match_demarre = True
-        self.date_debut = time()
+        with self.mutex:
+            self.match_demarre = True
+            self.date_debut = time()
 
     def suppression_obstacles(self):
         dates_naissance_obstacles=self.table.get_obstaclesCapteur()
@@ -32,15 +35,26 @@ class Timer():
     def thread_timer(self):
         self.log.debug("Lancement du thread timer")
         self.initialisation()
-        while (time()-self.date_debut)<self.config["temps_match"]:
+        while (time()-self.get_date_debut())<self.config["temps_match"]:
             self.suppression_obstacles()
             sleep(.5)
-        self.fin_match = True
+        with self.mutex:
+            self.fin_match = True
         self.robot.stopper()
         sleep(.500) #afin d'être sûr que le robot a eu le temps de s'arrêter
         self.robot.deplacements.desactiver_asservissement_translation()
         self.robot.deplacements.desactiver_asservissement_rotation()
         self.robot.gonflage_ballon()
+
+    def get_date_debut(self):
+        with self.mutex:
+            return self.date_debut
+
+    def get_fin_match(self):
+        with self.mutex:
+            return self.fin_match
+
+    
 
 
 #TODO
