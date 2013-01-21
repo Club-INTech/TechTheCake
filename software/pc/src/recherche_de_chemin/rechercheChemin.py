@@ -201,6 +201,7 @@ class RechercheChemin:
     def ajoute_obstacle_cercle(self, centre, rayon):
         cercle = Cercle(centre,rayon)
         self.environnement_complet.ajoute_cercle(cercle)
+        self._recouper_aux_bords_table()
         self._fusionner_avec_obstacles_en_contact()
             
     def retirer_obstacles_dynamiques(self):
@@ -209,30 +210,163 @@ class RechercheChemin:
     ############################################
     
     def _recouper_aux_bords_table(self):
-        pass
+        #TODO SUPPRIMER : WATCHDOG
+        
+        #alias pour la clarté. Les polygones NE SONT PAS dupliqués (pointeurs)
+        poly1 = self.environnement_complet.polygones[-1]
+        poly2 = self.bords
+        #élection d'un point du poly1 qui ne sort pas de la table
+        a1 = None
+        for k in range(poly1.n()):
+            if collisions.collisionPointPoly(poly1[k],poly2):
+                a1 = k
+                break
+        if not type(a1) == int:
+            #Le polygone n'a aucun sommet dans la table. On considère qu'on peut l'ignorer.
+            self.log.warning("L'obstacle n'est pas dans la table.")
+            del self.environnement_complet.polygones[-1]
+            del self.environnement_complet.cercles[-1]
+            return None
+        
+        def avancerSurPolygone(poly,position):
+            if poly == self.bords:
+                if position > 0: return position - 1
+                else: return poly.n()-1
+            else:
+                if position < poly.n()-1: return position + 1
+                else: return 0
+                
+        #création de l'obstacle recoupé
+        troncateObstacle = []
+        #on va considérer le segment allant jusqu'au point voisin de a1
+        b1 = avancerSurPolygone(poly1,a1)
+        WATCHDOG = 0
+        auMoinsUneCollision = False
+        conditionBouclage = True
+        def ajouterTroncateObstacle(point):
+            nonlocal conditionBouclage
+            try:
+                if point == troncateObstacle[0]:
+                    conditionBouclage = False
+                else:
+                    if conditionBouclage:
+                        troncateObstacle.append(point)
+            except:
+                troncateObstacle.append(point)
+        ajouterTroncateObstacle(poly1[a1])
+        while conditionBouclage and WATCHDOG < 100:
+            WATCHDOG += 1
+            #print(poly1[a1],poly1[b1])#@
+            #input("parcourir ce segment !")#@
+            #tests de collision du segment [a1,b1] de poly1 avec les segments de poly2
+            collision = False
+            pointCollision = None
+            for a2 in range(poly2.n()):
+                b2 = avancerSurPolygone(poly2,a2)
+                pCollision = collisions.collisionSegmentSegment(poly1[a1],poly1[b1],poly2[a2],poly2[b2])
+                if pCollision:
+                    #self.log.critical("collision à "+str(pCollision[1]))#@
+                    pointCollision = pCollision[1]
+                    collision = True
+                    auMoinsUneCollision = True
+                    break
+            if collision:
+                ajouterTroncateObstacle(pointCollision)
+                #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
+                sopalin = poly1
+                poly1 = poly2
+                poly2 = sopalin
+                #toujours dans le sens horaire : à partir du plus petit indice
+                if poly1 == self.bords:
+                    if 0 in [a2,b2] and poly1.n()-1 in [a2,b2]: a1 = poly1.n()-1
+                    else: a1 = min(a2,b2)
+                else:
+                    if 0 in [a2,b2] and poly1.n()-1 in [a2,b2]: a1 = 0
+                    else: a1 = max(a2,b2)
+                
+                #------------------------
+                continueSurSegment = True
+                while continueSurSegment:
+                    #print("collision sur du "+str(poly2.n())+" sur "+str(poly1.n())+" à "+str(pointCollision))#@
+                    #input("voir les autres collisions sur le meme segment !")#@
+                    collision = False
+                    for a2 in range(poly2.n()):
+                        b2 = avancerSurPolygone(poly2,a2)
+                        pCollision = collisions.collisionSegmentSegment(pointCollision,poly1[a1],poly2[a2],poly2[b2])
+                        if pCollision:
+                            #self.log.warning("autre collision à "+str(pCollision[1]))#@
+                            pointCollision = pCollision[1]
+                            collision = True
+                            break
+                    if collision:
+                        ajouterTroncateObstacle(pointCollision)
+                        #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
+                        sopalin = poly1
+                        poly1 = poly2
+                        poly2 = sopalin
+                        #toujours dans le sens horaire : à partir du plus petit indice
+                        if poly1 == self.bords:
+                            if 0 in [a2,b2] and poly1.n()-1 in [a2,b2]: a1 = poly1.n()-1
+                            else: a1 = min(a2,b2)
+                        else:
+                            if 0 in [a2,b2] and poly1.n()-1 in [a2,b2]: a1 = 0
+                            else: a1 = max(a2,b2)
+                    else:
+                        continueSurSegment = False
+                        ajouterTroncateObstacle(poly1[a1])
+                        #parcourt du segment suivant sur l'ex poly2
+                        b1 = avancerSurPolygone(poly1,a1)
+                #------------------------
+                
+            else :
+                #self.log.debug("ajout de "+str(poly1[a1])+" au polygone")#@
+                #parcourt du segment suivant
+                a1 = b1
+                b1 = avancerSurPolygone(poly1,a1)
+                ajouterTroncateObstacle(poly1[a1])
+        if WATCHDOG == 100:
+            self.log.critical("récursion non terminale pour le polygone tronqué !")
+            raise Exception
+            
+        if auMoinsUneCollision:
+            self.log.warning("cet obstacle rentre en collision avec les bords de la table. Il a été tronqué.")
+            #remplacement de l'obstacle par l'obstacle tronqué
+            #print("########")#@
+            for i in range(len(troncateObstacle)):
+                #print(troncateObstacle[i])#@
+                if troncateObstacle[i].x < -self.config["table_x"]/2+self.tolerance:
+                    troncateObstacle[i].x = -self.config["table_x"]/2+2*self.tolerance
+                elif troncateObstacle[i].x > self.config["table_x"]/2-self.tolerance:
+                    troncateObstacle[i].x = self.config["table_x"]/2-2*self.tolerance
+                if troncateObstacle[i].y < self.tolerance:
+                    troncateObstacle[i].y = 2*self.tolerance
+                elif troncateObstacle[i].y > self.config["table_y"]-self.tolerance:
+                    troncateObstacle[i].y = self.config["table_y"]-2*self.tolerance
+                
+            troncPolygon = vis.Polygon(troncateObstacle)
+            self.environnement_complet.polygones[-1] = troncPolygon
+            self.environnement_complet.cercles[-1] = self.environnement_complet._cercle_circonscrit_du_polygone(troncPolygon)
+        else:
+            self.log.warning("cet obstacle ne rentre pas en collision avec les bords de la table.")
+        
         
     def _fusionner_avec_obstacles_en_contact(self):
-        #TODO SUPPRIMER :
-        #WATCHDOG
-        #
+        #TODO SUPPRIMER WATCHDOG
         
         #teste tous les polygones avec le dernier ajouté
-        for i in range(len(self.environnement_complet.polygones)-1):
-            #alias pour la clarté. Les polygones NE SONT PAS dupliqués (pointeurs)
-            cercle1 = self.environnement_complet.cercles[i]
-            cercle2 = self.environnement_complet.cercles[-1]
+        for i in range(len(self.environnement_complet.polygones)-1,0,-1):
             #test rapide de collision entre les cercles circonscrits aux 2 polygones
-            if not collisions.collision_2_cercles(cercle1,cercle2):
+            if not collisions.collision_2_cercles(self.environnement_complet.cercles[i],self.environnement_complet.cercles[-1]):
                 self.log.warning("pas de collision cercle")
                 continue
             
+            #alias pour la clarté. Les polygones NE SONT PAS dupliqués (pointeurs)
             polygone1 = self.environnement_complet.polygones[i]
             polygone2 = self.environnement_complet.polygones[-1]
-            #identifiants des points de parcourt
-            a1 = None
             #élection d'un point de polygone1 qui n'est pas dans polygone2
+            a1 = None
             for k in range(polygone1.n()):
-                if not collisions.collisionPolygonePoint(polygone2,polygone1[k]):
+                if not collisions.collisionPointPoly(polygone1[k],polygone2):
                     a1 = k
                     break
             if type(a1) == int:
@@ -242,7 +376,7 @@ class RechercheChemin:
             else:
                 #élection d'un point de polygone2 qui n'est pas dans polygone1
                 for k in range(polygone2.n()):
-                    if not collisions.collisionPolygonePoint(polygone1,polygone2[k]):
+                    if not collisions.collisionPointPoly(polygone2[k],polygone1):
                         a1 = k
                         break
                 if type(a1) == int:
@@ -297,10 +431,36 @@ class RechercheChemin:
                     #toujours dans le sens horaire : vers les indices croissants
                     if 0 in [a2,b2] and poly1.n()-1 in [a2,b2]: a1 = 0
                     else: a1 = max(a2,b2)
-                    #TODO : autres collisions sur le segment [pointCollision,a1]
-                    #parcourt du segment suivant sur l'ex poly2
-                    ajouterMergeObstacle(poly1[a1])
-                    b1 = avancerSurPolygone(poly1,a1)
+                    
+                    #------------------------
+                    continueSurSegment = True
+                    while continueSurSegment:
+                        #print("collision sur du "+str(poly2.n())+" sur "+str(poly1.n())+" à "+str(pointCollision))#@
+                        #input("voir les autres collisions sur le meme segment !")#@
+                        collision = False
+                        for a2 in range(poly2.n()):
+                            b2 = avancerSurPolygone(poly2,a2)
+                            pCollision = collisions.collisionSegmentSegment(pointCollision,poly1[a1],poly2[a2],poly2[b2])
+                            if pCollision:
+                                #self.log.warning("autre collision à "+str(pCollision[1]))#@
+                                pointCollision = pCollision[1]
+                                collision = True
+                                break
+                        if collision:
+                            ajouterMergeObstacle(pointCollision)
+                            #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
+                            sopalin = poly1
+                            poly1 = poly2
+                            poly2 = sopalin
+                            #toujours dans le sens horaire : à partir du plus petit indice
+                            if 0 in [a2,b2] and poly1.n()-1 in [a2,b2]: a1 = 0
+                            else: a1 = max(a2,b2)
+                        else:
+                            continueSurSegment = False
+                            ajouterMergeObstacle(poly1[a1])
+                            #parcourt du segment suivant sur l'ex poly2
+                            b1 = avancerSurPolygone(poly1,a1)
+                    #------------------------
                 else :
                     #parcourt du segment suivant
                     a1 = b1
@@ -314,11 +474,11 @@ class RechercheChemin:
                 self.log.warning("cet obstacle rentre en collision avec un autre obstacle. Ils ont été fusionnés.")
                 #remplacement du premier obstacle par l'obstacle de fusion 
                 mergePolygon = vis.Polygon(mergeObstacle)
-                self.environnement_complet.polygones[i] = mergePolygon
-                self.environnement_complet.cercles[i] = self.environnement_complet._cercle_circonscrit_du_polygone(mergePolygon)
+                self.environnement_complet.polygones[-1] = mergePolygon
+                self.environnement_complet.cercles[-1] = self.environnement_complet._cercle_circonscrit_du_polygone(mergePolygon)
                 #suppression du deuxième obstacle
-                del self.environnement_complet.polygones[-1]
-                del self.environnement_complet.cercles[-1]
+                del self.environnement_complet.polygones[i]
+                del self.environnement_complet.cercles[i]
             else:
                 self.log.warning("cet obstacle ne rentre pas en collision avec un autre obstacle.")
                     
