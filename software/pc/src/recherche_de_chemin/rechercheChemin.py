@@ -349,6 +349,47 @@ class RechercheChemin:
                 b1 = avancerSurPolygone(poly1,a1)
                 ajouterMergeObstacle(poly1[a1])
             return poly1,poly2,a1,b1
+            
+        def segments_confondus(poly1,poly2,a1,b1,a2,b2):
+            #input("segments ["+str(poly1[a1])+", "+str(poly1[b1])+"] et ["+str(poly2[a2])+", "+str(poly2[b2])+"] confondus !")#@
+            #vecteurs
+            ab1 = vis.Point(poly1[b1].x - poly1[a1].x, poly1[b1].y - poly1[a1].y)
+            ab2 = vis.Point(poly2[b2].x - poly1[a1].x, poly2[b2].y - poly1[a1].y)
+            if collisions.ps(ab1,ab2) >= collisions.ps(ab1,ab1):
+                #cas où b1 survient avant b2, dans l'alignement
+                c1 = avancerSurPolygone(poly1,b1)
+                theta = collisions.get_angle(poly2[b2],poly1[b1],poly1[c1])
+                print("angle b2/b1\\c1 : "+str(theta))
+                if theta >= 0:
+                    print(theta)
+                    print("le segment [b1,c1] 'ouvre' plus le polygone : on conserve ce segment")
+                    ajouterMergeObstacle(poly1[b1])
+                    a1 = b1
+                    b1 = c1
+                else:
+                    print("le segment [b1,c1] rentre dans le polygone : on considère la fin de l'alignement, sur poly2")
+                    sopalin = poly1
+                    poly1 = poly2
+                    poly2 = sopalin
+                    a1 = a2
+                    b1 = b2
+            else:
+                #cas où b2 survient avant b1, dans l'alignement
+                c2 = avancerSurPolygone(poly2,b2)
+                theta = collisions.get_angle(poly1[b1],poly2[b2],poly2[c2])
+                print("angle b1/b2\\c2 : "+str(theta))
+                if theta <= 0:
+                    print("le segment [b2,c2] rentre dans le polygone : on observe les autres collisions de [a1,b1] avec les autres segments de poly2")
+                    pass
+                else:
+                    print("le segment [b2,c2] 'ouvre' plus le polygone : on ajoute b2 et passe sur poly2")
+                    ajouterMergeObstacle(poly2[b2])
+                    sopalin = poly1
+                    poly1 = poly2
+                    poly2 = sopalin
+                    a1 = b2
+                    b1 = c2
+            return poly1,poly2,a1,b1
                            
         ########################################################
         
@@ -419,6 +460,14 @@ class RechercheChemin:
                             poly1,poly2,a1,b1 = segments_meme_origine(poly1,poly2,a1,b1,a2,b2)
                             collision = True,False
                             break
+                        elif pCollision[1]=="segmentsConfondus":
+                            #cas particulier de deux segments colinéaires en contact
+                            mem = a1
+                            poly1,poly2,a1,b1 = segments_confondus(poly1,poly2,a1,b1,a2,b2)
+                            if not a1 == mem:
+                                #le cas a été traité dans la fonction auxiliaire
+                                collision = True,False
+                                break
                         
                 if collision:
                     if not collision[1]:
@@ -455,6 +504,14 @@ class RechercheChemin:
                                     poly1,poly2,a1,b1 = segments_meme_origine(poly1,poly2,a1,b1,a2,b2)
                                     collision = True,False
                                     break
+                                elif pCollision[1]=="segmentsConfondus":
+                                    #cas particulier de deux segments colinéaires en contact
+                                    mem = a1
+                                    poly1,poly2,a1,b1 = segments_confondus(poly1,poly2,a1,b1,a2,b2)
+                                    if not a1 == mem:
+                                        #le cas a été traité dans la fonction auxiliaire
+                                        collision = True,False
+                                        break
                             
                         if collision:
                             if not collision[1]:

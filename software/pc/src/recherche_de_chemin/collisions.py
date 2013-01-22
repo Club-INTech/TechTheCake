@@ -32,6 +32,9 @@ def get_angle(a,o,b):
     elif theta <= -math.pi :theta += 2*math.pi
     return theta
     
+def ps(v1,v2):
+    return v1.x*v2.x + v1.y*v2.y
+    
 def collision_2_cercles(cercle1,cercle2):
     """
     Test de collision cercle/cercle
