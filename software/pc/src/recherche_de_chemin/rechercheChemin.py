@@ -251,7 +251,7 @@ class RechercheChemin:
         environnement.polygones[id] = troncPolygon
         environnement.cercles[id] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
         
-    def _fusionner_avec_obstacles_en_contact(self):
+    def _fusionner_avec_obstacles_en_contact(self,sEstDejaRetrouveAuCentre=False):
         #teste le dernier polygone ajouté avec tous les autres, en les parcourant par id décroissant
         for i in range(len(self.environnement_complet.polygones)-2,-1,-1):
             self.log.debug("--> "+str(i))#@
@@ -287,8 +287,13 @@ class RechercheChemin:
                     #les deux polygones sont strictement inclus l'un dans l'autre
                     self.log.critical("WTF IS GOING ON ???")
                     raise Exception
-            print("Le parcourt commence sur "+str(poly1.n())+" à "+str(poly1[a1])+" .")#@
+            #permet d'éviter de se retrouver dans une 'cour interieure' formée d'obstacles, après une première tentative vaine
+            if sEstDejaRetrouveAuCentre:
+                #commence au point diamétralement opposé
+                for k in range(int(poly1.n()/2)):
+                    a1 = aux.avancerSurPolygone(poly1,a1)
             
+            print("Le parcourt commence sur "+str(poly1.n())+" à "+str(poly1[a1])+" .")#@
             #création de l'obstacle de merge
             mergeObstacle = []
             #on va considérer le segment allant jusqu'au point voisin de a1
@@ -397,11 +402,24 @@ class RechercheChemin:
                 self.log.warning("cet obstacle rentre en collision avec l'obstacle "+str(i)+"à "+str(self.environnement_complet.cercles[i].centre)+". Ils ont été fusionnés.")
                 #remplacement du premier obstacle par l'obstacle de fusion 
                 mergePolygon = vis.Polygon(mergeObstacle)
-                self.environnement_complet.polygones[-1] = mergePolygon
-                self.environnement_complet.cercles[-1] = Environnement._cercle_circonscrit_du_polygone(mergePolygon)
-                #suppression du deuxième obstacle
-                del self.environnement_complet.polygones[i]
-                del self.environnement_complet.cercles[i]
+                
+                #test si le polygone est bien déclaré dans le sens horaire
+                if mergePolygon.area() < 0:
+                    #polygone ok, on le place dans l'environnement
+                    self.environnement_complet.polygones[-1] = mergePolygon
+                    self.environnement_complet.cercles[-1] = Environnement._cercle_circonscrit_du_polygone(mergePolygon)
+                    #suppression du deuxième obstacle
+                    del self.environnement_complet.polygones[i]
+                    del self.environnement_complet.cercles[i]
+                else:
+                    #mauvaise déclaration, ce qui veut dire que le polygone est la 'cour intérieure' d'un ensemble de polygones
+                    if not sEstDejaRetrouveAuCentre:
+                        #on retente, avec un point initial diamétralement opposé
+                        self._fusionner_avec_obstacles_en_contact(sEstDejaRetrouveAuCentre=True)
+                    else:
+                        #Et merde... Ben on rattrapera ca avec un environnement de secours (cf get_chemin) -_-'
+                        pass
+                
             else:
                 self.log.warning("cet obstacle ne rentre pas en collision avec l'obstacle "+str(i)+"à "+str(self.environnement_complet.cercles[i].centre)+".")
                 
@@ -434,8 +452,10 @@ class RechercheChemin:
         if not env.is_valid(RechercheChemin.tolerance):
             self.log.critical("Des obstacles invalides ont été trouvés. Ils sont remplacés par leurs cercles contenant.")
             for k in range(len(self.environnement_complet.polygones)):
+                #détection du/des polygones défectueux
                 if self.environnement_complet.polygones[k].area() >= 0 or not self.environnement_complet.polygones[k].is_simple(RechercheChemin.tolerance):
                     self.log.warning("L'obstacle "+str(k)+" a été remplacé.")
+                    #environnement de secours : on remplace le polygone par son cercle contenant
                     self.environnement_complet.polygones[k] = Environnement._polygone_du_cercle(self.environnement_complet.cercles[k])
                     self._recouper_aux_bords_table(k,self.environnement_complet)
             env = vis.Environment([self.bords]+self.environnement_complet.polygones)
