@@ -197,10 +197,11 @@ class RechercheChemin:
                 pCollision = collisions.collisionSegmentSegment(poly1[a1],poly1[b1],poly2[a2],poly2[b2])
                 if pCollision:
                     #self.log.critical("collision à "+str(pCollision[1]))#@
-                    pointCollision = pCollision[1]
-                    collision = True
-                    auMoinsUneCollision = True
-                    break
+                    if pCollision[1]:
+                        pointCollision = pCollision[1]
+                        collision = True
+                        auMoinsUneCollision = True
+                        break
             if collision:
                 ajouterTroncateObstacle(pointCollision)
                 #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
@@ -291,7 +292,65 @@ class RechercheChemin:
             print(str(i)+" : ")#@
             for k in range(self.environnement_complet.polygones[i].n()):#@
                 print("\t"+str(self.environnement_complet.polygones[i][k]))#@
+           
+        ############## FONCTIONS AUXILIAIRES #####################
+        
+        def avancerSurPolygone(poly,position):
+            if position < poly.n()-1: return position + 1
+            else: return 0
             
+        def ajouterMergeObstacle(point):
+            nonlocal conditionBouclage
+            try:
+                if point == mergeObstacle[0]:
+                    conditionBouclage = False
+                else:
+                    if conditionBouclage:
+                        mergeObstacle.append(point)
+            except:
+                mergeObstacle.append(point)
+
+        def segments_meme_origine(poly1,poly2,a1,b1,a2,b2):
+            #les deux segments partent du même point : on choisit le segment qui "ouvre" le plus le polygone
+            theta = collisions.get_angle(poly1[b1],poly1[a1],poly2[b2])
+            if theta == 0:
+                #on choisit le plus long des deux segments
+                r1 = (poly1[b1].x - poly1[a1].x)**2 + (poly1[b1].y - poly1[a1].y)**2
+                r2 = (poly2[b2].x - poly2[a2].x)**2 + (poly2[b2].y - poly2[a2].y)**2
+                if r1 < r2:
+                    #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
+                    sopalin = poly1
+                    poly1 = poly2
+                    poly2 = sopalin
+                    #toujours dans le sens horaire : à partir du plus petit indice
+                    #if 0 in [a2,b2] and poly1.n()-1 in [a2,b2]: a1 = 0
+                    #else: a1 = max(a2,b2)
+                    a1 = a2
+                    b1 = b2
+                else:
+                    #parcourt du segment suivant
+                    a1 = b1
+                    b1 = avancerSurPolygone(poly1,a1)
+                    ajouterMergeObstacle(poly1[a1])
+            elif theta > 0:
+                #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
+                sopalin = poly1
+                poly1 = poly2
+                poly2 = sopalin
+                #toujours dans le sens horaire : à partir du plus petit indice
+                #if 0 in [a2,b2] and poly1.n()-1 in [a2,b2]: a1 = 0
+                #else: a1 = max(a2,b2)
+                a1 = a2
+                b1 = b2
+            else:
+                #parcourt du segment suivant
+                a1 = b1
+                b1 = avancerSurPolygone(poly1,a1)
+                ajouterMergeObstacle(poly1[a1])
+            return poly1,poly2,a1,b1
+                           
+        ########################################################
+        
         #teste le dernier polygone ajouté avec tous les autres, en les parcourant par id décroissant
         for i in range(len(self.environnement_complet.polygones)-2,-1,-1):
             self.log.debug("--> "+str(i))#@
@@ -330,9 +389,7 @@ class RechercheChemin:
             
             print("Le parcourt commence sur "+str(poly1.n())+" à "+str(poly1[a1])+" .")#@
             
-            def avancerSurPolygone(poly,position):
-                if position < poly.n()-1: return position + 1
-                else: return 0
+            
                     
             #création de l'obstacle de merge
             mergeObstacle = []
@@ -341,16 +398,7 @@ class RechercheChemin:
             WATCHDOG = 0
             auMoinsUneCollision = False
             conditionBouclage = True
-            def ajouterMergeObstacle(point):
-                nonlocal conditionBouclage
-                try:
-                    if point == mergeObstacle[0]:
-                        conditionBouclage = False
-                    else:
-                        if conditionBouclage:
-                            mergeObstacle.append(point)
-                except:
-                    mergeObstacle.append(point)
+            
             while conditionBouclage and WATCHDOG < 100:
                 WATCHDOG += 1
                 #tests de collision du segment [a1,b1] de poly1 avec les segments de poly2
@@ -360,11 +408,21 @@ class RechercheChemin:
                     b2 = avancerSurPolygone(poly2,a2)
                     pCollision = collisions.collisionSegmentSegment(poly1[a1],poly1[b1],poly2[a2],poly2[b2])
                     if pCollision:
-                        pointCollision = pCollision[1]
-                        collision = True
-                        auMoinsUneCollision = True
-                        break
+                        if pCollision[1]:
+                            pointCollision = pCollision[1]
+                            collision = True,True
+                            auMoinsUneCollision = True
+                            break
+                        else:
+                            #cas particulier d'une collision sur une extremité du segment
+                            poly1,poly2,a1,b1 = segments_meme_origine(poly1,poly2,a1,b1,a2,b2)
+                            collision = True,False
+                            break
+                        
                 if collision:
+                    if not collision[1]:
+                        #cas particulier d'une collision sur une extremité du segment
+                        continue
                     ajouterMergeObstacle(pointCollision)
                     #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
                     sopalin = poly1
@@ -384,12 +442,25 @@ class RechercheChemin:
                         for a2 in range(poly2.n()):
                             b2 = avancerSurPolygone(poly2,a2)
                             pCollision = collisions.collisionSegmentSegment(pointCollision,poly1[a1],poly2[a2],poly2[b2])
-                            if pCollision and not pCollision[1] == pointCollision:
-                                self.log.warning("autre collision à "+str(pCollision[1]))#@
-                                pointCollision = pCollision[1]
-                                collision = True
-                                break
+                            if pCollision: 
+                                if pCollision[1]:
+                                    
+                                    if not pCollision[1] == pointCollision:
+                                        self.log.warning("autre collision à "+str(pCollision[1]))#@
+                                        pointCollision = pCollision[1]
+                                        collision = True,True
+                                        break
+                                else:
+                                    #cas particulier d'une collision sur une extremité du segment
+                                    poly1,poly2,a1,b1 = segments_meme_origine(poly1,poly2,a1,b1,a2,b2)
+                                    collision = True,False
+                                    break
+                                    
+                            
                         if collision:
+                            if not collision[1]:
+                                #cas particulier d'une collision sur une extremité du segment
+                                continue
                             ajouterMergeObstacle(pointCollision)
                             #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
                             sopalin = poly1
@@ -454,7 +525,14 @@ class RechercheChemin:
         
         # Vérification de la validité de l'environnement : polygones non croisés et définis dans le sens des aiguilles d'une montre.
         if not env.is_valid(RechercheChemin.tolerance):
-            raise Exception
+            
+            self.log.critical("Un obstacle invalide a été trouvé. Les obstacles sont remplacés par leurs cercles contenant.")
+            for k in range(len(self.environnement_complet.cercles)):
+                self.environnement_complet.polygones[k] = Environnement._polygone_du_cercle(self.environnement_complet.cercles[k])
+                self._recouper_aux_bords_table(k,self.environnement_complet)
+            env = vis.Environment([self.bords]+self.environnement_complet.polygones)
+        #environnement de secours en cas d'obstacle invalide
+        env.is_valid(RechercheChemin.tolerance)
             
         #recherche de chemin
         cheminVis = env.shortest_path(departVis, arriveeVis, RechercheChemin.tolerance)

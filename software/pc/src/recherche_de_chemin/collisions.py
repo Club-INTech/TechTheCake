@@ -8,7 +8,7 @@ chemin = directory[:directory.index(racine)]+racine
 sys.path.insert(0, os.path.join(chemin, "src/"))
 
 from recherche_de_chemin.visilibity import Point
-from math import sqrt
+import math
 
 #def collisionPolygonePoint(polygone,point):
     #"""
@@ -24,6 +24,14 @@ from math import sqrt
     #if not test_segment(polygone[polygone.n()-1],polygone[0]): return False
     #return True
     
+def get_angle(a,o,b):
+    oa = Point(a.x-o.x,a.y-o.y)
+    ob = Point(b.x-o.x,b.y-o.y)
+    theta = math.atan2(ob.y,ob.x) - math.atan2(oa.y,oa.x)
+    if theta > math.pi :theta -= 2*math.pi
+    elif theta <= -math.pi :theta += 2*math.pi
+    return theta
+    
 def collision_2_cercles(cercle1,cercle2):
     """
     Test de collision cercle/cercle
@@ -31,11 +39,13 @@ def collision_2_cercles(cercle1,cercle2):
     """
     dx = cercle1.centre.x - cercle2.centre.x
     dy = cercle1.centre.y - cercle2.centre.y
-    d = sqrt(dx**2 + dy**2)
+    d = math.sqrt(dx**2 + dy**2)
     return d < cercle1.rayon + cercle2.rayon
     
 def collisionSegmentSegment(a,b,c,d):
-    if a == c or a == d or b == c or b == d:
+    if a == c:
+        return True,False
+    if a == d or b == c or b == d:
         return False
     else:
         denom  = (d.y-c.y) * (b.x-a.x) - (d.x-c.x) * (b.y-a.y)
