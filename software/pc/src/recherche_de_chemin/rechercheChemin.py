@@ -324,6 +324,7 @@ class RechercheChemin:
                                 #le cas a été traité dans la fonction auxiliaire
                                 collision = True,False
                                 break
+                                
                 if collision:
                     if not collision[1]:
                         #cas particuliers : déjà gérés par une fonction auxiliaire
@@ -387,7 +388,7 @@ class RechercheChemin:
                     a1 = b1
                     b1 = aux.avancerSurPolygone(poly1,a1)
                     mergeObstacle,conditionBouclage = aux.ajouterObstacle(poly1[a1],mergeObstacle,conditionBouclage)
-                    self.log.debug("On passe à "+str(poly1[a1]))#@
+                    self.log.debug("On passe à "+str(poly1[a1])+", on attend "+str(mergeObstacle[0]))#@
             if WATCHDOG == 100:
                 self.log.critical("récursion non terminale pour le polygone de fusion !")
                 raise Exception
@@ -433,7 +434,7 @@ class RechercheChemin:
         if not env.is_valid(RechercheChemin.tolerance):
             self.log.critical("Des obstacles invalides ont été trouvés. Ils sont remplacés par leurs cercles contenant.")
             for k in range(len(self.environnement_complet.polygones)):
-                if not self.environnement_complet.polygones[k].is_simple(RechercheChemin.tolerance):
+                if self.environnement_complet.polygones[k].area() >= 0 or not self.environnement_complet.polygones[k].is_simple(RechercheChemin.tolerance):
                     self.log.warning("L'obstacle "+str(k)+" a été remplacé.")
                     self.environnement_complet.polygones[k] = Environnement._polygone_du_cercle(self.environnement_complet.cercles[k])
                     self._recouper_aux_bords_table(k,self.environnement_complet)

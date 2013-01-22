@@ -65,7 +65,7 @@ def collisionSegmentSegment(a,b,c,d):
             else:
                 pointCollision = Point(a.x+mua*(b.x-a.x),a.y+mua*(b.y-a.y))
                 if a == pointCollision or b == pointCollision or c == pointCollision or d == pointCollision:
-                    #convention de non collision
+                    #conventions pour les extrémités
                     return False
                 else:
                     return True,pointCollision

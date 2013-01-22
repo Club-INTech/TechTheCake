@@ -1,9 +1,10 @@
 import recherche_de_chemin.visilibity as vis
 import recherche_de_chemin.collisions as collisions
+import math
 
 def get_angle(a,o,b):
-    oa = Point(a.x-o.x,a.y-o.y)
-    ob = Point(b.x-o.x,b.y-o.y)
+    oa = vis.Point(a.x-o.x,a.y-o.y)
+    ob = vis.Point(b.x-o.x,b.y-o.y)
     theta = math.atan2(ob.y,ob.x) - math.atan2(oa.y,oa.x)
     if theta > math.pi :theta -= 2*math.pi
     elif theta <= -math.pi :theta += 2*math.pi
@@ -26,7 +27,7 @@ def avancerSurPolygoneBords(poly,position,bords):
         
 def ajouterObstacle(point,obstacle,conditionBouclage):
     try:
-        if point == obstacle[0]:
+        if point == obstacle[0] or point == obstacle[1]:
             conditionBouclage = False
         else:
             if conditionBouclage:
