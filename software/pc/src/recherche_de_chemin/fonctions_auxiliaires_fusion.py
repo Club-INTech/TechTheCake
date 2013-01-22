@@ -1,6 +1,17 @@
 import recherche_de_chemin.visilibity as vis
 import recherche_de_chemin.collisions as collisions
 
+def get_angle(a,o,b):
+    oa = Point(a.x-o.x,a.y-o.y)
+    ob = Point(b.x-o.x,b.y-o.y)
+    theta = math.atan2(ob.y,ob.x) - math.atan2(oa.y,oa.x)
+    if theta > math.pi :theta -= 2*math.pi
+    elif theta <= -math.pi :theta += 2*math.pi
+    return theta
+    
+def ps(v1,v2):
+    return v1.x*v2.x + v1.y*v2.y
+    
 def avancerSurPolygone(poly,position):
     if position < poly.n()-1: return position + 1
     else: return 0
@@ -26,7 +37,7 @@ def ajouterObstacle(point,obstacle,conditionBouclage):
 
 def segments_meme_origine(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclage):
     #les deux segments partent du même point : on choisit le segment qui "ouvre" le plus le polygone
-    theta = collisions.get_angle(poly1[b1],poly1[a1],poly2[b2])
+    theta = get_angle(poly1[b1],poly1[a1],poly2[b2])
     if theta == 0:
         #on choisit le plus long des deux segments
         r1 = (poly1[b1].x - poly1[a1].x)**2 + (poly1[b1].y - poly1[a1].y)**2
@@ -68,10 +79,10 @@ def segments_confondus(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclage):
     #vecteurs
     ab1 = vis.Point(poly1[b1].x - poly1[a1].x, poly1[b1].y - poly1[a1].y)
     ab2 = vis.Point(poly2[b2].x - poly1[a1].x, poly2[b2].y - poly1[a1].y)
-    if collisions.ps(ab1,ab2) >= collisions.ps(ab1,ab1):
+    if ps(ab1,ab2) >= ps(ab1,ab1):
         #cas où b1 survient avant b2, dans l'alignement
         c1 = avancerSurPolygone(poly1,b1)
-        theta = collisions.get_angle(poly2[b2],poly1[b1],poly1[c1])
+        theta = get_angle(poly2[b2],poly1[b1],poly1[c1])
         if theta >= 0:
             #le segment [b1,c1] 'ouvre' plus le polygone : on conserve ce segment
             mergeObstacle,conditionBouclage = ajouterMergeObstacle(poly1[b1],mergeObstacle,conditionBouclage)
@@ -87,7 +98,7 @@ def segments_confondus(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclage):
     else:
         #cas où b2 survient avant b1, dans l'alignement
         c2 = avancerSurPolygone(poly2,b2)
-        theta = collisions.get_angle(poly1[b1],poly2[b2],poly2[c2])
+        theta = get_angle(poly1[b1],poly2[b2],poly2[c2])
         if theta <= 0:
             #le segment [b2,c2] rentre dans le polygone : on observe les autres collisions de [a1,b1] avec les autres segments de poly2
             pass

@@ -24,17 +24,6 @@ import math
     #if not test_segment(polygone[polygone.n()-1],polygone[0]): return False
     #return True
     
-def get_angle(a,o,b):
-    oa = Point(a.x-o.x,a.y-o.y)
-    ob = Point(b.x-o.x,b.y-o.y)
-    theta = math.atan2(ob.y,ob.x) - math.atan2(oa.y,oa.x)
-    if theta > math.pi :theta -= 2*math.pi
-    elif theta <= -math.pi :theta += 2*math.pi
-    return theta
-    
-def ps(v1,v2):
-    return v1.x*v2.x + v1.y*v2.y
-    
 def collision_2_cercles(cercle1,cercle2):
     """
     Test de collision cercle/cercle
