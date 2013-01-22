@@ -525,11 +525,12 @@ class RechercheChemin:
         
         # Vérification de la validité de l'environnement : polygones non croisés et définis dans le sens des aiguilles d'une montre.
         if not env.is_valid(RechercheChemin.tolerance):
-            
-            self.log.critical("Un obstacle invalide a été trouvé. Les obstacles sont remplacés par leurs cercles contenant.")
-            for k in range(len(self.environnement_complet.cercles)):
-                self.environnement_complet.polygones[k] = Environnement._polygone_du_cercle(self.environnement_complet.cercles[k])
-                self._recouper_aux_bords_table(k,self.environnement_complet)
+            self.log.critical("Des obstacles invalides ont été trouvés. Ils sont remplacés par leurs cercles contenant.")
+            for k in range(len(self.environnement_complet.polygones)):
+                if not self.environnement_complet.polygones[k].is_simple(RechercheChemin.tolerance):
+                    self.log.warning("L'obstacle "+str(k)+" a été remplacé.")
+                    self.environnement_complet.polygones[k] = Environnement._polygone_du_cercle(self.environnement_complet.cercles[k])
+                    self._recouper_aux_bords_table(k,self.environnement_complet)
             env = vis.Environment([self.bords]+self.environnement_complet.polygones)
         #environnement de secours en cas d'obstacle invalide
         env.is_valid(RechercheChemin.tolerance)
