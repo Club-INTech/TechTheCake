@@ -44,7 +44,7 @@ def collision_2_cercles(cercle1,cercle2):
     
 def collisionSegmentSegment(a,b,c,d):
     if a == c:
-        return True,False
+        return True,"departsIdentiques"
     if a == d or b == c or b == d:
         return False
     else:
@@ -55,14 +55,11 @@ def collisionSegmentSegment(a,b,c,d):
 
         if (abs(numera) < eps and abs(numerb) < eps and abs(denom) < eps):
             #droites coïncidentes
-            return False
-            """
             #test d'intersection des deux segments colinéraires
             if (((c.x+d.x)/2-(a.x+b.x)/2) > (abs(c.x-d.x)/2+abs(a.x-b.x)/2)) or (((c.y+d.y)/2-(a.y+b.y)/2) > (abs(c.y-d.y)/2+abs(a.y-b.y)/2)) :
                 return False
             else:
-                return True
-            """
+                return True,"segmentsConfondus"
         elif (abs(denom) < eps):
             #droites parallèles
             return False

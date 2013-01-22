@@ -197,7 +197,7 @@ class RechercheChemin:
                 pCollision = collisions.collisionSegmentSegment(poly1[a1],poly1[b1],poly2[a2],poly2[b2])
                 if pCollision:
                     #self.log.critical("collision à "+str(pCollision[1]))#@
-                    if pCollision[1]:
+                    if type(pCollision[1])==vis.Point:
                         pointCollision = pCollision[1]
                         collision = True
                         auMoinsUneCollision = True
@@ -226,10 +226,11 @@ class RechercheChemin:
                         b2 = avancerSurPolygone(poly2,a2)
                         pCollision = collisions.collisionSegmentSegment(pointCollision,poly1[a1],poly2[a2],poly2[b2])
                         if pCollision:
-                            #self.log.warning("autre collision à "+str(pCollision[1]))#@
-                            pointCollision = pCollision[1]
-                            collision = True
-                            break
+                            if type(pCollision[1])==vis.Point:
+                                #self.log.warning("autre collision à "+str(pCollision[1]))#@
+                                pointCollision = pCollision[1]
+                                collision = True
+                                break
                     if collision:
                         ajouterTroncateObstacle(pointCollision)
                         #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
@@ -408,12 +409,12 @@ class RechercheChemin:
                     b2 = avancerSurPolygone(poly2,a2)
                     pCollision = collisions.collisionSegmentSegment(poly1[a1],poly1[b1],poly2[a2],poly2[b2])
                     if pCollision:
-                        if pCollision[1]:
+                        if type(pCollision[1])==vis.Point:
                             pointCollision = pCollision[1]
                             collision = True,True
                             auMoinsUneCollision = True
                             break
-                        else:
+                        elif pCollision[1]=="departsIdentiques":
                             #cas particulier d'une collision sur une extremité du segment
                             poly1,poly2,a1,b1 = segments_meme_origine(poly1,poly2,a1,b1,a2,b2)
                             collision = True,False
@@ -421,7 +422,7 @@ class RechercheChemin:
                         
                 if collision:
                     if not collision[1]:
-                        #cas particulier d'une collision sur une extremité du segment
+                        #cas particuliers : déjà gérés par une fonction auxiliaire
                         continue
                     ajouterMergeObstacle(pointCollision)
                     #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
@@ -443,23 +444,21 @@ class RechercheChemin:
                             b2 = avancerSurPolygone(poly2,a2)
                             pCollision = collisions.collisionSegmentSegment(pointCollision,poly1[a1],poly2[a2],poly2[b2])
                             if pCollision: 
-                                if pCollision[1]:
-                                    
+                                if type(pCollision[1])==vis.Point:
                                     if not pCollision[1] == pointCollision:
                                         self.log.warning("autre collision à "+str(pCollision[1]))#@
                                         pointCollision = pCollision[1]
                                         collision = True,True
                                         break
-                                else:
+                                elif pCollision[1]=="departsIdentiques":
                                     #cas particulier d'une collision sur une extremité du segment
                                     poly1,poly2,a1,b1 = segments_meme_origine(poly1,poly2,a1,b1,a2,b2)
                                     collision = True,False
                                     break
-                                    
                             
                         if collision:
                             if not collision[1]:
-                                #cas particulier d'une collision sur une extremité du segment
+                                #cas particuliers : déjà gérés par une fonction auxiliaire
                                 continue
                             ajouterMergeObstacle(pointCollision)
                             #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
