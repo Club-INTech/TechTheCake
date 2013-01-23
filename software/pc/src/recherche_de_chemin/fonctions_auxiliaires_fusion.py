@@ -57,7 +57,7 @@ def segments_meme_origine(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclag
             #parcourt du segment suivant
             a1 = b1
             b1 = avancerSurPolygone(poly1,a1)
-            mergeObstacle,conditionBouclage = ajouterMergeObstacle(poly1[a1],mergeObstacle,conditionBouclage)
+            mergeObstacle,conditionBouclage = ajouterObstacle(poly1[a1],mergeObstacle,conditionBouclage)
     elif theta > 0:
         #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
         sopalin = poly1
@@ -72,7 +72,7 @@ def segments_meme_origine(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclag
         #parcourt du segment suivant
         a1 = b1
         b1 = avancerSurPolygone(poly1,a1)
-        mergeObstacle,conditionBouclage = ajouterMergeObstacle(poly1[a1],mergeObstacle,conditionBouclage)
+        mergeObstacle,conditionBouclage = ajouterObstacle(poly1[a1],mergeObstacle,conditionBouclage)
     return poly1,poly2,a1,b1,mergeObstacle,conditionBouclage
     
 def segments_confondus(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclage):
@@ -86,7 +86,7 @@ def segments_confondus(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclage):
         theta = get_angle(poly2[b2],poly1[b1],poly1[c1])
         if theta >= 0:
             #le segment [b1,c1] 'ouvre' plus le polygone : on conserve ce segment
-            mergeObstacle,conditionBouclage = ajouterMergeObstacle(poly1[b1],mergeObstacle,conditionBouclage)
+            mergeObstacle,conditionBouclage = ajouterObstacle(poly1[b1],mergeObstacle,conditionBouclage)
             a1 = b1
             b1 = c1
         else:
@@ -105,7 +105,7 @@ def segments_confondus(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclage):
             pass
         else:
             #le segment [b2,c2] 'ouvre' plus le polygone : on ajoute b2 et passe sur poly2
-            mergeObstacle,conditionBouclage = ajouterMergeObstacle(poly2[b2],mergeObstacle,conditionBouclage)
+            mergeObstacle,conditionBouclage = ajouterObstacle(poly2[b2],mergeObstacle,conditionBouclage)
             sopalin = poly1
             poly1 = poly2
             poly2 = sopalin
