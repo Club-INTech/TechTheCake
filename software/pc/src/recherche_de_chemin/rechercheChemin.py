@@ -1,4 +1,5 @@
 import os,sys
+import math
 
 #retrouve le chemin de la racine "software/pc"
 directory = os.path.dirname(os.path.abspath(__file__))
@@ -7,11 +8,13 @@ chemin = directory[:directory.index(racine)]+racine
 #répertoires d'importation
 sys.path.insert(0, os.path.join(chemin, "src/"))
 
+#bibliothèque compilée de recherche de chemin
 try:
     import recherche_de_chemin.visilibity as vis
 except:
     input("\n\nProblème avec la bibliothèque compilée _visilibity.so !\nConsultez le README dans src/recherche_de_chemin/visilibity/\n")
-import math
+
+#fonctions auxiliaires pour les calculs géométriques
 import recherche_de_chemin.collisions as collisions
 import recherche_de_chemin.fonctions_auxiliaires_fusion as aux
 
@@ -147,7 +150,7 @@ class RechercheChemin:
         self._ajoute_obstacle_initial_rectangle(vis.Polygon([vis.Point(1500, 100),vis.Point(1500, 0),vis.Point(1100, 0),vis.Point(1100, 100)]))
         self._ajoute_obstacle_initial_rectangle(vis.Polygon([vis.Point(-1500, 1900),vis.Point(-1500, 2000),vis.Point(-1100, 2000),vis.Point(-1100, 1900)]))
         self._ajoute_obstacle_initial_rectangle(vis.Polygon([vis.Point(1100, 1900),vis.Point(1100, 2000),vis.Point(1500, 2000),vis.Point(1500, 1900)]))
-        #####--------------------------
+        ####--------------------------
         
         # environnement dynamique : liste des obstacles mobiles qui sont mis à jour régulièrement
         self.environnement_complet = self.environnement_initial.copy()
@@ -315,7 +318,7 @@ class RechercheChemin:
         environnement.polygones[id] = troncPolygon
         environnement.cercles[id] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
         
-    def _fusionner_avec_obstacles_en_contact(self,sEstDejaRetrouveAuCentre=False):
+    def _fusionner_avec_obstacles_en_contact(self,sEstDejaRetrouveEnferme=False):
         #teste le dernier polygone ajouté avec tous les autres, en les parcourant par id décroissant
         for i in range(len(self.environnement_complet.polygones)-2,-1,-1):
             #self.log.debug("--> "+str(i))#@
@@ -352,7 +355,7 @@ class RechercheChemin:
                     self.log.critical("WTF IS GOING ON ???")
                     raise Exception
             #permet d'éviter de se retrouver dans une 'cour interieure' formée d'obstacles, après une première tentative vaine
-            if sEstDejaRetrouveAuCentre:
+            if sEstDejaRetrouveEnferme:
                 #commence au point diamétralement opposé
                 for k in range(int(poly1.n()/2)):
                     a1 = aux.avancerSurPolygone(poly1,a1)
@@ -360,14 +363,17 @@ class RechercheChemin:
             #print("Le parcourt commence sur "+str(poly1.n())+" à "+str(poly1[a1])+" .")#@
             #création de l'obstacle de merge
             mergeObstacle = []
-            #on va considérer le segment allant jusqu'au point voisin de a1
+            #on va considérer le segment {poly1[a1],poly1[b1]} allant jusqu'au point voisin de a1.
+            #pour celà on avance sur le polygone avec cette fonction auxiliaire, 
+            # qui sait faire revenir l'indice à 0
             b1 = aux.avancerSurPolygone(poly1,a1)
+            #le watchdog lève une exception en cas de récursivité non terminale. Meuh non, ca n'arrive pas (plus)...
             WATCHDOG = 0
             auMoinsUneCollision = False
             conditionBouclage = True
             while conditionBouclage and WATCHDOG < 100:
                 WATCHDOG += 1
-                #tests de collision du segment [a1,b1] de poly1 avec les segments de poly2
+                #tests de collision du segment {poly1[a1],poly1[b1]} de poly1 avec les segments de poly2
                 collision = False
                 pointCollision = None
                 for a2 in range(poly2.n()):
@@ -477,9 +483,9 @@ class RechercheChemin:
                     del self.environnement_complet.cercles[i]
                 else:
                     #mauvaise déclaration, ce qui veut dire que le polygone est la 'cour intérieure' d'un ensemble de polygones
-                    if not sEstDejaRetrouveAuCentre:
+                    if not sEstDejaRetrouveEnferme:
                         #on retente, avec un point initial diamétralement opposé
-                        self._fusionner_avec_obstacles_en_contact(sEstDejaRetrouveAuCentre=True)
+                        self._fusionner_avec_obstacles_en_contact(sEstDejaRetrouveEnferme=True)
                     else:
                         #Et merde... Ben on rattrapera ca avec un environnement de secours (cf get_chemin) -_-'
                         pass
