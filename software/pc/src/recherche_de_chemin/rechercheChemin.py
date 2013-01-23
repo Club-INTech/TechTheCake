@@ -28,7 +28,7 @@ class Cercle:
         
 class Environnement:
     # côté des polygones qui représentent des cercles, en mm (petit : précision, grand : complexité moindre)
-    cote_polygone = 100
+    cote_polygone = 500
     
     def __init__(self):
         self.cercles = []
@@ -53,15 +53,17 @@ class Environnement:
         """
         méthode de conversion cercle -> polygone
         """
-        nbSegments = math.ceil(2*math.pi*cercle.rayon/Environnement.cote_polygone)
+        nbSegments = max(4,math.ceil(2*math.pi*cercle.rayon/Environnement.cote_polygone))
         listePointsVi = []
         for i in range(nbSegments):
             #epsilon évite d'avoir un sommet du gateau 'pile' sur la frontière de la table. Cela évite de calculer un cas particulier...
             epsilon = 0.01
             #on tourne dans le sens horaire (convention pour tous les polygones) : d'où le 'moins'.
-            theta = -2*math.pi*i/nbSegments + epsilon
-            x = cercle.centre.x + cercle.rayon*math.cos(theta)
-            y = cercle.centre.y + cercle.rayon*math.sin(theta)
+            theta = -2*i*math.pi/nbSegments + epsilon
+            #rayon du cercle exinscrit (cercle.rayon est le rayon inscrit)
+            rayonExinscrit = cercle.rayon*math.sqrt(1+math.sin(math.pi/(2*nbSegments)))
+            x = cercle.centre.x + rayonExinscrit*math.cos(theta)
+            y = cercle.centre.y + rayonExinscrit*math.sin(theta)
             listePointsVi.append(vis.Point(x,y))
         return vis.Polygon(listePointsVi)
         
@@ -126,7 +128,7 @@ class RechercheChemin:
     """
     
     #tolérance de précision pour la recherche de chemin de la bibliothèque Visilibity (doit être différent de 0.0)
-    tolerance = 0.001
+    tolerance = vis.Point.tolerance
     
     def __init__(self,table,config,log):
         #services nécessaires
@@ -422,7 +424,7 @@ class RechercheChemin:
                             if pCollision: 
                                 if type(pCollision[1])==vis.Point:
                                     if not pCollision[1] == pointCollision:
-                                        #self.log.warning("autre collision à "+str(pCollision[1]))#@
+                                        #self.log.warning("autre collision à "+str(pCollision[1])+" de "+str(poly1.n())+" sur "+str(poly2.n()))#@
                                         pointCollision = pCollision[1]
                                         collision = True,True
                                         break
