@@ -160,7 +160,7 @@ class RechercheChemin:
         troncateObstacle,conditionBouclage = aux.ajouterObstacle(poly1[a1],troncateObstacle,conditionBouclage)
         while conditionBouclage and WATCHDOG < 100:
             WATCHDOG += 1
-            print(poly1[a1],poly1[b1])#@
+            #print(poly1[a1],poly1[b1])#@
             #input("parcourir ce segment !")#@
             #tests de collision du segment [a1,b1] de poly1 avec les segments de poly2
             collision = False
@@ -169,7 +169,7 @@ class RechercheChemin:
                 b2 = aux.avancerSurPolygoneBords(poly2,a2,self.bords)
                 pCollision = collisions.collisionSegmentSegment(poly1[a1],poly1[b1],poly2[a2],poly2[b2])
                 if pCollision:
-                    self.log.critical("collision à "+str(pCollision[1]))#@
+                    #self.log.critical("collision à "+str(pCollision[1]))#@
                     if type(pCollision[1])==vis.Point:
                         pointCollision = pCollision[1]
                         collision = True
@@ -192,7 +192,7 @@ class RechercheChemin:
                 #------------------------
                 continueSurSegment = True
                 while continueSurSegment:
-                    print("collision sur du "+str(poly2.n())+" sur "+str(poly1.n())+" à "+str(pointCollision))#@
+                    #print("collision sur du "+str(poly2.n())+" sur "+str(poly1.n())+" à "+str(pointCollision))#@
                     #input("voir les autres collisions sur le meme segment !")#@
                     collision = False
                     for a2 in range(poly2.n()):
@@ -200,7 +200,7 @@ class RechercheChemin:
                         pCollision = collisions.collisionSegmentSegment(pointCollision,poly1[a1],poly2[a2],poly2[b2])
                         if pCollision:
                             if type(pCollision[1])==vis.Point:
-                                self.log.warning("autre collision à "+str(pCollision[1]))#@
+                                #self.log.warning("autre collision à "+str(pCollision[1]))#@
                                 pointCollision = pCollision[1]
                                 collision = True
                                 break
@@ -225,7 +225,7 @@ class RechercheChemin:
                 #------------------------
                 
             else :
-                self.log.debug("ajout de "+str(poly1[a1])+" au polygone")#@
+                #self.log.debug("ajout de "+str(poly1[a1])+" au polygone")#@
                 #parcourt du segment suivant
                 a1 = b1
                 b1 = aux.avancerSurPolygoneBords(poly1,a1,self.bords)
@@ -251,10 +251,10 @@ class RechercheChemin:
     def _fusionner_avec_obstacles_en_contact(self,sEstDejaRetrouveAuCentre=False):
         #teste le dernier polygone ajouté avec tous les autres, en les parcourant par id décroissant
         for i in range(len(self.environnement_complet.polygones)-2,-1,-1):
-            self.log.debug("--> "+str(i))#@
+            #self.log.debug("--> "+str(i))#@
             #test rapide de collision entre les cercles circonscrits aux 2 polygones
             if not collisions.collision_2_cercles(self.environnement_complet.cercles[i],self.environnement_complet.cercles[-1]):
-                self.log.warning("pas de collision avec le cercle de l'obstacle "+str(i)+"à "+str(self.environnement_complet.cercles[i].centre)+".")
+                #self.log.warning("pas de collision avec le cercle de l'obstacle "+str(i)+"à "+str(self.environnement_complet.cercles[i].centre)+".")#@
                 continue
             
             #alias pour la clarté. Les polygones NE SONT PAS dupliqués (pointeurs)
@@ -290,7 +290,7 @@ class RechercheChemin:
                 for k in range(int(poly1.n()/2)):
                     a1 = aux.avancerSurPolygone(poly1,a1)
             
-            print("Le parcourt commence sur "+str(poly1.n())+" à "+str(poly1[a1])+" .")#@
+            #print("Le parcourt commence sur "+str(poly1.n())+" à "+str(poly1[a1])+" .")#@
             #création de l'obstacle de merge
             mergeObstacle = []
             #on va considérer le segment allant jusqu'au point voisin de a1
@@ -349,7 +349,7 @@ class RechercheChemin:
                             if pCollision: 
                                 if type(pCollision[1])==vis.Point:
                                     if not pCollision[1] == pointCollision:
-                                        self.log.warning("autre collision à "+str(pCollision[1]))#@
+                                        #self.log.warning("autre collision à "+str(pCollision[1]))#@
                                         pointCollision = pCollision[1]
                                         collision = True,True
                                         break
@@ -379,7 +379,7 @@ class RechercheChemin:
                             #toujours dans le sens horaire : à partir du plus petit indice
                             if 0 in [a2,b2] and poly1.n()-1 in [a2,b2]: a1 = 0
                             else: a1 = max(a2,b2)
-                            self.log.debug("NO WATCHDOG : Changement d'obstacle pour "+str(poly1.n())+". On passe à "+str(poly1[a1]))#@
+                            #self.log.debug("NO WATCHDOG : Changement d'obstacle pour "+str(poly1.n())+". On passe à "+str(poly1[a1]))#@
                         else:
                             continueSurSegment = False
                             mergeObstacle,conditionBouclage = aux.ajouterObstacle(poly1[a1],mergeObstacle,conditionBouclage)
@@ -390,13 +390,13 @@ class RechercheChemin:
                     a1 = b1
                     b1 = aux.avancerSurPolygone(poly1,a1)
                     mergeObstacle,conditionBouclage = aux.ajouterObstacle(poly1[a1],mergeObstacle,conditionBouclage)
-                    self.log.debug("On passe à "+str(poly1[a1])+", on attend "+str(mergeObstacle[0]))#@
+                    #self.log.debug("On passe à "+str(poly1[a1])+", on attend "+str(mergeObstacle[0]))#@
             if WATCHDOG == 100:
                 self.log.critical("récursion non terminale pour le polygone de fusion !")
                 raise Exception
                 
             if auMoinsUneCollision:
-                self.log.warning("cet obstacle rentre en collision avec l'obstacle "+str(i)+"à "+str(self.environnement_complet.cercles[i].centre)+". Ils ont été fusionnés.")
+                #self.log.warning("cet obstacle rentre en collision avec l'obstacle "+str(i)+"à "+str(self.environnement_complet.cercles[i].centre)+". Ils ont été fusionnés.")
                 #remplacement du premier obstacle par l'obstacle de fusion 
                 mergePolygon = vis.Polygon(mergeObstacle)
                 
@@ -418,7 +418,8 @@ class RechercheChemin:
                         pass
                 
             else:
-                self.log.warning("cet obstacle ne rentre pas en collision avec l'obstacle "+str(i)+"à "+str(self.environnement_complet.cercles[i].centre)+".")
+                pass
+                #self.log.warning("cet obstacle ne rentre pas en collision avec l'obstacle "+str(i)+"à "+str(self.environnement_complet.cercles[i].centre)+".")
                 
     def ajoute_obstacle_cercle(self, centre, rayon):
         """
