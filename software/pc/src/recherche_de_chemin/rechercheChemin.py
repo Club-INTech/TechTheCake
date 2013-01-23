@@ -529,6 +529,29 @@ class RechercheChemin:
         #on retourne à l'environnement initial, en évitant de le modifier
         self.environnement_complet = self.environnement_initial.copy()
         
+    def preparer_environnement(self):
+        """
+        Sauvegarde l'environnement nécessaire aux calculs effectués par Visilibity. 
+        Cela permet d'effectuer plusieurs recherches de chemin d'affilée sans avoir à recharger les obstacles.
+        """
+        
+        # Création de l'environnement, le polygone des bords en premier, ceux des obstacles après (fixes et mobiles)
+        self.environnement_visilibity = vis.Environment([self.bords]+self.environnement_complet.polygones)
+        
+        # Vérification de la validité de l'environnement : polygones non croisés et définis dans le sens des aiguilles d'une montre.
+        if not self.environnement_visilibity.is_valid(RechercheChemin.tolerance):
+            self.log.critical("Des obstacles invalides ont été trouvés. Ils sont remplacés par leurs cercles contenant.")
+            for k in range(len(self.environnement_complet.polygones)):
+                #détection du/des polygones défectueux
+                if self.environnement_complet.polygones[k].area() >= 0 or not self.environnement_complet.polygones[k].is_simple(RechercheChemin.tolerance):
+                    self.log.warning("L'obstacle "+str(k)+" a été remplacé.")
+                    #environnement de secours : on remplace le polygone par son cercle contenant
+                    self.environnement_complet.polygones[k] = Environnement._polygone_du_cercle(self.environnement_complet.cercles[k])
+                    self._recouper_aux_bords_table(k,self.environnement_complet)
+            self.environnement_visilibity = vis.Environment([self.bords]+self.environnement_complet.polygones)
+        #environnement de secours en cas d'obstacle invalide
+        self.environnement_visilibity.is_valid(RechercheChemin.tolerance)
+        
     def get_obstacles(self):
         """
         Renvoi la liste des polygones obstacles (initiaux et dynamiques)
@@ -540,7 +563,7 @@ class RechercheChemin:
         Renvoi la liste des cercles contenant les obstacles (initiaux et dynamiques)
         """
         return list(map(lambda cercle: Environnement._polygone_du_cercle(cercle), self.environnement_complet.cercles))
-        
+    
     def get_chemin(self,depart,arrivee):
         """
         Renvoi le chemin pour aller de depart à arrivee sous forme d'une liste. Le point de départ est exclu. 
@@ -561,25 +584,8 @@ class RechercheChemin:
         departVis = vis.Point(depart.x,depart.y)
         arriveeVis = vis.Point(arrivee.x, arrivee.y)
         
-        # Création de l'environnement, le polygone des bords en premier, ceux des obstacles après (fixes et mobiles)
-        env = vis.Environment([self.bords]+self.environnement_complet.polygones)
-        
-        # Vérification de la validité de l'environnement : polygones non croisés et définis dans le sens des aiguilles d'une montre.
-        if not env.is_valid(RechercheChemin.tolerance):
-            self.log.critical("Des obstacles invalides ont été trouvés. Ils sont remplacés par leurs cercles contenant.")
-            for k in range(len(self.environnement_complet.polygones)):
-                #détection du/des polygones défectueux
-                if self.environnement_complet.polygones[k].area() >= 0 or not self.environnement_complet.polygones[k].is_simple(RechercheChemin.tolerance):
-                    self.log.warning("L'obstacle "+str(k)+" a été remplacé.")
-                    #environnement de secours : on remplace le polygone par son cercle contenant
-                    self.environnement_complet.polygones[k] = Environnement._polygone_du_cercle(self.environnement_complet.cercles[k])
-                    self._recouper_aux_bords_table(k,self.environnement_complet)
-            env = vis.Environment([self.bords]+self.environnement_complet.polygones)
-        #environnement de secours en cas d'obstacle invalide
-        env.is_valid(RechercheChemin.tolerance)
-            
         #recherche de chemin
-        cheminVis = env.shortest_path(departVis, arriveeVis, RechercheChemin.tolerance)
+        cheminVis = self.environnement_visilibity.shortest_path(departVis, arriveeVis, RechercheChemin.tolerance)
         
         #conversion en type vis.Point
         chemin = []
