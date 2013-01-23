@@ -8,7 +8,7 @@ chemin = directory[:directory.index(racine)]+racine
 sys.path.insert(0, os.path.join(chemin, "src/"))
 
 from recherche_de_chemin.visilibity import Point
-from math import sqrt
+import math
 
 #def collisionPolygonePoint(polygone,point):
     #"""
@@ -31,11 +31,13 @@ def collision_2_cercles(cercle1,cercle2):
     """
     dx = cercle1.centre.x - cercle2.centre.x
     dy = cercle1.centre.y - cercle2.centre.y
-    d = sqrt(dx**2 + dy**2)
+    d = math.sqrt(dx**2 + dy**2)
     return d < cercle1.rayon + cercle2.rayon
     
 def collisionSegmentSegment(a,b,c,d):
-    if a == c or a == d or b == c or b == d:
+    if a == c:
+        return True,"departsIdentiques"
+    if a == d or b == c or b == d:
         return False
     else:
         denom  = (d.y-c.y) * (b.x-a.x) - (d.x-c.x) * (b.y-a.y)
@@ -45,14 +47,11 @@ def collisionSegmentSegment(a,b,c,d):
 
         if (abs(numera) < eps and abs(numerb) < eps and abs(denom) < eps):
             #droites coïncidentes
-            return False
-            """
             #test d'intersection des deux segments colinéraires
             if (((c.x+d.x)/2-(a.x+b.x)/2) > (abs(c.x-d.x)/2+abs(a.x-b.x)/2)) or (((c.y+d.y)/2-(a.y+b.y)/2) > (abs(c.y-d.y)/2+abs(a.y-b.y)/2)) :
                 return False
             else:
-                return True
-            """
+                return True,"segmentsConfondus"
         elif (abs(denom) < eps):
             #droites parallèles
             return False
@@ -66,7 +65,7 @@ def collisionSegmentSegment(a,b,c,d):
             else:
                 pointCollision = Point(a.x+mua*(b.x-a.x),a.y+mua*(b.y-a.y))
                 if a == pointCollision or b == pointCollision or c == pointCollision or d == pointCollision:
-                    #convention de non collision
+                    #conventions pour les extrémités
                     return False
                 else:
                     return True,pointCollision
