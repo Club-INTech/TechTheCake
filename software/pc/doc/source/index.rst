@@ -19,6 +19,7 @@ Contents:
    log
    point
    read_ini
+   rechercheChemin
    robotChrono
    robot
    scripts

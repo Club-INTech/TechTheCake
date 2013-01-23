@@ -1,0 +1,16 @@
+pour générer la doc du code python, il faut avoir installé sphinx :
+
+1) installer easy_install (gestionnaire de modules) pour python 3.2 :
+- se placer dans un dossier provisoire random, à vider après
+- sudo curl -O http://python-distribute.org/distribute_setup.py
+- sudo python3.2 distribute_setup.py
+
+2) utiliser easy_install pour installer sphinx :
+- sudo easy_install-3.2 sphinx
+
+3) une fois installé, penser à générer régulièrement la doc :
+- se placer dans /pc/doc
+- make clean
+- make html
+
+4) pour lire la doc, ouvrir l'index "/pc/doc/build/html/index.html"

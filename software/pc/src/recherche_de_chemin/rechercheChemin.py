@@ -95,6 +95,11 @@ class Environnement:
         
     
 class RechercheChemin:
+    """
+    Classe implémentant une recherche de chemin sur la table. 
+    Elle utilise la bibliothèque compilée _visilibity.so, et s'occupe d'ajouter correctement les obstacles sur la table. 
+    Elle veille en particulier à fusionner les obstacles adjacents. 
+    """
     
     # tolerance de précision (différent de 0.0)
     tolerance = 0.001
@@ -114,6 +119,8 @@ class RechercheChemin:
         self._ajoute_obstacle_initial_cercle(vis.Point(0,2000),500)
         self._ajoute_obstacle_initial_rectangle(vis.Polygon([vis.Point(-1500, 0),vis.Point(-1500, 100),vis.Point(-1100, 100),vis.Point(-1100, 0)]))
         self._ajoute_obstacle_initial_rectangle(vis.Polygon([vis.Point(1500, 100),vis.Point(1500, 0),vis.Point(1100, 0),vis.Point(1100, 100)]))
+        self._ajoute_obstacle_initial_rectangle(vis.Polygon([vis.Point(-1500, 1900),vis.Point(-1500, 2000),vis.Point(-1100, 2000),vis.Point(-1100, 1900)]))
+        self._ajoute_obstacle_initial_rectangle(vis.Polygon([vis.Point(1100, 1900),vis.Point(1100, 2000),vis.Point(1500, 2000),vis.Point(1500, 1900)]))
         
         # environnement dynamique : liste des obstacles mobiles qui sont mis à jour régulièrement
         self.environnement_complet = self.environnement_initial.copy()
@@ -127,16 +134,6 @@ class RechercheChemin:
         self.environnement_initial.ajoute_rectangle(rectangle)
         self._recouper_aux_bords_table(-1,self.environnement_initial)
         
-    def ajoute_obstacle_cercle(self, centre, rayon):
-        cercle = Cercle(centre,rayon)
-        self.environnement_complet.ajoute_cercle(cercle)
-        self._recouper_aux_bords_table(-1,self.environnement_complet)
-        self._fusionner_avec_obstacles_en_contact()
-            
-    def retirer_obstacles_dynamiques(self):
-        #on retourne à l'environnement initial, en évitant de le modifier
-        self.environnement_complet = self.environnement_initial.copy()
-    
     def _recouper_aux_bords_table(self,id,environnement):
         #TODO SUPPRIMER : WATCHDOG
         #alias pour la clarté. Les polygones NE SONT PAS dupliqués (pointeurs)
@@ -423,14 +420,41 @@ class RechercheChemin:
             else:
                 self.log.warning("cet obstacle ne rentre pas en collision avec l'obstacle "+str(i)+"à "+str(self.environnement_complet.cercles[i].centre)+".")
                 
+    def ajoute_obstacle_cercle(self, centre, rayon):
+        """
+        Ajout un obstacle circulaire sur la table.
+        Il est considéré comme dynamique et peut etre retiré via retirer_obstacles_dynamiques()
+        """
+        cercle = Cercle(centre,rayon)
+        self.environnement_complet.ajoute_cercle(cercle)
+        self._recouper_aux_bords_table(-1,self.environnement_complet)
+        self._fusionner_avec_obstacles_en_contact()
+            
+    def retirer_obstacles_dynamiques(self):
+        """
+        Retire les obstacles dynamiques et retourne à l'environnement initial
+        """
+        #on retourne à l'environnement initial, en évitant de le modifier
+        self.environnement_complet = self.environnement_initial.copy()
         
     def get_obstacles(self):
+        """
+        Renvoi la liste des polygones obstacles (initiaux et dynamiques)
+        """
         return (self.environnement_complet.polygones)
         
     def get_cercles_obstacles(self):
+        """
+        Renvoi la liste des cercles contenant les obstacles (initiaux et dynamiques)
+        """
         return list(map(lambda cercle: Environnement._polygone_du_cercle(cercle), self.environnement_complet.cercles))
         
     def get_chemin(self,depart,arrivee):
+        """
+        Renvoi le chemin pour aller de depart à arrivee sous forme d'une liste. Le point de départ est exclu. 
+        Une exception est levée si le point d'arrivée n'est pas accessible. 
+        En cas de problème avec les obstacles (ex: erreur lors d'une fusion de polygones), des calculs plus grossiers sont effectués de facon à toujours renvoyer un chemin.
+        """
         
         #test d'accessibilité du point d'arrivée
         if arrivee.x < -self.config["table_x"]/2 or arrivee.y < 0 or arrivee.x > self.config["table_x"]/2 or arrivee.y > self.config["table_y"]:
