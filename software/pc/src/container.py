@@ -104,7 +104,7 @@ class Container:
             self.assembler.register("deplacements",DeplacementsSerie, requires=["serie","config","log"])
         
         #enregistrement du service robot
-        self.assembler.register("robot", Robot, requires=["capteurs","actionneurs","deplacements","config","log"])
+        self.assembler.register("robot", Robot, requires=["capteurs","actionneurs","deplacements","config","log","table"])
         
         #enregistrement du service robotChrono
         self.assembler.register("robotChrono", RobotChrono, requires=["log"])

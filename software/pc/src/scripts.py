@@ -7,7 +7,7 @@ class Script:
     classe mère des scripts
     se charge des dépendances
     """
-    def set_dependencies(self, robot, robotChrono, hookGenerator, rechercheChemin, config, log):
+    def set_dependencies(self, robot, robotChrono, hookGenerator, rechercheChemin, config, log, table):
         """
         Gère les services nécessaires aux scripts. On n'utilise pas de constructeur.
         """
@@ -17,6 +17,7 @@ class Script:
         self.rechercheChemin = rechercheChemin
         self.config = config
         self.log = log
+        self.table = table
         
     def va_au_point(self,position):
         """
@@ -109,17 +110,21 @@ class ScriptTestRecalcul(Script):
 class ScriptPipeauStrategie1(Script):
     
     def execute(self):
-        self.va_au_point(Point(0,300))
+        self.va_au_point(Point(-500,1000))
+        self.robot.ouvrir_cadeau()
+        self.va_au_point(Point(-700,1000))
+        self.robot.fermer_cadeau()
 
     def point_entree(self):
-        return Point(0,300)
+        return Point(-500,1000)
 
 
 class ScriptPipeauStrategie2(Script):
     
     def execute(self):
         self.va_au_point(Point(1000,300))
-
+        self.robot.traiter_bougie()
+        
     def point_entree(self):
         return Point(1000,300)
 
@@ -127,9 +132,10 @@ class ScriptPipeauStrategie2(Script):
 class ScriptPipeauStrategie3(Script):
     
     def execute(self):
-        self.va_au_point(Point(500,0))
+        self.va_au_point(Point(500,1500))
+        self.robot.traiter_bougie()
 
     def point_entree(self):
-        return Point(500,0)
+        return Point(500,1500)
 
 

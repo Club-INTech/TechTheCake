@@ -1,7 +1,9 @@
 from math import sqrt,atan2, cos, sin
 
 class RobotChrono:
-    
+    """
+    Vive sopal'INT!
+    """
     def __init__(self, log):
         
         self.log = log
@@ -64,3 +66,12 @@ class RobotChrono:
     
     def set_vitesse_rotation(self, valeur):
         self.vitesse_rotation = int(valeur)
+        
+    def traiter_bougie(self):
+        pass
+            
+    def ouvrir_cadeau(self):
+        pass
+        
+    def fermer_cadeau(self):
+        pass

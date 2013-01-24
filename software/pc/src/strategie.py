@@ -27,7 +27,7 @@ class Strategie:
 
         for script,classe in self.scripts.items():
             self.scripts[script] = classe()
-            self.scripts[script].set_dependencies(self.robot, self.robotChrono, self.hookGenerator, self.rechercheChemin, self.config, self.log)
+            self.scripts[script].set_dependencies(self.robot, self.robotChrono, self.hookGenerator, self.rechercheChemin, self.config, self.log, self.table)
         
     def boucle_strategie(self):
         """
@@ -37,7 +37,7 @@ class Strategie:
         while not self.timer.get_fin_match():
 #            self.rechercheChemin.retirer_obstacles_dynamique();
 
-            note={"cadeau":0, "verreNous":0, "verreEnnemi": 0, "gateau":0, "deposer_verres":0, "pipeau1":0, "pipeau2":0, "pipeau3":0}
+            note={"cadeau":0, "verreNous":0, "verreEnnemi": 0, "gateau":0, "deposer_verres":0, "pipeau1":0, "pipeau2":0, "pipeau3":0} #les clés sont les scripts
 
         #        for script in self.points: #retiré pour la durée des tests (tant que les vrais scripts ne sont pas dispo...)
         #            self.points[script]=0
@@ -52,13 +52,31 @@ class Strategie:
                 if not element["ouvert"]:
                     self.points["cadeau"]+=4
 
+            self.points["pipeau2"]=0
+            for element in self.table.bougies:
+                if not element["traitee"]:
+                    self.points["pipeau2"]+=2
+            self.points["pipeau3"]=0
+            for element in self.table.bougies:
+                if not element["traitee"]:
+                    self.points["pipeau3"]+=2
+            self.points["pipeau1"]=0
+            for element in self.table.bougies:
+                if not element["ouvert"]:
+                    self.points["pipeau1"]+=4
+
+
             self.rechercheChemin.preparer_environnement()
 
             for script in self.scripts:
+                self.log.debug("Note du script "+script+": "+str(note[script]))
+
                 dureeScript=self.scripts[script].calcule()+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
+#                self.log.debug("dureeScript de "+script+": "+str(dureeScript))
+
                 distanceE=self._distance_ennemi(script)+1              #idem
                 try:
-                    note[script]=10000000*self.points[script]/(dureeScript*dureeScript*dureeScript*distanceE*distanceE)
+                    note[script]=1000000000*self.points[script]/(dureeScript*dureeScript*dureeScript*distanceE*distanceE)
                 except ZeroDivisionError:
                     note[script]=self.points[script]
                     self.log.critical("Division par zéro! :o") #sait-on jamais... je préfère ne pas prendre le risque de voir le robot se paralyser bêtement
@@ -74,12 +92,11 @@ class Strategie:
 
             noteInverse = dict(map(lambda item: (item[1],item[0]),note.items()))
             scriptAFaire=noteInverse[max(noteInverse.keys())]   #ce script a reçu la meilleure note
-            scriptAFaire="pipeau2"
 
-#            self.log.warning("La stratégie a décidé d'exécuter le script: "+scriptAFaire)
+            self.log.warning("Stratégie fait: "+scriptAFaire)
             if not self.timer.get_fin_match():
                 self.scripts[scriptAFaire].agit()
-            self.log.debug(scriptAFaire+" terminé.")
+                self.points[scriptAFaire]-=2
 
             sleep(0.1)
 #        self.log.debug("Arrêt de la stratégie.")
@@ -92,7 +109,6 @@ class Strategie:
             d=round(sqrt(delta_x**2 + delta_y**2),2)
             if d<distance_min:
                 distance_min=d
-        print(distance_min)
         return distance_min
 
 #TODO

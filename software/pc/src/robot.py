@@ -6,7 +6,7 @@ class Robot:
     """
     classe implémentant le robot.
     """
-    def __init__(self,capteurs,actionneurs,deplacements,config,log):
+    def __init__(self,capteurs,actionneurs,deplacements,config,log,table):
         self.mutex = Mutex()
         
         #instances des dépendances
@@ -15,6 +15,7 @@ class Robot:
         self.capteurs = capteurs
         self.config = config
         self.log = log
+        self.table = table
         
         
         ###############################################
@@ -576,11 +577,17 @@ class Robot:
             self.actionneurs.enfoncer_bougie()
             sleep(1)
             self.actionneurs.initialiser_bras_bougie()
+        self.table.bougie_recupere(0) #ne pas oublier de mettre à jour les éléments de jeu dans le service de table! (ligne à fin de test)
     
     def ouvrir_cadeau(self):
-        
+        """
+        Ouvre le bras qui pousse le cadeau
+        """
         self.actionneurs.ouvrir_cadeau()
+        self.table.cadeau_recupere(0) #ne pas oublier de mettre à jour les éléments de jeu dans le service de table! (ligne à fin de test)
         
     def fermer_cadeau(self):
-        
+        """
+        Ferme le bras qui a pousse le cadeau
+        """
         self.actionneurs.fermer_cadeau()
