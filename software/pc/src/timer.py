@@ -3,7 +3,11 @@ from time import sleep
 from mutex import Mutex
 
 class Timer():
-
+    """
+    Classe de gestion du temps et d'appels réguliers.
+    Deux variables globales sont très utilisées: timer.fin_match et timer.match_demarre. 
+    Supprime les obstacles périssables du service de table.
+    """
     def __init__(self, log, config, robot, table, capteurs):
         self.log = log
         self.config = config
@@ -15,15 +19,17 @@ class Timer():
         self.mutex=Mutex()
 
     def initialisation(self):
-        if not self.config["mode_simulateur"]:  #si on est en mode simulateur, on commence de suite (apparemment inutile?)
-            while not self.capteurs.demarrage_match():
-                sleep(.5)
+        """
+        Boucle qui attend le début du match et qui modifie alors la variable timer.match_demarre
+        """
+        while not self.capteurs.demarrage_match():
+            sleep(.5)
         self.log.debug("Le match a commencé!")
         with self.mutex:
             self.match_demarre = True
             self.date_debut = time()
 
-    def suppression_obstacles(self):
+    def _suppression_obstacles(self):
         dates_naissance_obstacles=self.table.get_obstaclesCapteur()
         #print(dates_naissance_obstacles)
         i=0
@@ -33,10 +39,13 @@ class Timer():
             self.table.maj_obstaclesCapteur(i)
 
     def thread_timer(self):
+        """
+        Le thread timer, qui supprime les obstacles périssables et arrête le robot à la fin du match.
+        """
         self.log.debug("Lancement du thread timer")
         self.initialisation()
         while (time()-self.get_date_debut())<self.config["temps_match"]:
-            self.suppression_obstacles()
+            self._suppression_obstacles()
             sleep(.5)
         with self.mutex:
             self.fin_match = True
@@ -47,10 +56,16 @@ class Timer():
         self.robot.gonflage_ballon()
 
     def get_date_debut(self):
+        """
+        Getter de la variable date_debut
+        """
         with self.mutex:
             return self.date_debut
 
     def get_fin_match(self):
+        """
+        Getter de la variable fin_match
+        """
         with self.mutex:
             return self.fin_match
 
