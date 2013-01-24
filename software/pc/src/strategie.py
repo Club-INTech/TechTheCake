@@ -34,6 +34,7 @@ class Strategie:
         Boucle principale de la stratégie. 
         """
         self.log.debug("Stratégie lancée.")
+
         while not self.timer.get_fin_match():
 #            self.rechercheChemin.retirer_obstacles_dynamique();
 
@@ -51,6 +52,7 @@ class Strategie:
             for element in self.table.cadeaux:
                 if not element["ouvert"]:
                     self.points["cadeau"]+=4
+            self.points["deposer_verres"]=4*(self.robot.nb_verres_avant+self.robot.nb_verres_arriere)**2
 
             self.points["pipeau2"]=0
             for element in self.table.bougies:
@@ -61,7 +63,7 @@ class Strategie:
                 if not element["traitee"]:
                     self.points["pipeau3"]+=2
             self.points["pipeau1"]=0
-            for element in self.table.bougies:
+            for element in self.table.cadeaux:
                 if not element["ouvert"]:
                     self.points["pipeau1"]+=4
 
@@ -83,9 +85,11 @@ class Strategie:
 
                 if script=="verreNous" or script=="verreEnnemi" and dureeScript+deposer_verre.calcule()>(self.config["temps_match"]-time()+self.timer.get_date_debut()): #pour prendre les verres, on ajoute à durée script le temps de déposer les verres
                     self.log.critical("Plus le temps de prendre des verres, on n'aurait pas le temps de les déposer.")
+                    ditUneFoisVerre=True
                     note[script]=0
                 elif not dureeScript<(self.config["temps_match"]-time()+self.timer.get_date_debut()): #si on a le temps de faire l'action avant la fin du match
                     self.log.critical("Plus le temps d'exécuter "+script)
+                    ditUneFoisAutre=True
                     note[script]=0
                         
 #                self.log.debug("Note du script "+script+": "+str(note[script]))

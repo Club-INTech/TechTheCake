@@ -57,6 +57,10 @@ class Robot:
         #le robot n'est pas prêt tant qu'il n'a pas recu ses coordonnées initiales par le thread de mise à jour
         self.pret = False
         
+        #le nombre de verres dans l'ascenseur avant ou arrière
+        self.nb_verres_avant = 0
+        self.nb_verres_arriere = 0
+        
         #sleep pour la boucle d'acquittement : divisé en 2 pour le simulateur, car il ne peut pas tourner et avancer en même temps
         if self.config["mode_simulateur"]:
             self.sleep_milieu_boucle_acquittement = self.config["sleep_acquit_simu"]/2.
@@ -588,6 +592,6 @@ class Robot:
         
     def fermer_cadeau(self):
         """
-        Ferme le bras qui a pousse le cadeau
+        Ferme le bras qui a poussé le cadeau
         """
         self.actionneurs.fermer_cadeau()
