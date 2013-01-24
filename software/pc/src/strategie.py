@@ -56,7 +56,7 @@ class Strategie:
 
             for script in self.scripts:
                 dureeScript=self.scripts[script].calcule()+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
-                distanceE=self._distance_ennemi()+1              #idem
+                distanceE=self._distance_ennemi(script)+1              #idem
                 try:
                     note[script]=10000000*self.points[script]/(dureeScript*dureeScript*dureeScript*distanceE*distanceE)
                 except ZeroDivisionError:
@@ -64,36 +64,36 @@ class Strategie:
                     self.log.critical("Division par zéro! :o") #sait-on jamais... je préfère ne pas prendre le risque de voir le robot se paralyser bêtement
 
                 if script=="verreNous" or script=="verreEnnemi" and dureeScript+deposer_verre.calcule()>(self.config["temps_match"]-time()+self.timer.get_date_debut()): #pour prendre les verres, on ajoute à durée script le temps de déposer les verres
-                    self.log.warning("Plus le temps de prendre des verres, on n'aurait pas le temps de les déposer.")
+                    self.log.critical("Plus le temps de prendre des verres, on n'aurait pas le temps de les déposer.")
                     note[script]=0
                 elif not dureeScript<(self.config["temps_match"]-time()+self.timer.get_date_debut()): #si on a le temps de faire l'action avant la fin du match
-                    self.log.warning("Plus le temps d'exécuter "+script)
+                    self.log.critical("Plus le temps d'exécuter "+script)
                     note[script]=0
                         
-                self.log.debug("Note du script "+script+": "+str(note[script]))
+#                self.log.debug("Note du script "+script+": "+str(note[script]))
 
             noteInverse = dict(map(lambda item: (item[1],item[0]),note.items()))
             scriptAFaire=noteInverse[max(noteInverse.keys())]   #ce script a reçu la meilleure note
             scriptAFaire="pipeau2"
 
-            self.log.debug("La stratégie a décidé d'exécuter le script: "+scriptAFaire)
+#            self.log.warning("La stratégie a décidé d'exécuter le script: "+scriptAFaire)
             if not self.timer.get_fin_match():
                 self.scripts[scriptAFaire].agit()
             self.log.debug(scriptAFaire+" terminé.")
 
             sleep(0.1)
-        self.log.debug("Arrêt de la stratégie.")
+#        self.log.debug("Arrêt de la stratégie.")
 
-    def _distance_ennemi(self): #on prend la distance euclidienne, à vol d'oiseau. Attention, on prend le min: cette valeur est sensible aux mesures aberrantes
+    def _distance_ennemi(self, script): #on prend la distance euclidienne, à vol d'oiseau. Attention, on prend le min: cette valeur est sensible aux mesures aberrantes
         distance_min=3000 #une distance très grande, borne sup de la valeur renvoyée.
         for obstacle in self.table.get_robotsAdversesBalise()+self.table.get_obstaclesCapteur():
-            delta_x=self.robot.x-obstacle.position.x
-            delta_y=self.robot.y-obstacle.position.y
+            delta_x=self.scripts[script].point_entree().x-obstacle.position.x
+            delta_y=self.scripts[script].point_entree().y-obstacle.position.y
             d=round(sqrt(delta_x**2 + delta_y**2),2)
             if d<distance_min:
                 distance_min=d
-
+        print(distance_min)
         return distance_min
-    
+
 #TODO
 #dans robot, il faut le nombre de verres dans chaque ascenseur.

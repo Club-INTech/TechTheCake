@@ -111,13 +111,25 @@ class ScriptPipeauStrategie1(Script):
     def execute(self):
         self.va_au_point(Point(0,300))
 
+    def point_entree(self):
+        return Point(0,300)
+
+
 class ScriptPipeauStrategie2(Script):
     
     def execute(self):
         self.va_au_point(Point(1000,300))
 
+    def point_entree(self):
+        return Point(1000,300)
+
+
 class ScriptPipeauStrategie3(Script):
     
     def execute(self):
         self.va_au_point(Point(500,0))
+
+    def point_entree(self):
+        return Point(500,0)
+
 
