@@ -1,5 +1,5 @@
 
-import sys, random
+import sys, random, math
 from PyQt4 import QtGui, QtCore
 
 class FenetrePrincipale(QtGui.QMainWindow) :
@@ -17,7 +17,7 @@ class FenetrePrincipale(QtGui.QMainWindow) :
         
         self.widthFrameBoutons = 220
         self.widthRegleVerticale = 100
-        self.heightRegleHorizontale = 50
+        self.heightRegleHorizontale = 40
       
         self.frameCanvas.setFrameShape(QtGui.QFrame.Box)
         self.frameBoutons.setFrameShape(QtGui.QFrame.Box)
@@ -28,6 +28,8 @@ class FenetrePrincipale(QtGui.QMainWindow) :
         self.frameCanvas.show()
         self.frameRegleHorizontale.show()
         self.frameRegleVerticale.show()
+        
+        self.setMinimumSize(500,300)
         self.show()
         
     def addCanvas(self, canvas) :
@@ -38,6 +40,10 @@ class FenetrePrincipale(QtGui.QMainWindow) :
         self.regleHorizontale = regle
     def addRegleVerticale(self, regle) :
         self.regleVerticale = regle
+    def addGraduationH(self, g) :
+        self.graduationH = g
+    def addGraduationV(self, g) :
+        self.graduationV = g
         
     def paintEvent(self, e) :
         self.frameCanvas.resize(self.size().width() - self.widthFrameBoutons - self.widthRegleVerticale, self.size().height() - self.heightRegleHorizontale)
@@ -49,9 +55,61 @@ class FenetrePrincipale(QtGui.QMainWindow) :
         self.frameBoutons.resize(self.widthFrameBoutons, self.size().height())
         self.frameBoutons.move(self.size().width()-self.widthFrameBoutons, 0)
         
+class GraduationV(QtGui.QWidget) :
+    def __init__(self, fenetrePrincipale) :
+        self.fenetrePrincipale = fenetrePrincipale
+        self.fenetrePrincipale.addGraduationV(self)
+        QtGui.QWidget.__init__(self, fenetrePrincipale.frameRegleVerticale)
+        self.show()
+        
+    def paintEvent(self, e) :
+        self.resize(self.parent().size())
+        qp = QtGui.QPainter()
+        qp.begin(self)
+        self.drawGraduations(qp)
+        qp.end()
+        
+    def drawGraduations(self, qp) :
+        hauteur = self.parent().size().height()
+        nombreGraduationsMax = hauteur//100
+        deltaCoord = self.fenetrePrincipale.canvas.maxCoordY - self.fenetrePrincipale.canvas.minCoordY
+        pas = float(deltaCoord)/nombreGraduationsMax
+        
+        base = _simplify(self.fenetrePrincipale.canvas.minCoordY)
+        
+        for id_ in range(nombreGraduationsMax) :
+            qp.drawText(15, self.fenetrePrincipale.canvas.coordsToPixels(0,_simplify(base+pas*id_))[1] , "%.1e"%(base+pas*id_))
+        
+class GraduationH(QtGui.QWidget) :
+    def __init__(self, fenetrePrincipale) :
+        self.fenetrePrincipale = fenetrePrincipale
+        self.fenetrePrincipale.addGraduationH(self)
+        QtGui.QWidget.__init__(self, fenetrePrincipale.frameRegleHorizontale)
+        self.show()
+        
+    def paintEvent(self, e) :
+        self.resize(self.parent().size())
+        qp = QtGui.QPainter()
+        qp.begin(self)
+        self.drawGraduations(qp)
+        qp.end()
+        
+    def drawGraduations(self, qp) :
+        largeur = self.parent().size().width()
+        nombreGraduationsMax = largeur//100
+        deltaCoord = self.fenetrePrincipale.canvas.maxCoordX - self.fenetrePrincipale.canvas.minCoordX
+        pas = float(deltaCoord)/nombreGraduationsMax
+        
+        base = _simplify(self.fenetrePrincipale.canvas.minCoordX)
+        
+        for id_ in range(nombreGraduationsMax) :
+            qp.drawText(self.fenetrePrincipale.canvas.coordsToPixels(_simplify(base+pas*id_),0)[0], 14, "%.1e"%(base+pas*id_))
+            
+        
 class Boutons(QtGui.QWidget) :
     def __init__(self, fenetrePrincipale) :
         self.fenetrePrincipale = fenetrePrincipale
+        self.fenetrePrincipale.addBoutons(self)
         QtGui.QWidget.__init__(self, fenetrePrincipale.frameBoutons)
         VLayout = QtGui.QVBoxLayout()
         
@@ -89,7 +147,6 @@ class Boutons(QtGui.QWidget) :
         VLayout.addWidget(frameListeDeroulanteCourbes)
         
         self.setLayout(VLayout)
-        frameEpaisseur.show()
         self.show()
         
     def changerEpaisseurCourbes(self, e) :
@@ -104,18 +161,24 @@ class Boutons(QtGui.QWidget) :
         
         
 class Canvas(QtGui.QWidget) :
-    def __init__(self, fenetrePrincipale, courbes) :
-        QtGui.QWidget.__init__(self, fenetrePrincipale.frameCanvas)
-        self.marge      = 10
-        self.fenetrePrincipale = fenetrePrincipale
+    def __init__(self, courbes) :
+        self.courbes = courbes
+        self.marge = 10
         
+        
+        self.fenetrePrincipale = FenetrePrincipale()
+        QtGui.QWidget.__init__(self, self.fenetrePrincipale.frameCanvas)
         self.fenetrePrincipale.addCanvas(self)
         
-        self.show()
-        self.courbes = courbes
+        Boutons(self.fenetrePrincipale)
+        GraduationV(self.fenetrePrincipale)
+        GraduationH(self.fenetrePrincipale)
+        
+        
         self.maxCoordX, self.maxCoordY = self._getMaxCoords()
         self.minCoordX, self.minCoordY = self._getMinCoords()
         
+        self.show()
 
         
     def _getMaxCoords(self) :
@@ -152,6 +215,10 @@ class Canvas(QtGui.QWidget) :
         for courbe in self.courbes :
             self.drawCourbe(qp, courbe)
         qp.end()
+        
+        self.fenetrePrincipale.graduationH.update()
+        self.fenetrePrincipale.graduationV.update()
+        
         
     # Molette souris
     def wheelEvent(self, e) :
@@ -223,9 +290,6 @@ class Canvas(QtGui.QWidget) :
             courbe.width = val
         self.update()
         
-class GraduationV(QtGui.QWidget) :
-    def __init__(self, fenetrePrincipale) :
-        pass
                   
     
 class Courbe :
@@ -248,6 +312,15 @@ class Courbe :
         self.valeurs_x.append(x)
         self.valeurs_y.append(y)
         
+def _scToInt(string) :
+    i = string.find("e")
+    m = float(string[:i])
+    e = int(string[i+1:])
+    return (m*10**e)
+        
+def _simplify(int_) :
+    return _scToInt('%.1e'%int_)
+    
 def createCourbe(points) :
     c = Courbe()
     for pt in points :
@@ -261,7 +334,5 @@ if __name__ == "__main__" :
     c2 = createCourbe([[1,2], [3,5], [4, 6], [7, -1]])
     app = QtGui.QApplication(sys.argv)
     
-    fenetre = FenetrePrincipale()
-    canvas = Canvas(fenetre, [c1, c2])
-    boutons = Boutons(fenetre)
+    canvas = Canvas([c1, c2])
     sys.exit(app.exec_())
