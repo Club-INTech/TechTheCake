@@ -26,7 +26,9 @@ Contents:
    serie
    strategie
    table
+   thread_capteurs
    thread_MAJ
+   timer
 
 Indices and tables
 ==================
