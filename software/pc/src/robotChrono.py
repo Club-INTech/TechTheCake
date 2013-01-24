@@ -33,18 +33,24 @@ class RobotChrono:
 #############################################################
 
     def avancer(self, distance):
+        """
+        Fonction analogue à celle de robot. Avance. Si, si.
+        """
         self.duree += distance / self.vitesses_translation[self.vitesse_translation-1]
         self.x += distance*cos(self.orientation)
         self.y += distance*sin(self.orientation)
         
     def tourner(self, angle):
+        """
+        Fonction analogue à celle de robot. Bah... ça tourne quoi. Il vous faut un dessin?
+        """
         self.duree += angle / self.vitesses_rotation[self.vitesse_rotation-1]
         self.orientation = angle
         
         
     def suit_chemin(self, chemin, **useless):
         """
-        Cette méthode parcourt un chemin déjà calculé. Elle appelle va_au_point() sur chaque point de la liste chemin.
+        Fonction analogue à celle de robot. Cette méthode parcourt un chemin déjà calculé. Elle appelle va_au_point() sur chaque point de la liste chemin.
         """
         for position in chemin:
             self.va_au_point(position.x, position.y)
@@ -62,16 +68,31 @@ class RobotChrono:
         pass
         
     def set_vitesse_translation(self, valeur):
+        """
+        Fonction analogue à celle de robot. modifie la vitesse de translation du robot et adapte les constantes d'asservissement
+        """
         self.vitesse_translation = int(valeur)
     
     def set_vitesse_rotation(self, valeur):
+        """
+        Fonction analogue à celle de robot. modifie la vitesse de rotation du robot et adapte les constantes d'asservissement
+        """
         self.vitesse_rotation = int(valeur)
         
     def traiter_bougie(self):
+        """
+        Fonction analogue à celle de robot. teste la couleur puis enfonce si c'est la bonne couleur
+        """
         pass
             
     def ouvrir_cadeau(self):
+        """
+        Fonction analogue à celle de robot. Ouvre le bras qui pousse le cadeau
+        """
         pass
         
     def fermer_cadeau(self):
+        """
+        Fonction analogue à celle de robot. Ferme le bras qui a poussé le cadeau
+        """
         pass
