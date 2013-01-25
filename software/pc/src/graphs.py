@@ -293,11 +293,15 @@ class Canvas(QtGui.QWidget) :
                   
     
 class Courbe :
-    def __init__(self, valeurs_x = [], valeurs_y = [], color=None, name=None) :
+    def __init__(self, valeurs_x = None, valeurs_y = None, color=None, name=None) :
         if not hasattr(Courbe, "nombreCourbes") :
             Courbe.nombreCourbes = 1
         else :
             Courbe.nombreCourbes += 1
+        
+        if valeurs_x is None : valeurs_x=[]
+        if valeurs_y is None : valeurs_y=[]
+        
         self.valeurs_x = valeurs_x
         self.valeurs_y = valeurs_y
         
@@ -326,13 +330,21 @@ def createCourbe(points) :
     for pt in points :
         c.addPoint(pt[0], pt[1])
     return c
+    
+def createDeltaCourbe(delta, ordonnees) :
+    c = Courbe()
+    for id_, ordo in enumerate(ordonnees) :
+        c.addPoint(id_*delta, ordo)
+    return c
+        
         
         
 if __name__ == "__main__" :
     
     c1 = Courbe([1,3,6], [2,-1,5])
     c2 = createCourbe([[1,2], [3,5], [4, 6], [7, -1]])
+    c3 = createDeltaCourbe(0.5, [1,1.1,1.3,1.5,1.58,1.62,1.63,1.64,1.56,1.40,1.3,1.2,1.15,1.1])
     app = QtGui.QApplication(sys.argv)
     
-    canvas = Canvas([c1, c2])
+    canvas = Canvas([c3])
     sys.exit(app.exec_())
