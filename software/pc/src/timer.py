@@ -54,7 +54,7 @@ class Timer():
         self.robot.deplacements.desactiver_asservissement_translation()
         self.robot.deplacements.desactiver_asservissement_rotation()
         self.robot.gonflage_ballon()
-
+        self.robot.deplacements.arret_final()
     def get_date_debut(self):
         """
         Getter de la variable date_debut

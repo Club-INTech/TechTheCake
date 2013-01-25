@@ -48,37 +48,35 @@ class Strategie:
                     self.points["gateau"]+=2 #chaque bougie rapporte 4 points, mais la moitié des bougies sont à l'ennemi...
             for element in self.table.verres:
                 if element["present"]:       #à pondérer si l'ascenseur est plutôt plein ou plutôt vide
-                    self.points["verres"]+=6
+                    self.points["verres"]+=6 #à tirer vers le haut pour les faire en début de partie (et ensuite baisser les points par incertitude?)
             for element in self.table.cadeaux:
                 if not element["ouvert"]:
                     self.points["cadeau"]+=4
-            self.points["deposer_verres"]=4*(self.robot.nb_verres_avant+self.robot.nb_verres_arriere)**2
+            self.points["deposer_verres"]=4*(self.robot.nb_verres_avant+self.robot.nb_verres_arriere)**2 #mettre la vraie valeur
 
-            self.points["pipeau2"]=0
-            for element in self.table.bougies:
-                if not element["traitee"]:
-                    self.points["pipeau2"]+=2
-            self.points["pipeau3"]=0
-            for element in self.table.bougies:
-                if not element["traitee"]:
-                    self.points["pipeau3"]+=2
-            self.points["pipeau1"]=0
-            for element in self.table.cadeaux:
-                if not element["ouvert"]:
-                    self.points["pipeau1"]+=4
-
+#            self.points["pipeau2"]=0
+#            for element in self.table.bougies:
+#                if not element["traitee"]:
+#                    self.points["pipeau2"]+=2
+#            self.points["pipeau3"]=0
+#            for element in self.table.bougies:
+#                if not element["traitee"]:
+#                    self.points["pipeau3"]+=2
+#            self.points["pipeau1"]=0
+#            for element in self.table.cadeaux:
+#                if not element["ouvert"]:
+#                    self.points["pipeau1"]+=4
 
             self.rechercheChemin.preparer_environnement()
 
             for script in self.scripts:
-                self.log.debug("Note du script "+script+": "+str(note[script]))
 
                 dureeScript=self.scripts[script].calcule()+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
 #                self.log.debug("dureeScript de "+script+": "+str(dureeScript))
 
                 distanceE=self._distance_ennemi(script)+1              #idem
                 try:
-                    note[script]=1000000000*self.points[script]/(dureeScript*dureeScript*dureeScript*distanceE*distanceE)
+                    note[script]=1000000000*(self.points[script])/(dureeScript*dureeScript*dureeScript*distanceE*distanceE)
                 except ZeroDivisionError:
                     note[script]=self.points[script]
                     self.log.critical("Division par zéro! :o") #sait-on jamais... je préfère ne pas prendre le risque de voir le robot se paralyser bêtement
@@ -91,8 +89,8 @@ class Strategie:
                     self.log.critical("Plus le temps d'exécuter "+script)
                     ditUneFoisAutre=True
                     note[script]=0
-                        
-#                self.log.debug("Note du script "+script+": "+str(note[script]))
+
+                self.log.debug("Note du script "+script+": "+str(note[script]))
 
             noteInverse = dict(map(lambda item: (item[1],item[0]),note.items()))
             scriptAFaire=noteInverse[max(noteInverse.keys())]   #ce script a reçu la meilleure note

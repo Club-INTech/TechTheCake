@@ -31,6 +31,7 @@ class Serie:
         self.peripheriques = {"asservissement": Peripherique(0,9600),"capteurs_actionneurs" : Peripherique(3,9600), "capteur_couleur" : Peripherique(1,9600), "cadeaux" : Peripherique(6,9600), "ascenseur": Peripherique(2,9600),"pince_verre": Peripherique(8,9600), "actionneur_bougies": Peripherique(7,9600)}
         #attribution initiale des périphériques
         self.attribuer()
+        self.arret_serie=False
         
     def attribuer(self):
         """
@@ -107,26 +108,34 @@ class Serie:
         
         Une liste messages d'un seul élément : ["chaine"] peut éventuellement être remplacée par l'élément simple : "chaine".  #userFriendly
         """
-        
         with self.mutex:
-            if not type(messages) is list:
-                #permet l'envoi d'un seul message, sans structure de liste
-                messages = [messages]
-            
-            #parcourt la liste des messages envoyés
-            for message in messages:
-                #print(str(message)+"<")
-                self.peripheriques[destinataire].serie.write(bytes(str(message) + '\r',"utf-8"))
-                #chaque envoi est acquité par le destinataire, pour permettre d'émettre en continu sans flooder la série
-                acquittement = ""
-                while acquittement != "_":
-                    acquittement = self._clean_string(str(self.peripheriques[destinataire].serie.readline(),"utf-8"))
-                    #print("\t a>"+destinataire+acquittement)
-                    
-            #liste des réponses
-            reponses = []
-            for i in range(nb_lignes_reponse):
-                reponse = str(self.peripheriques[destinataire].serie.readline(),"utf-8")
-                #print("\t r>"+destinataire+reponse)
-                reponses.append(self._clean_string(reponse))
+            if not self.arret_serie:
+                if not type(messages) is list:
+                    #permet l'envoi d'un seul message, sans structure de liste
+                    messages = [messages]
+                
+                #parcourt la liste des messages envoyés
+                for message in messages:
+                    #print(str(message)+"<")
+                    self.peripheriques[destinataire].serie.write(bytes(str(message) + '\r',"utf-8"))
+                    #chaque envoi est acquité par le destinataire, pour permettre d'émettre en continu sans flooder la série
+                    acquittement = ""
+                    while acquittement != "_":
+                        acquittement = self._clean_string(str(self.peripheriques[destinataire].serie.readline(),"utf-8"))
+                        #print("\t a>"+destinataire+acquittement)
+                        
+                #liste des réponses
+                reponses = []
+                for i in range(nb_lignes_reponse):
+                    reponse = str(self.peripheriques[destinataire].serie.readline(),"utf-8")
+                    #print("\t r>"+destinataire+reponse)
+                    reponses.append(self._clean_string(reponse))
         return reponses
+
+    def set_arret_serie(self):
+        """
+        Méthode pour arrêter le service série, appelée par le service timer à la fin du match.
+        """
+        with self.mutex:
+            self.arret_serie=True
+        

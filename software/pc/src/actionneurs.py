@@ -12,6 +12,10 @@ class Actionneurs(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
+    def gonfler_ballon(self) :
+        pass
+        
+    @abc.abstractmethod
     def initialiser_bras_bougie(self) : 
         pass
         
@@ -60,6 +64,9 @@ class ActionneursSerie(Actionneurs) : #héritage
     
     def fermer_cadeau(self) :
         self.serie.communiquer("cadeaux",["g",150],0)
+
+    def gonfler_ballon(self) :
+        self.log.debug("Gonflage du ballon")
         
     def initialiser_bras_bougie(self) : 
         self.serie.communiquer("actionneur_bougies",["g",150],0)
@@ -116,6 +123,9 @@ class ActionneursSimulateur(Actionneurs) :
     
     def fermer_cadeau(self) :
         self.log.debug("Fermeture actionneur cadeau")
+
+    def gonfler_ballon(self) :
+        self.log.debug("Gonflage du ballon")
 
     def initialiser_bras_bougie(self) : 
         self.log.debug("Initialise le bras bougie")

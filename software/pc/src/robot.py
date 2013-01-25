@@ -595,3 +595,10 @@ class Robot:
         Ferme le bras qui a poussé le cadeau
         """
         self.actionneurs.fermer_cadeau()
+        
+    def gonflage_ballon(self):
+        """
+        Gonfle le ballon en fin de match
+        """
+        self.actionneurs.gonfler_ballon()
+        
