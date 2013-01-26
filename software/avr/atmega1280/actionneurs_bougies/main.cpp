@@ -30,8 +30,9 @@ int main () {
   serial_AX_::init();
   serial_AX_::change_baudrate(BAUD_RATE_SERIE);
 
-  AX12 AX12_BRAS(1, AX_ANGLECW, AX_ANGLECCW);
-
+  AX12 AX12_BRAS(3, AX_ANGLECW, AX_ANGLECCW);
+// 3 pour l'actionneur du bas
+//   pour l'actionneur du haut
   while(1){
     
     char buffer[17];

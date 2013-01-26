@@ -41,26 +41,26 @@ class Table:
         
 # La position des bougies est codée en pôlaire depuis le centre du gâteau : ( rayon, angle depuis la verticale ), elles sont ordonnées par ordre croissant d'angle.
         self.bougies = [
-	{"position":(450,-82.5), "traitee":False, "enHaut":False},
-	{"position":(350,-78.75), "traitee":False, "enHaut":True},
-	{"position":(450,-67.5), "traitee":False, "enHaut":False},
-	{"position":(350,-56.25), "traitee":False, "enHaut":True},
-	{"position":(450,-52.5), "traitee":False, "enHaut":False},
-	{"position":(450,-37.5), "traitee":False, "enHaut":False},
-	{"position":(350,-33.75), "traitee":False, "enHaut":True},
-	{"position":(450,-22.5), "traitee":False, "enHaut":False},
-	{"position":(350,-11.25), "traitee":False, "enHaut":True},
-	{"position":(450,-7.5), "traitee":False, "enHaut":False},
-	{"position":(450,7.5), "traitee":False, "enHaut":False},
-	{"position":(350,11.25), "traitee":False, "enHaut":True},
-	{"position":(450,22.5), "traitee":False, "enHaut":False},
-	{"position":(350,33.75), "traitee":False, "enHaut":True},
-	{"position":(450,37.5), "traitee":False, "enHaut":False},
-	{"position":(450,52.5), "traitee":False, "enHaut":False},
-	{"position":(350,56.25), "traitee":False, "enHaut":True},
-	{"position":(450,67.5), "traitee":False, "enHaut":False},
-	{"position":(350,78.75), "traitee":False, "enHaut":True},
-	{"position":(450,82.5), "traitee":False, "enHaut":False}]
+	{"position":-0.131, "traitee":False, "enHaut":False},
+	{"position":-0.196, "traitee":False, "enHaut":True},
+	{"position":-0.393, "traitee":False, "enHaut":False},
+	{"position":-0.589, "traitee":False, "enHaut":True},
+	{"position":-0.654, "traitee":False, "enHaut":False},
+	{"position":-0.916, "traitee":False, "enHaut":False},
+	{"position":-0.982, "traitee":False, "enHaut":True},
+	{"position":-1.178, "traitee":False, "enHaut":False},
+	{"position":-1.374, "traitee":False, "enHaut":True},
+	{"position":-1.440, "traitee":False, "enHaut":False},
+	{"position":-1.701, "traitee":False, "enHaut":False},
+	{"position":-1.767, "traitee":False, "enHaut":True},
+	{"position":-1.963, "traitee":False, "enHaut":False},
+	{"position":-2.159, "traitee":False, "enHaut":True},
+	{"position":-2.225, "traitee":False, "enHaut":False},
+	{"position":-2.487, "traitee":False, "enHaut":False},
+	{"position":-2.552, "traitee":False, "enHaut":True},
+	{"position":-2.748, "traitee":False, "enHaut":False},
+	{"position":-2.945, "traitee":False, "enHaut":True},
+	{"position":-3.010, "traitee":False, "enHaut":False}]
 
 # Le premier correspond à celui le plus en haut à gauche et le dernier le plus en bas à droite.
         self.verres = [
