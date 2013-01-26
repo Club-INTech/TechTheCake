@@ -573,16 +573,20 @@ class Robot:
         self.deplacements.set_vitesse_rotation(valeur)
         self.vitesse_rotation = int(valeur)
 
-    def traiter_bougie(self):
+    def traiter_bougie(self,id):
         """
         teste la couleur puis enfonce si c'est la bonne couleur
         """
         if(self.capteurs.lire_couleur() == self.couleur):
             self.actionneurs.enfoncer_bougie()
-            sleep(1)
-            self.actionneurs.initialiser_bras_bougie()
-        self.table.bougie_recupere(0) #ne pas oublier de mettre à jour les éléments de jeu dans le service de table! (ligne à fin de test)
-    
+        self.table.bougie_recupere(id) #ne pas oublier de mettre à jour les éléments de jeu dans le service de table! (ligne à fin de test)
+
+    def initialiser_bras_bougie(self) : 
+        self.actionneurs.initialiser_bras_bougie()
+
+    def rentrer_bras_bougie(self) : 
+        self.actionneurs.rentrer_bras_bougie()
+
     def ouvrir_cadeau(self):
         """
         Ouvre le bras qui pousse le cadeau

@@ -1,5 +1,5 @@
 from time import sleep,time
-from math import pi
+import math
 from outils_maths.point import Point
 
 class Script:
@@ -36,13 +36,13 @@ class Script:
             calcule_chemin(position)
         self.robot.suit_chemin(self.dernierChemin)
 
-    def agit(self):
+    def agit(self, *params):
         """
         L'appel script.agit() effectue vraiment les instructions contenues dans execute().
         C'est à dire : envoi de trames sur la série, ou utilisation du simulateur.
         """
         self.robot = self.robotVrai
-        self.execute()
+        self.execute(*params)
         
     def calcule(self):
         """
@@ -63,10 +63,40 @@ class ScriptBougies(Script):
     
     def __init__(self):
         #dictionnaire définissant les bougies actives ou non
-        self.bougies = {"bougie1" : False, "bougie2" : True, "bougie3" : True, "bougie4" : True}
         
-    def execute(self):
-        self.robot.traiter_bougie()
+    def execute(self,sens):#sens +1 de droite a gauche et -1 de gauche a droite
+        deltaEntree = +
+        deltaSortie = -
+        deltaPosActionneurBas = +
+        deltaPosActionneurHaut = -
+        deltaOnBaisse = +
+        deltaOnLeve = +
+        id = self.table.pointsEntreeBougies[(1+sens)/2]
+        
+        rayon = 
+        modifPosYGat = 2000
+        hooks = []
+        angle =self.table.bougies[id]["position"]+deltaEntree*sens
+        # on se place a la position pour enfoncer la premiere bougie avec une petite marge
+        self.robot.va_au_point(rayon*math.cos(angle), modifPosYGat+math.sin(angle))
+        self.robot.actionneurs.initialiser_bras_bougie()
+        for id in range(len(self.table.bougies)) :
+            bougie = self.table.bougies[id]
+            if not bougie["traitee"]:
+                # on ajoute pour chaque bougie le delta de position de l'actionneur qui correspond
+                angleBougie = bougie["position"]+deltaPosActionneurHaut*int(bougie["enHaut"])+deltaPosActionneurBas*(1-int(bougie["enHaut"]))
+                #on enregistre un hook de position pour enfoncer une bougie avec un delta de position pour le temps que met l'actionneur
+                hooks.append(self.hookGenerator.get_hook("position", Point(rayon*math.cos(angleBougie+deltaOnBaisse*sens), modifPosYGat+math.sin(angleBougie+deltaOnBaisse*sens)), self.robot.traiter_bougie,id, unique = True))  
+                #on enregistre un hook de position pour relever le bras avec un delta de position pour le temps que met l'actionneur
+                hooks.append(self.hookGenerator.get_hook("position", Point(rayon*math.cos(angleBougie+deltaOnLeve*sens), modifPosYGat+math.sin(angleBougie+deltaOnLeve*sens)), self.robot.initialiser_bras_bougie, unique = True))    
+
+        idDerniereBougie = self.table.pointsEntreeBougies[1-(1+sens)/2]
+        angleArc = self.table.bougies[idDerniereBougie]["position"]+deltaSortie*sens
+        self.robot.arc_de_cercle(rayon*math.cos(angleArc), modifPosYGat+math.sin(angleArc),hooks)
+        self.robot.actionneurs.rentrer_bras_bougie()
+
+ 
+        
 
 class ScriptTestHooks(Script):
     
@@ -77,10 +107,10 @@ class ScriptTestHooks(Script):
             
         hooks = []
         hooks.append(self.hookGenerator.get_hook("position", Point(910,300), aFaire, "lapin", unique = False))
-        hooks.append(self.hookGenerator.get_hook("orientation", pi, aFaire, "chèvre"))
+        hooks.append(self.hookGenerator.get_hook("orientation", math.pi, aFaire, "chèvre"))
         
         self.robot.avancer(300,hooks)
-        self.robot.tourner(pi/2,hooks)
+        self.robot.tourner(math.pi/2,hooks)
         self.robot.avancer(500,hooks)
         
         
