@@ -63,8 +63,13 @@ class Serie:
                 try:
                     instanceSerie = Serial(source, baudrate, timeout=1.0)
                     
-                    #vide le buffer de l'avr
+                    #vide le buffer série coté pc
                     instanceSerie.flushInput()
+                    
+                    #vide le buffer de l'avr
+                    instanceSerie.write(bytes(" \r","utf-8"))
+                    instanceSerie.readline()
+                    
                     #ping
                     instanceSerie.write(bytes("?\r","utf-8"))
                     #évacuation de l'acquittement
