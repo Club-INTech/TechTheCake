@@ -30,8 +30,11 @@ int main () {
   serial_AX_::init();
   serial_AX_::change_baudrate(BAUD_RATE_SERIE);
 
-  AX12 AX12_BRAS(0, AX_ANGLECW, AX_ANGLECCW);
-
+  AX12 AX12_BRAS_BAS(3, AX_ANGLECW, AX_ANGLECCW);
+  AX12 AX12_BRAS_HAUT(1, AX_ANGLECW, AX_ANGLECCW);
+  
+// 3 pour l'actionneur du bas
+// 1  pour l'actionneur du haut
   while(1){
     
     char buffer[17];
@@ -50,15 +53,27 @@ int main () {
     /// *********************************************** ///
     ///                 ACTIONNEURS                     ///
     /// *********************************************** ///
-    else if(strcmp(buffer, "g") == 0)
+    else if(strcmp(buffer, "bas") == 0)
     {
       uint8_t id;
       uint16_t angle;
 
       serial_PC_::read(angle);
       AQUITTER;
-      AX12_BRAS.goTo(angle); //Angle d'entrée commandé
+      AX12_BRAS_BAS.goTo(angle); //Angle d'entrée commandé
     }
+    
+    else if(strcmp(buffer, "haut") == 0)
+    {
+      uint8_t id;
+      uint16_t angle;
+
+      serial_PC_::read(angle);
+      AQUITTER;
+      AX12_BRAS_HAUT.goTo(angle); //Angle d'entrée commandé
+    }
+    
+    
     //fin des commandes possibles
   }
   return 0;

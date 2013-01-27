@@ -80,7 +80,8 @@ class Container:
                     couleur = "blue"
                 else:
                     couleur = "red"
-                client.service.defineRobot({"list":[{"float":[-200.,-200.]},{"float":[-200.,200.]},{"float":[200.,200.]},{"float":[200.,-200.]}]},couleur)
+                
+                client.service.defineRobot({"list":[{"float":[-self.config["longueur_robot"]/2,-self.config["largeur_robot"]/2]},{"float":[-self.config["longueur_robot"]/2,self.config["largeur_robot"]/2]},{"float":[self.config["longueur_robot"]/2,self.config["largeur_robot"]/2]},{"float":[self.config["longueur_robot"]/2,-self.config["largeur_robot"]/2]}]},couleur)
                 #déclaration d'un robot adverse
                 client.service.addEnemy(30,"black")
                 return client.service
@@ -104,7 +105,7 @@ class Container:
             self.assembler.register("deplacements",DeplacementsSerie, requires=["serie","config","log"])
         
         #enregistrement du service robot
-        self.assembler.register("robot", Robot, requires=["capteurs","actionneurs","deplacements","config","log"])
+        self.assembler.register("robot", Robot, requires=["capteurs","actionneurs","deplacements","config","log","table"])
         
         #enregistrement du service robotChrono
         self.assembler.register("robotChrono", RobotChrono, requires=["log"])

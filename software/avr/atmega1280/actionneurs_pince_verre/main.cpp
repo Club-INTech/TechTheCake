@@ -60,7 +60,7 @@
 typedef Serial<0> serial_PC_;
 typedef Serial<1> serial_AX_;
 
-typedef AX<serial_AX_, BAUD_RATE_AX12> AX12;
+typedef AX<serial_AX_> AX12;
 
 int main(int argc, char const *argv[])
 {

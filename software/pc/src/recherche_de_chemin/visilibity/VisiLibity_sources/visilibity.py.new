@@ -235,18 +235,24 @@ class Point(_object):
         
     #userFriendly :)
     def __getattr__(self, attribut):
-        if attribut in ("x", "y"):
-            exec "out = self.get_"+attribut+"()"
-            return out
-        
+        if attribut == "x":
+            return self.get_x()
+        elif attribut == "y":
+            return self.get_y()
+            
     def __setattr__(self, attribut, value):
-        if attribut in ("x", "y"):
-            exec "self.set_"+attribut+"("+str(value)+")"
+        if attribut == "x":
+            self.set_x(value)
+        elif attribut == "y":
+            self.set_y(value)
         else:
             self.__dict__[attribut] = value
         
     def __str__(self):
         return "("+str(self.get_x())+", "+str(self.get_y())+")"
+        
+    def __eq__(self,other):
+        return (self.get_x() == other.x and self.get_y() == other.y)
     
     def get_x(self, *args): return _visilibity.Point_x(self)
     def get_y(self, *args): return _visilibity.Point_y(self)

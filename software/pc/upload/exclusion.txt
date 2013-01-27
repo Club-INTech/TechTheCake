@@ -1,7 +1,12 @@
-*~
-logs/*
 *__pycache__*
 *.pyc
+
+*~
 *#
-upload/*
-config/local.ini
+*.so
+*.o
+*.cxx
+
+logs/
+upload/
+

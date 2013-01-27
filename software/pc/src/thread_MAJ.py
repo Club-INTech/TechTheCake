@@ -25,7 +25,7 @@ def fonction_MAJ(container):
         sleep(0.1)
     robot.pret = True
     
-    while not timer.fin_match:
+    while not timer.get_fin_match():
     
         #mise à jour des coordonnées dans robot
         try:

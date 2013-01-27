@@ -15,6 +15,7 @@ class Deplacements(metaclass=abc.ABCMeta):
     (DeplacementsSimulateur et DeplacementsSerie)
     """
     
+    
     @abc.abstractmethod
     def gestion_blocage(self, **params):
         pass
@@ -49,6 +50,10 @@ class Deplacements(metaclass=abc.ABCMeta):
     
     @abc.abstractmethod
     def activer_asservissement_translation(self):
+        pass
+        
+    @abc.abstractmethod
+    def arret_final(self):
         pass
         
     @abc.abstractmethod
@@ -256,6 +261,9 @@ class DeplacementsSerie(Deplacements):
         infos_string = self.serie.communiquer("asservissement","?xyo",3)
         return list(map(lambda x: int(x), infos_string))
         
+    def arret_final(self):
+        self.serie.set_arret_serie()
+
         
 #################################################
 ## CLASSE POUR LES DEPLACEMENTS EN SIMULATION ###
@@ -357,3 +365,7 @@ class DeplacementsSimulateur(Deplacements):
         """
         with self.mutex:
             return [self.simulateur.getX(), self.simulateur.getY(), int(self.simulateur.getAngle()*1000)]
+            
+    def arret_final(self):
+        self.log.debug("La série est déconnectée. Les ordres ci-dessous seront ignorés.")
+

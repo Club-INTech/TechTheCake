@@ -8,3 +8,4 @@ software/build/*
 /software/avr/library/libintech/#ax12.hpp#
 /software/pc/config/local.ini
 /software/pc/*.py
+/software/pc/src/test.py

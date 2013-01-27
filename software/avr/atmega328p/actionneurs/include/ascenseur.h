@@ -8,12 +8,13 @@
 
 enum AscenseurPosition {ASCENSEUR_HAUT = 55000, ASCENSEUR_BAS = -75000};
 
-template<class Moteur>
-class Ascenceur
+template<class Moteur, class Codeuse>
+class Ascenseur
 {
 	public:
 		
-		Ascenceur();
+		Ascenseur();
+		Codeuse libcodeuse;
 		void asservir();
 		void consigne(int32_t consigne);
 		void consigne(AscenseurPosition);
@@ -21,6 +22,7 @@ class Ascenceur
 		int32_t codeuse();
 		void desasservir();
 		void reasservir();
+		void modifierVitesseKpKdKi(int8_t PWM, float kp, float kd, float ki);
 						
 	private:
 	

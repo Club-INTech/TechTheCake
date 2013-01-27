@@ -19,13 +19,16 @@ Contents:
    log
    point
    read_ini
+   rechercheChemin
    robotChrono
    robot
    scripts
    serie
    strategie
    table
+   thread_capteurs
    thread_MAJ
+   timer
 
 Indices and tables
 ==================

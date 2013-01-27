@@ -10,6 +10,7 @@ pour générer la doc du code python, il faut avoir installé sphinx :
 
 3) une fois installé, penser à générer régulièrement la doc :
 - se placer dans /pc/doc
+- make clean
 - make html
 
 4) pour lire la doc, ouvrir l'index "/pc/doc/build/html/index.html"

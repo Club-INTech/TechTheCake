@@ -6,9 +6,9 @@
 #include <libintech/pwm.hpp>
 #include <libintech/moteur.hpp>
 #include <libintech/timer.hpp>
+#include <libintech/codeuse.hpp>
 
-#include "ascenceur.h"
-#include "compteur_1.h"
+#include "ascenseur.h"
 
 /**
  * Gestion des actionneurs
@@ -20,13 +20,15 @@ class Actionneurs : public Singleton<Actionneurs>
 		typedef Serial<0> serie;
 		typedef Moteur< PWM<0,ModeFastPwm,1,'A'>, AVR_PORTB <PORTB5> > moteur_avant_t;
 		typedef Moteur< PWM<0,ModeFastPwm,1,'B'>, AVR_PORTB <PORTB4> > moteur_arriere_t;
-		typedef Timer<1,8> timer_asserv;
+		typedef Timer<1,64> timer_asserv;
+		typedef Codeuse< AVR_PORTD <PORTD2> , AVR_PORTD <PORTD3> > codeuse_ascenseur_avant;
+	//	typedef Codeuse< PCINT, > codeuse_ascenseur_arriere;
 		/**
 		 * Ascenceur avant, dépend d'un moteur
 		 * 
 		 */
-		Ascenceur< moteur_avant_t > ascenceur_avant;
-		Ascenceur< moteur_arriere_t > ascenceur_arriere;
+		Ascenseur< moteur_avant_t, codeuse_ascenseur_avant > ascenseur_avant;
+	//	Ascenseur< moteur_arriere_t, codeuse_ascenseur_arriere > ascenseur_arriere;
 
 	public:
 		Actionneurs();
