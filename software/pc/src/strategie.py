@@ -20,7 +20,8 @@ class Strategie:
         self.config = config
         self.log = log
 
-        self.scripts = {"pipeau1":ScriptPipeauStrategie1, "pipeau2":ScriptPipeauStrategie2, "pipeau3":ScriptPipeauStrategie3, "casser_tour":ScriptCasserTour, "bougies":ScriptBougies, "hooks":ScriptTestHooks, "recalcul":ScriptTestRecalcul}
+        self.arguments={"pipeau1":(), "pipeau2":(), "pipeau3":(), "casser_tour":(), "bougies": (1,)}
+        self.scripts = {"pipeau1":ScriptPipeauStrategie1, "pipeau2":ScriptPipeauStrategie2, "pipeau3":ScriptPipeauStrategie3, "casser_tour":ScriptCasserTour, "bougies":ScriptBougies}
         self.liste_points_entree = ["cadeau", "verreNous", "verreEnnemi", "Pipeau"]
         self.points={"cadeau":0, "verres": 0, "gateau":0, "deposer_verre":0, "pipeau1":6, "pipeau2": 12, "pipeau3":8}
 
@@ -70,8 +71,9 @@ class Strategie:
             self.rechercheChemin.preparer_environnement()
 
             for script in self.scripts:
+                self.log.debug(script)
 
-                dureeScript=self.scripts[script].calcule()+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
+                dureeScript=self.scripts[script].calcule(*self.arguments[script])+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
 #                self.log.debug("dureeScript de "+script+": "+str(dureeScript))
 
                 distanceE=self._distance_ennemi(script)+1              #idem

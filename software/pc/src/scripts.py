@@ -47,14 +47,14 @@ class Script:
         self.robot = self.robotVrai
         self.execute(*params)
         
-    def calcule(self):
+    def calcule(self, *params):
         """
         L'appel script.calcule() retourne la durée estimée des actions contenues dans execute().
         """
         self.robot = self.robotChrono
         self.robot.reset_compteur()
         self.robot.maj_x_y_o(self.robotVrai.x, self.robotVrai.y, self.robotVrai.orientation)
-        self.execute()
+        self.execute(*params)
         return self.robot.get_compteur()
     
         
