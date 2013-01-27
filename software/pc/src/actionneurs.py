@@ -71,7 +71,7 @@ class ActionneursSerie(Actionneurs) : #héritage
     def initialiser_bras_bougie(self,enHaut) : 
         if enHaut:
             self.log.debug("Relève l'actionneur bougie du haut")
-            self.serie.communiquer("actionneur_bougies",["haut",155],0)
+            self.serie.communiquer("actionneur_bougies",["haut",67],0)
         else:
             self.log.debug("Relève l'actionneur bougie du bas")
             self.serie.communiquer("actionneur_bougies",["bas",80],0)
@@ -79,14 +79,14 @@ class ActionneursSerie(Actionneurs) : #héritage
     def enfoncer_bougie(self,enHaut) :
         if enHaut:
             self.log.debug("Enfonce une bougie avec l'actionneur du haut")
-            self.serie.communiquer("actionneur_bougies",["haut",164],0)
+            self.serie.communiquer("actionneur_bougies",["haut",85],0)
         else:
             self.log.debug("Enfonce une bougie avec l'actionneur du bas")
-            self.serie.communiquer("actionneur_bougies",["bas",165],0)
+            self.serie.communiquer("actionneur_bougies",["bas",160],0)
 
     def rentrer_bras_bougie(self) : 
         self.log.debug("Rentre les 2 actionneurs pour bougies")
-        self.serie.communiquer("actionneur_bougies",["haut",270],0)
+        self.serie.communiquer("actionneur_bougies",["haut",170],0)
         self.serie.communiquer("actionneur_bougies",["bas",240],0)
 
     def ascenseur_aller_en_haut(self):

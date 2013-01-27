@@ -75,10 +75,10 @@ class ScriptBougies(Script):
         rayonAuBras = float(500+self.config["distance_au_gateau"])
         #delta de décalage p/r au centre du robot. On utilise des angles pour inverser plus facilement la direction
         deltaEntree = -20/rayonAuBras
-        deltaSortie = 200/rayonAuBras
+        deltaSortie = 20/rayonAuBras
         deltaPosActionneurBas = +30/rayonAuBras
         deltaPosActionneurHaut = -20/rayonAuBras
-        deltaOnBaisse = -20/rayonAuBras
+        deltaOnBaisse = -15/rayonAuBras
         deltaOnLeve = +30/rayonAuBras
         
         rayon = 500+self.config["distance_au_gateau"]+self.config["longueur_robot"]/2
@@ -103,9 +103,12 @@ class ScriptBougies(Script):
         self.robot.actionneurs.initialiser_bras_bougie(enHaut = False)
         
         hooks = []
+        
+        print("je vais enfoncer :")
         for id in range(len(self.table.bougies)) :
             bougie = self.table.bougies[id]
             if not bougie["traitee"]:
+                print(id)
                 # on ajoute pour chaque bougie le delta de position de l'actionneur qui correspond
                 angleBougie = bougie["position"]+deltaPosActionneurHaut*int(bougie["enHaut"])+deltaPosActionneurBas*(1-int(bougie["enHaut"]))
                 #on enregistre un hook de position pour enfoncer une bougie avec un delta de position pour le temps que met l'actionneur
@@ -124,7 +127,8 @@ class ScriptBougies(Script):
             self.robot.marche_arriere = False
             
         self.robot.arc_de_cercle(rayon*math.cos(angleArc), modifPosYGat+rayon*math.sin(angleArc),hooks)
-        self.robot.tourner(self.robot.orientation + math.pi/2)#on se dégage pour rentrer les actionneurs
+        #on se dégage pour rentrer les actionneurs
+        self.robot.tourner(self.robot.orientation + math.pi/2,forcer = True)
         self.robot.marche_arriere = mem_marche_arriere
         #on retire l'actionneur
         self.robot.actionneurs.rentrer_bras_bougie()

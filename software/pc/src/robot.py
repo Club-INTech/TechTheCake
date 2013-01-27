@@ -438,12 +438,13 @@ class Robot:
             self.stopper()
             print("capteurs !")
         
-    def tourner(self, angle, hooks=[]):
+    def tourner(self, angle_consigne, forcer = False,hooks=[]):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.
         Elle effectue une rotation en place. La symétrie est prise en compte.
         Les hooks sont executés, et différentes relances sont implémentées en cas de retour particulier.
         """
+        angle = angle_consigne
         
         if self.effectuer_symetrie:
             if self.config["couleur"] == "bleu":
@@ -457,8 +458,14 @@ class Robot:
         if retour == 1:
             print("rotation terminée !")
         elif retour == 2:
-            self.stopper()
-            print("rotation arrêtée car blocage !")
+            if forcer:
+                mem_vitesse = self.vitesse_translation
+                self.set_vitesse_rotation(2)
+                self.tourner(angle_consigne, False, hooks)
+                self.set_vitesse_rotation(mem_vitesse)
+            else:
+                self.stopper()
+                print("rotation arrêtée car blocage !")
         elif retour == 3:
             self.stopper()
             print("capteurs !")
