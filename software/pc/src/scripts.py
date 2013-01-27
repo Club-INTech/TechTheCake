@@ -47,14 +47,14 @@ class Script:
         self.robot = self.robotVrai
         self.execute(*params)
         
-    def calcule(self):
+    def calcule(self, *params):
         """
         L'appel script.calcule() retourne la durée estimée des actions contenues dans execute().
         """
         self.robot = self.robotChrono
         self.robot.reset_compteur()
         self.robot.maj_x_y_o(self.robotVrai.x, self.robotVrai.y, self.robotVrai.orientation)
-        self.execute()
+        self.execute(*params)
         return self.robot.get_compteur()
     
         
@@ -63,7 +63,7 @@ class ScriptBougies(Script):
     exemple de classe de script pour les bougies
     hérite de la classe mère Script
     """
-    
+            
     def execute(self,sens):
         """
         Traite le maximum de bougies possibles en partant d'un point d'entrée, et suivant 
@@ -101,7 +101,6 @@ class ScriptBougies(Script):
         #préparer les 2 actionneurs
         self.robot.actionneurs.initialiser_bras_bougie(enHaut = True)
         self.robot.actionneurs.initialiser_bras_bougie(enHaut = False)
-        
         hooks = []
         
         print("je vais enfoncer :")
@@ -113,7 +112,6 @@ class ScriptBougies(Script):
                 angleBougie = bougie["position"]+deltaPosActionneurHaut*int(bougie["enHaut"])+deltaPosActionneurBas*(1-int(bougie["enHaut"]))
                 #on enregistre un hook de position pour enfoncer une bougie avec un delta de position pour le temps que met l'actionneur
                 hooks.append(self.hookGenerator.get_hook("position", Point(rayon*math.cos(angleBougie+deltaOnBaisse*sens), modifPosYGat+rayon*math.sin(angleBougie+deltaOnBaisse*sens)), self.robot.traiter_bougie, id, bougie["enHaut"], unique = True))  
-                #on enregistre un hook de position pour relever le bras avec un delta de position pour le temps que met l'actionneur
                 hooks.append(self.hookGenerator.get_hook("position", Point(rayon*math.cos(angleBougie+deltaOnLeve*sens), modifPosYGat+rayon*math.sin(angleBougie+deltaOnLeve*sens)), self.robot.initialiser_bras_bougie,bougie["enHaut"], unique = True))    
 
         idDerniereBougie = self.table.pointsEntreeBougies[int(1-(1+sens)/2)]
@@ -132,14 +130,13 @@ class ScriptBougies(Script):
         self.robot.marche_arriere = mem_marche_arriere
         #on retire l'actionneur
         self.robot.actionneurs.rentrer_bras_bougie()
-        
+
         #debug
         print("j'ai pété les bougies :")
         for id in range(len(self.table.bougies)) :
             if self.table.bougies[id]["traitee"]:
                 print(str(id))
         print("...enfin j'crois...")
-        
 
 class ScriptTestHooks(Script):
     
@@ -207,8 +204,20 @@ class ScriptPipeauStrategie3(Script):
     def execute(self):
         self.va_au_point(Point(500,1500))
         self.robot.traiter_bougie()
+#        points_bougies=0
+#        if robot.traiter_bougie():
+#            points_bougies+=4
+#        return points_bougies
 
     def point_entree(self):
         return Point(500,1500)
 
+class ScriptCasserTour(Script):
+    
+    def execute(self):
+        self.va_au_point(Point(1200,400))
+        self.va_au_point(Point(1200,600))
+
+    def point_entree(self):
+        return Point(1300,200)
 

@@ -20,8 +20,8 @@
 #define BAUD_RATE_AX12          2000000/(BAUD_RATE_SERIE+1)
 
 // Angles MIN et MAX en tics (compris entre 0 et 1024, cf. datasheet)
-#define AX_ANGLECW              600
-#define AX_ANGLECCW             800
+#define AX_ANGLECW              512
+#define AX_ANGLECCW             820
 
 
 
@@ -72,7 +72,7 @@ int main(int argc, char const *argv[])
     serial_AX_::change_baudrate(BAUD_RATE_SERIE);
 
     serial_PC_::init();
-    serial_PC_::change_baudrate(BAUD_RATE_SERIE);
+    // serial_PC_::change_baudrate(BAUD_RATE_SERIE);
     
     // REANIMATION_MODE :
     //uint8_t debug_baudrate = 0x00;

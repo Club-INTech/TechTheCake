@@ -34,6 +34,8 @@ class Table:
 	{"position":(375,0),"ouvert":False},
 	{"position":(-225,0),"ouvert":False},
 	{"position":(-825,0),"ouvert":False}]
+	
+        self.pointsEntreeCadeaux = [0.3]
 
 # Listes des obstacles repérés par les différents capteurs 
         self.robotsAdversesBalise = []
@@ -62,7 +64,7 @@ class Table:
     {"position":-0.196, "traitee":False, "enHaut":True},
     {"position":-0.131, "traitee":False, "enHaut":False}]
     
-        self.pointsEntreeBougies = [4,17]
+        self.pointsEntreeBougies = [0,19]
         
         #pour lorsqu'on met le gateau en bas
         self.bougies = [
@@ -101,10 +103,14 @@ class Table:
 	{"position":(-150,800), "present":True},
 	{"position":(-600,550), "present":True},
 	{"position":(-300,550), "present":True}]
+	
+        self.pointsEntreeVerres= [0,5,6,11]
 
 # A utiliser lorsqu'un cadeau est tombé.
     def cadeau_recupere(self,id) :
         self.cadeaux[id]["ouvert"]=True
+        if id in self.pointsEntreeCadeaux :
+            self._reattribuePointEntreeCadeaux(id)
 	
 # Permet de savoir l'état d'un cadeau.	
     def etat_cadeau(self,id) :
@@ -113,6 +119,8 @@ class Table:
 # A utiliser lorsqu'une bougie est tombée.
     def bougie_recupere(self,id) :
         self.bougies[id]["traitee"]=True
+        if id in self.pointsEntreeBougies :
+            self._reattribuePointEntreeBougie(id)
 	
 # Permet de savoir l'état d'une bougie.
     def etat_bougie(self,id) :
@@ -126,6 +134,8 @@ class Table:
 # A utiliser lorsqu'un verre est déjà utilisé (privé).
     def _retirer_verre(self,id) :
             self.verres[id]["present"]=False
+            if id in self.pointsEntreeVerres :
+                self._reattribuePointEntreeVerre(id)
 	
 # Permet de savoir l'état d'un verre.
     def etat_verre(self,id) :
@@ -168,5 +178,71 @@ class Table:
     def get_robotsAdversesBalise(self) :
         with self.mutex :
             return self.robotsAdversesBalise
-        
-	
+
+# Change les points d'entrée pour les verres
+    def _reattribuePointEntreeVerre(self, id) :
+        newId = id
+        if id == self.pointsEntreeVerres[0] : # cas où c'est le point d'entrée gauche chez nous.
+            while not self.etat_verre(newId) and newId < 5 :
+                newId++
+            if newId >= 0 and newId < 5 :
+                self.pointsEntreeVerres[0] = newId
+            else :
+                self.pointsEntreeVerres = []
+        elif id == self.pointsEntreeVerres[1] : # cas où c'est le point d'entrée droit chez nous.
+            while not self.etat_verre(newId) and newId > 0 :
+                newId--
+            if newId >= 0 and newId < 5 :
+                self.pointsEntreeVerres[1] = newId
+            else :
+                self.pointsEntreeVerres = []
+        if id == self.pointsEntreeVerres[2] : # cas où c'est le point d'entrée gauche chez eux.
+            while not self.etat_verre(newId) and newId < 11 :
+                newId++
+            if newId >= 6 and newId < 11 :
+                self.pointsEntreeVerres[2] = newId
+            else :
+                self.pointsEntreeVerres = []
+        elif id == self.pointsEntreeVerres[3] : # cas où c'est le point d'entrée droit chez eux.
+            while not self.etat_verre(newId) and newId > 6 :
+                newId--
+            if newId >= 6 and newId < 11 :
+                self.pointsEntreeVerres[3] = newId
+            else :
+                self.pointsEntreeVerres = []
+
+# Change les points d'entrée pour les bougies
+    def _reattribuePointEntreeBougie(self, id) :
+        newId = id
+        if id == self.pointsEntreeBougies[0] : # cas où c'est le point d'entrée gauche
+            while self.etat_bougie(newId) and newId < 19 :
+                newId++
+            if newId >= 0 and newId < 20 :
+                self.pointsEntreeBougies[0] = newId
+            else :
+                self.pointsEntreeBougies = []
+        else : # cas où c'est le point d'entrée droit
+            while self.etat_bougie(newId) and newId > 0 :
+                newId--
+            if newId >= 0 and newId < 20 :
+                self.pointsEntreeBougies[1] = newId
+            else :
+                self.pointsEntreeBougies = []
+                
+# Change les points d'entrée pour les cadeaux
+    def _reattribuePointEntreeCadeaux(self, id) :
+        newId = id
+        if id == self.pointsEntreeCadeaux[0] : # cas où c'est le point d'entrée gauche
+            while self.etat_cadeau(newId) and newId < 3 :
+                newId++
+            if newId >= 0 and newId < 4 :
+                self.pointsEntreeCadeaux[0] = newId
+            else :
+                self.pointsEntreeCadeaux = []
+        else : # cas où c'est le point d'entrée droit
+            while self.etat_cadeau(newId) and newId > 0 :
+                newId--
+            if newId >= 0 and newId < 4 :
+                self.pointsEntreeCadeaux[1] = newId
+            else :
+                self.pointsEntreeCadeaux = []

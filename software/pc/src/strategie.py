@@ -20,8 +20,8 @@ class Strategie:
         self.config = config
         self.log = log
 
-#        self.scripts = {"pipeau1":ScriptPipeauStrategie1, "pipeau2":ScriptPipeauStrategie2, "pipeau3":ScriptPipeauStrategie3}
-        self.scripts = {"pipeau1":ScriptPipeauStrategie1, "pipeau2":ScriptPipeauStrategie2, "pipeau3":ScriptPipeauStrategie3,"bougies":ScriptBougies, "hooks":ScriptTestHooks, "recalcul":ScriptTestRecalcul}
+        self.arguments={"pipeau1":(), "pipeau2":(), "pipeau3":(), "casser_tour":(), "bougies": (1,)}
+        self.scripts = {"pipeau1":ScriptPipeauStrategie1, "pipeau2":ScriptPipeauStrategie2, "pipeau3":ScriptPipeauStrategie3, "casser_tour":ScriptCasserTour, "bougies":ScriptBougies}
         self.liste_points_entree = ["cadeau", "verreNous", "verreEnnemi", "Pipeau"]
         self.points={"cadeau":0, "verres": 0, "gateau":0, "deposer_verre":0, "pipeau1":6, "pipeau2": 12, "pipeau3":8}
 
@@ -38,7 +38,7 @@ class Strategie:
         while not self.timer.get_fin_match():
 #            self.rechercheChemin.retirer_obstacles_dynamique();
 
-            note={"cadeau":0, "verreNous":0, "verreEnnemi": 0, "gateau":0, "deposer_verres":0, "pipeau1":0, "pipeau2":0, "pipeau3":0} #les clés sont les scripts
+            note={"cadeau":0, "verreNous":0, "verreEnnemi": 0, "gateau":0, "deposer_verres":0, "pipeau1":0, "pipeau2":0, "pipeau3":0, "casser_tour":0} #les clés sont les scripts
 
         #        for script in self.points: #retiré pour la durée des tests (tant que les vrais scripts ne sont pas dispo...)
         #            self.points[script]=0
@@ -53,6 +53,7 @@ class Strategie:
                 if not element["ouvert"]:
                     self.points["cadeau"]+=4
             self.points["deposer_verres"]=4*(self.robot.nb_verres_avant+self.robot.nb_verres_arriere)**2 #mettre la vraie valeur
+            self.points["casser_tour"]=(time()-self.timer.get_date_debut())
 
 #            self.points["pipeau2"]=0
 #            for element in self.table.bougies:
@@ -70,8 +71,9 @@ class Strategie:
             self.rechercheChemin.preparer_environnement()
 
             for script in self.scripts:
+                self.log.debug(script)
 
-                dureeScript=self.scripts[script].calcule()+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
+                dureeScript=self.scripts[script].calcule(*self.arguments[script])+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
 #                self.log.debug("dureeScript de "+script+": "+str(dureeScript))
 
                 distanceE=self._distance_ennemi(script)+1              #idem
