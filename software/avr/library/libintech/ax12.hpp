@@ -88,7 +88,7 @@ private:
     void sendPacket(uint8_t datalength, uint8_t instruction, uint8_t *data)
     {
         uint8_t checksum = 0;
-        Serial_AX12::disable_rx();             //désactiver la série
+        // Serial_AX12::disable_rx();             //désactiver la série
         Serial_AX12::send_char(0xFF);
         Serial_AX12::send_char(0xFF);
         Serial_AX12::send_char(id_);
@@ -103,7 +103,7 @@ private:
         }
         
         Serial_AX12::send_char(~checksum);
-        Serial_AX12::enable_rx();                //réactiver la série
+        // Serial_AX12::enable_rx();                //réactiver la série
     }
 
     void static sendPacketB(uint8_t datalength, uint8_t instruction, uint8_t *data)
