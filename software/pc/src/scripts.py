@@ -39,7 +39,10 @@ class Script:
     def agit(self, *params):
         """
         L'appel script.agit() effectue vraiment les instructions contenues dans execute().
-        C'est à dire : envoi de trames sur la série, ou utilisation du simulateur.
+        C'est à dire : envoi de trames sur la série, ou utilisation du simulateur. 
+        On peut appeler agit() lorsqu'il n'y a pas de paramètres
+        agit(3) pour passer un paramètre (ici entier)
+        agit(*(3,"foo","bar")) pour passer n paramètres dans un tuple, qu'on split avec *
         """
         self.robot = self.robotVrai
         self.execute(*params)
@@ -61,41 +64,77 @@ class ScriptBougies(Script):
     hérite de la classe mère Script
     """
     
-    def __init__(self):
-        #dictionnaire définissant les bougies actives ou non
+    def execute(self,sens):
+        """
+        Traite le maximum de bougies possibles en partant d'un point d'entrée, et suivant 
+        sens : +1 de droite a gauche et -1 de gauche a droite
+        """
+        #pour les tests
+        gateauEnBas = True
         
-    def execute(self,sens):#sens +1 de droite a gauche et -1 de gauche a droite
-        deltaEntree = +
-        deltaSortie = -
-        deltaPosActionneurBas = +
-        deltaPosActionneurHaut = -
-        deltaOnBaisse = +
-        deltaOnLeve = +
-        id = self.table.pointsEntreeBougies[(1+sens)/2]
+        rayonAuBras = float(500+self.config["distance_au_gateau"])
+        #delta de décalage p/r au centre du robot. On utilise des angles pour inverser plus facilement la direction
+        deltaEntree = -20/rayonAuBras
+        deltaSortie = 200/rayonAuBras
+        deltaPosActionneurBas = +30/rayonAuBras
+        deltaPosActionneurHaut = -20/rayonAuBras
+        deltaOnBaisse = -20/rayonAuBras
+        deltaOnLeve = +30/rayonAuBras
         
-        rayon = 
-        modifPosYGat = 2000
+        rayon = 500+self.config["distance_au_gateau"]+self.config["longueur_robot"]/2
+        if gateauEnBas:
+            modifPosYGat = 0
+        else:
+            modifPosYGat = 2000
+        
+        idPremiereBougie = self.table.pointsEntreeBougies[int((1+sens)/2)]
+        premiereBougie = self.table.bougies[idPremiereBougie]
+        angle = premiereBougie["position"] + deltaEntree*sens
+        # on se place a la position pour enfoncer la premiere bougie avec une petite marge : on n'effectue pas la symétrie couleur
+        
+        #on se dirige vers le premier point d'entrée (première bougie)
+        mem_effectuer_symetrie = self.robot.effectuer_symetrie
+        self.robot.effectuer_symetrie = False
+        self.robot.va_au_point(rayon*math.cos(angle), modifPosYGat+rayon*math.sin(angle))
+        self.robot.effectuer_symetrie = mem_effectuer_symetrie
+        
+        #préparer les 2 actionneurs
+        self.robot.actionneurs.initialiser_bras_bougie(enHaut = True)
+        self.robot.actionneurs.initialiser_bras_bougie(enHaut = False)
+        
         hooks = []
-        angle =self.table.bougies[id]["position"]+deltaEntree*sens
-        # on se place a la position pour enfoncer la premiere bougie avec une petite marge
-        self.robot.va_au_point(rayon*math.cos(angle), modifPosYGat+math.sin(angle))
-        self.robot.actionneurs.initialiser_bras_bougie()
         for id in range(len(self.table.bougies)) :
             bougie = self.table.bougies[id]
             if not bougie["traitee"]:
                 # on ajoute pour chaque bougie le delta de position de l'actionneur qui correspond
                 angleBougie = bougie["position"]+deltaPosActionneurHaut*int(bougie["enHaut"])+deltaPosActionneurBas*(1-int(bougie["enHaut"]))
                 #on enregistre un hook de position pour enfoncer une bougie avec un delta de position pour le temps que met l'actionneur
-                hooks.append(self.hookGenerator.get_hook("position", Point(rayon*math.cos(angleBougie+deltaOnBaisse*sens), modifPosYGat+math.sin(angleBougie+deltaOnBaisse*sens)), self.robot.traiter_bougie,id, unique = True))  
+                hooks.append(self.hookGenerator.get_hook("position", Point(rayon*math.cos(angleBougie+deltaOnBaisse*sens), modifPosYGat+rayon*math.sin(angleBougie+deltaOnBaisse*sens)), self.robot.traiter_bougie, id, bougie["enHaut"], unique = True))  
                 #on enregistre un hook de position pour relever le bras avec un delta de position pour le temps que met l'actionneur
-                hooks.append(self.hookGenerator.get_hook("position", Point(rayon*math.cos(angleBougie+deltaOnLeve*sens), modifPosYGat+math.sin(angleBougie+deltaOnLeve*sens)), self.robot.initialiser_bras_bougie, unique = True))    
+                hooks.append(self.hookGenerator.get_hook("position", Point(rayon*math.cos(angleBougie+deltaOnLeve*sens), modifPosYGat+rayon*math.sin(angleBougie+deltaOnLeve*sens)), self.robot.initialiser_bras_bougie,bougie["enHaut"], unique = True))    
 
-        idDerniereBougie = self.table.pointsEntreeBougies[1-(1+sens)/2]
-        angleArc = self.table.bougies[idDerniereBougie]["position"]+deltaSortie*sens
-        self.robot.arc_de_cercle(rayon*math.cos(angleArc), modifPosYGat+math.sin(angleArc),hooks)
+        idDerniereBougie = self.table.pointsEntreeBougies[int(1-(1+sens)/2)]
+        derniereBougie = self.table.bougies[idDerniereBougie]
+        angleArc = derniereBougie["position"]+deltaSortie*sens
+        # On effectue l'arc de cercle chargé avec la liste des hooks. Marche arrière si besoin, en fonction de la position des actionneurs.
+        mem_marche_arriere = self.robot.marche_arriere
+        if (sens == 1) != gateauEnBas:
+            self.robot.marche_arriere = True
+        else:
+            self.robot.marche_arriere = False
+            
+        self.robot.arc_de_cercle(rayon*math.cos(angleArc), modifPosYGat+rayon*math.sin(angleArc),hooks)
+        self.robot.tourner(self.robot.orientation + math.pi/2)#on se dégage pour rentrer les actionneurs
+        self.robot.marche_arriere = mem_marche_arriere
+        #on retire l'actionneur
         self.robot.actionneurs.rentrer_bras_bougie()
-
- 
+        
+        #debug
+        print("j'ai pété les bougies :")
+        for id in range(len(self.table.bougies)) :
+            if self.table.bougies[id]["traitee"]:
+                print(str(id))
+        print("...enfin j'crois...")
         
 
 class ScriptTestHooks(Script):

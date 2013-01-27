@@ -262,7 +262,7 @@ class DeplacementsSerie(Deplacements):
         return list(map(lambda x: int(x), infos_string))
         
     def arret_final(self):
-        self.serie.arret_serie()
+        self.serie.set_arret_serie()
 
         
 #################################################

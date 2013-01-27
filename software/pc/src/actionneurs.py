@@ -16,11 +16,11 @@ class Actionneurs(metaclass=abc.ABCMeta):
         pass
         
     @abc.abstractmethod
-    def initialiser_bras_bougie(self) : 
+    def initialiser_bras_bougie(self,enHaut) : 
         pass
         
     @abc.abstractmethod
-    def enfoncer_bougie(self) :
+    def enfoncer_bougie(self,enHaut) :
         pass
         
     @abc.abstractmethod
@@ -68,14 +68,26 @@ class ActionneursSerie(Actionneurs) : #héritage
     def gonfler_ballon(self) :
         self.log.debug("Gonflage du ballon")
         
-    def initialiser_bras_bougie(self) : 
-        self.serie.communiquer("actionneur_bougies",["g",150],0)
+    def initialiser_bras_bougie(self,enHaut) : 
+        if enHaut:
+            self.log.debug("Relève l'actionneur bougie du haut")
+            self.serie.communiquer("actionneur_bougies",["haut",155],0)
+        else:
+            self.log.debug("Relève l'actionneur bougie du bas")
+            self.serie.communiquer("actionneur_bougies",["bas",80],0)
 
-    def enfoncer_bougie(self) :
-        self.serie.communiquer("actionneur_bougies",["g",160],0)
+    def enfoncer_bougie(self,enHaut) :
+        if enHaut:
+            self.log.debug("Enfonce une bougie avec l'actionneur du haut")
+            self.serie.communiquer("actionneur_bougies",["haut",164],0)
+        else:
+            self.log.debug("Enfonce une bougie avec l'actionneur du bas")
+            self.serie.communiquer("actionneur_bougies",["bas",165],0)
 
     def rentrer_bras_bougie(self) : 
-        self.serie.communiquer("actionneur_bougies",["g",240],0)
+        self.log.debug("Rentre les 2 actionneurs pour bougies")
+        self.serie.communiquer("actionneur_bougies",["haut",270],0)
+        self.serie.communiquer("actionneur_bougies",["bas",240],0)
 
     def ascenseur_aller_en_haut(self):
         self.serie.communiquer("ascenseur", "haut", 0)
@@ -127,14 +139,20 @@ class ActionneursSimulateur(Actionneurs) :
     def gonfler_ballon(self) :
         self.log.debug("Gonflage du ballon")
 
-    def initialiser_bras_bougie(self) : 
-        self.log.debug("Initialise le bras bougie")
+    def initialiser_bras_bougie(self,enHaut) : 
+        if enHaut:
+            self.log.debug("Relève l'actionneur bougie du haut")
+        else:
+            self.log.debug("Relève l'actionneur bougie du bas")
 
-    def enfoncer_bougie(self) :
-        self.log.debug("Enfonce la bougie")
+    def enfoncer_bougie(self,enHaut) :
+        if enHaut:
+            self.log.debug("Enfonce la bougie avec l'actionneur du haut")
+        else:
+            self.log.debug("Enfonce la bougie avec l'actionneur du bas")
 
     def rentrer_bras_bougie(self) : 
-        self.log.debug("Rentre le bras bougie")
+        self.log.debug("Rentre les 2 actionneurs pour bougies")
 
     def ascenseur_aller_en_haut(self):
         self.log.debug("Ascenseur va en bas")

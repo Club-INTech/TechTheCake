@@ -80,7 +80,8 @@ class Container:
                     couleur = "blue"
                 else:
                     couleur = "red"
-                client.service.defineRobot({"list":[{"float":[-200.,-200.]},{"float":[-200.,200.]},{"float":[200.,200.]},{"float":[200.,-200.]}]},couleur)
+                
+                client.service.defineRobot({"list":[{"float":[-self.config["longueur_robot"]/2,-self.config["largeur_robot"]/2]},{"float":[-self.config["longueur_robot"]/2,self.config["largeur_robot"]/2]},{"float":[self.config["longueur_robot"]/2,self.config["largeur_robot"]/2]},{"float":[self.config["longueur_robot"]/2,-self.config["largeur_robot"]/2]}]},couleur)
                 #déclaration d'un robot adverse
                 client.service.addEnemy(30,"black")
                 return client.service

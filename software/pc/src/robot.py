@@ -52,7 +52,10 @@ class Robot:
         self.vitesse_rotation = 2
         
         #mode marche arrière
-        self.marche_arriere = False
+        self._marche_arriere = False
+        
+        #gestion par défaut de la symétrie couleur
+        self._effectuer_symetrie = True
         
         #le robot n'est pas prêt tant qu'il n'a pas recu ses coordonnées initiales par le thread de mise à jour
         self.pret = False
@@ -82,7 +85,9 @@ class Robot:
             "consigne_y":self.set_consigne_y,
             "orientation":self.set_orientation,
             "blocage":self.set_blocage,
-            "enMouvement":self.set_enMouvement
+            "enMouvement":self.set_enMouvement,
+            "marche_arriere":self.set_marche_arriere,
+            "effectuer_symetrie":self.set_effectuer_symetrie
         }
         if attribut in setters:
             setters[attribut](value)
@@ -97,7 +102,9 @@ class Robot:
             "consigne_y",
             "orientation",
             "blocage",
-            "enMouvement"
+            "enMouvement",
+            "marche_arriere",
+            "effectuer_symetrie"
         ]
         if attribut in getters:
             with self.mutex:
@@ -116,6 +123,14 @@ class Robot:
     def set_consigne_y(self, value):
         with self.mutex:
             self.__dict__["_consigne_y"] = value
+            
+    def set_marche_arriere(self, value):
+        with self.mutex:
+            self.__dict__["_marche_arriere"] = value
+            
+    def set_effectuer_symetrie(self, value):
+        with self.mutex:
+            self.__dict__["_effectuer_symetrie"] = value
      
     def set_orientation(self, value):
         #l'attribut self._consigne_orientation doit etre mis à jour à chaque changement d'orientation pour le fonctionnement de self._avancer()
@@ -291,8 +306,7 @@ class Robot:
         #comme à toute consigne initiale de mouvement, le robot est débloqué
         self.blocage = False
         
-        #TODO : utiliser le service de table pour le gateau ?
-        #####################
+        ######################
         ##si gateau en haut :
         ##sens de parcours
         #if xM < self.x:
@@ -301,7 +315,7 @@ class Robot:
         #xO = 0
         #yO = 2000
         
-        #####################
+        ####################
         #si gateau en bas :
         #sens de parcours
         if xM > self.x:
@@ -335,8 +349,11 @@ class Robot:
         #vitesses pour le parcours de l'arc de cercle
         #TODO : passer ca dans déplacements ?
         self.set_vitesse_translation(1)
-        self.deplacements.serie.communiquer("asservissement",["crv",1.5,2.0,self.config["vitesse_rot_arc_cercle"]], 0)
-        
+        if not self.config["mode_simulateur"]:
+            self.deplacements.serie.communiquer("asservissement",["crv",1.5,2.0,self.config["vitesse_rot_arc_cercle"]], 0)
+        else:
+            self.set_vitesse_translation(2)
+            
         while 1:
             #calcul de l'angle de A (point de départ)
             tA = atan2(self.y-yO,self.x-xO)
@@ -407,7 +424,11 @@ class Robot:
         
         self.log.debug("avancer de "+str(distance))
         
+        mem_marche_arriere = self.marche_arriere
+        self.marche_arriere = (distance < 0)
+        
         retour = self._avancer(distance, hooks)
+        self.marche_arriere = mem_marche_arriere
         if retour == 1:
             print("translation terminée !")
         elif retour == 2:
@@ -424,13 +445,13 @@ class Robot:
         Les hooks sont executés, et différentes relances sont implémentées en cas de retour particulier.
         """
         
-        self.log.debug("tourner à "+str(angle))
-        
-        #le mode marche arrière n'effectue pas de symétrie pour la couleur : on l'utilise justement pour ca. (actionneurs sur le côté)
-        if not self.marche_arriere:
+        if self.effectuer_symetrie:
             if self.config["couleur"] == "bleu":
                 #symétrie de la consigne d'orientation
                 angle = pi - angle
+            self.log.debug("tourner à "+str(angle)+" (symétrie appliquée)")
+        else:
+            self.log.debug("tourner sans symétrie à "+str(angle))
                 
         retour = self._tourner(angle, hooks)
         if retour == 1:
@@ -458,11 +479,13 @@ class Robot:
         Les hooks sont executés, et différentes relances sont implémentées en cas de retour particulier.
         """
         
-        self.log.debug("va au point ("+str(x)+", "+str(y)+"), virage inital : "+str(virage_initial))
-        
-        if self.config["couleur"] == "bleu":
-            #symétrie du point consigne
-            x *= -1
+        if self.effectuer_symetrie:
+            if self.config["couleur"] == "bleu":
+                #symétrie du point consigne
+                x *= -1
+            self.log.debug("va au point ("+str(x)+", "+str(y)+") (symétrie appliquée), virage inital : "+str(virage_initial))
+        else:
+            self.log.debug("va au point ("+str(x)+", "+str(y)+") (sans symétrie), virage inital : "+str(virage_initial))
                 
         retour = self._va_au_point(x, y, hooks, virage_initial)
         if retour == 1:
@@ -480,14 +503,10 @@ class Robot:
         Faites pas cette tête, c'est intuitif.
         Les hooks sont executés, et différentes relances sont implémentées en cas de retour particulier.
         """
-        
         self.log.debug("effectue un arc de cercle entre ("+str(self.x)+", "+str(self.y)+") et ("+str(xM)+", "+str(yM)+")")
         
-        if self.config["couleur"] == "bleu":
-            #symétrie du point consigne
-            xM *= -1
-                
         retour = self._arc_de_cercle(xM,yM,hooks)
+        
         if retour == 1:
             print("point de destination atteint !")
         elif retour == 2:
@@ -573,16 +592,18 @@ class Robot:
         self.deplacements.set_vitesse_rotation(valeur)
         self.vitesse_rotation = int(valeur)
 
-    def traiter_bougie(self,id):
+    def traiter_bougie(self,id,enHaut):
         """
         teste la couleur puis enfonce si c'est la bonne couleur
         """
         if(self.capteurs.lire_couleur() == self.couleur):
-            self.actionneurs.enfoncer_bougie()
-        self.table.bougie_recupere(id) #ne pas oublier de mettre à jour les éléments de jeu dans le service de table! (ligne à fin de test)
+            self.actionneurs.enfoncer_bougie(enHaut)
+            
+        #met à jour les éléments de jeu dans le service de table
+        self.table.bougie_recupere(id)
 
-    def initialiser_bras_bougie(self) : 
-        self.actionneurs.initialiser_bras_bougie()
+    def initialiser_bras_bougie(self,enHaut) : 
+        self.actionneurs.initialiser_bras_bougie(enHaut)
 
     def rentrer_bras_bougie(self) : 
         self.actionneurs.rentrer_bras_bougie()
