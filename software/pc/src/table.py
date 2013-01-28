@@ -184,28 +184,28 @@ class Table:
         newId = id
         if id == self.pointsEntreeVerres[0] : # cas où c'est le point d'entrée gauche chez nous.
             while not self.etat_verre(newId) and newId < 5 :
-                newId++
+                newId+=1
             if newId >= 0 and newId < 5 :
                 self.pointsEntreeVerres[0] = newId
             else :
                 self.pointsEntreeVerres = []
         elif id == self.pointsEntreeVerres[1] : # cas où c'est le point d'entrée droit chez nous.
             while not self.etat_verre(newId) and newId > 0 :
-                newId--
+                newId-=1
             if newId >= 0 and newId < 5 :
                 self.pointsEntreeVerres[1] = newId
             else :
                 self.pointsEntreeVerres = []
         if id == self.pointsEntreeVerres[2] : # cas où c'est le point d'entrée gauche chez eux.
             while not self.etat_verre(newId) and newId < 11 :
-                newId++
+                newId+=1
             if newId >= 6 and newId < 11 :
                 self.pointsEntreeVerres[2] = newId
             else :
                 self.pointsEntreeVerres = []
         elif id == self.pointsEntreeVerres[3] : # cas où c'est le point d'entrée droit chez eux.
             while not self.etat_verre(newId) and newId > 6 :
-                newId--
+                newId-=1
             if newId >= 6 and newId < 11 :
                 self.pointsEntreeVerres[3] = newId
             else :
@@ -216,14 +216,14 @@ class Table:
         newId = id
         if id == self.pointsEntreeBougies[0] : # cas où c'est le point d'entrée gauche
             while self.etat_bougie(newId) and newId < 19 :
-                newId++
+                newId+=1
             if newId >= 0 and newId < 20 :
                 self.pointsEntreeBougies[0] = newId
             else :
                 self.pointsEntreeBougies = []
         else : # cas où c'est le point d'entrée droit
             while self.etat_bougie(newId) and newId > 0 :
-                newId--
+                newId-=1
             if newId >= 0 and newId < 20 :
                 self.pointsEntreeBougies[1] = newId
             else :
@@ -234,14 +234,14 @@ class Table:
         newId = id
         if id == self.pointsEntreeCadeaux[0] : # cas où c'est le point d'entrée gauche
             while self.etat_cadeau(newId) and newId < 3 :
-                newId++
+                newId+=1
             if newId >= 0 and newId < 4 :
                 self.pointsEntreeCadeaux[0] = newId
             else :
                 self.pointsEntreeCadeaux = []
         else : # cas où c'est le point d'entrée droit
             while self.etat_cadeau(newId) and newId > 0 :
-                newId--
+                newId-=1
             if newId >= 0 and newId < 4 :
                 self.pointsEntreeCadeaux[1] = newId
             else :
