@@ -603,7 +603,9 @@ class Robot:
         """
         teste la couleur puis enfonce si c'est la bonne couleur
         """
-        if(self.capteurs.lire_couleur() == self.couleur):
+        couleur_mesuree = self.capteurs.lire_couleur()
+        print(couleur_mesuree)
+        if(couleur_mesuree == self.config["couleur"]):
             self.actionneurs.enfoncer_bougie(enHaut)
             
         #met à jour les éléments de jeu dans le service de table

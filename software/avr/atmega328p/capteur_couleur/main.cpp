@@ -30,14 +30,14 @@ int main(){
 
     }else if(strcmp(buffer, "c") == 0){
       Couleur couleur=RAS;
-      sbi(PORTB, PORTB1);
-      cbi(PORTB, PORTB2);
+      sbi(PORTB, PORTB2);
+      cbi(PORTB, PORTB1);
       _delay_ms(100);//on attend un peu
       if( !rbi(PINB, PORTB3) ){ //ROUGE, le capteur est à 0 quand il y a reception!
         couleur=ROUGE;
       }
-      cbi(PORTB, PORTB1);
-      sbi(PORTB, PORTB2);
+      cbi(PORTB, PORTB2);
+      sbi(PORTB, PORTB1);
       _delay_ms(100);
       if( !rbi(PINB, PORTB3) ){ //BLEU
         if(couleur==ROUGE){
