@@ -99,8 +99,8 @@ class ScriptBougies(Script):
         self.robot.effectuer_symetrie = mem_effectuer_symetrie
         
         #préparer les 2 actionneurs
-        self.robot.actionneurs.initialiser_bras_bougie(enHaut = True)
-        self.robot.actionneurs.initialiser_bras_bougie(enHaut = False)
+        self.robot.initialiser_bras_bougie(enHaut = True)
+        self.robot.initialiser_bras_bougie(enHaut = False)
         hooks = []
         
         print("je vais enfoncer :")

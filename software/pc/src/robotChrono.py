@@ -17,6 +17,10 @@ class RobotChrono:
         self.vitesse_translation = 2
         self.vitesse_rotation = 2
         
+        #valeur par défaut
+        self.effectuer_symetrie = True
+        self.marche_arriere = True
+        
     def maj_x_y_o(self,x,y,orientation):
         self.x = x
         self.y = y
@@ -96,3 +100,10 @@ class RobotChrono:
         Fonction analogue à celle de robot. Ferme le bras qui a poussé le cadeau
         """
         pass
+        
+    def initialiser_bras_bougie(self,enHaut) : 
+        """
+        Fonction analogue à celle de robot. Initialise le bras bougie.
+        """
+        pass
+
