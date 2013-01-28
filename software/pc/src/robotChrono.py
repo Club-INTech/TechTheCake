@@ -44,7 +44,7 @@ class RobotChrono:
         self.x += distance*cos(self.orientation)
         self.y += distance*sin(self.orientation)
         
-    def tourner(self, angle):
+    def tourner(self, angle, forcer = False,hooks=[]):
         """
         Fonction analogue à celle de robot. Bah... ça tourne quoi. Il vous faut un dessin?
         """
@@ -67,7 +67,7 @@ class RobotChrono:
         self.tourner(angle)
         self.avancer(distance)
     
-    def arc_de_cercle(self, **useless):
+    def arc_de_cercle(self,xM,yM,hooks=[]):
         #TODO
         pass
         
@@ -105,5 +105,8 @@ class RobotChrono:
         """
         Fonction analogue à celle de robot. Initialise le bras bougie.
         """
+        pass
+
+    def rentrer_bras_bougie(self) : 
         pass
 

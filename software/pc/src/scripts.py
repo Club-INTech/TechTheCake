@@ -129,7 +129,7 @@ class ScriptBougies(Script):
         self.robot.tourner(self.robot.orientation + math.pi/2,forcer = True)
         self.robot.marche_arriere = mem_marche_arriere
         #on retire l'actionneur
-        self.robot.actionneurs.rentrer_bras_bougie()
+        self.robot.rentrer_bras_bougie()
 
         #debug
         print("j'ai pété les bougies :")
