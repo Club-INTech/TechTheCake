@@ -21,7 +21,16 @@ class Strategie:
         self.log = log
 
         self.arguments={"pipeau1":(), "pipeau2":(), "pipeau3":(), "casser_tour":(), "bougies": (1,)}
-        self.scripts = {"pipeau1":ScriptPipeauStrategie1, "pipeau2":ScriptPipeauStrategie2, "pipeau3":ScriptPipeauStrategie3, "casser_tour":ScriptCasserTour, "bougies":ScriptBougies}
+        self.scripts = {"pipeau1":ScriptPipeauStrategie1, "pipeau2":ScriptPipeauStrategie2, "pipeau3":ScriptPipeauStrategie3, "casser_tour":ScriptCasserTour}
+        if not self.config["ennemi_fait_toutes_bougies"]:
+            if self.config["ennemi_fait_ses_bougies"]:
+                self.scripts["bougies"]=ScriptBougiesRapide
+                self.log.warning("On fait les bougies sans détecteur.")
+            else:
+                self.scripts["bougies"]=ScriptBougies
+                self.log.warning("On fait les bougies normalement.")
+        else:
+            self.log.warning("Puisque l'ennemi est scripté et fait toutes les bougies, on ne les fera pas.")
         self.liste_points_entree = ["cadeau", "verreNous", "verreEnnemi", "Pipeau"]
         self.points={"cadeau":0, "verres": 0, "gateau":0, "bougies":0, "deposer_verre":0, "pipeau1":6, "pipeau2": 12, "pipeau3":8}
 
