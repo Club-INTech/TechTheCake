@@ -23,7 +23,7 @@ class Strategie:
         self.arguments={"pipeau1":(), "pipeau2":(), "pipeau3":(), "casser_tour":(), "bougies": (1,)}
         self.scripts = {"pipeau1":ScriptPipeauStrategie1, "pipeau2":ScriptPipeauStrategie2, "pipeau3":ScriptPipeauStrategie3, "casser_tour":ScriptCasserTour, "bougies":ScriptBougies}
         self.liste_points_entree = ["cadeau", "verreNous", "verreEnnemi", "Pipeau"]
-        self.points={"cadeau":0, "verres": 0, "gateau":0, "deposer_verre":0, "pipeau1":6, "pipeau2": 12, "pipeau3":8}
+        self.points={"cadeau":0, "verres": 0, "gateau":0, "bougies":0, "deposer_verre":0, "pipeau1":6, "pipeau2": 12, "pipeau3":8}
 
         for script,classe in self.scripts.items():
             self.scripts[script] = classe()
@@ -38,7 +38,7 @@ class Strategie:
         while not self.timer.get_fin_match():
 #            self.rechercheChemin.retirer_obstacles_dynamique();
 
-            note={"cadeau":0, "verreNous":0, "verreEnnemi": 0, "gateau":0, "deposer_verres":0, "pipeau1":0, "pipeau2":0, "pipeau3":0, "casser_tour":0} #les clés sont les scripts
+            note={"cadeau":0, "verreNous":0, "verreEnnemi": 0, "gateau":0, "bougies":0, "deposer_verres":0, "pipeau1":0, "pipeau2":0, "pipeau3":0, "casser_tour":0} #les clés sont les scripts
 
         #        for script in self.points: #retiré pour la durée des tests (tant que les vrais scripts ne sont pas dispo...)
         #            self.points[script]=0
@@ -74,7 +74,7 @@ class Strategie:
                 self.log.debug(script)
 
                 dureeScript=self.scripts[script].calcule(*self.arguments[script])+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
-#                self.log.debug("dureeScript de "+script+": "+str(dureeScript))
+                self.log.debug("dureeScript de "+script+": "+str(dureeScript))
 
                 distanceE=self._distance_ennemi(script)+1              #idem
                 try:

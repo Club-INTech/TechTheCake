@@ -138,6 +138,10 @@ class ScriptBougies(Script):
                 print(str(id))
         print("...enfin j'crois...")
 
+    def point_entree(self): #mettre ici les coordonnées de la première bougie soufflée
+        return Point(1300,200)
+
+
 class ScriptTestHooks(Script):
     
     def execute(self):
@@ -193,7 +197,7 @@ class ScriptPipeauStrategie2(Script):
     
     def execute(self):
         self.va_au_point(Point(1000,300))
-        self.robot.traiter_bougie()
+        self.robot.traiter_bougie(0,True)
         
     def point_entree(self):
         return Point(1000,300)
@@ -203,7 +207,7 @@ class ScriptPipeauStrategie3(Script):
     
     def execute(self):
         self.va_au_point(Point(500,1500))
-        self.robot.traiter_bougie()
+        self.robot.traiter_bougie(0,True)
 #        points_bougies=0
 #        if robot.traiter_bougie():
 #            points_bougies+=4

@@ -83,7 +83,7 @@ class RobotChrono:
         """
         self.vitesse_rotation = int(valeur)
         
-    def traiter_bougie(self):
+    def traiter_bougie(self,id,enHaut):
         """
         Fonction analogue à celle de robot. teste la couleur puis enfonce si c'est la bonne couleur
         """
