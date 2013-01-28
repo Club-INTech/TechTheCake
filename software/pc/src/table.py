@@ -64,7 +64,8 @@ class Table:
     {"position":-0.196, "traitee":False, "enHaut":True},
     {"position":-0.131, "traitee":False, "enHaut":False}]
     
-        self.pointsEntreeBougies = [0,19]
+        #les bougies des côtés sont inaccessibles
+        self.pointsEntreeBougies = [2,17]
         
         #pour lorsqu'on met le gateau en bas
         self.bougies = [
