@@ -19,7 +19,6 @@ int main(){
 
   Serial<0>::init();
   Serial<0>::change_baudrate(9600);
-  Serial<0>::print("initialisation de la serie");
 
   while(1){
     char buffer[17];
