@@ -57,12 +57,13 @@ class Robot:
         #gestion par défaut de la symétrie couleur
         self._effectuer_symetrie = True
         
-        #le robot n'est pas prêt tant qu'il n'a pas recu ses coordonnées initiales par le thread de mise à jour
-        self.pret = False
         
         #le nombre de verres dans l'ascenseur avant ou arrière
-        self.nb_verres_avant = 0
-        self.nb_verres_arriere = 0
+        self._nb_verres_avant = 0
+        self._nb_verres_arriere = 0
+        
+        #le robot n'est pas prêt tant qu'il n'a pas recu ses coordonnées initiales par le thread de mise à jour
+        self.pret = False
         
         #sleep pour la boucle d'acquittement : divisé en 2 pour le simulateur, car il ne peut pas tourner et avancer en même temps
         if self.config["mode_simulateur"]:
@@ -87,7 +88,9 @@ class Robot:
             "blocage":self.set_blocage,
             "enMouvement":self.set_enMouvement,
             "marche_arriere":self.set_marche_arriere,
-            "effectuer_symetrie":self.set_effectuer_symetrie
+            "effectuer_symetrie":self.set_effectuer_symetrie,
+            "nb_verres_avant":self.set_nb_verres_avant,
+            "nb_verres_arriere":self.set_nb_verres_arriere
         }
         if attribut in setters:
             setters[attribut](value)
@@ -104,7 +107,9 @@ class Robot:
             "blocage",
             "enMouvement",
             "marche_arriere",
-            "effectuer_symetrie"
+            "effectuer_symetrie",
+            "nb_verres_avant",
+            "nb_verres_arriere"
         ]
         if attribut in getters:
             with self.mutex:
@@ -131,6 +136,14 @@ class Robot:
     def set_effectuer_symetrie(self, value):
         with self.mutex:
             self.__dict__["_effectuer_symetrie"] = value
+        
+    def set_nb_verres_avant(self, value):
+        with self.mutex:
+            self.__dict__["_nb_verres_avant"] = value
+        
+    def set_nb_verres_arriere(self, value):
+        with self.mutex:
+            self.__dict__["_nb_verres_arriere"] = value
      
     def set_orientation(self, value):
         #l'attribut self._consigne_orientation doit etre mis à jour à chaque changement d'orientation pour le fonctionnement de self._avancer()
@@ -552,7 +565,7 @@ class Robot:
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
         self.set_vitesse_translation(1)
-        self.avancer(100)
+        self.avancer(200)
         
         #on se tourne pour le deuxième recalage
         self.tourner(pi/2)
