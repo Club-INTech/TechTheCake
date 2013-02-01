@@ -1,6 +1,73 @@
 from math import sqrt,atan2, cos, sin
+import abc
 
-class RobotChrono:
+##################################################################################################################
+#####  CLASSE ROBOTINTERFACE, permet de vérifier l'équivalence des méthodes publiques de Robot et RobotChrono. ###
+##################################################################################################################
+
+class RobotInterface(metaclass=abc.ABCMeta):
+    
+    @abc.abstractmethod
+    def stopper(self):
+        pass
+    
+    @abc.abstractmethod
+    def avancer(self, distance):
+        pass
+        
+    @abc.abstractmethod
+    def tourner(self, angle, forcer = False,hooks=[]):
+        pass
+        
+    @abc.abstractmethod
+    def suit_chemin(self, chemin, **useless):
+        pass
+            
+    @abc.abstractmethod
+    def va_au_point(self,consigne_x,consigne_y,**useless):
+        pass
+    
+    @abc.abstractmethod
+    def arc_de_cercle(self,xM,yM,hooks=[]):
+        pass
+        
+    @abc.abstractmethod
+    def set_vitesse_translation(self, valeur):
+        pass
+    
+    @abc.abstractmethod
+    def set_vitesse_rotation(self, valeur):
+        pass
+        
+    @abc.abstractmethod
+    def traiter_bougie(self,id,enHaut):
+        pass
+            
+    @abc.abstractmethod
+    def initialiser_bras_bougie(self,enHaut) : 
+        pass
+
+    @abc.abstractmethod
+    def rentrer_bras_bougie(self) : 
+        pass
+    
+    @abc.abstractmethod
+    def ouvrir_cadeau(self):
+        pass
+        
+    @abc.abstractmethod
+    def fermer_cadeau(self):
+        pass
+        
+    @abc.abstractmethod
+    def gonflage_ballon(self):
+        pass
+    
+###################################################################################################################
+#####  CLASSE ROBOTCHRONO, permet de mesurer le temps d'une succession d'actions (utilisé dans Script.calcule() ###
+###################################################################################################################
+    
+class RobotChrono(RobotInterface):
     """
     Vive sopal'INT!
     """
@@ -31,11 +98,14 @@ class RobotChrono:
         
     def get_compteur(self):
         return self.duree
-        
+    
 #############################################################
 ### MÉTHODES ÉQUIVALENTES AUX MÉTHODES PUBLIQUES DE ROBOT ###
 #############################################################
 
+    def stopper(self):
+        pass
+    
     def avancer(self, distance):
         """
         Fonction analogue à celle de robot. Avance. Si, si.
@@ -84,29 +154,19 @@ class RobotChrono:
         self.vitesse_rotation = int(valeur)
         
     def traiter_bougie(self,id,enHaut):
-        """
-        Fonction analogue à celle de robot. teste la couleur puis enfonce si c'est la bonne couleur
-        """
         pass
             
-    def ouvrir_cadeau(self):
-        """
-        Fonction analogue à celle de robot. Ouvre le bras qui pousse le cadeau
-        """
-        pass
-        
-    def fermer_cadeau(self):
-        """
-        Fonction analogue à celle de robot. Ferme le bras qui a poussé le cadeau
-        """
-        pass
-        
     def initialiser_bras_bougie(self,enHaut) : 
-        """
-        Fonction analogue à celle de robot. Initialise le bras bougie.
-        """
         pass
 
     def rentrer_bras_bougie(self) : 
         pass
-
+    
+    def ouvrir_cadeau(self):
+        pass
+        
+    def fermer_cadeau(self):
+        pass
+        
+    def gonflage_ballon(self):
+        pass

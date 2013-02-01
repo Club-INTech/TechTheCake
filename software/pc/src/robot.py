@@ -2,7 +2,10 @@ from math import pi,sqrt,atan2,atan,cos,sin
 from time import time,sleep
 from mutex import Mutex
 
-class Robot:
+#interface pour les méthodes publiques
+from robotChrono import RobotInterface
+
+class Robot(RobotInterface):
     """
     classe implémentant le robot.
     """
