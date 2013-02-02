@@ -9,4 +9,4 @@
 
 logs/
 upload/
-
+config/local.ini
