@@ -20,8 +20,8 @@ class Strategie:
         self.config = config
         self.log = log
 
-        self.arguments={"pipeau1":(), "pipeau2":(), "pipeau3":(), "casser_tour":(), "bougies":(1,)}
-        self.scripts = {"pipeau1":ScriptPipeauStrategie1, "pipeau2":ScriptPipeauStrategie2, "pipeau3":ScriptPipeauStrategie3, "casser_tour":ScriptCasserTour,"bougies":ScriptBougies}
+        self.arguments={"pipeau1":(), "pipeau2":(), "pipeau3":(), "casser_tour":(), "bougies": (1,)}
+        self.scripts = {"pipeau1":ScriptPipeauStrategie1, "pipeau2":ScriptPipeauStrategie2, "pipeau3":ScriptPipeauStrategie3, "casser_tour":ScriptCasserTour}
         if not self.config["ennemi_fait_toutes_bougies"]:
             if self.config["ennemi_fait_ses_bougies"]:
                 self.scripts["bougies"]=ScriptBougiesRapide
