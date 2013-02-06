@@ -91,8 +91,8 @@ void Balise::execute(char *order)
     // Ping
     if (strcmp(order, "?") == 0)
     {
+        serial_pc::ack();
         serial_pc::print(PING_ID);
-        diode_blink();
     }
     
     /*
@@ -130,13 +130,10 @@ void Balise::execute(char *order)
     // Ping des balises
     else if (strcmp(order, "ping") == 0)
     {
+        serial_pc::ack();
+        
         for (uint8_t id = 0; id < BALISE_NUMBER; id++)
         {
-			// Affichage de l'ID sur la série
-			serial_pc::write("ping ID");
-			serial_pc::write(id);
-			serial_pc::write(" ");
-			
 			xbee::send(balise_address[id], "?");
             uint8_t ping;
             uint16_t source_address;
@@ -167,13 +164,16 @@ void Balise::execute(char *order)
     // Calcul du latence de transmission
     else if (strcmp(order, "latence") == 0)
     {
-        for (uint8_t id = 0; id < BALISE_NUMBER; id++)
+        serial_pc::ack();
+        
+        if (last_period() == 0)
         {
-			// Affichage de l'ID sur la série
-			serial_pc::write("latence ID");
-			serial_pc::write(id);
-			serial_pc::write(" ");
-			
+            serial_pc::print("Le moteur doit être allumé pour le calcul de latence");
+            return;
+        }
+        
+        for (uint8_t id = 0; id < BALISE_NUMBER; id++)
+        {			
 			// Temps avant transmission
 			uint16_t clock1 = timer_toptour::value();
 			
@@ -209,121 +209,65 @@ void Balise::execute(char *order)
     // Valeur des balises
     else if (strcmp(order, "valeur") == 0)
     {
-        for (uint8_t id = 0; id < BALISE_NUMBER; id++)
+        serial_pc::ack();
+        serial_pc::print("ID ?");
+        
+        uint8_t id;
+        serial_pc::read(id);
+        
+        uint16_t offset_;
+        uint8_t distance_;
+        uint32_t value;
+        float angle_;
+
+        // Envoi d'une demande de valeur
+		xbee::send(balise_address[id], "v");
+            
+        // Calcul du temps d'aller retour
+        // ! Attention ! Ne marche que si le moteur tourne
+        uint16_t clock1 = timer_toptour::value();
+            
+        if (xbee::read(value, TIMEOUT) == xbee::READ_SUCCESS)
         {
-            uint16_t offset_;
-            uint8_t distance_;
-            uint32_t value;
-            float angle_;
-
-            // Envoi d'une demande de valeur
-			xbee::send(balise_address[id], "v");
-            
-            // Calcul du temps d'aller retour
-            // ! Attention ! Ne marche que si le moteur tourne
-            uint16_t clock1 = timer_toptour::value();
-            
-            if (xbee::read(value, TIMEOUT) == xbee::READ_SUCCESS)
-            {
-				// Calcul de l'aller retour
-				uint16_t clock2 = timer_toptour::value();
+            // Calcul de l'aller retour
+			uint16_t clock2 = timer_toptour::value();
 				
-				// Décodage de la transmission
-				offset_ = value >> 8;
-				distance_ = (value << 24) >> 24;
+			// Décodage de la transmission
+			offset_ = value >> 8;
+			distance_ = (value << 24) >> 24;
 				
-				int16_t aller_retour = clock2 - clock1;
-				
-				// Cas où le timer est réinitialisé en passant devant l'aimant pendant la transmission
-				if (clock2 < clock1)
-				{
-					aller_retour += last_period();
-				}
-
-				angle_ = angle(offset_ + aller_retour);
-				
-				// Suppression des valeurs si pas assez récente
-				if (offset_ == 0 || offset_ >= last_period())
-				{
-					distance_ = 0;
-					angle_ = 0;
-				}
-				
-				// Affichage de la distance
-				serial_pc::write("valeurs ID0 ");
-				serial_pc::write(distance_);
-				serial_pc::write(",");
-				serial_pc::write(angle_, 1);
-				serial_pc::write(",");
-				serial_pc::write(offset_, 1);
-				serial_pc::write(",");
-				serial_pc::print(aller_retour, 1);
-			}
-			else
+			int16_t aller_retour = clock2 - clock1;
+			
+			// Cas où le timer est réinitialisé en passant devant l'aimant pendant la transmission
+			if (clock2 < clock1)
 			{
-				serial_pc::print("introuvable");
+                aller_retour += last_period();
 			}
+
+			angle_ = angle(offset_ + aller_retour);
+				
+			// Suppression des valeurs si pas assez récente
+			if (offset_ == 0 || offset_ >= last_period())
+			{
+				distance_ = 0;
+				angle_ = 0;
+			}
+				
+			// Affichage de la distance
+			serial_pc::print(distance_);
+			serial_pc::print(angle_, 1);
 		}
-    }
-    
-    // Valeur des balises
-    else if (strcmp(order, "valeurb") == 0)
-    {
-        for (uint8_t id = 0; id < BALISE_NUMBER; id++)
-        {
-            uint16_t offset_;
-            uint8_t distance_;
-            uint32_t value;
-            float angle_;
-
-            // Envoi d'une demande de valeur
-			xbee::send(balise_address[id], "v");
-            
-            // Calcul du temps d'aller retour
-            // ! Attention ! Ne marche que si le moteur tourne
-            uint16_t clock1 = timer_toptour::value();
-            
-            if (xbee::read(value, TIMEOUT) == xbee::READ_SUCCESS)
-            {
-				// Calcul de l'aller retour
-				uint16_t clock2 = timer_toptour::value();
-				
-				// Décodage de la transmission
-				offset_ = value >> 8;
-				distance_ = (value << 24) >> 24;
-				
-				int16_t aller_retour = clock2 - clock1;
-				
-				// Cas où le timer est réinitialisé en passant devant l'aimant pendant la transmission
-				if (clock2 < clock1)
-				{
-					aller_retour += last_period();
-				}
-
-				angle_ = angle(offset_ + aller_retour);
-				
-				// Suppression des valeurs si pas assez récente
-				if (offset_ == 0 || offset_ >= last_period())
-				{
-					distance_ = 0;
-					angle_ = 0;
-				}
-				
-				// Affichage de la distance
-				serial_pc::write(distance_);
-				serial_pc::write(",");
-				serial_pc::print(angle_, 1);
-			}
-			else
-			{
-				serial_pc::print("introuvable");
-			}
+		else
+		{
+			serial_pc::print("aucune réponse");
+            serial_pc::print("aucune réponse");
 		}
     }
     
     // Allumer les lasers
     else if (strcmp(order, "laser_on") == 0)
     {
+        serial_pc::ack();
 		laser_on();
 		/*
         if (last_period() > 0)
@@ -339,18 +283,21 @@ void Balise::execute(char *order)
     // Eteindre les lasers
     else if (strcmp(order, "laser_off") == 0)
     {
+        serial_pc::ack();
         laser_off();
     }
     
     // Allumer le moteur
     else if (strcmp(order, "motor_on") == 0)
     {
+        serial_pc::ack();
         motor_on();
     }
     
     // Arreter le moteur
     else if (strcmp(order, "motor_off") == 0)
     {
+        serial_pc::ack();
         motor_off();
         
         // Force l'extinction des lasers pour éviter une surchauffe
@@ -360,12 +307,14 @@ void Balise::execute(char *order)
     // Vitesse actuelle du moteur
     else if(strcmp(order, "speed") == 0)
     {
+        serial_pc::ack();
         serial_pc::print(last_period());
     }
     
     // Fréquence du moteur
     else if(strcmp(order, "freq") == 0)
     {
+        serial_pc::ack();
 		float freq = (last_period() == 0) ? 0. : (float)F_CPU / ((float)last_period() * 64.);
         serial_pc::print(freq, 1);
     }
@@ -373,6 +322,7 @@ void Balise::execute(char *order)
     // Valeur de la codeuse du moteur
     else if(strcmp(order, "codeuse") == 0)
     {
+        serial_pc::ack();
 		serial_pc::print(encoder);
     }
 }
