@@ -366,6 +366,7 @@ class Robot(RobotInterface):
         #TODO : passer ca dans déplacements ?
         self.set_vitesse_translation(1)
         if not self.config["mode_simulateur"]:
+            #ATTENTION : cette vitesse est ajustée pour un rayon donné ! (celui utilisé pour enfoncer les bougies)
             self.deplacements.serie.communiquer("asservissement",["crv",1.5,2.0,self.config["vitesse_rot_arc_cercle"]], 0)
         else:
             self.set_vitesse_translation(2)

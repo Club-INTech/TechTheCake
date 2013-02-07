@@ -24,6 +24,7 @@ from robot import *
 from robotChrono import RobotChrono
 from deplacements import DeplacementsSimulateur, DeplacementsSerie
 from capteurs import CapteursSerie, CapteursSimulateur
+from laser import *
 from actionneurs import ActionneursSerie, ActionneursSimulateur
 from serie import Serie
 from table import Table
@@ -83,7 +84,7 @@ class Container:
                 
                 client.service.defineRobot({"list":[{"float":[-self.config["longueur_robot"]/2,-self.config["largeur_robot"]/2]},{"float":[-self.config["longueur_robot"]/2,self.config["largeur_robot"]/2]},{"float":[self.config["longueur_robot"]/2,self.config["largeur_robot"]/2]},{"float":[self.config["longueur_robot"]/2,-self.config["largeur_robot"]/2]}]},couleur)
                 #déclaration d'un robot adverse
-                client.service.addEnemy(30,"black")
+                client.service.addEnemy(1, 30, "black")
                 return client.service
                 
             self.assembler.register("simulateur",  None, factory=make_simu)
@@ -93,6 +94,8 @@ class Container:
             self.assembler.register("actionneurs",ActionneursSimulateur, requires=["simulateur","config","log"])
             #enregistrement du service des déplacements pour le simulateur
             self.assembler.register("deplacements",DeplacementsSimulateur, requires=["simulateur","config","log"])
+            #enregistrement du service laser pour le simulateur
+            self.assembler.register("laser", LaserSimulateur, requires=["simulateur","config","log"])
             
         else:
             #enregistrement du service Serie
@@ -103,6 +106,8 @@ class Container:
             self.assembler.register("actionneurs",ActionneursSerie, requires=["serie","config","log"])
             #enregistrement du service des déplacements pour la série
             self.assembler.register("deplacements",DeplacementsSerie, requires=["serie","config","log"])
+            #enregistrement du service laser pour la série
+            self.assembler.register("laser",LaserSerie, requires=["serie","config","log"])
         
         #enregistrement du service robot
         self.assembler.register("robot", Robot, requires=["capteurs","actionneurs","deplacements","config","log","table"])

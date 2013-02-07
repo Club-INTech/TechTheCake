@@ -289,6 +289,14 @@ public:
         write(val, precision);
         send_ln();
     }
+    
+    /**
+     * Envoie d'un acquittement
+     * 
+     */
+    static inline void ack() {
+        print("_");
+    }
 
     /**
      * Lecture d'un int

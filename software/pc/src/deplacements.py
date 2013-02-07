@@ -327,13 +327,16 @@ class DeplacementsSimulateur(Deplacements):
             self.simulateur.stopRobot()      
             
     def set_x(self, new_x):
-        pass
+        with self.mutex:
+            self.simulateur.setRobotPosition(new_x, self.simulateur.getY())
     
     def set_y(self, new_y):
-        pass
+        with self.mutex:
+            self.simulateur.setRobotPosition(self.simulateur.getX(), new_y)
     
     def set_orientation(self, new_o):
-        pass
+        with self.mutex:
+            self.simulateur.setRobotAngle(new_o)
 
     def activer_asservissement_translation(self):
         pass
