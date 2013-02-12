@@ -1,5 +1,7 @@
 *~
 *.pyc
+*.o
+*.user
 software/build/*
 /software/software.kdev4
 *.kate-swp
