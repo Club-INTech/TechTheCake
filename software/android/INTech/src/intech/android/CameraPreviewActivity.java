@@ -6,33 +6,19 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.LoaderCallbackInterface;
-import org.opencv.android.OpenCVLoader;
-import org.opencv.android.Utils;
-import org.opencv.core.Mat;
-import org.opencv.highgui.Highgui;
-import org.opencv.imgproc.Imgproc;
-
-import android.graphics.Bitmap;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.app.Activity;
 import android.content.Intent;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.provider.MediaStore.Files.FileColumns;
 
 public class CameraPreviewActivity extends Activity {
@@ -43,71 +29,31 @@ public class CameraPreviewActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
-		// Ecran toujours allumé
+		
+		setContentView(R.layout.activity_camera_preview);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-		// Affichage de l'écran principal
-		setContentView(R.layout.activity_camera_preview);
-		
+		// Affichage de la camÃ©ra
 		cameraPreview = new CameraPreviewSurfaceView(this);
-
 		FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
 		preview.addView(cameraPreview);
-
-	}
-
-	@Override
-	protected void onResume() {
-		super.onResume();
-
-		Log.i("INTech", "Trying to load OpenCV library");
-		if (!OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_2, this,
-				mOpenCVCallBack)) {
-			Log.e("INTech", "Cannot connect to OpenCV Manager");
-		}
-	}
-
-	@Override
-	protected void onPause() {
-		super.onPause();
-		Log.d(TAG, "pause");
 	}
 
 	public void takePicture(View view) {
-		cameraPreview.takePicture(mPicture);
+		cameraPreview.takePicture(pictureReadyCallback);
 	}
 
-	private BaseLoaderCallback mOpenCVCallBack = new BaseLoaderCallback(this) {
-		@Override
-		public void onManagerConnected(int status) {
-			switch (status) {
-			case LoaderCallbackInterface.SUCCESS: {
-				Log.i(TAG, "OpenCV loaded successfully");
-				System.loadLibrary("native_analyze");
-			}
-				break;
-			default: {
-				super.onManagerConnected(status);
-			}
-				break;
-			}
-		}
-	};
-
-	private PictureCallback mPicture = new PictureCallback() {
+	private PictureCallback pictureReadyCallback = new PictureCallback() {
 
 		@Override
 		public void onPictureTaken(byte[] data, Camera camera) {
 			
-			// Relance la preview
-			camera.startPreview();
 			File captureFile = getOutputMediaFile(FileColumns.MEDIA_TYPE_IMAGE);
 
 			// Aucun fichier disponible
 			if (captureFile == null) {
 				Log.d(TAG,
-						"Erreur dans la création du fichier, vérifier les droits en écriture");
+						"Erreur dans la crÃ©ation du fichier, vÃ©rifier les droits en Ã©criture");
 				return;
 			}
 
@@ -117,7 +63,7 @@ public class CameraPreviewActivity extends Activity {
 
 			try {
 
-				// Ecriture du fichier avec les données
+				// Ecriture du fichier avec les donnÃ©es
 				FileOutputStream outputStream = new FileOutputStream(
 						captureFile);
 				outputStream.write(data);
@@ -136,7 +82,7 @@ public class CameraPreviewActivity extends Activity {
 	};
 
 	/**
-	 * Création d'un fichier pour stocker un média
+	 * CrÃ©ation d'un fichier pour stocker un mÃ©dia
 	 * 
 	 * @param type
 	 * @return
@@ -152,7 +98,7 @@ public class CameraPreviewActivity extends Activity {
 		if (!mediaStorageDir.exists()) {
 			if (!mediaStorageDir.mkdirs()) {
 				Log.d(TAG,
-						"Echec de la création du répertoire contenant les captures");
+						"Echec de la crÃ©ation du rÃ©pertoire contenant les captures");
 				return null;
 			}
 		}

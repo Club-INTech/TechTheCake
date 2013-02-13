@@ -13,5 +13,4 @@ software/build/*
 /software/pc/src/test.py
 bin/
 gen/
-jni/
 obj/

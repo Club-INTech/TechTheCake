@@ -37,11 +37,12 @@ public class DisplayImageActivity extends Activity {
 		Mat image = new Mat();
 		Mat mask = new Mat();
 		Mat contours = new Mat();
+		Mat results = new Mat();
 		Utils.bitmapToMat(originalBitmap, image);
 
 		// Lance l'analyse depuis le programme C++
 		analyze(image.getNativeObjAddr(), mask.getNativeObjAddr(),
-				contours.getNativeObjAddr());
+				contours.getNativeObjAddr(), results.getNativeObjAddr());
 
 		// Affichage du masque
 		Bitmap maskBitmap = Bitmap.createBitmap(image.cols(), image.rows(),
@@ -57,8 +58,15 @@ public class DisplayImageActivity extends Activity {
 		ImageView contoursView = (ImageView) findViewById(R.id.contours_view);
 		contoursView.setImageBitmap(contoursBitmap);
 
+		// Affichage des résultats
+		Bitmap resultsBitmap = Bitmap.createBitmap(image.cols(), image.rows(),
+				Bitmap.Config.ARGB_8888);
+		Utils.matToBitmap(results, resultsBitmap);
+		ImageView resultsView = (ImageView) findViewById(R.id.results_view);
+		resultsView.setImageBitmap(resultsBitmap);
+
 	}
 
-	public native void analyze(long srcAddr, long maskAddr, long contoursAddr);
+	public native void analyze(long srcAddr, long maskAddr, long contoursAddr, long resultsAddr);
 
 }
