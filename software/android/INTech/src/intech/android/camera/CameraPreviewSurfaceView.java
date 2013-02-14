@@ -4,7 +4,9 @@ import java.util.List;
 
 import android.content.Context;
 import android.hardware.Camera;
+import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.Parameters;
+import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.Size;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -17,6 +19,8 @@ public class CameraPreviewSurfaceView extends SurfaceView implements
 	private SurfaceHolder mHolder;
 	private Camera mCamera;
 	private boolean isPreviewRunning = false;
+	private boolean autoPicture;
+	private Camera.PictureCallback pictureReadyCallBack;
 
 	public CameraPreviewSurfaceView(Context context) {
 		super(context);
@@ -27,19 +31,20 @@ public class CameraPreviewSurfaceView extends SurfaceView implements
 		// deprecated setting, but required on Android versions prior to 3.0
 		mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 	}
+	
+	public void setPictureReadyCallBack(Camera.PictureCallback callback) {
+		pictureReadyCallBack = callback;
+	}
+	
+	public void setTakePictureWhenFocusReady(boolean auto) {
+		autoPicture = auto;
+	}
 
 	public void surfaceCreated(SurfaceHolder holder) {
 		try {
-			// This case can actually happen if the user opens and closes the
-			// camera too frequently.
-			// The problem is that we cannot really prevent this from happening
-			// as the user can easily
-			// get into a chain of activites and tries to escape using the back
-			// button.
-			// The most sensible solution would be to quit the entire EPostcard
-			// flow once the picture is sent.
 			mCamera = Camera.open();
 		} catch (Exception e) {
+			Log.d(TAG, e.getMessage());
 			return;
 		}
 
@@ -60,7 +65,7 @@ public class CameraPreviewSurfaceView extends SurfaceView implements
 		try {
 			mCamera.setPreviewDisplay(holder);
 			mCamera.startPreview();
-			mCamera.autoFocus(null);
+			mCamera.autoFocus(focusReadyCallback);
 		} catch (Throwable ignored) {
 			Log.e(TAG, "set preview error.", ignored);
 		}
@@ -90,8 +95,19 @@ public class CameraPreviewSurfaceView extends SurfaceView implements
 		}
 	}
 
-	public void takePicture(Camera.PictureCallback callback) {
-		mCamera.takePicture(null, null, callback);
+	public void takePicture() {
+		mCamera.takePicture(null, null, pictureReadyCallBack);
 	}
+	
+	private AutoFocusCallback focusReadyCallback = new AutoFocusCallback() {
+
+		@Override
+		public void onAutoFocus(boolean success, Camera camera) {
+			if (autoPicture) {
+				takePicture();
+			}
+		}
+		
+	};
 
 }

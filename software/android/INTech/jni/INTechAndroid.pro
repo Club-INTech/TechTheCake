@@ -16,7 +16,7 @@ HEADERS += \
     processing.h \
     ball.h \
     ballidentifier.h \
-    model.h
+    model.h \
+    color.h
 
-QMAKE_CXXFLAGS_RELEASE += -g
 

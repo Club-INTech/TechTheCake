@@ -18,12 +18,12 @@ Processing::Processing():
     cake_borders(0, 0, 230, 100),
     model(Model::getRepartitionModel("red")),
     image_partition(40),
-    erode_kernel_size(1),
+    erode_kernel_size(0),
     closing_kernel_size(0),
     min_ball_area(90),
     max_ball_area(280),
-    min_yellow_color(31, 140, 140),
-    max_yellow_color(37, 250, 250)
+    min_yellow_color(30, 80, 140),
+    max_yellow_color(38, 250, 250)
 {
 }
 
@@ -64,7 +64,7 @@ void Processing::process()
 
     // Affichage des contours sur l'image
     image_contours = image_bgr.clone();
-    drawContours(image_contours, balls_contours, -1, Scalar(0, 0, 255));
+    drawContours(image_contours, balls_contours, -1, Scalar(255, 255, 255, 255));
 
     // Détection des contours pouvant représenter des balles de tennis
     results = _findBalls(balls_contours);
@@ -102,12 +102,47 @@ void Processing::process()
         results.insert(results.end(), new_balls.begin(), new_balls.end());
     }
 
-
     // Affichage des balles sur l'image de résultats
     image_results = image_bgr.clone();
     _drawBalls(results, image_results);
 
+    // Affichage du résultat sur la console
+    cout << getResults() << endl;
     cout << "-------------------------------" << endl;
+}
+
+string Processing::getResults()
+{
+    string string_result = "??????????";
+
+    for (vector<Ball*>::iterator result = results.begin(); result != results.end(); ++result)
+    {
+        Ball *ball = *result;
+
+        if (ball->getType() != Ball::UNVALID_BALL && ball->getId() > 0)
+        {
+            char letter;
+
+            switch (ball->getType())
+            {
+            case Ball::RED_BALL:
+                letter = 'r';
+                break;
+            case Ball::BLUE_BALL:
+                letter = 'b';
+                break;
+            case Ball::WHITE_BALL:
+                letter = 'w';
+                break;
+            default:
+                break;
+            }
+
+            string_result[ball->getId()-1] = letter;
+        }
+    }
+
+    return string_result;
 }
 
 void Processing::clearResults()
@@ -285,7 +320,7 @@ Point2f Processing::_getApproximativeCakeCenter(vector<Ball*> &balls)
 void Processing::_drawBalls(vector<Ball*> &balls, Mat &image)
 {
     // Affichage de la zone du gateau estimée
-    rectangle(image, cake_borders, Scalar(0, 0, 0));
+    rectangle(image, cake_borders, Scalar(0, 0, 0, 255));
 
     // Affichage des balles
     for (vector<Ball*>::iterator ball_iterator = balls.begin(); ball_iterator != balls.end(); ++ball_iterator)
@@ -321,7 +356,3 @@ void Processing::_drawBalls(vector<Ball*> &balls, Mat &image)
     }
 }
 
-Mat& Processing::getFilteredMask()
-{
-    return filtered_balls_mask;
-}

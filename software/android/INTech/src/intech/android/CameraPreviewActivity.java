@@ -25,22 +25,29 @@ public class CameraPreviewActivity extends Activity {
 
 	private final String TAG = "INTech";
 	private CameraPreviewSurfaceView cameraPreview;
-
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
 		setContentView(R.layout.activity_camera_preview);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		
+		// Prend la photo tout seul quand le focus est terminé en mode socket
+		boolean autoPicture = getIntent().getExtras().getBoolean("socket_mode");
 
-		// Affichage de la caméra
+		// Récupération de la caméra
 		cameraPreview = new CameraPreviewSurfaceView(this);
+		cameraPreview.setPictureReadyCallBack(pictureReadyCallback);
+		cameraPreview.setTakePictureWhenFocusReady(autoPicture);
+		
+		// Affichage de la caméra
 		FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
 		preview.addView(cameraPreview);
 	}
 
 	public void takePicture(View view) {
-		cameraPreview.takePicture(pictureReadyCallback);
+		cameraPreview.takePicture();
 	}
 
 	private PictureCallback pictureReadyCallback = new PictureCallback() {
@@ -71,7 +78,8 @@ public class CameraPreviewActivity extends Activity {
 
 				Intent intent = new Intent(CameraPreviewActivity.this, DisplayImageActivity.class);
 				intent.putExtra("image_path", captureFile.getAbsolutePath());
-				startActivity(intent);
+				intent.putExtra("socket_mode", getIntent().getExtras().getBoolean("socket_mode"));
+				startActivityForResult(intent, 0);
 
 			} catch (FileNotFoundException e) {
 				Log.d(TAG, "File not found: " + e.getMessage());
@@ -118,6 +126,10 @@ public class CameraPreviewActivity extends Activity {
 		}
 
 		return mediaFile;
+	}
+	
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		finish();
 	}
 
 }

@@ -1,6 +1,7 @@
 *~
 *.pyc
 *.o
+*.so
 *.user
 software/build/*
 /software/software.kdev4

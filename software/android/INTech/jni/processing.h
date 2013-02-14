@@ -12,8 +12,8 @@ public:
     static Processing& instance();
     ~Processing();
     void loadImage(cv::Mat &image);
-    cv::Mat& getFilteredMask();
     void process();
+    std::string getResults();
     void clearResults();
 
 private:

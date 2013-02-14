@@ -1,4 +1,5 @@
 #include "ball.h"
+#include "color.h"
 
 #include <algorithm>
 #include <iostream>
@@ -150,21 +151,19 @@ void Ball::distanceWithClosestBall(vector<Ball*> &balls, float &distance)
 
 Scalar Ball::getColorScalar(Type type)
 {
-    Scalar color(0, 0, 0);
+    Scalar color;
 
     if (type == RED_BALL)
     {
-        color.val[2] = 255;
+        color = RED_COLOR;
     }
     else if (type == BLUE_BALL)
     {
-        color.val[0] = 255;
+        color = BLUE_COLOR;
     }
     else if (type == WHITE_BALL)
     {
-        color.val[0] = 255;
-        color.val[1] = 255;
-        color.val[2] = 255;
+        color = Scalar(255, 255, 255, 255);
     }
 
     return color;
