@@ -1,0 +1,80 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory android:title="Couleur min des balles" >
+        <EditTextPreference
+            android:defaultValue="30"
+            android:key="balls_h_min"
+            android:maxLength="3"
+            android:numeric="integer"
+            android:summary="Teinte"
+            android:title="H" />
+        <EditTextPreference
+            android:defaultValue="80"
+            android:key="balls_s_min"
+            android:maxLength="3"
+            android:numeric="integer"
+            android:summary="Saturation"
+            android:title="S" />
+        <EditTextPreference
+            android:defaultValue="140"
+            android:key="balls_v_min"
+            android:maxLength="3"
+            android:numeric="integer"
+            android:summary="Valeur"
+            android:title="V" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Couleur max des balles" >
+        <EditTextPreference
+            android:defaultValue="38"
+            android:key="balls_h_max"
+            android:maxLength="3"
+            android:numeric="integer"
+            android:summary="Teinte"
+            android:title="H" />
+        <EditTextPreference
+            android:defaultValue="250"
+            android:key="balls_s_max"
+            android:maxLength="3"
+            android:numeric="integer"
+            android:summary="Saturation"
+            android:title="S" />
+        <EditTextPreference
+            android:defaultValue="250"
+            android:key="balls_v_max"
+            android:maxLength="3"
+            android:numeric="integer"
+            android:summary="Valeur"
+            android:title="V" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Traitement du masque des balles" >
+        <EditTextPreference
+            android:defaultValue="1"
+            android:key="mask_erode_size"
+            android:maxLength="2"
+            android:numeric="integer"
+            android:summary="Rayon du cercle utilisé comme noyau dans l&apos;érosion"
+            android:title="Erosion" />
+        <EditTextPreference
+            android:defaultValue="0"
+            android:key="mask_closing_size"
+            android:maxLength="2"
+            android:numeric="integer"
+            android:summary="Rayon du cercle utilisé comme noyau dans la fermeture"
+            android:title="Fermeture" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Formes des balles" >
+        <EditTextPreference
+            android:defaultValue="90"
+            android:key="min_ball_size"
+            android:maxLength="2"
+            android:numeric="integer"
+            android:title="Surface minimale" />
+        <EditTextPreference
+            android:defaultValue="280"
+            android:key="max_ball_size"
+            android:maxLength="2"
+            android:numeric="integer"
+            android:title="Surface maximale" />
+    </PreferenceCategory>
+
+</PreferenceScreen>
