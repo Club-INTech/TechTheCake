@@ -24,6 +24,7 @@ Contents:
    robot
    scripts
    serie
+   serieSimulation
    strategie
    table
    thread_capteurs
