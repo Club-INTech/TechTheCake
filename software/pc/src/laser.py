@@ -1,29 +1,4 @@
-import abc
-
-class Laser(metaclass=abc.ABCMeta):
-    
-    @abc.abstractmethod
-    def allumer(self):
-        pass
-        
-    @abc.abstractmethod
-    def eteindre(self):
-        pass
-        
-    @abc.abstractmethod
-    def ping_balise(self):
-        pass
-        
-    @abc.abstractmethod
-    def frequence_moteur(self):
-        pass
-        
-    @abc.abstractmethod
-    def valeur(self, id_balise):
-        pass
-
-        
-class LaserSerie(Laser):
+class Laser:
     
     def __init__(self, serie, config, log):
         self.serie = serie
@@ -50,31 +25,12 @@ class LaserSerie(Laser):
         rayon = reponse[0]
         angle = reponse[1]
         pass
-    
-class LaserSimulateur(Laser):
-    
-    def __init__(self, simulateur, config, log):
-        self.simulateur = simulateur
-        self.config = config
-        self.log = log
         
-    def allumer(self):
-        self.simulateur.log("Allumage des lasers")
-        
-    def eteindre(self):
-        self.simulateur.log("Extinction des lasers") 
-        
-    def ping_balise(self):
-        pass
-        
-    def frequence_moteur(self):
-        pass
-        
-    def valeur(self, id_balise):
-        pass
-        
-        
-""""
+"""
+#########################################
+### C'EST DÉGUEUUUUUUU ICI ! (pardon) ###
+#########################################
+
 from serial import Serial
 from time import sleep
 from suds.client import Client
