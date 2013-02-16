@@ -2,9 +2,16 @@
 
     <item
         android:id="@+id/menu_settings"
-        android:orderInCategory="100"
+        android:orderInCategory="1"
         android:showAsAction="never"
         android:title="Réglages"
         android:onClick="displaySettings"/>
+    
+    <item
+        android:id="@+id/menu_history"
+        android:orderInCategory="2"
+        android:showAsAction="never"
+        android:title="Historique"
+        android:onClick="displayHistory"/>
 
 </menu>

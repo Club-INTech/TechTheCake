@@ -2,8 +2,9 @@
 
     <item
         android:id="@+id/menu_settings"
+        android:onClick="eraseAll"
         android:orderInCategory="100"
         android:showAsAction="never"
-        android:title="@string/menu_settings"/>
+        android:title="Tout effacer"/>
 
 </menu>

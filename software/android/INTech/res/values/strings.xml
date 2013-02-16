@@ -4,11 +4,9 @@
     <string name="app_name">INTech</string>
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
-    <string name="title_activity_cvcamera">CVCameraActivity</string>
     <string name="title_activity_test">TestActivity</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="title_activity_camera_preview">Prendre une photo</string>
+    <string name="title_activity_camera_preview">Appuyer sur l\'écran</string>
     <string name="title_activity_display_image">Résultats</string>
+    <string name="title_activity_history">Historique</string>
 
 </resources>

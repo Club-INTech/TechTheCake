@@ -96,6 +96,7 @@ public class CameraPreviewSurfaceView extends SurfaceView implements
 	}
 
 	public void takePicture() {
+		mCamera.cancelAutoFocus();
 		mCamera.takePicture(null, null, pictureReadyCallBack);
 	}
 	

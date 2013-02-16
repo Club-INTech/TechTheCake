@@ -344,7 +344,7 @@ void Processing::_drawBalls(vector<Ball*> &balls, Mat &image)
             string id_string = stream.str();
 
             // Couleur noire si rattrapée par le modèle
-            Scalar color = (ball->isFirstTimeDetected()) ? Ball::getColorScalar(ball->getType()) : Scalar(0, 0, 0);
+            Scalar color = (ball->isFirstTimeDetected()) ? Ball::getColorScalar(ball->getType()) : Scalar(0, 0, 0, 255);
 
             Point2f position(ball->getCenter().x - ball->getRadius() / 2, ball->getCenter().y + ball->getRadius() / 2);
             putText(image, id_string, position, FONT_HERSHEY_PLAIN, 0.8, color);

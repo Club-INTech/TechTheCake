@@ -121,6 +121,11 @@ public class MainActivity extends Activity {
 		Intent intent = new Intent(this, SettingsActivity.class);
 		startActivity(intent);
 	}
+	
+	public void displayHistory(MenuItem item) {
+		Intent intent = new Intent(this, HistoryActivity.class);
+		startActivity(intent);
+	}
 
 	public void displayCameraPreview(View view) {
 		startCameraPreview(false);

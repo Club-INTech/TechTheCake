@@ -151,7 +151,7 @@ void Ball::distanceWithClosestBall(vector<Ball*> &balls, float &distance)
 
 Scalar Ball::getColorScalar(Type type)
 {
-    Scalar color;
+    Scalar color(0, 0, 0, 255);
 
     if (type == RED_BALL)
     {
