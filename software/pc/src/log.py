@@ -22,7 +22,7 @@ def add_coloring_to_emit_ansi(fn):
                 color_msg = '\x1b[0m' # normal
                 color_levelname = '\x1b[0m'
         
-            args[1].msg = color_msg + args[1].msg +  '\x1b[0m'  # normal
+            args[1].msg = color_msg + str(args[1].msg) +  '\x1b[0m'  # normal
             args[1].levelname = color_levelname + args[1].levelname + '\x1b[0m'
         return fn(*args)
         
