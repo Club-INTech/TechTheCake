@@ -59,6 +59,7 @@ public class DisplayImageActivity extends Activity {
 		int hMax = Integer.valueOf(preferences.getString("balls_h_max", "0"));
 		int sMax = Integer.valueOf(preferences.getString("balls_s_max", "0"));
 		int vMax = Integer.valueOf(preferences.getString("balls_v_max", "0"));
+		Log.d(TAG, String.valueOf(hMin) + " " + String.valueOf(hMax));
 		loadBallsParameters(hMin, sMin, vMin, hMax, sMax, vMax);
 
 		// Chargement des paramètres pour le masque

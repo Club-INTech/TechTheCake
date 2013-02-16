@@ -72,7 +72,7 @@
         <EditTextPreference
             android:defaultValue="280"
             android:key="max_ball_size"
-            android:maxLength="2"
+            android:maxLength="3"
             android:numeric="integer"
             android:title="Surface maximale" />
     </PreferenceCategory>

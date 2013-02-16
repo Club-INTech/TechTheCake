@@ -2,6 +2,7 @@
 #include "morpho.h"
 #include "ballidentifier.h"
 #include "model.h"
+#include "define.h"
 
 #include <sstream>
 #include <iostream>
@@ -48,7 +49,11 @@ void Processing::loadImage(cv::Mat &image)
     GaussianBlur(image_bgr, image_bgr, Size(3, 3), 1, 1);
 
     // Image HSV
+#ifdef COMPILE_FOR_ANDROID
+    cvtColor(image_bgr, image_hsv, CV_RGB2HSV);
+#else
     cvtColor(image_bgr, image_hsv, CV_BGR2HSV);
+#endif
 
     // Extraction de la couleur jaune
     inRange(image_hsv, min_yellow_color, max_yellow_color, raw_balls_mask);

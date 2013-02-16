@@ -1,5 +1,5 @@
 #include "ball.h"
-#include "color.h"
+#include "define.h"
 
 #include <algorithm>
 #include <iostream>
