@@ -1,5 +1,4 @@
 import recherche_de_chemin.visilibity as vis
-import recherche_de_chemin.collisions as collisions
 import math
 
 def get_angle(a,o,b):

@@ -16,16 +16,11 @@ except:
 
 #fonctions auxiliaires pour les calculs géométriques
 import recherche_de_chemin.collisions as collisions
-import recherche_de_chemin.fonctions_auxiliaires_fusion as aux
+import recherche_de_chemin.fonctions_auxiliaires_fusion as fus
+import recherche_de_chemin.fonctions_auxiliaires_elargissement as enlarge
 
-class Cercle:
-    def __init__(self,centre,rayon):
-        self.centre = centre
-        self.rayon = rayon
-        
-    def copy(self):
-        return Cercle(vis.Point(self.centre.x, self.centre.y), self.rayon)
-        
+from recherche_de_chemin.cercle import Cercle
+
 class Environnement:
     # côté des polygones qui représentent des cercles, en mm (petit : précision, grand : complexité moindre)
     cote_polygone = 500
@@ -101,24 +96,22 @@ class Environnement:
         self.cercles.append(cercle)
         self.polygones.append(Environnement._polygone_du_cercle(cercle))
     
-    def ajoute_rectangle(self, rectangle):
+    def ajoute_rectangle(self, polygoneVisilibity):
         """
         Ajoute un obstacle rectangulaire à l'environnement, sous forme d'un polygone (liste de points). 
         Le cercle stocké permet d'optimiser les calculs de collisions. 
         """
-        self.polygones.append(rectangle)
-        self.cercles.append(Environnement._cercle_circonscrit_du_rectangle(rectangle))
+        self.polygones.append(polygoneVisilibity)
+        self.cercles.append(Environnement._cercle_circonscrit_du_rectangle(polygoneVisilibity))
         
-    def ajoute_polygone(self, listePoints):
+    def ajoute_polygone(self, polygoneVisilibity):
         """
         Ajoute un obstacle polygonal à l'environnement, sous forme d'un polygone (liste de points). 
         Le cercle stocké permet d'optimiser les calculs de collisions. 
         """
-        polygone = vis.Polygon(list(map(lambda p: vis.Point(p.x,p.y), listePoints)))
-        self.polygones.append(polygone)
-        self.cercles.append(Environnement._cercle_circonscrit_du_polygone(polygone))
+        self.polygones.append(polygoneVisilibity)
+        self.cercles.append(Environnement._cercle_circonscrit_du_polygone(polygoneVisilibity))
         
-    
 class RechercheChemin:
     """
     Classe implémentant une recherche de chemin sur la table. 
@@ -136,6 +129,9 @@ class RechercheChemin:
         self.config = config
         self.log = log
         
+        #prise en compte du rayon du robot
+        self.rayonPropre = self.config["rayon_robot"]
+        
         # bords de la carte
         self.bords = vis.Polygon([vis.Point(-self.config["table_x"]/2,0), vis.Point(self.config["table_x"]/2,0), vis.Point(self.config["table_x"]/2,self.config["table_y"]), vis.Point(-self.config["table_x"]/2,self.config["table_y"])])
         
@@ -148,10 +144,10 @@ class RechercheChemin:
         self._ajoute_obstacle_initial_cercle(vis.Point(0,2000),500)
         
         #supports en bois dans les coins
-        self._ajoute_obstacle_initial_rectangle(vis.Polygon([vis.Point(-1500, 0),vis.Point(-1500, 100),vis.Point(-1100, 100),vis.Point(-1100, 0)]))
-        self._ajoute_obstacle_initial_rectangle(vis.Polygon([vis.Point(1500, 100),vis.Point(1500, 0),vis.Point(1100, 0),vis.Point(1100, 100)]))
-        self._ajoute_obstacle_initial_rectangle(vis.Polygon([vis.Point(-1500, 1900),vis.Point(-1500, 2000),vis.Point(-1100, 2000),vis.Point(-1100, 1900)]))
-        self._ajoute_obstacle_initial_rectangle(vis.Polygon([vis.Point(1100, 1900),vis.Point(1100, 2000),vis.Point(1500, 2000),vis.Point(1500, 1900)]))
+        self._ajoute_obstacle_initial_rectangle([vis.Point(-1500, 0),vis.Point(-1500, 100),vis.Point(-1100, 100),vis.Point(-1100, 0)])
+        self._ajoute_obstacle_initial_rectangle([vis.Point(1500, 100),vis.Point(1500, 0),vis.Point(1100, 0),vis.Point(1100, 100)])
+        self._ajoute_obstacle_initial_rectangle([vis.Point(-1500, 1900),vis.Point(-1500, 2000),vis.Point(-1100, 2000),vis.Point(-1100, 1900)])
+        self._ajoute_obstacle_initial_rectangle([vis.Point(1100, 1900),vis.Point(1100, 2000),vis.Point(1500, 2000),vis.Point(1500, 1900)])
         ####--------------------------
         
         # environnement dynamique : liste des obstacles mobiles qui sont mis à jour régulièrement
@@ -162,7 +158,9 @@ class RechercheChemin:
         Ajoute un obstacle circulaire à l'environnement initial. 
         Cette méthode recoupe ensuite le dernier polygone de l'environnement (indice -1) s'il sort de la table.
         """
-        self.environnement_initial.ajoute_cercle(Cercle(centre,rayon))
+        #@@
+        cercleObstacle = enlarge.elargit_cercle(Cercle(centre,rayon),self.rayonPropre)
+        self.environnement_initial.ajoute_cercle(cercleObstacle)
         self._recouper_aux_bords_table(-1,self.environnement_initial)
     
     def _ajoute_obstacle_initial_rectangle(self, rectangle):
@@ -170,7 +168,10 @@ class RechercheChemin:
         Ajoute un obstacle rectangulaire à l'environnement initial. 
         Cette méthode recoupe ensuite le dernier polygone de l'environnement (indice -1) s'il sort de la table.
         """
-        self.environnement_initial.ajoute_rectangle(rectangle)
+        #@@
+        polygoneVisilibity = vis.Polygon(list(map(lambda p: vis.Point(p.x,p.y), rectangle)))
+        rectangleObstacle = enlarge.elargit_rectangle(polygoneVisilibity, self.rayonPropre)
+        self.environnement_initial.ajoute_rectangle(rectangleObstacle)
         self._recouper_aux_bords_table(-1,self.environnement_initial)
         
     def _ajoute_obstacle_initial_polygone(self, polygone):
@@ -178,7 +179,10 @@ class RechercheChemin:
         Ajoute un obstacle polygonal à l'environnement initial. 
         Cette méthode recoupe ensuite le dernier polygone de l'environnement (indice -1) s'il sort de la table.
         """
-        self.environnement_initial.ajoute_polygone(polygone)
+        #@@
+        polygoneVisilibity = vis.Polygon(list(map(lambda p: vis.Point(p.x,p.y), polygone)))
+        polygoneObstacle = enlarge.elargit_polygone(polygoneVisilibity, self.rayonPropre)
+        self.environnement_initial.ajoute_polygone(polygoneObstacle)
         self._recouper_aux_bords_table(-1,self.environnement_initial)
         
     def _recouper_aux_bords_table(self,id,environnement):
@@ -216,12 +220,12 @@ class RechercheChemin:
         #on va considérer le segment {poly1[a1],poly1[b1]} allant jusqu'au point voisin de a1.
         #pour celà on avance sur le polygone avec cette fonction auxiliaire, 
         # qui sait faire revenir l'indice à 0 et tourne dans le sens opposé pour les bords de la table
-        b1 = aux.avancerSurPolygoneBords(poly1,a1,self.bords)
+        b1 = fus.avancerSurPolygoneBords(poly1,a1,self.bords)
         #le watchdog lève une exception en cas de récursivité non terminale. Meuh non, ca n'arrive pas (plus)...
         WATCHDOG = 0
         auMoinsUneCollision = False
         conditionBouclage = True
-        troncateObstacle,conditionBouclage = aux.ajouterObstacle(poly1[a1],troncateObstacle,conditionBouclage)
+        troncateObstacle,conditionBouclage = fus.ajouterObstacle(poly1[a1],troncateObstacle,conditionBouclage)
         while conditionBouclage and WATCHDOG < 100:
             WATCHDOG += 1
             #print(poly1[a1],poly1[b1])#@
@@ -231,7 +235,7 @@ class RechercheChemin:
             collision = False
             pointCollision = None
             for a2 in range(poly2.n()):
-                b2 = aux.avancerSurPolygoneBords(poly2,a2,self.bords)
+                b2 = fus.avancerSurPolygoneBords(poly2,a2,self.bords)
                 pCollision = collisions.collisionSegmentSegment(poly1[a1],poly1[b1],poly2[a2],poly2[b2])
                 if pCollision:
                     #self.log.critical("collision à "+str(pCollision[1]))#@
@@ -241,7 +245,7 @@ class RechercheChemin:
                         auMoinsUneCollision = True
                         break
             if collision:
-                troncateObstacle,conditionBouclage = aux.ajouterObstacle(pointCollision,troncateObstacle,conditionBouclage)
+                troncateObstacle,conditionBouclage = fus.ajouterObstacle(pointCollision,troncateObstacle,conditionBouclage)
                 #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
                 sopalin = poly1
                 poly1 = poly2
@@ -264,7 +268,7 @@ class RechercheChemin:
                     #input("voir les autres collisions sur le meme segment !")#@
                     collision = False
                     for a2 in range(poly2.n()):
-                        b2 = aux.avancerSurPolygoneBords(poly2,a2,self.bords)
+                        b2 = fus.avancerSurPolygoneBords(poly2,a2,self.bords)
                         pCollision = collisions.collisionSegmentSegment(pointCollision,poly1[a1],poly2[a2],poly2[b2])
                         if pCollision:
                             if type(pCollision[1])==vis.Point:
@@ -273,7 +277,7 @@ class RechercheChemin:
                                 collision = True
                                 break
                     if collision:
-                        troncateObstacle,conditionBouclage = aux.ajouterObstacle(pointCollision,troncateObstacle,conditionBouclage)
+                        troncateObstacle,conditionBouclage = fus.ajouterObstacle(pointCollision,troncateObstacle,conditionBouclage)
                         #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
                         sopalin = poly1
                         poly1 = poly2
@@ -288,17 +292,17 @@ class RechercheChemin:
                             else: a1 = max(a2,b2)
                     else:
                         continueSurSegment = False
-                        troncateObstacle,conditionBouclage = aux.ajouterObstacle(poly1[a1],troncateObstacle,conditionBouclage)
+                        troncateObstacle,conditionBouclage = fus.ajouterObstacle(poly1[a1],troncateObstacle,conditionBouclage)
                         #parcourt du segment suivant sur l'ex poly2
-                        b1 = aux.avancerSurPolygoneBords(poly1,a1,self.bords)
+                        b1 = fus.avancerSurPolygoneBords(poly1,a1,self.bords)
                 #------------------------
                 
             else :
                 #self.log.debug("ajout de "+str(poly1[a1])+" au polygone")#@
                 #parcourt du segment suivant
                 a1 = b1
-                b1 = aux.avancerSurPolygoneBords(poly1,a1,self.bords)
-                troncateObstacle,conditionBouclage = aux.ajouterObstacle(poly1[a1],troncateObstacle,conditionBouclage)
+                b1 = fus.avancerSurPolygoneBords(poly1,a1,self.bords)
+                troncateObstacle,conditionBouclage = fus.ajouterObstacle(poly1[a1],troncateObstacle,conditionBouclage)
                 
         if WATCHDOG == 100:
             self.log.critical("récursion non terminale pour le polygone tronqué !")
@@ -360,7 +364,7 @@ class RechercheChemin:
             if sEstDejaRetrouveEnferme:
                 #commence au point diamétralement opposé
                 for k in range(int(poly1.n()/2)):
-                    a1 = aux.avancerSurPolygone(poly1,a1)
+                    a1 = fus.avancerSurPolygone(poly1,a1)
             
             #print("Le parcourt commence sur "+str(poly1.n())+" à "+str(poly1[a1])+" .")#@
             #création de l'obstacle de merge
@@ -368,7 +372,7 @@ class RechercheChemin:
             #on va considérer le segment {poly1[a1],poly1[b1]} allant jusqu'au point voisin de a1.
             #pour celà on avance sur le polygone avec cette fonction auxiliaire, 
             # qui sait faire revenir l'indice à 0
-            b1 = aux.avancerSurPolygone(poly1,a1)
+            b1 = fus.avancerSurPolygone(poly1,a1)
             #le watchdog lève une exception en cas de récursivité non terminale. Meuh non, ca n'arrive pas (plus)...
             WATCHDOG = 0
             auMoinsUneCollision = False
@@ -379,7 +383,7 @@ class RechercheChemin:
                 collision = False
                 pointCollision = None
                 for a2 in range(poly2.n()):
-                    b2 = aux.avancerSurPolygone(poly2,a2)
+                    b2 = fus.avancerSurPolygone(poly2,a2)
                     pCollision = collisions.collisionSegmentSegment(poly1[a1],poly1[b1],poly2[a2],poly2[b2])
                     if pCollision:
                         if type(pCollision[1])==vis.Point:
@@ -390,13 +394,13 @@ class RechercheChemin:
                             break
                         elif pCollision[1]=="departsIdentiques":
                             #cas particulier d'une collision sur une extremité du segment
-                            poly1,poly2,a1,b1,mergeObstacle,conditionBouclage = aux.segments_meme_origine(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclage)
+                            poly1,poly2,a1,b1,mergeObstacle,conditionBouclage = fus.segments_meme_origine(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclage)
                             collision = True,False
                             break
                         elif pCollision[1]=="segmentsConfondus":
                             #cas particulier de deux segments colinéaires en contact
                             mem = a1
-                            poly1,poly2,a1,b1,mergeObstacle,conditionBouclage = aux.segments_confondus(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclage)
+                            poly1,poly2,a1,b1,mergeObstacle,conditionBouclage = fus.segments_confondus(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclage)
                             if not a1 == mem:
                                 #le cas a été traité dans la fonction auxiliaire
                                 collision = True,False
@@ -406,7 +410,7 @@ class RechercheChemin:
                     if not collision[1]:
                         #cas particuliers : déjà gérés par une fonction auxiliaire
                         continue
-                    mergeObstacle,conditionBouclage = aux.ajouterObstacle(pointCollision,mergeObstacle,conditionBouclage)
+                    mergeObstacle,conditionBouclage = fus.ajouterObstacle(pointCollision,mergeObstacle,conditionBouclage)
                     #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
                     sopalin = poly1
                     poly1 = poly2
@@ -419,7 +423,7 @@ class RechercheChemin:
                         #recherche d'autres points d'intersection sur ce meme segment [a1,b1]
                         collision = False
                         for a2 in range(poly2.n()):
-                            b2 = aux.avancerSurPolygone(poly2,a2)
+                            b2 = fus.avancerSurPolygone(poly2,a2)
                             pCollision = collisions.collisionSegmentSegment(pointCollision,poly1[a1],poly2[a2],poly2[b2])
                             if pCollision: 
                                 if type(pCollision[1])==vis.Point:
@@ -430,13 +434,13 @@ class RechercheChemin:
                                         break
                                 elif pCollision[1]=="departsIdentiques":
                                     #cas particulier d'une collision sur une extremité du segment
-                                    poly1,poly2,a1,b1,mergeObstacle,conditionBouclage = aux.segments_meme_origine(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclage)
+                                    poly1,poly2,a1,b1,mergeObstacle,conditionBouclage = fus.segments_meme_origine(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclage)
                                     collision = True,False
                                     break
                                 elif pCollision[1]=="segmentsConfondus":
                                     #cas particulier de deux segments colinéaires en contact
                                     mem = a1
-                                    poly1,poly2,a1,b1,mergeObstacle,conditionBouclage = aux.segments_confondus(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclage)
+                                    poly1,poly2,a1,b1,mergeObstacle,conditionBouclage = fus.segments_confondus(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclage)
                                     if not a1 == mem:
                                         #le cas a été traité dans la fonction auxiliaire
                                         collision = True,False
@@ -446,7 +450,7 @@ class RechercheChemin:
                             if not collision[1]:
                                 #cas particuliers : déjà gérés par une fonction auxiliaire
                                 continue
-                            mergeObstacle,conditionBouclage = aux.ajouterObstacle(pointCollision,mergeObstacle,conditionBouclage)
+                            mergeObstacle,conditionBouclage = fus.ajouterObstacle(pointCollision,mergeObstacle,conditionBouclage)
                             #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
                             sopalin = poly1
                             poly1 = poly2
@@ -457,14 +461,14 @@ class RechercheChemin:
                             #self.log.debug("NO WATCHDOG : Changement d'obstacle pour "+str(poly1.n())+". On passe à "+str(poly1[a1]))#@
                         else:
                             continueSurSegment = False
-                            mergeObstacle,conditionBouclage = aux.ajouterObstacle(poly1[a1],mergeObstacle,conditionBouclage)
+                            mergeObstacle,conditionBouclage = fus.ajouterObstacle(poly1[a1],mergeObstacle,conditionBouclage)
                             #parcourt du segment suivant sur l'ex poly2
-                            b1 = aux.avancerSurPolygone(poly1,a1)
+                            b1 = fus.avancerSurPolygone(poly1,a1)
                 else :
                     #parcourt du segment suivant
                     a1 = b1
-                    b1 = aux.avancerSurPolygone(poly1,a1)
-                    mergeObstacle,conditionBouclage = aux.ajouterObstacle(poly1[a1],mergeObstacle,conditionBouclage)
+                    b1 = fus.avancerSurPolygone(poly1,a1)
+                    mergeObstacle,conditionBouclage = fus.ajouterObstacle(poly1[a1],mergeObstacle,conditionBouclage)
                     #self.log.debug("On passe à "+str(poly1[a1])+", on attend "+str(mergeObstacle[0]))#@
             if WATCHDOG == 100:
                 self.log.critical("récursion non terminale pour le polygone de fusion !")
@@ -501,7 +505,9 @@ class RechercheChemin:
         Ajout un obstacle circulaire sur la table.
         Il est considéré comme dynamique et peut etre retiré via retirer_obstacles_dynamiques()
         """
-        self.environnement_complet.ajoute_cercle(Cercle(centre,rayon))
+        #@@
+        cercleObstacle = enlarge.elargit_cercle(Cercle(centre,rayon),self.rayonPropre)
+        self.environnement_complet.ajoute_cercle(cercleObstacle)
         self._recouper_aux_bords_table(-1,self.environnement_complet)
         self._fusionner_avec_obstacles_en_contact()
         
@@ -510,7 +516,10 @@ class RechercheChemin:
         Ajout un obstacle polygonal sur la table (liste de points). 
         Il est considéré comme dynamique et peut etre retiré via retirer_obstacles_dynamiques()
         """
-        self.environnement_complet.ajoute_polygone(polygone)
+        #@@
+        polygoneVisilibity = vis.Polygon(list(map(lambda p: vis.Point(p.x,p.y), polygone)))
+        polygoneObstacle = enlarge.elargit_polygone(polygoneVisilibity, self.rayonPropre)
+        self.environnement_complet.ajoute_polygone(polygoneObstacle)
         self._recouper_aux_bords_table(-1,self.environnement_complet)
         self._fusionner_avec_obstacles_en_contact()
         
@@ -520,7 +529,10 @@ class RechercheChemin:
         Idem que ajoute_obstacle_polygone() mais avec une optimisation du calcul du cercle circonscrit. 
         Il est considéré comme dynamique et peut etre retiré via retirer_obstacles_dynamiques()
         """
-        self.environnement_complet.ajoute_rectangle(rectangle)
+        #@@
+        polygoneVisilibity = vis.Polygon(list(map(lambda p: vis.Point(p.x,p.y), rectangle)))
+        rectangleObstacle = enlarge.elargit_rectangle(polygoneVisilibity, self.rayonPropre)
+        self.environnement_complet.ajoute_rectangle(rectangleObstacle)
         self._recouper_aux_bords_table(-1,self.environnement_complet)
         self._fusionner_avec_obstacles_en_contact()
             
