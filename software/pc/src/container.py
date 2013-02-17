@@ -20,6 +20,7 @@ from threading import Thread
 #fonctions pour les thread de mises à jour
 from thread_MAJ import fonction_MAJ
 from thread_capteurs import fonction_capteurs
+from thread_lasers import fonction_laser
 
 #modules -> services
 from read_ini import Config
@@ -166,6 +167,8 @@ class Container:
             thread_MAJ.start()
             thread_capteurs = Thread(None, fonction_capteurs, None, (), {"container":self})
             thread_capteurs.start()
+            thread_lasers = Thread(None, fonction_laser, None, (), {"container":self})
+            thread_lasers.start()
             timer = self.get_service("timer")
             thread_service_timer = Thread(None, timer.thread_timer, None, (), {})
             thread_service_timer.start()
