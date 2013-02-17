@@ -38,6 +38,7 @@ from recherche_de_chemin.rechercheChemin import RechercheChemin
 from strategie import Strategie
 from log import Log
 from hooks import HookGenerator
+from filtrage import FiltrageLaser
 
 class Container:
     """
@@ -83,8 +84,10 @@ class Container:
                 #déclaration du robot
                 if self.config["couleur"] == "bleu":
                     couleur = "blue"
+                    ennemi = "red"
                 else:
                     couleur = "red"
+                    ennemi = "blue"
                 client.service.defineRobot({"list":[{"float":[-self.config["longueur_robot"]/2,-self.config["largeur_robot"]/2]},{"float":[-self.config["longueur_robot"]/2,self.config["largeur_robot"]/2]},{"float":[self.config["longueur_robot"]/2,self.config["largeur_robot"]/2]},{"float":[self.config["longueur_robot"]/2,-self.config["largeur_robot"]/2]}]},couleur)
                 #initialisation de la position du robot sur le simulateur
                 if self.config["couleur"] == "bleu":
@@ -95,7 +98,7 @@ class Container:
                     client.service.setRobotPosition(1200,300)
                     
                 #déclaration d'un robot adverse
-                client.service.addEnemy(1, 30, "black")
+                client.service.addEnemy(1, 30, ennemi)
                 
                 #definition des zones des capteurs
                 client.service.addSensor(0,{"list":[{"int":[0,-400]},{"int":[-135.,-1100.]},{"int":[135,-1100]}]}) #nombre pair: infrarouge. Nombre impair: ultrasons
@@ -141,6 +144,9 @@ class Container:
         
         #enregistrement du service de stratégie
         self.assembler.register("strategie", Strategie, requires=["robot", "robotChrono", "hookGenerator", "rechercheChemin", "table", "timer", "config", "log"])
+        
+        #enregistrement du service de filtrage
+        self.assembler.register("filtrage", FiltrageLaser, requires=["config"])
 
         #lancement des threads
         self._start_threads()
