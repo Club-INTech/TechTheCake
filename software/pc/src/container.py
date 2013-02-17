@@ -116,13 +116,16 @@ class Container:
             self.assembler.register("serie", Serie, requires = ["log"])
             
         #enregistrement du service des capteurs pour la série
-        self.assembler.register("capteurs",Capteurs, requires=["serie","config","log"])
+        self.assembler.register("capteurs", Capteurs, requires=["serie","config","log"])
+        
         #enregistrement du service des actionneurs pour la série
-        self.assembler.register("actionneurs",Actionneurs, requires=["serie","config","log"])
+        self.assembler.register("actionneurs", Actionneurs, requires=["serie","config","log"])
+        
         #enregistrement du service des déplacements pour la série
-        self.assembler.register("deplacements",Deplacements, requires=["serie","config","log"])
+        self.assembler.register("deplacements", Deplacements, requires=["serie","config","log"])
+        
         #enregistrement du service laser pour la série
-        self.assembler.register("laser",Laser, requires=["serie","config","log"])
+        self.assembler.register("laser", Laser, requires=["robot","serie","config","log"])
         
         #enregistrement du service robot
         self.assembler.register("robot", Robot, requires=["capteurs","actionneurs","deplacements","config","log","table"])

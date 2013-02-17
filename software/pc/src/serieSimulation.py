@@ -1,4 +1,5 @@
 from mutex import Mutex
+import random
 
 ################################################################################
 #####  PROTOCOLE VIRTUEL POUR SIMULATION DE LA SERIE SUR LES DEPLACEMENTS  #####
@@ -148,7 +149,7 @@ class ProtocoleVirtuelActionneurs:
 ################################################################################
 class ProtocoleVirtuelLaser:
     
-    def __init__(self,simulateur, log):
+    def __init__(self, simulateur, log):
         self.simulateur = simulateur
         self.log = log
         
@@ -170,7 +171,9 @@ class ProtocoleVirtuelLaser:
         return []
         
     def valeur(self, id_balise):
-        return []
+        position_reelle = self.simulateur.getEnemyPositionFromRobot(id_balise)
+        position_bruitee = [position_reelle[0] + random.gauss(0,20), position_reelle[1] + random.gauss(0,0.03)]
+        return position_bruitee
 
 ################################################################################
 #####  CLASSE DE SERIE EN SIMULATION : UTILISE DES PERIPHERIQUES VIRTUELS  #####
@@ -181,7 +184,7 @@ class SerieSimulation:
     Implémente la méthode communiquer de facon strictement identique (voir la classe Serie), avec memes appels et retours.
     """
     
-    def __init__(self,simulateur, log):
+    def __init__(self, simulateur, log):
         
         #instances des dépendances
         self.log = log
