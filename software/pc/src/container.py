@@ -32,7 +32,7 @@ from laser import Laser
 from actionneurs import Actionneurs
 from serie import Serie
 from serieSimulation import SerieSimulation
-from table import Table
+from table import Table, TableSimulation
 from timer import Timer
 from suds.client import Client
 from recherche_de_chemin.rechercheChemin import RechercheChemin
@@ -70,6 +70,7 @@ class Container:
         
         #services différents en fonction du mode simulateur on/off :
         if (self.config["mode_simulateur"]):
+            
             #enregistrement du service Simulateur
             def make_simu():
                 #client SOAP pour le simulateur
@@ -112,9 +113,15 @@ class Container:
             self.assembler.register("simulateur", None, factory=make_simu)
             self.assembler.register("serie", SerieSimulation, requires = ["simulateur","log"])
             
+            #enregistrement du service représentant la table
+            self.assembler.register("table", TableSimulation, requires=["simulateur","config","log"])
+            
         else:
             #enregistrement du service Serie
             self.assembler.register("serie", Serie, requires = ["log"])
+            
+            #enregistrement du service représentant la table
+            self.assembler.register("table", Table, requires=["config","log"])
             
         #enregistrement du service des capteurs pour la série
         self.assembler.register("capteurs", Capteurs, requires=["serie","config","log"])
@@ -133,9 +140,6 @@ class Container:
         
         #enregistrement du service robotChrono
         self.assembler.register("robotChrono", RobotChrono, requires=["log"])
-        
-        #enregistrement du service donnant des infos sur la table
-        self.assembler.register("table", Table, requires=["config","log"])
         
         #enregistrement du service timer
         self.assembler.register("timer", Timer, requires=["log","config","robot","table","capteurs"])

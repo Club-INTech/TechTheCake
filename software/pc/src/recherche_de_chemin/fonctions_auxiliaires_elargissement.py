@@ -24,10 +24,10 @@ def elargit_rectangle(polygone, distance):
         
         #barycentre de pointsNormauxA[i],pointsNormauxB[i-1] :
         bar = vis.Point((pointsNormauxA[k].x + pointsNormauxB[k-1].x)/2., (pointsNormauxA[k].y + pointsNormauxB[k-1].y)/2.)
-        builtins.simulateur.drawPoint(bar.x,bar.y,"green",True)#@
+        builtins.simulateur.drawPoint(bar.x,bar.y,"green")#@
         #point recherché :
         polygoneEtendu.append(vis.Point(2*bar.x-polygone[k].x, 2*bar.y-polygone[k].y))
-        builtins.simulateur.drawPoint(2*bar.x-polygone[k].x,2*bar.y-polygone[k].y,"red",True)#@
+        builtins.simulateur.drawPoint(2*bar.x-polygone[k].x,2*bar.y-polygone[k].y,"red")#@
         
     #on obtient le polygone étendu recherché
     return vis.Polygon(polygoneEtendu)
@@ -47,7 +47,7 @@ def _etablit_points_normaux(polygone, distance):
     a = 0
     for k in range(polygone.n()):
         #le point b est au devant de a sur le polygone
-        builtins.simulateur.drawPoint(polygone[a].x,polygone[a].y,"black",True)#@
+        builtins.simulateur.drawPoint(polygone[a].x,polygone[a].y,"black")#@
         b = fus.avancerSurPolygone(polygone,a)
         
         #détermination du sergment AB et de l'orientation de son vecteur normal
@@ -59,12 +59,12 @@ def _etablit_points_normaux(polygone, distance):
         pointNormalA_X = polygone[a].x + distance*math.cos(normaleSegment)
         pointNormalA_Y = polygone[a].y + distance*math.sin(normaleSegment)
         pointsNormauxA.append(vis.Point(pointNormalA_X,pointNormalA_Y))
-        builtins.simulateur.drawPoint(pointNormalA_X,pointNormalA_Y,"blue",True)#@
+        builtins.simulateur.drawPoint(pointNormalA_X,pointNormalA_Y,"blue")#@
         
         pointNormalB_X = polygone[b].x + distance*math.cos(normaleSegment)
         pointNormalB_Y = polygone[b].y + distance*math.sin(normaleSegment)
         pointsNormauxB.append(vis.Point(pointNormalB_X,pointNormalB_Y))
-        builtins.simulateur.drawPoint(pointNormalB_X,pointNormalB_Y,"blue",True)#@
+        builtins.simulateur.drawPoint(pointNormalB_X,pointNormalB_Y,"blue")#@
         
         #progression circulaire sur le polygone
         a = fus.avancerSurPolygone(polygone,a)
