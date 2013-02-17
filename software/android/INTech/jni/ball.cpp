@@ -82,33 +82,6 @@ bool Ball::isFirstTimeDetected()
     return detected_firstime;
 }
 
-Ball::Type Ball::analyzeColor(Vec3b color)
-{
-    int h = (int) color[0];
-    int s = (int) color[1];
-    int v = (int) color[2];
-    int tolerance = 5;
-    int blue_color = 105;
-    int red_color = 3;
-
-    if (s <= 50 && v >= 150)
-    {
-        return WHITE_BALL;
-    }
-
-    if (h >= blue_color - tolerance && h <= blue_color + tolerance)
-    {
-        return BLUE_BALL;
-    }
-
-    if (h >= red_color - tolerance && h <= red_color + tolerance)
-    {
-        return RED_BALL;
-    }
-
-    return UNVALID_BALL;
-}
-
 float Ball::distanceWith(Point2f &point)
 {
     return (point.x - center.x) * (point.x - center.x) + (point.y- center.y) * (point.y - center.y);

@@ -24,7 +24,11 @@ Processing::Processing():
     min_ball_area(90),
     max_ball_area(280),
     min_yellow_color(30, 80, 140),
-    max_yellow_color(38, 250, 250)
+    max_yellow_color(38, 250, 250),
+    blue_ball_color(105),
+    red_ball_color(3),
+    ball_color_tolerance(10),
+    white_ball_tolerance(70)
 {
 }
 
@@ -257,7 +261,7 @@ void Processing::_findBallColor(Mat &image, Ball *ball)
     for (vector<Ball::CheckPoint>::iterator point = check_points.begin(); point != check_points.end(); ++point)
     {
         Vec3b color = image.at<Vec3b>(point->point);
-        point->type = ball->analyzeColor(color);
+        point->type = _analyzeColor(color);
         check_points_analyzed.push_back(*point);
     }
 
@@ -320,6 +324,30 @@ Point2f Processing::_getApproximativeCakeCenter(vector<Ball*> &balls)
     if (balls.size() == 0) return Point2f(0, 0);
 
     return Point2f(x.at(med), y.at(med));
+}
+
+Ball::Type Processing::_analyzeColor(Vec3b color)
+{
+    int h = (int) color[0];
+    int s = (int) color[1];
+    int v = (int) color[2];
+
+    if (s <= white_ball_tolerance && v >= 255 - white_ball_tolerance)
+    {
+        return Ball::WHITE_BALL;
+    }
+
+    if (h >= blue_ball_color - ball_color_tolerance && h <= blue_ball_color + ball_color_tolerance)
+    {
+        return Ball::BLUE_BALL;
+    }
+
+    if (h >= red_ball_color - ball_color_tolerance && h <= red_ball_color + ball_color_tolerance)
+    {
+        return Ball::RED_BALL;
+    }
+
+    return Ball::UNVALID_BALL;
 }
 
 void Processing::_drawBalls(vector<Ball*> &balls, Mat &image)

@@ -24,7 +24,6 @@ public:
     bool isFirstTimeDetected();
     cv::Point2f getCenter();
     float getRadius();
-    Type analyzeColor(cv::Vec3b color);
     float distanceWith(cv::Point2f &point);
     void distanceWithClosestPoint(std::map<int,cv::Point2f> &model, float &distance, int &id, bool auto_ignore = false);
     void distanceWithClosestBall(std::vector<Ball*> &balls, float &distance);
