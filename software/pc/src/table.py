@@ -30,10 +30,10 @@ class Table:
         
         # Liste des cadeaux
         self.cadeaux = [	
-            {"position": (975,0), "ouvert": False},
-            {"position": (375,0), "ouvert": False},
-            {"position": (-225,0), "ouvert": False},
-            {"position": (-825,0), "ouvert": False}
+            {"position": (990,0), "ouvert": False},
+            {"position": (390,0), "ouvert": False},
+            {"position": (-210,0), "ouvert": False},
+            {"position": (-810,0), "ouvert": False}
         ]
             
         self.pointsEntreeCadeaux = [0,3]
@@ -274,7 +274,7 @@ class TableSimulation(Table):
         # Affichage des cadeaux
         for i, cadeau in enumerate(self.cadeaux):
             position = cadeau["position"]
-            self.simulateur.drawRectangle(position[0], position[1] + 20, 150, 40, True, "blue", "cadeau_" + str(i))
+            self.simulateur.drawRectangle(position[0], position[1] + 20, 150, 40, True, "red", "cadeau_" + str(i))
             
         # Affichage des bougies
         for i, bougie in enumerate(self.bougies):
@@ -296,3 +296,7 @@ class TableSimulation(Table):
     def bougie_recupere(self, id):
         Table.bougie_recupere(self, id)
         self.simulateur.clearEntity("bougie_" + str(id))
+        
+    def _retirer_verre(self,id):
+        Table._retirer_verre(self, id)
+        self.simulateur.clearEntity("verre_" + str(id))
