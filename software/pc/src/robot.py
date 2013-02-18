@@ -222,7 +222,7 @@ class Robot(RobotInterface):
         Si le paramètre virage_initial=False, le robot évite d'effectuer un virage, et donc tourne sur lui meme avant la translation.
         Les hooks sont évalués, et une boucle d'acquittement générique est utilisée.
         """
-                
+
         #comme à toute consigne initiale de mouvement, le robot est débloqué
         self.blocage = False
         
@@ -307,6 +307,8 @@ class Robot(RobotInterface):
         if not self.deplacements.update_enMouvement(**infos):
             #robot arrivé
             return 1
+            
+        #appeler méthode table pour gérer obstacles devant robot
             
             
     def _arc_de_cercle(self,xM,yM,hooks=[]):
@@ -430,8 +432,8 @@ class Robot(RobotInterface):
         self.log.debug("stoppage du robot")
         self.blocage = True
         self.deplacements.stopper()
-        
-    def avancer(self, distance, hooks=[]):
+
+    def avancer(self, distance, hooks=[], pasReessayer=False):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.
         Elle permet d'effectuer une translation en visant un point consigne devant le robot,
@@ -440,19 +442,28 @@ class Robot(RobotInterface):
         """
         
         self.log.debug("avancer de "+str(distance))
+
+        mem_x=self.x
+        mem_y=self.y
         
         mem_marche_arriere = self.marche_arriere
         self.marche_arriere = (distance < 0)
         
         retour = self._avancer(distance, hooks)
         self.marche_arriere = mem_marche_arriere
+
         if retour == 1:
             print("translation terminée !")
         elif retour == 2:
             self.stopper()
             print("translation arrêtée car blocage !")
         elif retour == 3:
-            self.stopper()
+            if pasReessayer:
+                self.stopper()
+            else:
+                delta_x=self.x-mem_x
+                delta_y=self.y-mem.y
+                self._avancer(distance-round(sqrt(delta_x**2 + delta_y**2),2), hooks, True)
             print("capteurs !")
         
     def tourner(self, angle_consigne, forcer = False,hooks=[]):
