@@ -99,19 +99,19 @@ class ProtocoleVirtuelCapteurs:
     
     def s(self):
         #capteurs ultrasons de l'arrière
-        return [self.simulateur.getSensorValue(0),self.simulateur.getSensorValue(1)]
+        return [self._valeur_capteur(3)]
         
     def S(self):
         #capteurs ultrasons de l'avant
-        return [self.simulateur.getSensorValue(2),self.simulateur.getSensorValue(3)]
+        return [self._valeur_capteur(2)]
         
     def i(self):
         #capteurs infrarouges de l'arrière
-        return [self.simulateur.getSensorValue(0),self.simulateur.getSensorValue(1)]
+        return [self._valeur_capteur(1)]
         
     def I(self):
         #capteurs infrarouges de l'avant
-        return [self.simulateur.getSensorValue(2),self.simulateur.getSensorValue(3)]
+        return [self._valeur_capteur(0)]
 
     def c(self):
         #TODO
@@ -119,6 +119,10 @@ class ProtocoleVirtuelCapteurs:
 
     def demarrage_match(self):
         return [True]
+        
+    def _valeur_capteur(self, id):
+        valeur = self.simulateur.getSensorValue(id)
+        return valeur if valeur >= 0 else 5000
         
 ################################################################################
 #####  PROTOCOLE VIRTUEL POUR SIMULATION DE LA SERIE SUR LES ACTIONNEURS   #####

@@ -3,21 +3,24 @@ from mutex import Mutex
 import math
 
 class Obstacle:
-
-    def __init__(self,position,rayon):
-        self.position = position # position est de type Point et pas entier
+    
+    nombre_instance = 0
+    
+    def __init__(self, position, rayon):
+        Obstacle.nombre_instance += 1
+        self.id = Obstacle.nombre_instance
+        self.position = position
         self.rayon = rayon
         
 class RobotAdverseBalise(Obstacle):
     
-    def __init__(self,position,rayon,vitesse):
-       Obstacle.__init__(self,position,rayon)
-       self.vitesse = vitesse # vitesse est de type Vitesse et pas entier
+    def __init__(self, position, rayon):
+       Obstacle.__init__(self, position, rayon)
        
 class ObstacleCapteur(Obstacle):
     
-    def __init__(self,position,rayon):
-       Obstacle.__init__(self,position,rayon)
+    def __init__(self, position, rayon):
+       Obstacle.__init__(self, position, rayon)
        self.naissance = time()
        
 class Table:
@@ -39,8 +42,8 @@ class Table:
         self.pointsEntreeCadeaux = [0,3]
 
         # Listes des obstacles repérés par les différents capteurs 
-        self.robotsAdversesBalise = []
-        self.obstaclesCapteurs = []
+        self.robots_adverses = []
+        self.obstacles_capteurs = []
         
         # La position des bougies est codée en pôlaire depuis le centre du gâteau :
         # (rayon, angle depuis la verticale), elles sont ordonnées par ordre croissant d'angle.
@@ -111,79 +114,93 @@ class Table:
         ]
 	
         self.pointsEntreeVerres= [0,5,6,11]
+        
+    # Permet de savoir l'état d'un cadeau.	
+    def etat_cadeau(self, id):
+        return self.cadeaux[id]["ouvert"]
+        
+    # Permet de savoir l'état d'une bougie.
+    def etat_bougie(self, id):
+        return self.bougies[id]["traitee"]
+        
+    # Permet de savoir l'état d'un verre.
+    def etat_verre(self, id):
+        with self.mutex:
+            return self.verres[id]["present"]
 
-    # A utiliser lorsqu'un cadeau est tombé.
-    def cadeau_recupere(self,id) :
-        self.cadeaux[id]["ouvert"]=True
-        if id in self.pointsEntreeCadeaux :
+    # Indique qu'un cadeau est tombé.
+    def cadeau_recupere(self, id):
+        self.cadeaux[id]["ouvert"] = True
+        if id in self.pointsEntreeCadeaux:
             self._reattribuePointEntreeCadeaux(id)
 	
-    # Permet de savoir l'état d'un cadeau.	
-    def etat_cadeau(self,id) :
-        return self.cadeaux[id]["ouvert"]
-	
-    # A utiliser lorsqu'une bougie est tombée.
-    def bougie_recupere(self,id) :
-        self.bougies[id]["traitee"]=True
-        if id in self.pointsEntreeBougies :
+    # Indique qu'une bougie est tombée.
+    def bougie_recupere(self, id):
+        self.bougies[id]["traitee"] = True
+        if id in self.pointsEntreeBougies:
             self._reattribuePointEntreeBougies(id)
-	
-    # Permet de savoir l'état d'une bougie.
-    def etat_bougie(self,id) :
-        return self.bougies[id]["traitee"]
 
-    # A utiliser lorsque notre robot récupère un verre
-    def recuperer_verre(self,id) :
-        with self.mutex :
+    # Indique qu'un verre est récupéré.
+    def verre_recupere(self, id):
+        with self.mutex:
             self._retirer_verre(id)
             
-    # A utiliser lorsqu'un verre est déjà utilisé (privé).
-    def _retirer_verre(self,id) :
-            self.verres[id]["present"]=False
-            if id in self.pointsEntreeVerres :
-                self._reattribuePointEntreeVerres(id)
-	
-    # Permet de savoir l'état d'un verre.
-    def etat_verre(self,id) :
-        with self.mutex :
-            return self.verres[id]["present"]
+    # A utiliser lorsqu'un verre est déjà utilisé.
+    def _retirer_verre(self, id):
+        self.verres[id]["present"] = False
+        if id in self.pointsEntreeVerres:
+            self._reattribuePointEntreeVerres(id)
  
     # Change l'état du verre si le robot adverse passe trop près.
-    def _actualise_verres(self,listeRobots) :
-            for k in range(12):
-                for robot in listeRobots:
-                    dx = self.verres[k]["position"][0] - robot.position.x
-                    dy = self.verres[k]["position"][1] - robot.position.y
-                    if math.sqrt(dx**2 + dy ** 2) < robot.rayon + self.config["tolerance_verre_actif"] :
-                        self._retirer_verre(k)
-                
+    def _actualise_verres(self, listeRobots):
+        for k in range(12):
+            for robot in listeRobots:
+                dx = self.verres[k]["position"][0] - robot.position.x
+                dy = self.verres[k]["position"][1] - robot.position.y
+                if math.sqrt(dx**2 + dy ** 2) < robot.rayon + self.config["tolerance_verre_actif"] :
+                    self._retirer_verre(k)
+    
+    """
     # Actualise la position et la vitesse des robots adverses.
-    def actualise_robotsAdversesBalise(self,positions,vitesses,ids) :
+    def actualise_robots_adverses(self,positions,vitesses,ids) :
         with self.mutex :
             for id in ids :    
-                if id < len(self.robotsAdversesBalise) :
-                    self.robotsAdversesBalise[id].position = positions[id]
-                    self.robotsAdversesBalise[id].vitesse = vitesses[id]
+                if id < len(self.robots_adverses) :
+                    self.robots_adverses[id].position = positions[id]
+                    self.robots_adverses[id].vitesse = vitesses[id]
                 else:
-                    self.robotsAdversesBalise.append(RobotAdverseBalise(positions[id],self.config["rayon_robot_adverse"],vitesses[id]))
-            self._actualise_verres(self.robotsAdversesBalise)
-        
-    def cree_obstaclesCapteur(self, position) :
-        with self.mutex :
-            self.obstaclesCapteurs.insert(0,ObstacleCapteur(position,self.config["rayon_robot_adverse"]))
-            self._actualise_verres(self.obstaclesCapteurs[:1])
+                    self.robots_adverses.append(RobotAdverseBalise(positions[id],self.config["rayon_robot_adverse"],vitesses[id]))
+            self._actualise_verres(self.robots_adverses)
+    """
+    
+    def creer_obstacle(self, position):
+        with self.mutex:
+            obstacle = ObstacleCapteur(position, self.config["rayon_robot_adverse"])
+            self.obstacles_capteurs.append(obstacle)
+            #self._actualise_verres(self.obstacles_capteurs[:1])
+            return obstacle.id
             
-    def maj_obstaclesCapteur(self,premierAButer) :
-        with self.mutex :
-            self.obstaclesCapteurs = self.obstaclesCapteurs[:premierAButer]
+    def supprimer_obstacles_perimes(self):
+        for i, obstacle in enumerate(self.obstacles_capteurs):
+            if time() - obstacle.naissance > self.config["duree_peremption_obstacles"]:
+                self._supprimer_obstacle(i)
+            
+    def _supprimer_obstacle(self, i):
+        with self.mutex:
+            self.obstacles_capteurs.pop(i)
         
     def get_obstaclesCapteur(self) :
         with self.mutex :
-            return self.obstaclesCapteurs
+            return self.obstacles_capteurs
         
     def get_robotsAdversesBalise(self) :
         with self.mutex :
-            return self.robotsAdversesBalise
+            return self.robots_adverses
+            
+    # Récupère la liste des obstacles sur la table
+    def obstacles(self):
+        with self.mutex:
+            return self.robots_adverses + self.obstacles_capteurs
 
     # Change les points d'entrée pour les verres
     def _reattribuePointEntreeVerres(self, id) :
@@ -300,3 +317,11 @@ class TableSimulation(Table):
     def _retirer_verre(self,id):
         Table._retirer_verre(self, id)
         self.simulateur.clearEntity("verre_" + str(id))
+        
+    def creer_obstacle(self, position):
+        id = Table.creer_obstacle(self, position)
+        self.simulateur.drawCircle(position.x, position.y, self.config["rayon_robot_adverse"], False, "black", "obstacle_" + str(id))
+        
+    def _supprimer_obstacle(self, i):
+        self.simulateur.clearEntity("obstacle_" + str(self.obstacles_capteurs[i].id))
+        Table._supprimer_obstacle(self, i)

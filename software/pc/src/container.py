@@ -103,10 +103,10 @@ class Container:
                 client.service.addEnemy(1, 30, ennemi)
                 
                 #definition des zones des capteurs
-                client.service.addSensor(0,{"list":[{"int":[0,-400]},{"int":[-135.,-1100.]},{"int":[135,-1100]}]}) #nombre pair: infrarouge. Nombre impair: ultrasons
-                client.service.addSensor(2,{"list":[{"int":[0,400]},{"int":[-135.,1100.]},{"int":[135,1100]}]})
-                client.service.addSensor(1,{"list":[{"int":[0,-400]},{"int":[-600.,-1600.]},{"int":[600,-1600]}]})
-                client.service.addSensor(3,{"list":[{"int":[0,400]},{"int":[-600.,1600.]},{"int":[600,1600]}]})
+                client.service.addSensor(0,{"list":[{"int":[0,-100]},{"int":[-135.,-1100.]},{"int":[135,-1100]}]}) # infrarouge arrière
+                client.service.addSensor(1,{"list":[{"int":[0,100]},{"int":[-135.,1100.]},{"int":[135,1100]}]})    # infrarouge avant
+                client.service.addSensor(2,{"list":[{"int":[0,-100]},{"int":[-600.,-1600.]},{"int":[600,-1600]}]}) # ultra son arrière
+                client.service.addSensor(3,{"list":[{"int":[0,100]},{"int":[-600.,1600.]},{"int":[600,1600]}]})    # ultra son avant
         
                 return client.service
                 
