@@ -62,6 +62,18 @@ public class DisplayImageActivity extends Activity {
 		Log.d(TAG, String.valueOf(hMin) + " " + String.valueOf(hMax));
 		loadBallsParameters(hMin, sMin, vMin, hMax, sMax, vMax);
 
+		// Chargement des paramètres pour la couleur des bougies
+		int redColor = Integer.valueOf(preferences
+				.getString("red_h_color", "0"));
+		int blueColor = Integer.valueOf(preferences.getString("blue_h_color",
+				"0"));
+		int colorTolerance = Integer.valueOf(preferences.getString(
+				"tolerance_color", "0"));
+		int whiteTolerance = Integer.valueOf(preferences.getString(
+				"white_tolerance_color", "0"));
+		loadBallColorsParameters(redColor, blueColor, colorTolerance,
+				whiteTolerance);
+
 		// Chargement des paramètres pour le masque
 		int maskErode = Integer.valueOf(preferences.getString(
 				"mask_erode_size", "0"));
@@ -117,13 +129,16 @@ public class DisplayImageActivity extends Activity {
 	public native void loadBallsParameters(int hMin, int sMin, int vMin,
 			int hMax, int sMax, int vMax);
 
+	public native void loadBallColorsParameters(int red, int blue,
+			int tolerance, int white);
+
 	public native void loadMaskParameters(int maskErode, int maskClosing);
 
 	public native void loadBallSizeParameters(int minBallSize, int maxBallSize);
 
 	public native void analyze(long srcAddr, long maskAddr, long contoursAddr,
 			long resultsAddr);
-	
+
 	public native String getResults();
 
 }

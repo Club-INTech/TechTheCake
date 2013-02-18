@@ -20,6 +20,9 @@ JNIEXPORT void JNICALL Java_intech_android_DisplayImageActivity_analyze(JNIEnv*,
 JNIEXPORT void JNICALL Java_intech_android_DisplayImageActivity_loadMaskParameters(
 		JNIEnv*, jobject, jint maskErode, jint maskClosing);
 
+JNIEXPORT void JNICALL Java_intech_android_DisplayImageActivity_loadBallColorsParameters(
+		JNIEnv*, jobject, jint red, jint blue, jint white, jint tolerance);
+
 JNIEXPORT void JNICALL Java_intech_android_DisplayImageActivity_loadBallSizeParameters(
 		JNIEnv*, jobject, jint min, jint max);
 
@@ -45,6 +48,15 @@ JNIEXPORT void JNICALL Java_intech_android_DisplayImageActivity_loadBallSizePara
 		JNIEnv*, jobject, jint min, jint max) {
 	processing.min_ball_area = min;
 	processing.max_ball_area = max;
+}
+
+JNIEXPORT void JNICALL Java_intech_android_DisplayImageActivity_loadBallColorsParameters(
+		JNIEnv*, jobject, jint red, jint blue, jint tolerance, jint white)
+{
+	processing.red_ball_color = red;
+	processing.blue_ball_color = blue;
+	processing.ball_color_tolerance = tolerance;
+	processing.white_ball_tolerance = white;
 }
 
 JNIEXPORT void JNICALL Java_intech_android_DisplayImageActivity_analyze(JNIEnv*,
