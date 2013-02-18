@@ -1,3 +1,4 @@
+import math
 
 class Point:
     """
@@ -17,20 +18,25 @@ class Point:
     def __repr__(self):
         return '(' + str(self.x) + ',' + str(self.y) + ')'
         
-    def __add__(self,other):
+    def __add__(self, other):
         return Point(self.x + other.x, self.y + other.y)
         
-    def __sub__(self,other):
+    def __sub__(self, other):
         return Point(self.x - other.x, self.y - other.y)
     
-    def __mul__(self,other):
+    def __mul__(self, other):
         return Point(self.x*other, self.y*other)
     
     def __str__(self) :
         return "("+str(self.x)+"," + str(self.y) + ")"
         
-    def __eq__(self,other):
+    def __eq__(self, other):
         return self.x == other.x and self.y == other.y
         
     def to_list(self):
         return [self.x, self.y]
+        
+    def distance(self, point):
+        v = self - point
+        d = v.x ** 2 + v.y ** 2
+        return math.sqrt(d)

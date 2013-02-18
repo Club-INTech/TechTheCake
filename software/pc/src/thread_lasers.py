@@ -37,16 +37,16 @@ def fonction_laser(container):
         
         # Affichage sur simulateur
         if config["mode_simulateur"]:
-            if config["laser_afficher_valeurs_brutes"]:
+            if config["lasers_afficher_valeurs_brutes"]:
                 simulateur.drawPoint(p_bruit[0], p_bruit[1], "gris")
-            if config["laser_afficher_valeurs_filtre"]:
+            if config["lasers_afficher_valeurs_filtre"]:
                 simulateur.drawPoint(int(p_filtre[0]), int(p_filtre[1]), "blue")
-            if config["laser_afficher_vecteur_vitesse"]:    
+            if config["lasers_afficher_vecteur_vitesse"]:    
                 simulateur.drawVector(int(p_filtre[0]), int(p_filtre[1]), int(p_filtre[0]) + int(vitesse[0]), int(p_filtre[1]) + int(vitesse[1]), "black", "vitesse_laser")
         
-        sleep(0.1)
+        sleep(1./config["lasers_frequence"])
         
-        if config["mode_simulateur"] and config["laser_afficher_vecteur_vitesse"]:
+        if config["mode_simulateur"] and config["lasers_afficher_vecteur_vitesse"]:
             simulateur.clearEntity("vitesse_laser")
         
     log.debug("Arrêt du thread de capteurs")

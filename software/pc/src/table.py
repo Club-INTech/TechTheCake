@@ -1,5 +1,6 @@
 from time import time
 from mutex import Mutex
+from outils_maths.point import Point
 import math
 
 class Obstacle:
@@ -33,10 +34,10 @@ class Table:
         
         # Liste des cadeaux
         self.cadeaux = [	
-            {"position": (990,0), "ouvert": False},
-            {"position": (390,0), "ouvert": False},
-            {"position": (-210,0), "ouvert": False},
-            {"position": (-810,0), "ouvert": False}
+            {"position": Point(990,0), "ouvert": False},
+            {"position": Point(390,0), "ouvert": False},
+            {"position": Point(-210,0), "ouvert": False},
+            {"position": Point(-810,0), "ouvert": False}
         ]
             
         self.pointsEntreeCadeaux = [0,3]
@@ -75,109 +76,108 @@ class Table:
         
         # Pour lorsqu'on met le gateau en bas
         self.bougies = [
-            {"position":3.010, "traitee":False, "enHaut":False},
-            {"position":2.945, "traitee":False, "enHaut":True},
-            {"position":2.748, "traitee":False, "enHaut":False},
-            {"position":2.552, "traitee":False, "enHaut":True},
-            {"position":2.487, "traitee":False, "enHaut":False},
-            {"position":2.225, "traitee":False, "enHaut":False},
-            {"position":2.159, "traitee":False, "enHaut":True},
-            {"position":1.963, "traitee":False, "enHaut":False},
-            {"position":1.767, "traitee":False, "enHaut":True},
-            {"position":1.701, "traitee":False, "enHaut":False},
-            {"position":1.440, "traitee":False, "enHaut":False},
-            {"position":1.374, "traitee":False, "enHaut":True},
-            {"position":1.178, "traitee":False, "enHaut":False},
-            {"position":0.982, "traitee":False, "enHaut":True},
-            {"position":0.916, "traitee":False, "enHaut":False},
-            {"position":0.654, "traitee":False, "enHaut":False},
-            {"position":0.589, "traitee":False, "enHaut":True},
-            {"position":0.393, "traitee":False, "enHaut":False},
-            {"position":0.196, "traitee":False, "enHaut":True},
-            {"position":0.131, "traitee":False, "enHaut":False}
+            {"position":3.010, "traitee":False, "couleur":"?", "enHaut":False},
+            {"position":2.945, "traitee":False, "couleur":"?", "enHaut":True},
+            {"position":2.748, "traitee":False, "couleur":"?", "enHaut":False},
+            {"position":2.552, "traitee":False, "couleur":"?", "enHaut":True},
+            {"position":2.487, "traitee":False, "couleur":"?", "enHaut":False},
+            {"position":2.225, "traitee":False, "couleur":"?", "enHaut":False},
+            {"position":2.159, "traitee":False, "couleur":"?", "enHaut":True},
+            {"position":1.963, "traitee":False, "couleur":"?", "enHaut":False},
+            {"position":1.767, "traitee":False, "couleur":"?", "enHaut":True},
+            {"position":1.701, "traitee":False, "couleur":"?", "enHaut":False},
+            {"position":1.440, "traitee":False, "couleur":"?", "enHaut":False},
+            {"position":1.374, "traitee":False, "couleur":"?", "enHaut":True},
+            {"position":1.178, "traitee":False, "couleur":"?", "enHaut":False},
+            {"position":0.982, "traitee":False, "couleur":"?", "enHaut":True},
+            {"position":0.916, "traitee":False, "couleur":"?", "enHaut":False},
+            {"position":0.654, "traitee":False, "couleur":"?", "enHaut":False},
+            {"position":0.589, "traitee":False, "couleur":"?", "enHaut":True},
+            {"position":0.393, "traitee":False, "couleur":"?", "enHaut":False},
+            {"position":0.196, "traitee":False, "couleur":"?", "enHaut":True},
+            {"position":0.131, "traitee":False, "couleur":"?", "enHaut":False}
         ]
 
         # Le premier correspond à celui le plus en haut à gauche et le dernier le plus en bas à droite.
         self.verres = [
-            {"position":(600,1050), "present":True},
-            {"position":(300,1050), "present":True},
-            {"position":(450,800), "present":True},
-            {"position":(150,800), "present":True},
-            {"position":(600,550), "present":True},
-            {"position":(300,550), "present":True},
-            {"position":(-600,1050), "present":True},
-            {"position":(-300,1050), "present":True},
-            {"position":(-450,800), "present":True},
-            {"position":(-150,800), "present":True},
-            {"position":(-600,550), "present":True},
-            {"position":(-300,550), "present":True}
+            {"position": Point(600,1050), "present":True},
+            {"position": Point(300,1050), "present":True},
+            {"position": Point(450,800), "present":True},
+            {"position": Point(150,800), "present":True},
+            {"position": Point(600,550), "present":True},
+            {"position": Point(300,550), "present":True},
+            {"position": Point(-600,1050), "present":True},
+            {"position": Point(-300,1050), "present":True},
+            {"position": Point(-450,800), "present":True},
+            {"position": Point(-150,800), "present":True},
+            {"position": Point(-600,550), "present":True},
+            {"position": Point(-300,550), "present":True}
         ]
 	
         self.pointsEntreeVerres= [0,5,6,11]
         
     # Permet de savoir l'état d'un cadeau.	
-    def etat_cadeau(self, id):
-        return self.cadeaux[id]["ouvert"]
+    def etat_cadeau(self, i):
+        return self.cadeaux[i]["ouvert"]
         
     # Permet de savoir l'état d'une bougie.
-    def etat_bougie(self, id):
-        return self.bougies[id]["traitee"]
+    def etat_bougie(self, i):
+        return self.bougies[i]["traitee"]
         
     # Permet de savoir l'état d'un verre.
-    def etat_verre(self, id):
+    def etat_verre(self, i):
         with self.mutex:
-            return self.verres[id]["present"]
+            return self.verres[i]["present"]
 
     # Indique qu'un cadeau est tombé.
-    def cadeau_recupere(self, id):
-        self.cadeaux[id]["ouvert"] = True
-        if id in self.pointsEntreeCadeaux:
-            self._reattribuePointEntreeCadeaux(id)
+    def cadeau_recupere(self, i):
+        self.cadeaux[i]["ouvert"] = True
+        if i in self.pointsEntreeCadeaux:
+            self._reattribuePointEntreeCadeaux(i)
 	
     # Indique qu'une bougie est tombée.
-    def bougie_recupere(self, id):
-        self.bougies[id]["traitee"] = True
-        if id in self.pointsEntreeBougies:
-            self._reattribuePointEntreeBougies(id)
+    def bougie_recupere(self, i):
+        self.bougies[i]["traitee"] = True
+        if i in self.pointsEntreeBougies:
+            self._reattribuePointEntreeBougies(i)
 
     # Indique qu'un verre est récupéré.
-    def verre_recupere(self, id):
+    def verre_recupere(self, i):
         with self.mutex:
-            self._retirer_verre(id)
+            self._retirer_verre(i)
             
     # A utiliser lorsqu'un verre est déjà utilisé.
-    def _retirer_verre(self, id):
-        self.verres[id]["present"] = False
-        if id in self.pointsEntreeVerres:
-            self._reattribuePointEntreeVerres(id)
+    def _retirer_verre(self, i):
+        self.verres[i]["present"] = False
+        #~ if i in self.pointsEntreeVerres:
+            #~ self._reattribuePointEntreeVerres(i)
  
     # Change l'état du verre si le robot adverse passe trop près.
-    def _actualise_verres(self, listeRobots):
-        for k in range(12):
-            for robot in listeRobots:
-                dx = self.verres[k]["position"][0] - robot.position.x
-                dy = self.verres[k]["position"][1] - robot.position.y
-                if math.sqrt(dx**2 + dy ** 2) < robot.rayon + self.config["tolerance_verre_actif"] :
-                    self._retirer_verre(k)
+    def _detection_collision_verre(self, position):
+        for i, verre in enumerate(self.verres):
+            if verre["present"]:
+                distance = verre["position"].distance(position)
+                if distance < self.config["rayon_robot_adverse"] + self.config["table_tolerance_verre_actif"]:
+                    self._retirer_verre(i)
     
-    """
-    # Actualise la position et la vitesse des robots adverses.
-    def actualise_robots_adverses(self,positions,vitesses,ids) :
-        with self.mutex :
-            for id in ids :    
-                if id < len(self.robots_adverses) :
-                    self.robots_adverses[id].position = positions[id]
-                    self.robots_adverses[id].vitesse = vitesses[id]
-                else:
-                    self.robots_adverses.append(RobotAdverseBalise(positions[id],self.config["rayon_robot_adverse"],vitesses[id]))
-            self._actualise_verres(self.robots_adverses)
-    """
-    
+    def definir_couleurs_bougies(self, code):
+        for i, couleur in enumerate(list(code)):
+            if couleur == "b":
+                oppose = "r"
+            elif couleur == "r":
+                oppose = "b"
+            else:
+                oppose = couleur
+            if self.config["couleur"] == "rouge":
+                i = 19-i
+            self.bougies[i]["couleur"] = couleur
+            self.bougies[19-i]["couleur"] = oppose
+        
     def creer_obstacle(self, position):
         with self.mutex:
             obstacle = ObstacleCapteur(position, self.config["rayon_robot_adverse"])
             self.obstacles_capteurs.append(obstacle)
-            #self._actualise_verres(self.obstacles_capteurs[:1])
+            self._detection_collision_verre(position)
             return obstacle.id
             
     def supprimer_obstacles_perimes(self):
@@ -189,13 +189,15 @@ class Table:
         with self.mutex:
             self.obstacles_capteurs.pop(i)
         
-    def get_obstaclesCapteur(self) :
-        with self.mutex :
-            return self.obstacles_capteurs
+    def get_obstaclesCapteur(self):
+        raise Exception("deprecated, utiliser plutôt obstacles()")
+        #~ with self.mutex:
+            #~ return self.obstacles_capteurs
         
-    def get_robotsAdversesBalise(self) :
-        with self.mutex :
-            return self.robots_adverses
+    def get_robotsAdversesBalise(self):
+        raise Exception("deprecated, utiliser plutôt obstacles()")
+        #~ with self.mutex:
+            #~ return self.robots_adverses
             
     # Récupère la liste des obstacles sur la table
     def obstacles(self):
@@ -291,7 +293,7 @@ class TableSimulation(Table):
         # Affichage des cadeaux
         for i, cadeau in enumerate(self.cadeaux):
             position = cadeau["position"]
-            self.simulateur.drawRectangle(position[0], position[1] + 20, 150, 40, True, "red", "cadeau_" + str(i))
+            self.simulateur.drawRectangle(position.x, position.y + 20, 150, 40, True, "red", "cadeau_" + str(i))
             
         # Affichage des bougies
         for i, bougie in enumerate(self.bougies):
@@ -304,19 +306,36 @@ class TableSimulation(Table):
         # Affichage des verres
         for i, verre in enumerate(self.verres):
             position = verre["position"]
-            self.simulateur.drawCircle(position[0], position[1], 40, False, "black", "verre_" + str(i))
+            self.simulateur.drawCircle(position.x, position.y, 40, False, "black", "verre_" + str(i))
         
-    def cadeau_recupere(self, id):
-        Table.cadeau_recupere(self, id)
-        self.simulateur.clearEntity("cadeau_" + str(id))
+    def cadeau_recupere(self, i):
+        Table.cadeau_recupere(self, i)
+        self.simulateur.clearEntity("cadeau_" + str(i))
         
-    def bougie_recupere(self, id):
-        Table.bougie_recupere(self, id)
-        self.simulateur.clearEntity("bougie_" + str(id))
+    def bougie_recupere(self, i):
+        Table.bougie_recupere(self, i)
+        self.simulateur.clearEntity("bougie_" + str(i))
         
-    def _retirer_verre(self,id):
-        Table._retirer_verre(self, id)
-        self.simulateur.clearEntity("verre_" + str(id))
+    def _retirer_verre(self, i):
+        Table._retirer_verre(self, i)
+        self.simulateur.clearEntity("verre_" + str(i))
+        
+    def definir_couleurs_bougies(self, code):
+        Table.definir_couleurs_bougies(self, code)
+        self.simulateur.clearEntity("bougies_couleurs")
+        for bougie in self.bougies:
+            if bougie["couleur"] != "?":
+                r = 350 if bougie["enHaut"] else 450
+                a = bougie["position"]
+                x = r * math.cos(a)
+                y = 2000 - r * math.sin(a)
+                if bougie["couleur"] == "r":
+                    couleur = "red"
+                elif bougie["couleur"] == "b":
+                    couleur = "blue"
+                else:
+                    couleur = "blanc"
+                self.simulateur.drawCircle(x, y, 40, False, couleur, "bougies_couleurs")
         
     def creer_obstacle(self, position):
         id = Table.creer_obstacle(self, position)
