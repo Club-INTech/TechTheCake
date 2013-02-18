@@ -299,12 +299,12 @@ class TableSimulation(Table):
             a = bougie["position"]
             x = r * math.cos(a)
             y = 2000 - r * math.sin(a)
-            self.simulateur.drawCircle(x, y, 45, True, "jaune", "bougie_" + str(i))
+            self.simulateur.drawCircle(x, y, 22, True, "jaune", "bougie_" + str(i))
             
         # Affichage des verres
         for i, verre in enumerate(self.verres):
             position = verre["position"]
-            self.simulateur.drawCircle(position[0], position[1], 80, False, "black", "verre_" + str(i))
+            self.simulateur.drawCircle(position[0], position[1], 40, False, "black", "verre_" + str(i))
         
     def cadeau_recupere(self, id):
         Table.cadeau_recupere(self, id)
