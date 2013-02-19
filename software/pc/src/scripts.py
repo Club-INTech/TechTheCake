@@ -7,7 +7,7 @@ class Script:
     classe mère des scripts
     se charge des dépendances
     """
-    def depandances(self, config, log, robot, robotChrono, hookGenerator, rechercheChemin, table):
+    def dependances(self, config, log, robot, robotChrono, hookGenerator, rechercheChemin, table):
         """
         Gère les services nécessaires aux scripts. On n'utilise pas de constructeur.
         """
@@ -70,7 +70,7 @@ class ScriptManager:
             heritage = list(inspect.getmro(obj))
             if Script in heritage:
                 self.scripts[name] = obj()
-                self.scripts[name].depandances(config, log, robot, robotChrono, hookGenerator, rechercheChemin, table)
+                self.scripts[name].dependances(config, log, robot, robotChrono, hookGenerator, rechercheChemin, table)
         
 class ScriptBougies(Script):
     """
@@ -84,7 +84,7 @@ class ScriptBougies(Script):
         sens : +1 de droite a gauche et -1 de gauche a droite
         """
         #pour les tests
-        gateauEnBas = True
+        gateauEnBas = False
         
         rayonAuBras = float(500+self.config["distance_au_gateau"])
         #delta de décalage p/r au centre du robot. On utilise des angles pour inverser plus facilement la direction

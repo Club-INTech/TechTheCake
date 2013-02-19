@@ -32,6 +32,10 @@ class Table:
         self.log = log
         self.mutex = Mutex()
         
+        # Listes des obstacles repérés par les différents capteurs 
+        self.robots_adverses = []
+        self.obstacles_capteurs = []
+        
         # Liste des cadeaux en position bleue
         if self.config["couleur"] == "bleu":
             self.cadeaux = [	
@@ -50,11 +54,10 @@ class Table:
                 {"position": Point(-810,0), "ouvert": False}
             ]
             
-        self.pointsEntreeCadeaux = [0,3]
-
-        # Listes des obstacles repérés par les différents capteurs 
-        self.robots_adverses = []
-        self.obstacles_capteurs = []
+        # Indique les points d'entrée sur les cadeaux
+        # Contient les 2 indices des cadeaux aux extrémités de la table (Xmax, Xmin), même si plus qu'un cadeau
+        # Vide si plus aucun cadeau à valider
+        self.points_entree_cadeaux = [0,3]
         
         # La position des bougies est codée en pôlaire depuis le centre du gâteau :
         # (rayon, angle depuis la verticale), elles sont ordonnées par ordre croissant d'angle.
@@ -81,8 +84,10 @@ class Table:
             {"position":-0.131, "traitee":False, "enHaut":False}
         ]
     
-        # Les bougies des côtés sont inaccessibles
-        self.pointsEntreeBougies = [2,17]
+        # Indique les points d'entrée sur les bougies
+        # Contient les 2 indices des bougies aux extrémités du gateau (même si plus qu'une bougie)
+        # Vide si plus aucune bougie à valider
+        self.points_entree_bougies = [2,17]
         
         # Pour lorsqu'on met le gateau en bas
         self.bougies = [
@@ -124,7 +129,7 @@ class Table:
             {"position": Point(-300,550), "present":True}
         ]
 	
-        self.pointsEntreeVerres= [0,5,6,11]
+        self.pointsEntreeVerres = [0,5,6,11]
         
     # Permet de savoir l'état d'un cadeau.	
     def etat_cadeau(self, i):
@@ -142,14 +147,13 @@ class Table:
     # Indique qu'un cadeau est tombé.
     def cadeau_recupere(self, i):
         self.cadeaux[i]["ouvert"] = True
-        if i in self.pointsEntreeCadeaux:
-            self._reattribuePointEntreeCadeaux(i)
+        self._rafraichir_entree_cadeaux()
 	
     # Indique qu'une bougie est tombée.
     def bougie_recupere(self, i):
         self.bougies[i]["traitee"] = True
-        if i in self.pointsEntreeBougies:
-            self._reattribuePointEntreeBougies(i)
+        if i in self.points_entree_bougies:
+            self._rafraichir_entree_bougies()
 
     # Indique qu'un verre est récupéré.
     def verre_recupere(self, i):
@@ -256,42 +260,23 @@ class Table:
             if newId >= 6 and newId < 11 :
                 self.pointsEntreeVerres[3] = newId
 
-    # Change les points d'entrée pour les bougies
-    # Il faut aussi envisager quelques modifs en fonction de si on abandonne définitivement ou pas les bougies aux extrémités.
-    def _reattribuePointEntreeBougies(self, id) :
-        newId = id
-        if id == self.pointsEntreeBougies[0] : # cas où c'est le point d'entrée gauche
-            while self.etat_bougie(newId) and newId < 19 :
-                newId+=1
-            if self.etat_bougie(newId) : # petite manip' au cas où toutes les bougies sont enfoncées.
-                newId+=1
-            if newId >= 0 and newId < 20 :
-                self.pointsEntreeBougies[0] = newId
-            else :
-                self.pointsEntreeBougies = []
-        else : # cas où c'est le point d'entrée droit
-            while self.etat_bougie(newId) and newId > 0 :
-                newId-=1
-            if newId >= 0 and newId < 20 :
-                self.pointsEntreeBougies[1] = newId
+    # Mise à jour des points d'entrée pour les bougies
+    def _rafraichir_entree_bougies(self):
+        bougies_ignorees = [0, 1, 18, 19]
+        bougies_restantes = [i for i,b in enumerate(self.bougies) if not b["traitee"] and i not in bougies_ignorees]
+        if len(bougies_restantes) > 0:
+            self.points_entree_bougies = [bougies_restantes[0], bougies_restantes[-1]]
+        else:
+            self.points_entree_bougies = []
+        print(self.points_entree_bougies)
                 
-    # Change les points d'entrée pour les cadeaux
-    def _reattribuePointEntreeCadeaux(self, id) :
-        newId = id
-        if id == self.pointsEntreeCadeaux[0] : # cas où c'est le point d'entrée gauche
-            while self.etat_cadeau(newId) and newId < 3 :
-                newId+=1
-            if self.etat_cadeau(newId) : # petite manip' au cas où tous les cadeaux sont renversés.
-                newId+=1
-            if newId >= 0 and newId < 4 :
-                self.pointsEntreeCadeaux[0] = newId
-            else :
-                self.pointsEntreeCadeaux = []
-        else : # cas où c'est le point d'entrée droit
-            while self.etat_cadeau(newId) and newId > 0 :
-                newId-=1
-            if newId >= 0 and newId < 4 :
-                self.pointsEntreeCadeaux[1] = newId
+    # Mise à jour des points d'entrée pour les cadeaux
+    def _rafraichir_entree_cadeaux(self):
+        cadeaux_restants = [i for i,c in enumerate(self.cadeaux) if not c["ouvert"]]
+        if len(cadeaux_restants) > 0:
+            self.points_entree_cadeaux = [cadeaux_restants[0], cadeaux_restants[-1]]
+        else:
+            self.points_entree_cadeaux = []
                 
 class TableSimulation(Table):
     
