@@ -174,6 +174,13 @@ class ProtocoleVirtuelLaser:
     def freq(self):
         return []
         
+    def ping(self, id_balise):
+        try:
+            self.simulateur.getEnemyPositionFromRobot(id_balise)
+            return ["réponse"]
+        except Exception:
+            return ["aucune réponse"]
+        
     def valeur(self, id_balise):
         position_reelle = self.simulateur.getEnemyPositionFromRobot(id_balise)
         position_bruitee = [position_reelle[0] + random.gauss(0,20), position_reelle[1] + random.gauss(0,0.03)]

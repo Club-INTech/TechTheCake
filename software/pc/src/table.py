@@ -134,7 +134,7 @@ class Table:
         """
         Récupère le cadeau correspondant au point d'entrée
         """
-        if self.point_entree_cadeau == []:
+        if self.points_entree_cadeaux == []:
             return None
         i = self.points_entree_cadeaux[n]
         
@@ -167,11 +167,21 @@ class Table:
     ### GESTION DES BOUGIES
     ###############################################
     
-    def etat_bougie(self, i):
+    def point_entree_bougie(self, n):
         """
-        Récupère l'état d'une bougie
+        Récupère la bougie correspondante au point d'entrée
         """
-        return self.bougies[i]["traitee"]
+        if self.points_entree_bougies == []:
+            return None
+        i = self.points_entree_bougies[n]
+        
+        return self.bougies[i]
+    
+    def bougies_restantes(self):
+        """
+        Récupère la liste des bougies restantes
+        """
+        return [b for b in self.bougies if not b["traitee"]]
         
     def bougie_recupere(self, i):
         """
@@ -191,7 +201,6 @@ class Table:
             self.points_entree_bougies = [bougies_restantes[0], bougies_restantes[-1]]
         else:
             self.points_entree_bougies = []
-        print(self.points_entree_bougies)
             
     def definir_couleurs_bougies(self, code):
         """
@@ -213,29 +222,30 @@ class Table:
     ### GESTION DES VERRES
     ###############################################
     
-    # Permet de savoir l'état d'un verre.
     def etat_verre(self, i):
+        """
+        Indique l'état d'un verre
+        """
         with self.mutex:
             return self.verres[i]["present"]
 
-    # Indique qu'un verre est récupéré.
     def verre_recupere(self, i):
-        with self.mutex:
-            self._retirer_verre(i)
-            
-    # A utiliser lorsqu'un verre est déjà utilisé.
-    def _retirer_verre(self, i):
+        """
+        Indique qu'un verre a été pris
+        """
         self.verres[i]["present"] = False
-        #~ if i in self.pointsEntreeVerres:
-            #~ self._reattribuePointEntreeVerres(i)
+        self._reattribuePointEntreeVerres(i)
  
-    # Change l'état du verre si le robot adverse passe trop près.
     def _detection_collision_verre(self, position):
+        """
+        Détecte s'il y a collision entre un robot adverse et un verre sur la table.
+        A appeler dès qu'il y a une mise à jour des obstacles.
+        """
         for i, verre in enumerate(self.verres):
             if verre["present"]:
                 distance = verre["position"].distance(position)
                 if distance < self.config["rayon_robot_adverse"] + self.config["table_tolerance_verre_actif"]:
-                    self._retirer_verre(i)
+                    self.verre_recupere(i)
                     
     # Change les points d'entrée pour les verres
     def _reattribuePointEntreeVerres(self, id):
@@ -370,8 +380,8 @@ class TableSimulation(Table):
         Table.bougie_recupere(self, i)
         self.simulateur.clearEntity("bougie_" + str(i))
         
-    def _retirer_verre(self, i):
-        Table._retirer_verre(self, i)
+    def verre_recupere(self, i):
+        Table.verre_recupere(self, i)
         self.simulateur.clearEntity("verre_" + str(i))
         
     def definir_couleurs_bougies(self, code):
@@ -392,7 +402,8 @@ class TableSimulation(Table):
         self.simulateur.drawCircle(ennemi.position.x, ennemi.position.y, ennemi.rayon, False, couleur, "ennemi_" + str(i))
         
         # Affichage du vecteur vitesse
-        if vitesse != None and self.config["lasers_afficher_vecteur_vitesse"]:    
+        if vitesse != None and self.config["lasers_afficher_vecteur_vitesse"]:
+            self.simulateur.clearEntity("vitesse_laser")  
             self.simulateur.drawVector(ennemi.position.x, ennemi.position.y, ennemi.position.x + vitesse.vx, ennemi.position.y + vitesse.vy, "black", "vitesse_laser")
         
     def _supprimer_obstacle(self, i):
