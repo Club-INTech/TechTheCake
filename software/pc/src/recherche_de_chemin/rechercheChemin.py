@@ -593,6 +593,9 @@ class RechercheChemin:
         arriveeVis = vis.Point(arrivee.x, arrivee.y)
         
         #recherche de chemin
+        if not hasattr(self, 'environnement_visilibity'):
+            self.log.critical("Il faut appeler preparer_environnement() avant get_chemin() !")
+            raise Exception
         cheminVis = self.environnement_visilibity.shortest_path(departVis, arriveeVis, RechercheChemin.tolerance)
         
         #conversion en type vis.Point
