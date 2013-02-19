@@ -1,6 +1,7 @@
 from math import pi,sqrt,atan2,atan,cos,sin
 from time import time,sleep
 from mutex import Mutex
+from outils_maths.point import Point
 
 #interface pour les méthodes publiques
 from robotChrono import RobotInterface
@@ -656,12 +657,12 @@ class Robot(RobotInterface):
         Ouvre le bras qui pousse le cadeau
         """
         self.actionneurs.ouvrir_cadeau()
-        for i in range (0,4):
-            delta_x=self.x-self.table.cadeaux[i]["position"].x
-            delta_y=self.y-self.table.cadeaux[i]["position"].y
-            d=round(sqrt(delta_x**2 + delta_y**2),2)
-            if d<500:
-                self.table.cadeau_recupere(i) #ne pas oublier de mettre à jour les éléments de jeu dans le service de table! (ligne à fin de test)
+        
+        # Marque le cadeau comme activé 
+        for i, cadeau in enumerate(self.table.cadeaux):
+            distance = Point(self.x, self.y).distance(cadeau["position"])
+            if distance < 500:
+                self.table.cadeau_recupere(i)
         
     def fermer_cadeau(self):
         """

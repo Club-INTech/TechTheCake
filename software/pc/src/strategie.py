@@ -10,7 +10,6 @@ class Strategie:
     """
     def __init__(self, robot, robotChrono, hookGenerator, rechercheChemin, table, timer, config, log): #retirer robot
 
-        #services importés
         self.robot = robot
         self.robotChrono = robotChrono
         self.hookGenerator = hookGenerator
@@ -20,24 +19,26 @@ class Strategie:
         self.config = config
         self.log = log
 
-        self.arguments={"pipeau1":(), "pipeau2":(), "pipeau3":(), "casser_tour":(), "bougies": (1,), "cadeaux1":(0,), "cadeaux2":(1,)}
-#        self.scripts = {"cadeaux1": ScriptCadeaux, "cadeaux2":ScriptCadeaux, "bougies":ScriptBougies, "casser_tour":ScriptCasserTour}
-        self.scripts = {"bougies":ScriptBougies}
+        self.arguments = {"pipeau1": (), "pipeau2": (), "pipeau3": (), "casser_tour": (), "bougies": (1,), "cadeaux1": (0,), "cadeaux2": (1,), "testHook": ()}
+        self.scripts = {"cadeaux1": ScriptCadeaux, "cadeaux2": ScriptCadeaux, "testHook": ScriptTestHooks}
+        
         if not self.config["ennemi_fait_toutes_bougies"]:
             if self.config["ennemi_fait_ses_bougies"]:
-                self.scripts["bougies"]=ScriptBougiesRapide
+                self.scripts["bougies"] = ScriptBougiesRapide
                 self.log.warning("On fait les bougies sans détecteur.")
             else:
-                self.scripts["bougies"]=ScriptBougies
+                self.scripts["bougies"] = ScriptBougies
                 self.log.warning("On fait les bougies normalement.")
         else:
             self.log.warning("Puisque l'ennemi est scripté et fait toutes les bougies, on ne les fera pas.")
+        
         self.liste_points_entree = ["cadeau", "verreNous", "verreEnnemi", "Pipeau"]
-        self.points={"cadeaux1":0, "cadeaux2":0, "verres": 0, "bougies":0, "deposer_verre":0, "pipeau1":6, "pipeau2": 12, "pipeau3":8, "testHook":0}
+        self.points = {"cadeaux1":0, "cadeaux2":0, "verres": 0, "gateau":0, "bougies":0, "deposer_verre":0, "pipeau1":6, "pipeau2": 12, "pipeau3":8, "testHook":0}
 
+        # Instanciation des scripts
         for script,classe in self.scripts.items():
             self.scripts[script] = classe()
-            self.scripts[script].set_dependencies(self.robot, self.robotChrono, self.hookGenerator, self.rechercheChemin, self.config, self.log, self.table)
+            self.scripts[script].injection_dependances(self.robot, self.robotChrono, self.hookGenerator, self.rechercheChemin, self.config, self.log, self.table)
         
     def boucle_strategie(self):
         """

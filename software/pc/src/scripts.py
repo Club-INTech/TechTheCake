@@ -7,7 +7,7 @@ class Script:
     classe mère des scripts
     se charge des dépendances
     """
-    def set_dependencies(self, robot, robotChrono, hookGenerator, rechercheChemin, config, log, table):
+    def injection_dependances(self, robot, robotChrono, hookGenerator, rechercheChemin, config, log, table):
         """
         Gère les services nécessaires aux scripts. On n'utilise pas de constructeur.
         """
