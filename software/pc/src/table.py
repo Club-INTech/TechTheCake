@@ -26,19 +26,29 @@ class ObstacleCapteur(Obstacle):
        
 class Table:
     
-    def __init__(self,config,log):
+    def __init__(self, config, log):
     
         self.config = config
         self.log = log
         self.mutex = Mutex()
         
-        # Liste des cadeaux
-        self.cadeaux = [	
-            {"position": Point(990,0), "ouvert": False},
-            {"position": Point(390,0), "ouvert": False},
-            {"position": Point(-210,0), "ouvert": False},
-            {"position": Point(-810,0), "ouvert": False}
-        ]
+        # Liste des cadeaux en position bleue
+        if self.config["couleur"] == "bleu":
+            self.cadeaux = [	
+                {"position": Point(810,0), "ouvert": False},
+                {"position": Point(210,0), "ouvert": False},
+                {"position": Point(-390,0), "ouvert": False},
+                {"position": Point(-990,0), "ouvert": False}
+            ]
+            
+        # Liste des cadeaux en position rouge
+        else:
+            self.cadeaux = [	
+                {"position": Point(990,0), "ouvert": False},
+                {"position": Point(390,0), "ouvert": False},
+                {"position": Point(-210,0), "ouvert": False},
+                {"position": Point(-810,0), "ouvert": False}
+            ]
             
         self.pointsEntreeCadeaux = [0,3]
 
@@ -293,15 +303,11 @@ class TableSimulation(Table):
         # Affichage des cadeaux
         for i, cadeau in enumerate(self.cadeaux):
             position = cadeau["position"]
-            self.simulateur.drawRectangle(position.x, position.y + 20, 150, 40, True, "red", "cadeau_" + str(i))
+            couleur = "blue" if self.config["couleur"] == "bleu" else "red"
+            self.simulateur.drawRectangle(position.x, position.y + 20, 150, 40, True, couleur, "cadeau_" + str(i))
             
         # Affichage des bougies
-        for i, bougie in enumerate(self.bougies):
-            r = 350 if bougie["enHaut"] else 450
-            a = bougie["position"]
-            x = r * math.cos(a)
-            y = 2000 - r * math.sin(a)
-            self.simulateur.drawCircle(x, y, 22, True, "jaune", "bougie_" + str(i))
+        self._dessiner_bougies()
             
         # Affichage des verres
         for i, verre in enumerate(self.verres):
@@ -322,20 +328,7 @@ class TableSimulation(Table):
         
     def definir_couleurs_bougies(self, code):
         Table.definir_couleurs_bougies(self, code)
-        self.simulateur.clearEntity("bougies_couleurs")
-        for bougie in self.bougies:
-            if bougie["couleur"] != "?":
-                r = 350 if bougie["enHaut"] else 450
-                a = bougie["position"]
-                x = r * math.cos(a)
-                y = 2000 - r * math.sin(a)
-                if bougie["couleur"] == "r":
-                    couleur = "red"
-                elif bougie["couleur"] == "b":
-                    couleur = "blue"
-                else:
-                    couleur = "blanc"
-                self.simulateur.drawCircle(x, y, 40, False, couleur, "bougies_couleurs")
+        self._dessiner_bougies()
         
     def creer_obstacle(self, position):
         id = Table.creer_obstacle(self, position)
@@ -344,3 +337,30 @@ class TableSimulation(Table):
     def _supprimer_obstacle(self, i):
         self.simulateur.clearEntity("obstacle_" + str(self.obstacles_capteurs[i].id))
         Table._supprimer_obstacle(self, i)
+        
+    def _dessiner_bougies(self):
+        # Suppressions des anciens dessins
+        self.simulateur.clearEntity("bougies_couleurs")
+            
+        for i, bougie in enumerate(self.bougies):
+            # Détermination de la position de la bougie
+            r = 350 if bougie["enHaut"] else 450
+            a = bougie["position"]
+            x = r * math.cos(a)
+            y = 2000 - r * math.sin(a)
+            
+            # Dessin du support de bougie
+            if bougie["couleur"] == "r":
+                couleur = "red"
+            elif bougie["couleur"] == "b":
+                couleur = "blue"
+            elif bougie["couleur"] == "w":
+                couleur = "white"
+            else:
+                couleur = "black"
+            self.simulateur.drawCircle(x, y, 40, True, couleur, "bougies_couleurs")
+            
+            # Affichage de la balle si la bougie n'est pas enfoncée
+            self.simulateur.clearEntity("bougie_" + str(i))
+            if not bougie["traitee"]:
+                self.simulateur.drawCircle(x, y, 32, True, "jaune", "bougie_" + str(i))
