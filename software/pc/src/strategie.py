@@ -21,7 +21,8 @@ class Strategie:
         self.log = log
 
         self.arguments={"pipeau1":(), "pipeau2":(), "pipeau3":(), "casser_tour":(), "bougies": (1,), "cadeaux1":(0,), "cadeaux2":(1,)}
-        self.scripts = {"cadeaux1": ScriptCadeaux, "cadeaux2":ScriptCadeaux} #"casser_tour":ScriptCasserTour
+#        self.scripts = {"cadeaux1": ScriptCadeaux, "cadeaux2":ScriptCadeaux, "bougies":ScriptBougies, "casser_tour":ScriptCasserTour}
+        self.scripts = {"bougies":ScriptBougies}
         if not self.config["ennemi_fait_toutes_bougies"]:
             if self.config["ennemi_fait_ses_bougies"]:
                 self.scripts["bougies"]=ScriptBougiesRapide
@@ -52,9 +53,9 @@ class Strategie:
         #        for script in self.points: #retiré pour la durée des tests (tant que les vrais scripts ne sont pas dispo...)
         #            self.points[script]=0
             self.points["deposer_verre"]=6#(nb verre)
- #           for element in self.table.bougies:
- #               if not element["traitee"]:
- #                   self.points["bougies"]+=2 #chaque bougie rapporte 4 points, mais la moitié des bougies sont à l'ennemi...
+            for element in self.table.bougies:
+                if not element["traitee"]:
+                    self.points["bougies"]+=2 #chaque bougie rapporte 4 points, mais la moitié des bougies sont à l'ennemi...
             for element in self.table.verres:
                 if element["present"]:       #à pondérer si l'ascenseur est plutôt plein ou plutôt vide
                     self.points["verres"]+=6 #à tirer vers le haut pour les faire en début de partie (et ensuite baisser les points par incertitude?)
@@ -73,12 +74,13 @@ class Strategie:
                     self.log.debug(script)
 
                     dureeScript=self.scripts[script].calcule(*self.arguments[script])+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
-                    self.log.debug("dureeScript de "+script+": "+str(dureeScript))
+                    if dureeScript<=0:  #si si, c'est déjà arrivé
+                        self.log.warning(script+" a un temps d'exécution négatif!")
+                        dureeScript=1   #il vaudrait mieux trouver l'origine du bug...
 
                     distanceE=self._distance_ennemi(script)+1              #idem
                     try:
                         note[script]=1000000000*(self.points[script])/(dureeScript*dureeScript*dureeScript*distanceE*distanceE)
-                        self.log.debug("self.points[script]="+str(self.points["cadeaux1"])+" dureeScript= "+str(dureeScript)+" distanceE "+str(distanceE))
                     except ZeroDivisionError:
                         note[script]=self.points[script]
                         self.log.critical("Division par zéro dans le calcul de la note! :o") #sait-on jamais... je préfère ne pas prendre le risque de voir le robot se paralyser bêtement
@@ -97,7 +99,7 @@ class Strategie:
             noteInverse = dict(map(lambda item: (item[1],item[0]),note.items()))
             scriptAFaire=noteInverse[max(noteInverse.keys())]   #ce script a reçu la meilleure note
 
-            self.log.warning("Stratégie fait: "+scriptAFaire)
+            self.log.debug("STRATÉGIE FAIT: "+scriptAFaire)
             if not self.timer.get_fin_match():
                 self.scripts[scriptAFaire].agit(self.arguments[scriptAFaire])
 
