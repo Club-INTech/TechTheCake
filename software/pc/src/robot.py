@@ -656,7 +656,12 @@ class Robot(RobotInterface):
         Ouvre le bras qui pousse le cadeau
         """
         self.actionneurs.ouvrir_cadeau()
-        self.table.cadeau_recupere(0) #ne pas oublier de mettre à jour les éléments de jeu dans le service de table! (ligne à fin de test)
+        for i in range (0,4):
+            delta_x=self.x-self.table.cadeaux[i]["position"].x
+            delta_y=self.y-self.table.cadeaux[i]["position"].y
+            d=round(sqrt(delta_x**2 + delta_y**2),2)
+            if d<500:
+                self.table.cadeau_recupere(i) #ne pas oublier de mettre à jour les éléments de jeu dans le service de table! (ligne à fin de test)
         
     def fermer_cadeau(self):
         """
