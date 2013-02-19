@@ -176,26 +176,30 @@ class ScriptTestHooks(Script):
 class ScriptCadeaux(Script):
         
     def execute(self, sens): #sens = -1 ou 1
-        hooks = []
-
-        if sens==1:
-            self.robot.va_au_point(1150,250)
-        else:
-            self.robot.va_au_point(-970,250)
+    
+        # A TERMINER APRES REFLEXIONS SUR LE SENS DE PARCOURS
+        
+        # Cadeaux aux extrémités
+        cadeau_entree = self.table.point_entree_cadeau(0)
+        cadeau_sortie = self.table.point_entree_cadeau(1)
+        
+        # Points d'entrée et de sortie du script
+        point_entree = cadeau_entree["position"] + Point(0, 250)
+        point_sortie = cadeau_sortie["position"] + Point(0, 250)
+        
+        # Mise en place du robot sur le point d'entrée
+        self.robot.va_au_point(point_entree.x, point_entree.y)
         self.robot.tourner(math.pi)
-        hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[0]["position"]+Point(sens*50,250), self.robot.ouvrir_cadeau))
-        for i in range(self.table.pointsEntreeCadeaux[0],self.table.pointsEntreeCadeaux[1]):
-            hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i]["position"]+Point(sens*50,250), self.robot.fermer_cadeau))
-            hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i+1]["position"]+Point(sens*50,250), self.robot.ouvrir_cadeau))
-
-        self.robot.avancer(sens*(self.table.cadeaux[self.table.pointsEntreeCadeaux[0]]["position"].x-self.table.cadeaux[self.table.pointsEntreeCadeaux[1]]["position"].x+320),hooks)
-        self.robot.fermer_cadeau()
-
-    def point_entree(self, sens):
-        if sens==-1:
-            return self.table.cadeaux[pointsEntreeCadeaux[0]]["position"]+Point(-160,250)
-        else:
-            return self.table.cadeaux[pointsEntreeCadeaux[1]]["position"]+Point(160,250)
+        
+        # Création des hooks pour tous les cadeaux à activer
+        hooks = []
+        for cadeau in self.table.cadeaux_restants():
+            hooks.append(self.hookGenerator.get_hook("position", cadeau["position"] + Point(sens * 50, 250), self.robot.ouvrir_cadeau))
+            hooks.append(self.hookGenerator.get_hook("position", cadeau["position"] + Point(sens * 50, 250), self.robot.fermer_cadeau))
+            
+        # Déplacement le long de la table
+        self.robot.va_au_point(point_sortie.x, point_sortie.y, hooks)
+        
         
 class ScriptTestRecalcul(Script):
     
