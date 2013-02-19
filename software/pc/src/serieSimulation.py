@@ -83,19 +83,19 @@ class ProtocoleVirtuelCapteurs:
         
     def nbs(self):
         #nombre de capteurs ultrasons à l'arrière
-        return [2]
+        return [1]
         
     def nbS(self):
         #nombre de capteurs ultrasons à l'avant
-        return [2]
+        return [1]
         
     def nbi(self):
         #nombre de capteurs infrarouges à l'arrière
-        return [2]
+        return [1]
         
     def nbI(self):
         #nombre de capteurs infrarouges à l'avant
-        return [2]
+        return [1]
     
     def s(self):
         #capteurs ultrasons de l'arrière

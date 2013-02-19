@@ -18,13 +18,13 @@ class Vitesse:
         return '(' + str(self.vx) + ',' + str(self.vy) + ')'
         
     def __add__(self,other):
-        return Point(self.vx + other.vx, self.vy + other.vy)
+        return Vitesse(self.vx + other.vx, self.vy + other.vy)
         
     def __sub__(self,other):
-        return Point(self.vx - other.vx, self.vy - other.vy)
+        return Vitesse(self.vx - other.vx, self.vy - other.vy)
     
     def __mul__(self,other):
-        return Point(self.vx*other, self.vy*other)
+        return Vitesse(self.vx*other, self.vy*other)
     
     def __str__(self) :
         return "("+str(self.vx)+"," + str(self.vy) + ")"

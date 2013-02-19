@@ -101,7 +101,7 @@ class Container:
                     client.service.setRobotPosition(1200,300)
                     
                 #déclaration d'un robot adverse
-                client.service.addEnemy(1, 30, ennemi)
+                client.service.addEnemy(1, 80, ennemi)
                 
                 #definition des zones des capteurs
                 client.service.addSensor(0,{"list":[{"int":[0,-100]},{"int":[-135.,-1100.]},{"int":[135,-1100]}]}) # infrarouge arrière

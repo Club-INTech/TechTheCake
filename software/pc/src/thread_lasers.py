@@ -1,4 +1,5 @@
 from outils_maths.point import Point
+from outils_maths.vitesse import Vitesse
 from math import cos,sin
 from time import sleep
 from time import time
@@ -35,14 +36,15 @@ def fonction_laser(container):
         p_filtre = filtrage.position()
         vitesse = filtrage.vitesse()
         
-        # Affichage sur simulateur
+        # Mise à jour de la table
+        table.deplacer_robot_adverse(0, Point(int(p_filtre[0]), int(p_filtre[1])), Vitesse(int(vitesse[0]), int(vitesse[1])))
+        
+        # Affichage des points sur le simulateur
         if config["mode_simulateur"]:
             if config["lasers_afficher_valeurs_brutes"]:
                 simulateur.drawPoint(p_bruit[0], p_bruit[1], "gris")
             if config["lasers_afficher_valeurs_filtre"]:
                 simulateur.drawPoint(int(p_filtre[0]), int(p_filtre[1]), "blue")
-            if config["lasers_afficher_vecteur_vitesse"]:    
-                simulateur.drawVector(int(p_filtre[0]), int(p_filtre[1]), int(p_filtre[0]) + int(vitesse[0]), int(p_filtre[1]) + int(vitesse[1]), "black", "vitesse_laser")
         
         sleep(1./config["lasers_frequence"])
         

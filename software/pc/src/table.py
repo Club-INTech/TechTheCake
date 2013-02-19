@@ -15,8 +15,12 @@ class Obstacle:
         
 class RobotAdverseBalise(Obstacle):
     
-    def __init__(self, position, rayon):
-       Obstacle.__init__(self, position, rayon)
+    def __init__(self, rayon):
+       Obstacle.__init__(self, None, rayon)
+       
+    def positionner(self, position, vitesse=None):
+        self.position = position
+        self.vitesse = vitesse
        
 class ObstacleCapteur(Obstacle):
     
@@ -33,7 +37,7 @@ class Table:
         self.mutex = Mutex()
         
         # Listes des obstacles repérés par les différents capteurs 
-        self.robots_adverses = []
+        self.robots_adverses = [RobotAdverseBalise(config["rayon_robot_adverse"]), RobotAdverseBalise(3*config["rayon_robot_adverse"]/4)]
         self.obstacles_capteurs = []
         
         # Liste des cadeaux (rouge)
@@ -306,6 +310,10 @@ class Table:
         for i, obstacle in enumerate(self.obstacles_capteurs):
             if time() - obstacle.naissance > self.config["duree_peremption_obstacles"]:
                 self._supprimer_obstacle(i)
+                
+    def deplacer_robot_adverse(self, i, position, vitesse=None):
+        self.robots_adverses[i].positionner(position)
+        self._detection_collision_verre(position)
             
     def _supprimer_obstacle(self, i):
         """
@@ -370,6 +378,19 @@ class TableSimulation(Table):
     def creer_obstacle(self, position):
         id = Table.creer_obstacle(self, position)
         self.simulateur.drawCircle(position.x, position.y, self.config["rayon_robot_adverse"], False, "black", "obstacle_" + str(id))
+        
+    def deplacer_robot_adverse(self, i, position, vitesse=None):
+        Table.deplacer_robot_adverse(self, i, position, vitesse)
+        
+        # Mise à jour de la position du robot
+        ennemi = self.robots_adverses[i]
+        couleur = "red" if self.config["couleur"] == "bleu" else "blue"
+        self.simulateur.clearEntity("ennemi_" + str(i))
+        self.simulateur.drawCircle(ennemi.position.x, ennemi.position.y, ennemi.rayon, False, couleur, "ennemi_" + str(i))
+        
+        # Affichage du vecteur vitesse
+        if vitesse != None and self.config["lasers_afficher_vecteur_vitesse"]:    
+            self.simulateur.drawVector(ennemi.position.x, ennemi.position.y, ennemi.position.x + vitesse.vx, ennemi.position.y + vitesse.vy, "black", "vitesse_laser")
         
     def _supprimer_obstacle(self, i):
         self.simulateur.clearEntity("obstacle_" + str(self.obstacles_capteurs[i].id))
