@@ -44,7 +44,7 @@ def elargit_polygone(polygone, distance, cote_polygone):
     Le principe : on cherche la frontière qui reste à `distance` du polygone.
     Pour cela, on considère pour chaque segment un segment parallèle de meme longueur, placé à l'extérieur, 
     Et on ferme aux sommets avec un arc de cercle centré sur le sommet.
-    Cet arc de cercle est approximé par un polygone régulier intérieur, afin de limiter le nombre de points.
+    Cet arc de cercle est approximé par un polygone régulier extérieur, afin de limiter le nombre de points.
     On a juste à choisir `ecart_angulaire`, qui définit la précision d'approche de cet arc de cercle.
     """
     
@@ -54,7 +54,6 @@ def elargit_polygone(polygone, distance, cote_polygone):
     polygoneEtendu = []
     for k in range(len(pointsNormauxA)):
         
-        #ajout de points supplémentaires sur un arc centré sur le sommet
         thetaB = math.atan2(pointsNormauxB[k-1].y - polygone[k].y,pointsNormauxB[k-1].x - polygone[k].x)%(2*math.pi)
         thetaA = math.atan2(pointsNormauxA[k].y - polygone[k].y,pointsNormauxA[k].x - polygone[k].x)%(2*math.pi)
         if thetaB > math.pi :thetaB -= 2*math.pi
@@ -74,13 +73,13 @@ def elargit_polygone(polygone, distance, cote_polygone):
             polygoneEtendu.append(pointsNormauxA[k])
             #DEBUG# builtins.simulateur.drawPoint(pointsNormauxA[k].x,pointsNormauxA[k].y,"green",True)#@
         
+        #ajout de points supplémentaires sur un arc centré sur le sommet
         thetaPoint = (theta1 - ecart_angulaire)%(2*math.pi)
         ecart = (thetaPoint - theta2)%(2*math.pi)
         if ecart > math.pi :ecart -= 2*math.pi
-        
         while ecart > 0:
             
-            #rayon du cercle exinscrit (cercle.rayon est le rayon inscrit)
+            #rayon du cercle pour le polygone extérieur (pour etre au moins à `distance`)
             rayonExinscrit = distance*math.sqrt(1+math.sin(ecart_angulaire/4))
             pointX = polygone[k].x + rayonExinscrit*math.cos(thetaPoint)
             pointY = polygone[k].y + rayonExinscrit*math.sin(thetaPoint)
