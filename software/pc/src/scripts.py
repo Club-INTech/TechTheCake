@@ -40,12 +40,17 @@ class Script:
         """
         L'appel script.agit() effectue vraiment les instructions contenues dans execute().
         C'est à dire : envoi de trames sur la série, ou utilisation du simulateur. 
-        On peut appeler agit() lorsqu'il n'y a pas de paramètres
-        agit(3) pour passer un paramètre (ici entier)
-        agit(*(3,"foo","bar")) pour passer n paramètres dans un tuple, qu'on split avec *
+        On peut appeler agit(None) lorsqu'il n'y a pas de paramètres
+        agit((3,"foo","bar")) pour passer n paramètres dans un tuple, qu'on split avec *
+        agit(3) pour passer un seul paramètre (ici entier casté en tuple)
         """
         self.robot = self.robotVrai
-        self.execute(*params)
+        if type(params) is tuple:
+            self.execute(*params)
+        elif params is None:
+            self.execute()
+        else:
+            self.execute(params)
         
     def calcule(self, params):
         """
@@ -54,7 +59,12 @@ class Script:
         self.robot = self.robotChrono
         self.robot.reset_compteur()
         self.robot.maj_x_y_o(self.robotVrai.x, self.robotVrai.y, self.robotVrai.orientation)
-        self.execute(*params)
+        if type(params) is tuple:
+            self.execute(*params)
+        elif params is None:
+            self.execute()
+        else:
+            self.execute(params)
         return self.robot.get_compteur()
         
 class ScriptManager:
