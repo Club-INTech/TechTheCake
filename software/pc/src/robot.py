@@ -640,9 +640,15 @@ class Robot(RobotInterface):
         self.table.bougie_recupere(id)
 
     def initialiser_bras_bougie(self,enHaut) : 
+        """
+        Ouvre les bras qui soufflent les bougies
+        """    
         self.actionneurs.initialiser_bras_bougie(enHaut)
 
     def rentrer_bras_bougie(self) : 
+        """
+        Rentre les bras qui ont soufflé les bougies
+        """
         self.actionneurs.rentrer_bras_bougie()
 
     def ouvrir_cadeau(self):

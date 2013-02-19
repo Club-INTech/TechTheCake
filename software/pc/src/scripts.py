@@ -36,7 +36,7 @@ class Script:
             calcule_chemin(position)
         self.robot.suit_chemin(self.dernierChemin)
 
-    def agit(self, *params):
+    def agit(self, params):
         """
         L'appel script.agit() effectue vraiment les instructions contenues dans execute().
         C'est à dire : envoi de trames sur la série, ou utilisation du simulateur. 
@@ -158,20 +158,32 @@ class ScriptTestHooks(Script):
         self.robot.avancer(500,hooks)
         
         
-class ScriptTestCadeaux(Script):
+class ScriptCadeaux(Script):
         
-    def execute(self):
-        
-        self.robot.va_au_point(1150,250)
+    def execute(self, sens): #sens = 0 ou 1
+        self.log.debug("Script cadeaux lancé")
 
-        hooks = []
-        hooks.append(self.hookGenerator.get_hook("position", Point(1000,250), self.robot.actionneurs.ouvrir_cadeau))
-        hooks.append(self.hookGenerator.get_hook("position", Point(980,250), self.robot.actionneurs.fermer_cadeau))
-        hooks.append(self.hookGenerator.get_hook("position", Point(800,250), self.robot.actionneurs.ouvrir_cadeau))
-        hooks.append(self.hookGenerator.get_hook("position", Point(780,250), self.robot.actionneurs.fermer_cadeau))
-          
-        self.robot.avancer(600,hooks)
-        
+        if sens==0:
+            self.log.debug("Script cadeaux lancé dans le bon sens")
+
+            self.robot.va_au_point(1150,250)
+            self.robot.ouvrir_cadeau()
+            hooks = []
+            for i in range(self.table.pointsEntreeCadeaux[0],self.table.pointsEntreeCadeaux[1]-1):
+                hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i]["position"]+Point(100,0), self.robot.fermer_cadeau))
+                hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i+1]["position"]-Point(100,0), self.robot.ouvrir_cadeau))
+
+            self.robot.avancer(600,hooks)
+            self.robot.fermer_cadeau()
+
+        else:
+            self.log.debug("Script cadeaux lancé dans le mauvais sens "+str(sens))
+
+    def point_entree(self, sens):
+        if sens==0:
+            return self.table.cadeaux[pointsEntreeCadeaux[0]]["position"]
+        else:
+            return self.table.cadeaux[pointsEntreeCadeaux[1]]["position"]
         
 class ScriptTestRecalcul(Script):
     
