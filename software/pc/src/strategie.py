@@ -49,17 +49,18 @@ class Strategie:
         while not self.timer.get_fin_match():
 #            self.rechercheChemin.retirer_obstacles_dynamique();
 
-            note={"cadeaux1":0, "cadeaux2":0, "verreNous":0, "verreEnnemi": 0, "gateau":0, "bougies":0, "deposer_verres":0, "pipeau1":0, "pipeau2":0, "pipeau3":0, "casser_tour":0, "testHook":0} #les clés sont les scripts
+            note={"cadeaux1":0, "cadeaux2":0, "verreNous":0, "verreEnnemi": 0, "bougies":0, "deposer_verres":0, "pipeau1":0, "pipeau2":0, "pipeau3":0, "casser_tour":0} #les clés sont les scripts
 
         #        for script in self.points: #retiré pour la durée des tests (tant que les vrais scripts ne sont pas dispo...)
         #            self.points[script]=0
             self.points["deposer_verre"]=6#(nb verre)
- #           for element in self.table.bougies:
- #               if not element["traitee"]:
- #                   self.points["gateau"]+=2 #chaque bougie rapporte 4 points, mais la moitié des bougies sont à l'ennemi...
+            for element in self.table.bougies:
+                if not element["traitee"]:
+                    self.points["bougies"]+=2 #chaque bougie rapporte 4 points, mais la moitié des bougies sont à l'ennemi...
             for element in self.table.verres:
                 if element["present"]:       #à pondérer si l'ascenseur est plutôt plein ou plutôt vide
                     self.points["verres"]+=6 #à tirer vers le haut pour les faire en début de partie (et ensuite baisser les points par incertitude?)
+            self.points["cadeaux1"]=0
             for element in self.table.cadeaux:
                 if not element["ouvert"]:
                     self.points["cadeaux1"]+=4
@@ -70,34 +71,36 @@ class Strategie:
             self.rechercheChemin.preparer_environnement()
 
             for script in self.scripts:
-                self.log.debug(script)
+                if self.points[script]!=0:
+                    self.log.debug(script)
 
-                dureeScript=self.scripts[script].calcule(*self.arguments[script])+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
-                self.log.debug("dureeScript de "+script+": "+str(dureeScript))
+                    dureeScript=self.scripts[script].calcule(*self.arguments[script])+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
+                    if dureeScript<=0:  #si si, c'est déjà arrivé
+                        self.log.warning(script+" a un temps d'exécution négatif!")
+                        dureeScript=1   #il vaudrait mieux trouver l'origine du bug...
 
-                distanceE=self._distance_ennemi(script)+1              #idem
-                try:
-                    note[script]=1000000000*(self.points[script])/(dureeScript*dureeScript*dureeScript*distanceE*distanceE)
-                    self.log.debug("self.points[script]="+str(self.points["cadeaux1"])+" dureeScript= "+str(dureeScript)+" distanceE "+str(distanceE))
-                except ZeroDivisionError:
-                    note[script]=self.points[script]
-                    self.log.critical("Division par zéro dans le calcul de la note! :o") #sait-on jamais... je préfère ne pas prendre le risque de voir le robot se paralyser bêtement
+                    distanceE=self._distance_ennemi(script)+1              #idem
+                    try:
+                        note[script]=1000000000*(self.points[script])/(dureeScript*dureeScript*dureeScript*distanceE*distanceE)
+                    except ZeroDivisionError:
+                        note[script]=self.points[script]
+                        self.log.critical("Division par zéro dans le calcul de la note! :o") #sait-on jamais... je préfère ne pas prendre le risque de voir le robot se paralyser bêtement
 
-                if script=="verreNous" or script=="verreEnnemi" and dureeScript+deposer_verre.calcule()>(self.config["temps_match"]-time()+self.timer.get_date_debut()): #pour prendre les verres, on ajoute à durée script le temps de déposer les verres
-                    self.log.critical("Plus le temps de prendre des verres, on n'aurait pas le temps de les déposer.")
-                    ditUneFoisVerre=True
-                    note[script]=0
-                elif not dureeScript<(self.config["temps_match"]-time()+self.timer.get_date_debut()): #si on a le temps de faire l'action avant la fin du match
-                    self.log.critical("Plus le temps d'exécuter "+script)
-                    ditUneFoisAutre=True
-                    note[script]=0
+                    if script=="verreNous" or script=="verreEnnemi" and dureeScript+deposer_verre.calcule()>(self.config["temps_match"]-time()+self.timer.get_date_debut()): #pour prendre les verres, on ajoute à durée script le temps de déposer les verres
+                        self.log.critical("Plus le temps de prendre des verres, on n'aurait pas le temps de les déposer.")
+                        ditUneFoisVerre=True
+                        note[script]=0
+                    elif not dureeScript<(self.config["temps_match"]-time()+self.timer.get_date_debut()): #si on a le temps de faire l'action avant la fin du match
+                        self.log.critical("Plus le temps d'exécuter "+script)
+                        ditUneFoisAutre=True
+                        note[script]=0
 
-                self.log.debug("Note du script "+script+": "+str(note[script]))
+                    self.log.debug("Note du script "+script+": "+str(note[script]))
 
             noteInverse = dict(map(lambda item: (item[1],item[0]),note.items()))
             scriptAFaire=noteInverse[max(noteInverse.keys())]   #ce script a reçu la meilleure note
 
-            self.log.warning("Stratégie fait: "+scriptAFaire)
+            self.log.debug("STRATÉGIE FAIT: "+scriptAFaire)
             if not self.timer.get_fin_match():
                 self.scripts[scriptAFaire].agit(self.arguments[scriptAFaire])
 
