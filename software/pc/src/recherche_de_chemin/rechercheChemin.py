@@ -158,7 +158,6 @@ class RechercheChemin:
         Ajoute un obstacle circulaire à l'environnement initial. 
         Cette méthode recoupe ensuite le dernier polygone de l'environnement (indice -1) s'il sort de la table.
         """
-        #@@
         cercleObstacle = enlarge.elargit_cercle(Cercle(centre,rayon),self.rayonPropre)
         self.environnement_initial.ajoute_cercle(cercleObstacle)
         self._recouper_aux_bords_table(-1,self.environnement_initial)
@@ -168,7 +167,6 @@ class RechercheChemin:
         Ajoute un obstacle rectangulaire à l'environnement initial. 
         Cette méthode recoupe ensuite le dernier polygone de l'environnement (indice -1) s'il sort de la table.
         """
-        #@@
         polygoneVisilibity = vis.Polygon(list(map(lambda p: vis.Point(p.x,p.y), rectangle)))
         rectangleObstacle = enlarge.elargit_rectangle(polygoneVisilibity, self.rayonPropre)
         self.environnement_initial.ajoute_rectangle(rectangleObstacle)
@@ -179,9 +177,8 @@ class RechercheChemin:
         Ajoute un obstacle polygonal à l'environnement initial. 
         Cette méthode recoupe ensuite le dernier polygone de l'environnement (indice -1) s'il sort de la table.
         """
-        #@@
         polygoneVisilibity = vis.Polygon(list(map(lambda p: vis.Point(p.x,p.y), polygone)))
-        polygoneObstacle = enlarge.elargit_polygone(polygoneVisilibity, self.rayonPropre)
+        polygoneObstacle = enlarge.elargit_polygone(polygoneVisilibity, self.rayonPropre, Environnement.cote_polygone)
         self.environnement_initial.ajoute_polygone(polygoneObstacle)
         self._recouper_aux_bords_table(-1,self.environnement_initial)
         
@@ -505,7 +502,6 @@ class RechercheChemin:
         Ajout un obstacle circulaire sur la table.
         Il est considéré comme dynamique et peut etre retiré via retirer_obstacles_dynamiques()
         """
-        #@@
         cercleObstacle = enlarge.elargit_cercle(Cercle(centre,rayon),self.rayonPropre)
         self.environnement_complet.ajoute_cercle(cercleObstacle)
         self._recouper_aux_bords_table(-1,self.environnement_complet)
@@ -516,9 +512,8 @@ class RechercheChemin:
         Ajout un obstacle polygonal sur la table (liste de points). 
         Il est considéré comme dynamique et peut etre retiré via retirer_obstacles_dynamiques()
         """
-        #@@
         polygoneVisilibity = vis.Polygon(list(map(lambda p: vis.Point(p.x,p.y), polygone)))
-        polygoneObstacle = enlarge.elargit_polygone(polygoneVisilibity, self.rayonPropre)
+        polygoneObstacle = enlarge.elargit_polygone(polygoneVisilibity, self.rayonPropre, Environnement.cote_polygone)
         self.environnement_complet.ajoute_polygone(polygoneObstacle)
         self._recouper_aux_bords_table(-1,self.environnement_complet)
         self._fusionner_avec_obstacles_en_contact()
@@ -529,7 +524,6 @@ class RechercheChemin:
         Idem que ajoute_obstacle_polygone() mais avec une optimisation du calcul du cercle circonscrit. 
         Il est considéré comme dynamique et peut etre retiré via retirer_obstacles_dynamiques()
         """
-        #@@
         polygoneVisilibity = vis.Polygon(list(map(lambda p: vis.Point(p.x,p.y), rectangle)))
         rectangleObstacle = enlarge.elargit_rectangle(polygoneVisilibity, self.rayonPropre)
         self.environnement_complet.ajoute_rectangle(rectangleObstacle)
