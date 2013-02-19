@@ -639,12 +639,6 @@ class Robot(RobotInterface):
         #met à jour les éléments de jeu dans le service de table
         self.table.bougie_recupere(id)
 
-    def ouvrir_cadeau(self) : 
-        self.actionneurs.ouvrir_cadeau()
-
-    def fermer_cadeau(self) : 
-        self.actionneurs.fermer_cadeau()
-
     def initialiser_bras_bougie(self,enHaut) : 
         self.actionneurs.initialiser_bras_bougie(enHaut)
 
