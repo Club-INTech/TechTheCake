@@ -179,23 +179,34 @@ class ScriptCadeaux(Script):
     
         # A TERMINER APRES REFLEXIONS SUR LE SENS DE PARCOURS
         
+        if sens == 1:
+            i_entree = 0
+            i_sortie = 1
+        else:
+            i_entree = 1
+            i_sortie = 0
+            
         # Cadeaux aux extrémités
-        cadeau_entree = self.table.point_entree_cadeau(0)
-        cadeau_sortie = self.table.point_entree_cadeau(1)
+        cadeau_entree = self.table.point_entree_cadeau(i_entree)
+        cadeau_sortie = self.table.point_entree_cadeau(i_sortie)
         
         # Points d'entrée et de sortie du script
-        point_entree = cadeau_entree["position"] + Point(0, 250)
+        point_entree = cadeau_entree["position"] + Point(sens * 100, 250)
         point_sortie = cadeau_sortie["position"] + Point(0, 250)
         
         # Mise en place du robot sur le point d'entrée
         self.robot.va_au_point(point_entree.x, point_entree.y)
-        self.robot.tourner(math.pi)
+        #self.robot.tourner(math.pi)
+        
+        # Orientation du robot
+        if sens == -1:
+            self.robot.set_marche_arriere(True)
         
         # Création des hooks pour tous les cadeaux à activer
         hooks = []
         for cadeau in self.table.cadeaux_restants():
             hooks.append(self.hookGenerator.get_hook("position", cadeau["position"] + Point(sens * 50, 250), self.robot.ouvrir_cadeau))
-            hooks.append(self.hookGenerator.get_hook("position", cadeau["position"] + Point(sens * 50, 250), self.robot.fermer_cadeau))
+            hooks.append(self.hookGenerator.get_hook("position", cadeau["position"] + Point(sens * 200, 250), self.robot.fermer_cadeau))
             
         # Déplacement le long de la table
         self.robot.va_au_point(point_sortie.x, point_sortie.y, hooks)

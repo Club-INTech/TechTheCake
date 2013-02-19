@@ -36,23 +36,14 @@ class Table:
         self.robots_adverses = []
         self.obstacles_capteurs = []
         
-        # Liste des cadeaux en position bleue
-        if self.config["couleur"] == "bleu":
-            self.cadeaux = [	
-                {"position": Point(810,0), "ouvert": False},
-                {"position": Point(210,0), "ouvert": False},
-                {"position": Point(-390,0), "ouvert": False},
-                {"position": Point(-990,0), "ouvert": False}
-            ]
-            
-        # Liste des cadeaux en position rouge
-        else:
-            self.cadeaux = [	
-                {"position": Point(990,0), "ouvert": False},
-                {"position": Point(390,0), "ouvert": False},
-                {"position": Point(-210,0), "ouvert": False},
-                {"position": Point(-810,0), "ouvert": False}
-            ]
+        # Liste des cadeaux (rouge)
+        # La symétrie est gérée dans les scripts
+        self.cadeaux = [	
+            {"position": Point(990,0), "ouvert": False},
+            {"position": Point(390,0), "ouvert": False},
+            {"position": Point(-210,0), "ouvert": False},
+            {"position": Point(-810,0), "ouvert": False}
+        ]
             
         # Indique les points d'entrée sur les cadeaux
         # Contient les 2 indices des cadeaux aux extrémités de la table (Xmax, Xmin), même si plus qu'un cadeau
@@ -344,8 +335,13 @@ class TableSimulation(Table):
         # Affichage des cadeaux
         for i, cadeau in enumerate(self.cadeaux):
             position = cadeau["position"]
-            couleur = "blue" if self.config["couleur"] == "bleu" else "red"
-            self.simulateur.drawRectangle(position.x, position.y + 20, 150, 40, True, couleur, "cadeau_" + str(i))
+            if self.config["couleur"] == "bleu":
+                couleur = "blue"
+                x = -position.x
+            else:
+                couleur = "red"
+                x = position.x
+            self.simulateur.drawRectangle(x, position.y + 20, 150, 40, True, couleur, "cadeau_" + str(i))
             
         # Affichage des bougies
         self._dessiner_bougies()
