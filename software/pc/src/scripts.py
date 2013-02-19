@@ -161,29 +161,27 @@ class ScriptTestHooks(Script):
 class ScriptCadeaux(Script):
         
     def execute(self, sens): #sens = 0 ou 1
-        self.log.debug("Script cadeaux lancé")
+        hooks = []
 
         if sens==0:
-            self.log.debug("Script cadeaux lancé dans le bon sens")
-
             self.robot.va_au_point(1150,250)
-            self.robot.ouvrir_cadeau()
-            hooks = []
-            for i in range(self.table.pointsEntreeCadeaux[0],self.table.pointsEntreeCadeaux[1]-1):
-                hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i]["position"]+Point(100,0), self.robot.fermer_cadeau))
-                hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i+1]["position"]-Point(100,0), self.robot.ouvrir_cadeau))
+            self.robot.tourner(math.pi)
+            hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[0]["position"]+Point(50,250), self.robot.ouvrir_cadeau))
+            for i in range(self.table.pointsEntreeCadeaux[0],self.table.pointsEntreeCadeaux[1]):
+                hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i]["position"]+Point(-50,250), self.robot.fermer_cadeau))
+                hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i+1]["position"]+Point(50,250), self.robot.ouvrir_cadeau))
 
-            self.robot.avancer(600,hooks)
+            self.robot.avancer(self.table.cadeaux[self.table.pointsEntreeCadeaux[0]]["position"].x-self.table.cadeaux[self.table.pointsEntreeCadeaux[1]]["position"].x+320,hooks)
             self.robot.fermer_cadeau()
 
         else:
-            self.log.debug("Script cadeaux lancé dans le mauvais sens "+str(sens))
+            pass
 
     def point_entree(self, sens):
         if sens==0:
-            return self.table.cadeaux[pointsEntreeCadeaux[0]]["position"]
+            return self.table.cadeaux[pointsEntreeCadeaux[0]]["position"]+Point(0,250)
         else:
-            return self.table.cadeaux[pointsEntreeCadeaux[1]]["position"]
+            return self.table.cadeaux[pointsEntreeCadeaux[1]]["position"]+Point(0,250)
         
 class ScriptTestRecalcul(Script):
     
