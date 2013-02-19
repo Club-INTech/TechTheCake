@@ -35,12 +35,6 @@ class Point:
         
     def to_list(self):
         return [self.x, self.y]
-
-    def abscisse(self):
-        return self.x
-
-    def ordonnee(self):
-        return self.y
         
     def distance(self, point):
         v = self - point
