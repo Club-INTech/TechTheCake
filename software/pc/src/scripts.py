@@ -7,7 +7,7 @@ class Script:
     classe mère des scripts
     se charge des dépendances
     """
-    def injection_dependances(self, robot, robotChrono, hookGenerator, rechercheChemin, config, log, table):
+    def depandances(self, config, log, robot, robotChrono, hookGenerator, rechercheChemin, table):
         """
         Gère les services nécessaires aux scripts. On n'utilise pas de constructeur.
         """
@@ -56,7 +56,21 @@ class Script:
         self.robot.maj_x_y_o(self.robotVrai.x, self.robotVrai.y, self.robotVrai.orientation)
         self.execute(*params)
         return self.robot.get_compteur()
+        
+class ScriptManager:
     
+    def __init__(self, config, log, robot, robotChrono, hookGenerator, rechercheChemin, table):
+        import inspect, sys
+        self.log = log
+        self.scripts = {}
+        
+        # Instanciation automatique des classes héritant de Script
+        classes = inspect.getmembers(sys.modules[__name__], inspect.isclass)
+        for name, obj in classes:
+            heritage = list(inspect.getmro(obj))
+            if Script in heritage:
+                self.scripts[name] = obj()
+                self.scripts[name].depandances(config, log, robot, robotChrono, hookGenerator, rechercheChemin, table)
         
 class ScriptBougies(Script):
     """

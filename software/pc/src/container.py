@@ -36,6 +36,7 @@ from table import Table, TableSimulation
 from timer import Timer
 from suds.client import Client
 from recherche_de_chemin.rechercheChemin import RechercheChemin
+from scripts import ScriptManager
 from strategie import Strategie
 from log import Log
 from hooks import HookGenerator
@@ -149,6 +150,9 @@ class Container:
         
         #enregistrement du service de génération des hooks
         self.assembler.register("hookGenerator", HookGenerator, requires=["config","log"])
+        
+        #enregistrement du service de stratégie
+        self.assembler.register("scripts", ScriptManager, requires=["config", "log", "robot", "robotChrono", "hookGenerator", "rechercheChemin", "table"])
         
         #enregistrement du service de stratégie
         self.assembler.register("strategie", Strategie, requires=["robot", "robotChrono", "hookGenerator", "rechercheChemin", "table", "timer", "config", "log"])
