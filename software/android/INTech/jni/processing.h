@@ -26,6 +26,7 @@ private:
     std::vector<Ball*> _keepBallsWithColor(std::vector<Ball*> &balls);
     std::vector<Ball*> _keepBallsInCakeBorders(std::vector<Ball*> &balls);
     cv::Point2f _getApproximativeCakeCenter(std::vector<Ball*> &balls);
+    Ball::Type _analyzeColor(cv::Vec3b color);
     void _drawBalls(std::vector<Ball*> &balls, cv::Mat &image);
 
 public:
@@ -103,6 +104,26 @@ public:
      * @brief Couleur limite supérieure du jaune des balles
      */
     cv::Scalar max_yellow_color;
+
+    /**
+     * @brief Teinte des balles bleues
+     */
+    int blue_ball_color;
+
+    /**
+     * @brief Teinte des balles rouges
+     */
+    int red_ball_color;
+
+    /**
+     * @brief Tolérance sur la teinte des balles
+     */
+    int ball_color_tolerance;
+
+    /**
+     * @brief Tolérance sur la détection des balles blanches
+     */
+    int white_ball_tolerance;
 
     /**
      * @brief Tableau contenant les résultats de l'analyse

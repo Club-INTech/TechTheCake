@@ -1,4 +1,5 @@
 from mutex import Mutex
+import random
 
 ################################################################################
 #####  PROTOCOLE VIRTUEL POUR SIMULATION DE LA SERIE SUR LES DEPLACEMENTS  #####
@@ -82,35 +83,35 @@ class ProtocoleVirtuelCapteurs:
         
     def nbs(self):
         #nombre de capteurs ultrasons à l'arrière
-        return [2]
+        return [1]
         
     def nbS(self):
         #nombre de capteurs ultrasons à l'avant
-        return [2]
+        return [1]
         
     def nbi(self):
         #nombre de capteurs infrarouges à l'arrière
-        return [2]
+        return [1]
         
     def nbI(self):
         #nombre de capteurs infrarouges à l'avant
-        return [2]
+        return [1]
     
     def s(self):
         #capteurs ultrasons de l'arrière
-        return [self.simulateur.getSensorValue(0),self.simulateur.getSensorValue(1)]
+        return [self._valeur_capteur(3)]
         
     def S(self):
         #capteurs ultrasons de l'avant
-        return [self.simulateur.getSensorValue(2),self.simulateur.getSensorValue(3)]
+        return [self._valeur_capteur(2)]
         
     def i(self):
         #capteurs infrarouges de l'arrière
-        return [self.simulateur.getSensorValue(0),self.simulateur.getSensorValue(1)]
+        return [self._valeur_capteur(1)]
         
     def I(self):
         #capteurs infrarouges de l'avant
-        return [self.simulateur.getSensorValue(2),self.simulateur.getSensorValue(3)]
+        return [self._valeur_capteur(0)]
 
     def c(self):
         #TODO
@@ -118,6 +119,10 @@ class ProtocoleVirtuelCapteurs:
 
     def demarrage_match(self):
         return [True]
+        
+    def _valeur_capteur(self, id):
+        valeur = self.simulateur.getSensorValue(id)
+        return valeur if valeur >= 0 else 5000
         
 ################################################################################
 #####  PROTOCOLE VIRTUEL POUR SIMULATION DE LA SERIE SUR LES ACTIONNEURS   #####
@@ -148,7 +153,7 @@ class ProtocoleVirtuelActionneurs:
 ################################################################################
 class ProtocoleVirtuelLaser:
     
-    def __init__(self,simulateur, log):
+    def __init__(self, simulateur, log):
         self.simulateur = simulateur
         self.log = log
         
@@ -170,7 +175,9 @@ class ProtocoleVirtuelLaser:
         return []
         
     def valeur(self, id_balise):
-        return []
+        position_reelle = self.simulateur.getEnemyPositionFromRobot(id_balise)
+        position_bruitee = [position_reelle[0] + random.gauss(0,20), position_reelle[1] + random.gauss(0,0.03)]
+        return position_bruitee
 
 ################################################################################
 #####  CLASSE DE SERIE EN SIMULATION : UTILISE DES PERIPHERIQUES VIRTUELS  #####
@@ -181,7 +188,7 @@ class SerieSimulation:
     Implémente la méthode communiquer de facon strictement identique (voir la classe Serie), avec memes appels et retours.
     """
     
-    def __init__(self,simulateur, log):
+    def __init__(self, simulateur, log):
         
         #instances des dépendances
         self.log = log

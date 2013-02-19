@@ -46,6 +46,33 @@
             android:summary="Valeur"
             android:title="V" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="Couleurs des bougies" >
+        <EditTextPreference
+            android:defaultValue="3"
+            android:key="red_h_color"
+            android:maxLength="3"
+            android:numeric="integer"
+            android:title="Teinte du rouge" />
+        <EditTextPreference
+            android:defaultValue="105"
+            android:key="blue_h_color"
+            android:maxLength="3"
+            android:numeric="integer"
+            android:title="Teinte du bleu" />
+        <EditTextPreference
+            android:defaultValue="10"
+            android:key="tolerance_color"
+            android:maxLength="3"
+            android:numeric="integer"
+            android:summary="Tolérance sur la teinte du rouge et du bleu"
+            android:title="Tolérance" />
+        <EditTextPreference
+            android:defaultValue="70"
+            android:key="white_tolerance_color"
+            android:maxLength="3"
+            android:numeric="integer"
+            android:title="Tolérance du blanc" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="Traitement du masque des balles" >
         <EditTextPreference
             android:defaultValue="1"

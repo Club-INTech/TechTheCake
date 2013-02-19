@@ -7,7 +7,7 @@ class Script:
     classe mère des scripts
     se charge des dépendances
     """
-    def set_dependencies(self, robot, robotChrono, hookGenerator, rechercheChemin, config, log, table):
+    def dependances(self, config, log, robot, robotChrono, hookGenerator, rechercheChemin, table):
         """
         Gère les services nécessaires aux scripts. On n'utilise pas de constructeur.
         """
@@ -36,7 +36,7 @@ class Script:
             calcule_chemin(position)
         self.robot.suit_chemin(self.dernierChemin)
 
-    def agit(self, *params):
+    def agit(self, params):
         """
         L'appel script.agit() effectue vraiment les instructions contenues dans execute().
         C'est à dire : envoi de trames sur la série, ou utilisation du simulateur. 
@@ -47,7 +47,7 @@ class Script:
         self.robot = self.robotVrai
         self.execute(*params)
         
-    def calcule(self, *params):
+    def calcule(self, params):
         """
         L'appel script.calcule() retourne la durée estimée des actions contenues dans execute().
         """
@@ -56,7 +56,21 @@ class Script:
         self.robot.maj_x_y_o(self.robotVrai.x, self.robotVrai.y, self.robotVrai.orientation)
         self.execute(*params)
         return self.robot.get_compteur()
+        
+class ScriptManager:
     
+    def __init__(self, config, log, robot, robotChrono, hookGenerator, rechercheChemin, table):
+        import inspect, sys
+        self.log = log
+        self.scripts = {}
+        
+        # Instanciation automatique des classes héritant de Script
+        classes = inspect.getmembers(sys.modules[__name__], inspect.isclass)
+        for name, obj in classes:
+            heritage = list(inspect.getmro(obj))
+            if Script in heritage:
+                self.scripts[name] = obj()
+                self.scripts[name].dependances(config, log, robot, robotChrono, hookGenerator, rechercheChemin, table)
         
 class ScriptBougies(Script):
     """
@@ -69,8 +83,9 @@ class ScriptBougies(Script):
         Traite le maximum de bougies possibles en partant d'un point d'entrée, et suivant 
         sens : +1 de droite a gauche et -1 de gauche a droite
         """
+                
         #pour les tests
-        gateauEnBas = True
+        gateauEnBas = False
         
         rayonAuBras = float(500+self.config["distance_au_gateau"])
         #delta de décalage p/r au centre du robot. On utilise des angles pour inverser plus facilement la direction
@@ -158,19 +173,43 @@ class ScriptTestHooks(Script):
         self.robot.avancer(500,hooks)
         
         
-class ScriptTestCadeaux(Script):
+class ScriptCadeaux(Script):
         
-    def execute(self):
+    def execute(self, sens): #sens = -1 ou 1
+    
+        # A TERMINER APRES REFLEXIONS SUR LE SENS DE PARCOURS
         
-        self.robot.va_au_point(1150,250)
-
+        if sens == 1:
+            i_entree = 0
+            i_sortie = 1
+        else:
+            i_entree = 1
+            i_sortie = 0
+            
+        # Cadeaux aux extrémités
+        cadeau_entree = self.table.point_entree_cadeau(i_entree)
+        cadeau_sortie = self.table.point_entree_cadeau(i_sortie)
+        
+        # Points d'entrée et de sortie du script
+        point_entree = cadeau_entree["position"] + Point(sens * 100, 250)
+        point_sortie = cadeau_sortie["position"] + Point(0, 250)
+        
+        # Mise en place du robot sur le point d'entrée
+        self.robot.va_au_point(point_entree.x, point_entree.y)
+        #self.robot.tourner(math.pi)
+        
+        # Orientation du robot
+        if sens == -1:
+            self.robot.set_marche_arriere(True)
+        
+        # Création des hooks pour tous les cadeaux à activer
         hooks = []
-        hooks.append(self.hookGenerator.get_hook("position", Point(1000,250), self.robot.actionneurs.ouvrir_cadeau))
-        hooks.append(self.hookGenerator.get_hook("position", Point(980,250), self.robot.actionneurs.fermer_cadeau))
-        hooks.append(self.hookGenerator.get_hook("position", Point(800,250), self.robot.actionneurs.ouvrir_cadeau))
-        hooks.append(self.hookGenerator.get_hook("position", Point(780,250), self.robot.actionneurs.fermer_cadeau))
-          
-        self.robot.avancer(600,hooks)
+        for cadeau in self.table.cadeaux_restants():
+            hooks.append(self.hookGenerator.get_hook("position", cadeau["position"] + Point(sens * 50, 250), self.robot.ouvrir_cadeau))
+            hooks.append(self.hookGenerator.get_hook("position", cadeau["position"] + Point(sens * 200, 250), self.robot.fermer_cadeau))
+            
+        # Déplacement le long de la table
+        self.robot.va_au_point(point_sortie.x, point_sortie.y, hooks)
         
         
 class ScriptTestRecalcul(Script):
@@ -178,43 +217,6 @@ class ScriptTestRecalcul(Script):
     def execute(self):
         self.va_au_point(Point(0,300))
         self.va_au_point(Point(-100,500))
-
-
-    #scripts pipeau utilisés dans les test de la stratégie.
-class ScriptPipeauStrategie1(Script):
-    
-    def execute(self):
-        self.va_au_point(Point(-500,1000))
-        self.robot.ouvrir_cadeau()
-        self.va_au_point(Point(-700,1000))
-        self.robot.fermer_cadeau()
-
-    def point_entree(self):
-        return Point(-500,1000)
-
-
-class ScriptPipeauStrategie2(Script):
-    
-    def execute(self):
-        self.va_au_point(Point(1000,300))
-        self.robot.traiter_bougie(0,True)
-        
-    def point_entree(self):
-        return Point(1000,300)
-
-
-class ScriptPipeauStrategie3(Script):
-    
-    def execute(self):
-        self.va_au_point(Point(500,1500))
-        self.robot.traiter_bougie(0,True)
-#        points_bougies=0
-#        if robot.traiter_bougie():
-#            points_bougies+=4
-#        return points_bougies
-
-    def point_entree(self):
-        return Point(500,1500)
 
 class ScriptCasserTour(Script):
     

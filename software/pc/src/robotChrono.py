@@ -106,7 +106,7 @@ class RobotChrono(RobotInterface):
     def stopper(self):
         pass
     
-    def avancer(self, distance):
+    def avancer(self, distance, hooks=[], pasReessayer=False):
         """
         Fonction analogue à celle de robot. Avance. Si, si.
         """

@@ -1,6 +1,9 @@
+import math
+
 class Laser:
     
-    def __init__(self, serie, config, log):
+    def __init__(self, robot, serie, config, log):
+        self.robot = robot
         self.serie = serie
         self.config = config
         self.log = log
@@ -20,67 +23,15 @@ class Laser:
         reponse = self.serie.communiquer("laser", ["freq"], 1)
         return reponse[0]
         
-    def valeur(self, id_balise):
+    def position_balise(self, id_balise):
+        # Récupération de la position de la balise dans le repère du robot
         reponse = self.serie.communiquer("laser", ["valeur", id_balise], 1)
         rayon = reponse[0]
         angle = reponse[1]
-        pass
         
-"""
-#########################################
-### C'EST DÉGUEUUUUUUU ICI ! (pardon) ###
-#########################################
+        # Changement dans le repère de la table
+        x = float(self.robot.x) + rayon * math.cos(angle + self.robot.orientation)
+        y = float(self.robot.y) + rayon * math.sin(angle + self.robot.orientation)
+        
+        return [x, y]
 
-from serial import Serial
-from time import sleep
-from suds.client import Client
-import math
-
-def write(serie, args):
-	return serie.write(bytes(args + "\r","utf-8"))
-
-def read(serie):
-	return clean_string(str(serie.readline(),"utf-8"))
-	
-def clean_string(chaine):
-    return chaine.replace("\n","").replace("\r","").replace("\0","")   
-
-def position(r, a):
-	delai = float(r)/(20000000./(128.))
-	theta = delai * 17.9 * 2 * math.pi
-	d = 35. / math.sin(theta / 2.)
-	#print("ms = {0} d = {1}".format(1000*delai, d))
-	x = 0 - d * math.cos(math.radians(a))
-	y = 2000 + d * math.sin(math.radians(a))
-	return [x, y]
-
-simulateur = Client("http://localhost:8090/INTechSimulator?wsdl").service
-
-simulateur.reset()
-simulateur.setTableDimension(3000,2000)
-simulateur.defineCoordinateSystem(1,0,0,-1,1500,2000)
-
-serie = Serial("/dev/ttyUSB0", 9600, timeout=0.1)
-     
-print("Allumage du moteur et des lasers...")
-write(serie, "motor_on")
-write(serie, "laser_on")
-
-#sleep(1)
-
-while(1):
-	write(serie, "valeurb")
-	val = read(serie).split(",")
-	try:
-		r = int(val[0])
-		if r == 0:
-			continue
-		a = float(val[1]) - 55
-		if a < 0: a = a + 360
-		pos = position(r,a)
-		print("{0};{1};{2};{3}".format(r,a,pos[0],pos[1]))
-		simulateur.drawPoint(pos[0],pos[1],'red',False)
-	except:
-		pass
-serie.close()
-"""

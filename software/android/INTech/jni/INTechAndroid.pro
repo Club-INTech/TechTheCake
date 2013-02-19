@@ -17,6 +17,6 @@ HEADERS += \
     ball.h \
     ballidentifier.h \
     model.h \
-    color.h
+    define.h
 
 

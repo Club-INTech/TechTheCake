@@ -1,6 +1,7 @@
 from math import pi,sqrt,atan2,atan,cos,sin
 from time import time,sleep
 from mutex import Mutex
+from outils_maths.point import Point
 
 #interface pour les méthodes publiques
 from robotChrono import RobotInterface
@@ -222,7 +223,7 @@ class Robot(RobotInterface):
         Si le paramètre virage_initial=False, le robot évite d'effectuer un virage, et donc tourne sur lui meme avant la translation.
         Les hooks sont évalués, et une boucle d'acquittement générique est utilisée.
         """
-                
+
         #comme à toute consigne initiale de mouvement, le robot est débloqué
         self.blocage = False
         
@@ -307,6 +308,8 @@ class Robot(RobotInterface):
         if not self.deplacements.update_enMouvement(**infos):
             #robot arrivé
             return 1
+            
+        #appeler méthode table pour gérer obstacles devant robot
             
             
     def _arc_de_cercle(self,xM,yM,hooks=[]):
@@ -430,8 +433,8 @@ class Robot(RobotInterface):
         self.log.debug("stoppage du robot")
         self.blocage = True
         self.deplacements.stopper()
-        
-    def avancer(self, distance, hooks=[]):
+
+    def avancer(self, distance, hooks=[], pasReessayer=False):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.
         Elle permet d'effectuer une translation en visant un point consigne devant le robot,
@@ -440,19 +443,28 @@ class Robot(RobotInterface):
         """
         
         self.log.debug("avancer de "+str(distance))
+
+        mem_x=self.x
+        mem_y=self.y
         
         mem_marche_arriere = self.marche_arriere
         self.marche_arriere = (distance < 0)
         
         retour = self._avancer(distance, hooks)
         self.marche_arriere = mem_marche_arriere
+
         if retour == 1:
             print("translation terminée !")
         elif retour == 2:
             self.stopper()
             print("translation arrêtée car blocage !")
         elif retour == 3:
-            self.stopper()
+            if pasReessayer:
+                self.stopper()
+            else:
+                delta_x=self.x-mem_x
+                delta_y=self.y-mem.y
+                self._avancer(distance-round(sqrt(delta_x**2 + delta_y**2),2), hooks, True)
             print("capteurs !")
         
     def tourner(self, angle_consigne, forcer = False,hooks=[]):
@@ -629,9 +641,15 @@ class Robot(RobotInterface):
         self.table.bougie_recupere(id)
 
     def initialiser_bras_bougie(self,enHaut) : 
+        """
+        Ouvre les bras qui soufflent les bougies
+        """    
         self.actionneurs.initialiser_bras_bougie(enHaut)
 
     def rentrer_bras_bougie(self) : 
+        """
+        Rentre les bras qui ont soufflé les bougies
+        """
         self.actionneurs.rentrer_bras_bougie()
 
     def ouvrir_cadeau(self):
@@ -639,7 +657,12 @@ class Robot(RobotInterface):
         Ouvre le bras qui pousse le cadeau
         """
         self.actionneurs.ouvrir_cadeau()
-        self.table.cadeau_recupere(0) #ne pas oublier de mettre à jour les éléments de jeu dans le service de table! (ligne à fin de test)
+        
+        # Marque le cadeau comme activé 
+        for i, cadeau in enumerate(self.table.cadeaux):
+            distance = Point(self.x, self.y).distance(cadeau["position"])
+            if distance < 500:
+                self.table.cadeau_recupere(i)
         
     def fermer_cadeau(self):
         """

@@ -16,7 +16,7 @@ class Timer():
         self.capteurs = capteurs
         self.match_demarre = False
         self.fin_match = False
-        self.mutex=Mutex()
+        self.mutex = Mutex()
 
     def initialisation(self):
         """
@@ -28,24 +28,15 @@ class Timer():
         with self.mutex:
             self.match_demarre = True
             self.date_debut = time()
-
-    def _suppression_obstacles(self):
-        dates_naissance_obstacles=self.table.get_obstaclesCapteur()
-        #print(dates_naissance_obstacles)
-        i=0
-        while i<len(dates_naissance_obstacles) and (dates_naissance_obstacles[i].naissance+self.config["duree_peremption_obstacles"])>time():   #une recherche dichotomique serait peut-être plus efficace, mais comme l'indice recherché est probablement petit... ça se discute.
-            i=i+1
-        if i<len(dates_naissance_obstacles):
-            self.table.maj_obstaclesCapteur(i)
-
+            
     def thread_timer(self):
         """
         Le thread timer, qui supprime les obstacles périssables et arrête le robot à la fin du match.
         """
         self.log.debug("Lancement du thread timer")
         self.initialisation()
-        while (time()-self.get_date_debut())<self.config["temps_match"]:
-            self._suppression_obstacles()
+        while time() - self.get_date_debut() < self.config["temps_match"]:
+            self.table.supprimer_obstacles_perimes()
             sleep(.5)
         with self.mutex:
             self.fin_match = True
@@ -55,6 +46,7 @@ class Timer():
         self.robot.deplacements.desactiver_asservissement_rotation()
         self.robot.gonflage_ballon()
         self.robot.deplacements.arret_final()
+        
     def get_date_debut(self):
         """
         Getter de la variable date_debut
