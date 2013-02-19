@@ -312,6 +312,9 @@ class Table:
                 self._supprimer_obstacle(i)
                 
     def deplacer_robot_adverse(self, i, position, vitesse=None):
+        """
+        Mise à jour de la position d'un robot ennemi sur la table
+        """
         self.robots_adverses[i].positionner(position)
         self._detection_collision_verre(position)
             

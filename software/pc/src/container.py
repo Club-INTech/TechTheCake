@@ -34,13 +34,13 @@ from serie import Serie
 from serieSimulation import SerieSimulation
 from table import Table, TableSimulation
 from timer import Timer
-from suds.client import Client
 from recherche_de_chemin.rechercheChemin import RechercheChemin
 from scripts import ScriptManager
 from strategie import Strategie
 from log import Log
 from hooks import HookGenerator
 from filtrage import FiltrageLaser
+from simulateur import Simulateur
 
 class Container:
     """
@@ -71,57 +71,14 @@ class Container:
         
         #services différents en fonction du mode simulateur on/off :
         if (self.config["mode_simulateur"]):
-            
-            #enregistrement du service Simulateur
-            def make_simu():
-                #client SOAP pour le simulateur
-                try:
-                    client=Client("http://localhost:8090/INTechSimulator?wsdl")
-                except:
-                    print("\n\nle serveur de simulation est introuvable !")
-                    input()
-                #initialisation de la table
-                client.service.reset()
-                client.service.setTableDimension(self.config["table_x"],self.config["table_y"])
-                client.service.defineCoordinateSystem(1,0,0,-1,self.config["table_x"]/2,self.config["table_y"])
-                #déclaration du robot
-                if self.config["couleur"] == "bleu":
-                    couleur = "blue"
-                    ennemi = "red"
-                else:
-                    couleur = "red"
-                    ennemi = "blue"
-                client.service.defineRobot({"list":[{"float":[-self.config["longueur_robot"]/2,-self.config["largeur_robot"]/2]},{"float":[-self.config["longueur_robot"]/2,self.config["largeur_robot"]/2]},{"float":[self.config["longueur_robot"]/2,self.config["largeur_robot"]/2]},{"float":[self.config["longueur_robot"]/2,-self.config["largeur_robot"]/2]}]},couleur)
-                #initialisation de la position du robot sur le simulateur
-                if self.config["couleur"] == "bleu":
-                    client.service.setRobotAngle(0)
-                    client.service.setRobotPosition(-1200,300)
-                else:
-                    client.service.setRobotAngle(pi)
-                    client.service.setRobotPosition(1200,300)
-                    
-                #déclaration d'un robot adverse
-                client.service.addEnemy(1, 80, ennemi)
-                
-                #definition des zones des capteurs
-                client.service.addSensor(0,{"list":[{"int":[0,-100]},{"int":[-135.,-1100.]},{"int":[135,-1100]}]}) # infrarouge arrière
-                client.service.addSensor(1,{"list":[{"int":[0,100]},{"int":[-135.,1100.]},{"int":[135,1100]}]})    # infrarouge avant
-                client.service.addSensor(2,{"list":[{"int":[0,-100]},{"int":[-600.,-1600.]},{"int":[600,-1600]}]}) # ultra son arrière
-                client.service.addSensor(3,{"list":[{"int":[0,100]},{"int":[-600.,1600.]},{"int":[600,1600]}]})    # ultra son avant
-        
-                return client.service
-                
-            self.assembler.register("simulateur", None, factory=make_simu)
-            self.assembler.register("serie", SerieSimulation, requires = ["simulateur","log"])
-            
-            #enregistrement du service représentant la table
+            def make_simulateur(config):
+                simulateur = Simulateur(config)
+                return simulateur.soap
+            self.assembler.register("simulateur", Simulateur, requires=["config"], factory=make_simulateur)
+            self.assembler.register("serie", SerieSimulation, requires=["simulateur","log"])
             self.assembler.register("table", TableSimulation, requires=["simulateur","config","log"])
-            
         else:
-            #enregistrement du service Serie
-            self.assembler.register("serie", Serie, requires = ["log"])
-            
-            #enregistrement du service représentant la table
+            self.assembler.register("serie", Serie, requires=["log"])
             self.assembler.register("table", Table, requires=["config","log"])
             
         #enregistrement du service des capteurs pour la série
