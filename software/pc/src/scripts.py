@@ -47,7 +47,7 @@ class Script:
         self.robot = self.robotVrai
         self.execute(*params)
         
-    def calcule(self, *params):
+    def calcule(self, params):
         """
         L'appel script.calcule() retourne la durée estimée des actions contenues dans execute().
         """
@@ -83,6 +83,7 @@ class ScriptBougies(Script):
         Traite le maximum de bougies possibles en partant d'un point d'entrée, et suivant 
         sens : +1 de droite a gauche et -1 de gauche a droite
         """
+                
         #pour les tests
         gateauEnBas = False
         
@@ -174,33 +175,24 @@ class ScriptTestHooks(Script):
         
 class ScriptCadeaux(Script):
         
-    def execute(self, sens): #sens = 0 ou 1
+    def execute(self, sens): #sens = -1 ou 1
         hooks = []
 
-        if sens==0:
+        if sens==1:
             self.robot.va_au_point(1150,250)
-            self.robot.tourner(math.pi)
-            hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[0]["position"]+Point(50,250), self.robot.ouvrir_cadeau))
-            for i in range(self.table.pointsEntreeCadeaux[0],self.table.pointsEntreeCadeaux[1]):
-                hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i]["position"]+Point(-50,250), self.robot.fermer_cadeau))
-                hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i+1]["position"]+Point(50,250), self.robot.ouvrir_cadeau))
-
-            self.robot.avancer(self.table.cadeaux[self.table.pointsEntreeCadeaux[0]]["position"].x-self.table.cadeaux[self.table.pointsEntreeCadeaux[1]]["position"].x+320,hooks)
-            self.robot.fermer_cadeau()
-
         else:
             self.robot.va_au_point(-970,250)
-            self.robot.tourner(math.pi)
-            hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[0]["position"]+Point(-50,250), self.robot.ouvrir_cadeau))
-            for i in range(self.table.pointsEntreeCadeaux[0],self.table.pointsEntreeCadeaux[1]):
-                hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i]["position"]+Point(50,250), self.robot.fermer_cadeau))
-                hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i+1]["position"]+Point(-50,250), self.robot.ouvrir_cadeau))
+        self.robot.tourner(math.pi)
+        hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[0]["position"]+Point(sens*50,250), self.robot.ouvrir_cadeau))
+        for i in range(self.table.pointsEntreeCadeaux[0],self.table.pointsEntreeCadeaux[1]):
+            hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i]["position"]+Point(sens*50,250), self.robot.fermer_cadeau))
+            hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i+1]["position"]+Point(sens*50,250), self.robot.ouvrir_cadeau))
 
-            self.robot.avancer(-self.table.cadeaux[self.table.pointsEntreeCadeaux[0]]["position"].x+self.table.cadeaux[self.table.pointsEntreeCadeaux[1]]["position"].x-320,hooks)
-            self.robot.fermer_cadeau()
+        self.robot.avancer(sens*(self.table.cadeaux[self.table.pointsEntreeCadeaux[0]]["position"].x-self.table.cadeaux[self.table.pointsEntreeCadeaux[1]]["position"].x+320),hooks)
+        self.robot.fermer_cadeau()
 
     def point_entree(self, sens):
-        if sens==0:
+        if sens==-1:
             return self.table.cadeaux[pointsEntreeCadeaux[0]]["position"]+Point(-160,250)
         else:
             return self.table.cadeaux[pointsEntreeCadeaux[1]]["position"]+Point(160,250)
@@ -210,43 +202,6 @@ class ScriptTestRecalcul(Script):
     def execute(self):
         self.va_au_point(Point(0,300))
         self.va_au_point(Point(-100,500))
-
-
-    #scripts pipeau utilisés dans les test de la stratégie.
-class ScriptPipeauStrategie1(Script):
-    
-    def execute(self):
-        self.va_au_point(Point(-500,1000))
-        self.robot.ouvrir_cadeau()
-        self.va_au_point(Point(-700,1000))
-        self.robot.fermer_cadeau()
-
-    def point_entree(self):
-        return Point(-500,1000)
-
-
-class ScriptPipeauStrategie2(Script):
-    
-    def execute(self):
-        self.va_au_point(Point(1000,300))
-        self.robot.traiter_bougie(0,True)
-        
-    def point_entree(self):
-        return Point(1000,300)
-
-
-class ScriptPipeauStrategie3(Script):
-    
-    def execute(self):
-        self.va_au_point(Point(500,1500))
-        self.robot.traiter_bougie(0,True)
-#        points_bougies=0
-#        if robot.traiter_bougie():
-#            points_bougies+=4
-#        return points_bougies
-
-    def point_entree(self):
-        return Point(500,1500)
 
 class ScriptCasserTour(Script):
     
