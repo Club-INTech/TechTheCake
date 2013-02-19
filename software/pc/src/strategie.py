@@ -8,19 +8,17 @@ class Strategie:
     Classe gérant l'intelligence artificielle.
     Son rôle est de noter différents scripts (selon leur durée, la distance d'un ennemi, ...) et de choisir le plus avantageux. C'est également cette classe qui fait les appels d'ajout d'obstacle à la recherche de chemin.
     """
-    def __init__(self, robot, robotChrono, hookGenerator, rechercheChemin, table, timer, config, log): #retirer robot
+    def __init__(self, robot, scripts, rechercheChemin, table, timer, config, log): #retirer robot
 
         self.robot = robot
-        self.robotChrono = robotChrono
-        self.hookGenerator = hookGenerator
         self.rechercheChemin = rechercheChemin
         self.table = table
         self.timer = timer
         self.config = config
         self.log = log
+        self.scripts = scripts
 
         self.arguments = {"pipeau1": (), "pipeau2": (), "pipeau3": (), "casser_tour": (), "bougies": (1,), "cadeaux1": (0,), "cadeaux2": (1,), "testHook": ()}
-        self.scripts = {"cadeaux1": ScriptCadeaux, "cadeaux2": ScriptCadeaux, "testHook": ScriptTestHooks}
         
         if not self.config["ennemi_fait_toutes_bougies"]:
             if self.config["ennemi_fait_ses_bougies"]:
@@ -35,11 +33,6 @@ class Strategie:
         self.liste_points_entree = ["cadeau", "verreNous", "verreEnnemi", "Pipeau"]
         self.points = {"cadeaux1":0, "cadeaux2":0, "verres": 0, "gateau":0, "bougies":0, "deposer_verre":0, "pipeau1":6, "pipeau2": 12, "pipeau3":8, "testHook":0}
 
-        # Instanciation des scripts
-        for script,classe in self.scripts.items():
-            self.scripts[script] = classe()
-            self.scripts[script].injection_dependances(self.robot, self.robotChrono, self.hookGenerator, self.rechercheChemin, self.config, self.log, self.table)
-        
     def boucle_strategie(self):
         """
         Boucle principale de la stratégie. 
