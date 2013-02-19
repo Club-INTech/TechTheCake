@@ -169,10 +169,16 @@ class Container:
             #lancement des threads de mise à jour
             thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":self})
             thread_MAJ.start()
+            
+            #thread des capteurs
             thread_capteurs = Thread(None, fonction_capteurs, None, (), {"container":self})
             thread_capteurs.start()
-            thread_lasers = Thread(None, fonction_laser, None, (), {"container":self})
-            thread_lasers.start()
+            
+            #thread des lasers
+            if self.config["lasers_demarrer_thread"]:
+                thread_lasers = Thread(None, fonction_laser, None, (), {"container":self})
+                thread_lasers.start()
+                
             timer = self.get_service("timer")
             thread_service_timer = Thread(None, timer.thread_timer, None, (), {})
             thread_service_timer.start()
