@@ -69,6 +69,7 @@ class ScriptBougies(Script):
         Traite le maximum de bougies possibles en partant d'un point d'entrée, et suivant 
         sens : +1 de droite a gauche et -1 de gauche a droite
         """
+                
         #pour les tests
         gateauEnBas = True
         
@@ -196,43 +197,6 @@ class ScriptTestRecalcul(Script):
     def execute(self):
         self.va_au_point(Point(0,300))
         self.va_au_point(Point(-100,500))
-
-
-    #scripts pipeau utilisés dans les test de la stratégie.
-class ScriptPipeauStrategie1(Script):
-    
-    def execute(self):
-        self.va_au_point(Point(-500,1000))
-        self.robot.ouvrir_cadeau()
-        self.va_au_point(Point(-700,1000))
-        self.robot.fermer_cadeau()
-
-    def point_entree(self):
-        return Point(-500,1000)
-
-
-class ScriptPipeauStrategie2(Script):
-    
-    def execute(self):
-        self.va_au_point(Point(1000,300))
-        self.robot.traiter_bougie(0,True)
-        
-    def point_entree(self):
-        return Point(1000,300)
-
-
-class ScriptPipeauStrategie3(Script):
-    
-    def execute(self):
-        self.va_au_point(Point(500,1500))
-        self.robot.traiter_bougie(0,True)
-#        points_bougies=0
-#        if robot.traiter_bougie():
-#            points_bougies+=4
-#        return points_bougies
-
-    def point_entree(self):
-        return Point(500,1500)
 
 class ScriptCasserTour(Script):
     
