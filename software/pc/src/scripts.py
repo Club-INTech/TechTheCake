@@ -40,9 +40,9 @@ class Script:
         """
         L'appel script.agit() effectue vraiment les instructions contenues dans execute().
         C'est à dire : envoi de trames sur la série, ou utilisation du simulateur. 
-        On peut appeler agit(None) lorsqu'il n'y a pas de paramètres
-        agit((3,"foo","bar")) pour passer n paramètres dans un tuple, qu'on split avec *
-        agit(3) pour passer un seul paramètre (ici entier casté en tuple)
+        On peut appeler agit(None) lorsqu'il n'y a pas de paramètres, 
+        agit((3,"foo","bar")) pour passer n paramètres dans un tuple, 
+        agit(3) pour passer un seul paramètre (ici entier casté en tuple).
         """
         self.robot = self.robotVrai
         if type(params) is tuple:

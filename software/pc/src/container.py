@@ -109,7 +109,6 @@ class Container:
         self.assembler.register("hookGenerator", HookGenerator, requires=["config","log"])
         
         #enregistrement du service d'instanciation des scripts
-        #def make_scripts(config, log, robot, robotChrono, hookGenerator, rechercheChemin, table):
         def make_scripts(*dependencies):
             scriptManager = ScriptManager(*dependencies)
             return scriptManager.scripts
