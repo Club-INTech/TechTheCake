@@ -108,11 +108,14 @@ class Container:
         #enregistrement du service de génération des hooks
         self.assembler.register("hookGenerator", HookGenerator, requires=["config","log"])
         
-        #enregistrement du service de stratégie
-        self.assembler.register("scripts", ScriptManager, requires=["config", "log", "robot", "robotChrono", "hookGenerator", "rechercheChemin", "table"])
+        #enregistrement du service d'instanciation des scripts
+        def make_scripts(*dependencies):
+            scriptManager = ScriptManager(*dependencies)
+            return scriptManager.scripts
+        self.assembler.register("scripts", ScriptManager, requires=["config", "log", "robot", "robotChrono", "hookGenerator", "rechercheChemin", "table"], factory = make_scripts)
         
         #enregistrement du service de stratégie
-        self.assembler.register("strategie", Strategie, requires=["robot", "robotChrono", "hookGenerator", "rechercheChemin", "table", "timer", "config", "log"])
+        self.assembler.register("strategie", Strategie, requires=["robot", "scripts", "rechercheChemin", "table", "timer", "config", "log"])
         
         #enregistrement du service de filtrage
         self.assembler.register("filtrage", FiltrageLaser, requires=["config"])

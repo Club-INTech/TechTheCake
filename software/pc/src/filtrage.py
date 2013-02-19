@@ -1,4 +1,6 @@
 import numpy
+#on peut trouver les sources de numpy ici : http://bit.ly/13boxRp
+#et les ajouter comme ca : $python3 setup.py install
 
 class Kalman:
   
