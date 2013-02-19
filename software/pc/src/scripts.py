@@ -47,7 +47,7 @@ class Script:
         self.robot = self.robotVrai
         self.execute(*params)
         
-    def calcule(self, *params):
+    def calcule(self, params):
         """
         L'appel script.calcule() retourne la durée estimée des actions contenues dans execute().
         """
@@ -175,33 +175,24 @@ class ScriptTestHooks(Script):
         
 class ScriptCadeaux(Script):
         
-    def execute(self, sens): #sens = 0 ou 1
+    def execute(self, sens): #sens = -1 ou 1
         hooks = []
 
-        if sens==0:
+        if sens==1:
             self.robot.va_au_point(1150,250)
-            self.robot.tourner(math.pi)
-            hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[0]["position"]+Point(50,250), self.robot.ouvrir_cadeau))
-            for i in range(self.table.pointsEntreeCadeaux[0],self.table.pointsEntreeCadeaux[1]):
-                hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i]["position"]+Point(-50,250), self.robot.fermer_cadeau))
-                hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i+1]["position"]+Point(50,250), self.robot.ouvrir_cadeau))
-
-            self.robot.avancer(self.table.cadeaux[self.table.pointsEntreeCadeaux[0]]["position"].x-self.table.cadeaux[self.table.pointsEntreeCadeaux[1]]["position"].x+320,hooks)
-            self.robot.fermer_cadeau()
-
         else:
             self.robot.va_au_point(-970,250)
-            self.robot.tourner(math.pi)
-            hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[0]["position"]+Point(-50,250), self.robot.ouvrir_cadeau))
-            for i in range(self.table.pointsEntreeCadeaux[0],self.table.pointsEntreeCadeaux[1]):
-                hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i]["position"]+Point(50,250), self.robot.fermer_cadeau))
-                hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i+1]["position"]+Point(-50,250), self.robot.ouvrir_cadeau))
+        self.robot.tourner(math.pi)
+        hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[0]["position"]+Point(sens*50,250), self.robot.ouvrir_cadeau))
+        for i in range(self.table.pointsEntreeCadeaux[0],self.table.pointsEntreeCadeaux[1]):
+            hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i]["position"]+Point(sens*50,250), self.robot.fermer_cadeau))
+            hooks.append(self.hookGenerator.get_hook("position", self.table.cadeaux[i+1]["position"]+Point(sens*50,250), self.robot.ouvrir_cadeau))
 
-            self.robot.avancer(-self.table.cadeaux[self.table.pointsEntreeCadeaux[0]]["position"].x+self.table.cadeaux[self.table.pointsEntreeCadeaux[1]]["position"].x-320,hooks)
-            self.robot.fermer_cadeau()
+        self.robot.avancer(sens*(self.table.cadeaux[self.table.pointsEntreeCadeaux[0]]["position"].x-self.table.cadeaux[self.table.pointsEntreeCadeaux[1]]["position"].x+320),hooks)
+        self.robot.fermer_cadeau()
 
     def point_entree(self, sens):
-        if sens==0:
+        if sens==-1:
             return self.table.cadeaux[pointsEntreeCadeaux[0]]["position"]+Point(-160,250)
         else:
             return self.table.cadeaux[pointsEntreeCadeaux[1]]["position"]+Point(160,250)
