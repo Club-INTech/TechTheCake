@@ -1,6 +1,7 @@
 from time import sleep,time
-import math
 from outils_maths.point import Point
+import math
+import unittest
 
 class Script:
     """
@@ -237,3 +238,10 @@ class ScriptCasserTour(Script):
     def point_entree(self):
         return Point(1300,200)
 
+class TestScript(unittest.TestCase):
+    
+    def setUp(self):
+        pass
+
+    def test_shuffle(self):
+        self.assertTrue(True)

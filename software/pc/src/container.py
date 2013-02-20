@@ -15,6 +15,8 @@ sys.path.insert(0, os.path.join(chemin, "src/"))
 from assemblage import assembler
 from mutex import Mutex
 
+from tests import ContainerTest
+
 #module pour les threads
 from threading import Thread
 #fonctions pour les thread de mises à jour
@@ -28,7 +30,7 @@ from robot import Robot
 from robotChrono import RobotChrono
 from deplacements import Deplacements
 from capteurs import Capteurs
-from laser import Laser
+from laser import *
 from actionneurs import Actionneurs
 from serie import Serie
 from serieSimulation import SerieSimulation

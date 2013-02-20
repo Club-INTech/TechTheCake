@@ -1,3 +1,4 @@
+from tests import ContainerTest
 import math
 
 class Laser:
@@ -25,10 +26,16 @@ class Laser:
         return [b for b in self.balises if not b["active"]]
     
     def allumer(self):
+        """
+        Allumer le moteur et les lasers
+        """
         self.serie.communiquer("laser", ["motor_on"], 0)
         self.serie.communiquer("laser", ["laser_on"], 0)
         
     def eteindre(self):
+        """
+        Eteindre le moteur et les lasers
+        """
         self.serie.communiquer("laser", ["laser_off"], 0)
         self.serie.communiquer("laser", ["motor_off"], 0)
         
@@ -46,14 +53,23 @@ class Laser:
         return balises_ok
         
     def ping_balise(self, id_balise):
+        """
+        Ping une balise
+        """
         ping = self.serie.communiquer("laser", ["ping", str(id_balise)], 1)
         return ping != ["aucune réponse"]
         
     def frequence_moteur(self):
+        """
+        Récupère la fréquence actuelle du moteur
+        """
         reponse = self.serie.communiquer("laser", ["freq"], 1)
         return reponse[0]
         
     def position_balise(self, id_balise):
+        """
+        Récupère la valeur (rayon, angle) d'une balise
+        """
         # Récupération de la position de la balise dans le repère du robot
         reponse = self.serie.communiquer("laser", ["valeur", id_balise], 1)
         rayon = reponse[0]
@@ -65,3 +81,13 @@ class Laser:
         
         return [x, y]
 
+class TestLaser(ContainerTest):
+    
+    def setUp(self):
+        pass
+
+    def test_ok(self):
+        self.assertTrue(True)
+        
+    def test_erreur(self):
+        self.assertTrue(False)
