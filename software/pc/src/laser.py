@@ -1,4 +1,3 @@
-from tests import ContainerTest
 import math
 
 class Laser:
@@ -80,14 +79,3 @@ class Laser:
         y = float(self.robot.y) + rayon * math.sin(angle + self.robot.orientation)
         
         return [x, y]
-
-class TestLaser(ContainerTest):
-    
-    def setUp(self):
-        pass
-
-    def test_ok(self):
-        self.assertTrue(True)
-        
-    def test_erreur(self):
-        self.assertTrue(False)

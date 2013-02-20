@@ -5,7 +5,7 @@ class ContainerTest(unittest.TestCase):
     # Container statique injecté depuis le lanceur
     container = None
     
-    def get_service(service):
+    def get_service(self, service):
         """
         Accéder à un service depuis les tests
         """

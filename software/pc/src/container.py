@@ -22,7 +22,7 @@ from threading import Thread
 #fonctions pour les thread de mises à jour
 from thread_MAJ import fonction_MAJ
 from thread_capteurs import fonction_capteurs
-from thread_lasers import fonction_laser
+from thread_lasers import *
 
 #modules -> services
 from read_ini import Config
@@ -34,7 +34,7 @@ from laser import *
 from actionneurs import Actionneurs
 from serie import Serie
 from serieSimulation import SerieSimulation
-from table import Table, TableSimulation
+from table import *
 from timer import Timer
 from recherche_de_chemin.rechercheChemin import RechercheChemin
 from scripts import ScriptManager

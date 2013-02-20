@@ -1,6 +1,7 @@
 from time import time
 from mutex import Mutex
 from outils_maths.point import Point
+from tests import ContainerTest
 import math
 
 class Obstacle:
@@ -436,3 +437,19 @@ class TableSimulation(Table):
             self.simulateur.clearEntity("bougie_" + str(i))
             if not bougie["traitee"]:
                 self.simulateur.drawCircle(x, y, 32, True, "jaune", "bougie_" + str(i))
+                
+        
+class TestTable(ContainerTest):
+    
+    def setUp(self):
+        self.table = self.get_service("table")
+        
+    def test_point_entree_cadeau(self):
+        self.table.cadeau_recupere(2)
+        self.assertEqual(self.table.points_entree_cadeaux, [0, 3])
+        self.table.cadeau_recupere(3)
+        self.assertEqual(self.table.points_entree_cadeaux, [0, 1])
+        self.table.cadeau_recupere(1)
+        self.assertEqual(self.table.points_entree_cadeaux, [0, 0])
+        self.table.cadeau_recupere(0)
+        self.assertEqual(self.table.points_entree_cadeaux, [])

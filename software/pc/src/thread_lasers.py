@@ -1,5 +1,6 @@
 from outils_maths.point import Point
 from outils_maths.vitesse import Vitesse
+from tests import ContainerTest
 from math import cos,sin
 from time import sleep
 from time import time
@@ -59,4 +60,21 @@ def fonction_laser(container):
         sleep(1./config["lasers_frequence"])
         
     log.debug("Arrêt du thread des lasers")
+
+class TestThreadLaser(ContainerTest):
+    
+    def setUp(self):
+        self.simulateur = self.get_service("simulateur")
+        
+    def test_suppression_verre(self):
+        table = self.get_service("table")
+        # Déplacement du robot ennemi
+        self.simulateur.scriptEnemyPosition(1, {"list":[{"double":[600,1050]}]})
+        sleep(0.1)
+        self.simulateur.startEnemyScript(1)
+        sleep(1.5)
+        # Vérification de l'état des verres
+        self.assertFalse(table.etat_verre(0))
+        self.assertTrue(table.etat_verre(3))
+        
 
