@@ -242,11 +242,10 @@ class SerieSimulation:
             args = tuple(messages[1:])
             try:
                 reponses = getattr(self.peripheriques[destinataire], method)(*args)
+                return reponses
             except Exception as e:
                 print('\x1b[31mErreur renvoyée par le simulateur\x1b[0m ', e)
                 
-        return reponses
-
     def set_arret_serie(self):
         """
         Méthode pour arrêter le service série, appelée par le service timer à la fin du match.

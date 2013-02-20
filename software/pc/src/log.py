@@ -170,3 +170,14 @@ class Log:
         f_log.write(f_tmp.read())
         f_log.close()
         f_tmp.close()
+
+class LogTest:
+    
+    def debug(self, message):
+        pass
+        
+    def warning(self, message):
+        pass
+        
+    def critical(self, message):
+        pass

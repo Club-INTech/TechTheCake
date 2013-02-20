@@ -453,3 +453,17 @@ class TestTable(ContainerTest):
         self.assertEqual(self.table.points_entree_cadeaux, [0, 0])
         self.table.cadeau_recupere(0)
         self.assertEqual(self.table.points_entree_cadeaux, [])
+        
+    def test_point_entree_bougie(self):
+        self.table.bougie_recupere(2)
+        self.assertEqual(self.table.points_entree_bougies, [3, 17])
+        self.table.bougie_recupere(18)
+        self.assertEqual(self.table.points_entree_bougies, [3, 17])
+        self.table.bougie_recupere(17)
+        self.assertEqual(self.table.points_entree_bougies, [3, 16])
+        self.table.bougie_recupere(13)
+        self.table.bougie_recupere(14)
+        self.table.bougie_recupere(15)
+        self.assertEqual(self.table.points_entree_bougies, [3, 16])
+        self.table.bougie_recupere(16)
+        self.assertEqual(self.table.points_entree_bougies, [3, 12])

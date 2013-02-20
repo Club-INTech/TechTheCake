@@ -22,6 +22,7 @@ class Simulateur:
         else:
             couleur = "red"
             ennemi = "blue"
+            
         client.service.defineRobot({"list":[
             {"float":[-config["longueur_robot"]/2,-config["largeur_robot"]/2]},
             {"float":[-config["longueur_robot"]/2,config["largeur_robot"]/2]},

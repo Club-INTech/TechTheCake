@@ -10,4 +10,7 @@ class ContainerTest(unittest.TestCase):
         Accéder à un service depuis les tests
         """
         return ContainerTest.container.get_service(service)
+        
+    def tearDown(self):
+        self.container.reset()
     

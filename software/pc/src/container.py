@@ -23,6 +23,7 @@ from threading import Thread
 from thread_MAJ import fonction_MAJ
 from thread_capteurs import fonction_capteurs
 from thread_lasers import *
+from threads import *
 
 #modules -> services
 from read_ini import Config
@@ -39,7 +40,7 @@ from timer import Timer
 from recherche_de_chemin.rechercheChemin import RechercheChemin
 from scripts import ScriptManager
 from strategie import Strategie
-from log import Log
+from log import *
 from hooks import HookGenerator
 from filtrage import FiltrageLaser
 from simulateur import Simulateur
@@ -50,10 +51,25 @@ class Container:
     Elle utilise la bibliothèque d'injection de dépendances Assemblage.
     Les services chargés dépendent de la configuration (simulation/série) et sont ensuite utilisés de manière transparente.
     """
-    def __init__(self):
+    def __init__(self, env="match"):
         self.assembler = assembler()
         self.mutex = Mutex()
+        self.env = env
+        self._chargement_service()
+        self._start_threads()
         
+    def get_service(self,id):
+        """
+        Méthode de génération d'un service. Elle renvoie toujours la même instance d'un service, qui n'est construite qu'à la première demande.
+        """
+        #mutex pour éviter la duplication d'un service à cause d'un thread (danger !)
+        with self.mutex:
+            return self.assembler.provide(id)
+        
+    def _chargement_service(self):
+        """
+        Enregistrement des services
+        """
         #enregistrement du service de configuration
         def make_conf():
             conf = Config()
@@ -66,8 +82,11 @@ class Container:
         
         #enregistrement du service des logs
         def make_log(config):
-            log = Log(self.config)
-            log.set_chemin(chemin)
+            if self.env == "match":
+                log = Log(self.config)
+                log.set_chemin(chemin)
+            else:
+                log = LogTest()
             return log
         self.assembler.register("log", Log, requires = ["config"], factory=make_log)
         
@@ -102,7 +121,7 @@ class Container:
         self.assembler.register("robotChrono", RobotChrono, requires=["log"])
         
         #enregistrement du service timer
-        self.assembler.register("timer", Timer, requires=["log","config","robot","table","capteurs"])
+        self.assembler.register("timer", ThreadTimer, requires=["log","config","robot","table","capteurs"])
 
         #enregistrement du service de recherche de chemin
         self.assembler.register("rechercheChemin", RechercheChemin, requires=["table","config","log"])
@@ -121,33 +140,22 @@ class Container:
         
         #enregistrement du service de filtrage
         self.assembler.register("filtrage", FiltrageLaser, requires=["config"])
-
-        #lancement des threads
-        self._start_threads()
         
         
     def _start_threads(self):
         """
         Le lancement des thread (et leur attente d'une initialisation) est gérée ici.
         """
-        #fonction qui lance les threads
         def lancement_des_threads():
-            #lancement des threads de mise à jour
-            thread_MAJ = Thread(None, fonction_MAJ, None, (), {"container":self})
-            thread_MAJ.start()
+            AbstractThread.stop_threads = False
             
-            #thread des capteurs
-            thread_capteurs = Thread(None, fonction_capteurs, None, (), {"container":self})
-            thread_capteurs.start()
+            ThreadPosition(self).start()
+            ThreadCapteurs(self).start()
+            self.get_service("timer").start()
             
-            #thread des lasers
             if self.config["lasers_demarrer_thread"]:
-                thread_lasers = Thread(None, fonction_laser, None, (), {"container":self})
-                thread_lasers.start()
-                
-            timer = self.get_service("timer")
-            thread_service_timer = Thread(None, timer.thread_timer, None, (), {})
-            thread_service_timer.start()
+                ThreadLaser(self).start()
+            
             #attente d'une première mise à jour pour la suite
             robot = self.get_service("robot")
             while not robot.pret:
@@ -162,13 +170,17 @@ class Container:
             serie = self.get_service("serie")
             if hasattr(serie.peripheriques["asservissement"],'serie'):
                 lancement_des_threads()
-                
-                
-    def get_service(self,id):
+    
+    def _stop_threads(self):
+        AbstractThread.stop_threads = True
+        sleep(2)
+        
+    def reset(self):
         """
-        Méthode de génération d'un service. Elle renvoie toujours la même instance d'un service, qui n'est construite qu'à la première demande.
+        Supprime toutes les instances de service et relance le container
         """
-        #mutex pour éviter la duplication d'un service à cause d'un thread (danger !)
-        with self.mutex:
-            return self.assembler.provide(id)
+        self._stop_threads()
+        self.assembler.reset()
+        self._chargement_service()
+        self._start_threads()
         

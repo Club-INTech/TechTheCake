@@ -54,6 +54,12 @@ class assembler(object):
         new_instance = self._build_new(id)
         self._add_to_cache(id, new_instance)
         return new_instance
+        
+    def reset(self):
+        for service in self.cache:
+            del service
+        self.cache = {}
+        self.service = {}
 
     def _can_build_type(self, id): #@ReservedAssignment
         if (id in self.services):
