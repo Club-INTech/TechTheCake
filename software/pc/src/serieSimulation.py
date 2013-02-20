@@ -240,7 +240,10 @@ class SerieSimulation:
             #Utilisation du protocole série sur le périphérique virtuel. Renvoit une liste de réponses, éventuellement vide.
             method = messages[0].replace("?","")
             args = tuple(messages[1:])
-            reponses = getattr(self.peripheriques[destinataire], method)(*args)
+            try:
+                reponses = getattr(self.peripheriques[destinataire], method)(*args)
+            except Exception as e:
+                print('\x1b[31mErreur renvoyée par le simulateur\x1b[0m ', e)
                 
         return reponses
 
