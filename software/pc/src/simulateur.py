@@ -6,7 +6,7 @@ class Simulateur:
 
     def __init__(self, config):
         try:
-            client = Client("http://localhost:8090/INTechSimulator?wsdl")
+            client = Client("http://" + config["simulateur_hote"] + ":8090/INTechSimulator?wsdl")
         except:
             print("\n\nle serveur de simulation est introuvable !")
             input()
