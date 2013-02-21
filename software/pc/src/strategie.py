@@ -35,14 +35,14 @@ class Strategie:
 
         while not self.timer.get_fin_match():
 #            self.rechercheChemin.retirer_obstacles_dynamique();
-            initialiser_points()
+            self._initialiser_points()
             self.rechercheChemin.preparer_environnement()
 
             for script in self.scripts:
             #deuxième boucle sur tous les points entrées
                 if self.points[script]!=0:
                     self.log.debug("Notation du script "+script)
-                    note[script]=noter_script(script)
+                    note[script]=self._noter_script(script)
                     self.log.debug("Note du script "+script+": "+str(note[script]))
 
                     
@@ -57,10 +57,10 @@ class Strategie:
         self.log.debug("Arrêt de la stratégie.")
 
 
-    def initialiser_points(self):
+    def _initialiser_points(self):
         self.points["ScriptBougies"]=0
         for element in self.table.bougies:
-            if not element["couleur"]=="red" and not element["traitee"]:
+            if not element["couleur"]=="red" and not element["traitee"]: #la condition sur la couleur est pipeau
                 self.points["ScriptBougies"]+=4
         for element in self.table.verres:
             if element["present"]:       #à pondérer si l'ascenseur est plutôt plein ou plutôt vide
@@ -73,7 +73,7 @@ class Strategie:
         self.points["ScriptCasserTour"]=(time()-self.timer.get_date_debut())
 
 
-    def noter_script(self, script): #compléter cette méthode
+    def _noter_script(self, script): #compléter cette méthode
         if script=="ScriptRecupererVerres" and dureeScript+deposer_verre.calcule()>(self.config["temps_match"]-time()+self.timer.get_date_debut()): #pour prendre les verres, on ajoute à durée script le temps de déposer les verres
             self.log.critical("Plus le temps de prendre des verres, on n'aurait pas le temps de les déposer.")
             note=0
