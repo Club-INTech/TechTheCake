@@ -18,11 +18,6 @@ from mutex import Mutex
 from tests import ContainerTest
 
 #module pour les threads
-from threading import Thread
-#fonctions pour les thread de mises à jour
-from thread_MAJ import fonction_MAJ
-from thread_capteurs import fonction_capteurs
-from thread_lasers import *
 from threads import *
 
 #modules -> services
@@ -36,7 +31,6 @@ from actionneurs import Actionneurs
 from serie import Serie
 from serieSimulation import SerieSimulation
 from table import *
-from timer import Timer
 from recherche_de_chemin.rechercheChemin import RechercheChemin
 from scripts import ScriptManager
 from strategie import Strategie
@@ -98,9 +92,11 @@ class Container:
             self.assembler.register("simulateur", Simulateur, requires=["config"], factory=make_simulateur)
             self.assembler.register("serie", SerieSimulation, requires=["simulateur","log"])
             self.assembler.register("table", TableSimulation, requires=["simulateur","config","log"])
+            self.assembler.register("hookGenerator", HookGeneratorSimulation, requires=["config","log","simulateur"])
         else:
             self.assembler.register("serie", Serie, requires=["log"])
             self.assembler.register("table", Table, requires=["config","log"])
+            self.assembler.register("hookGenerator", HookGenerator, requires=["config","log"])
             
         #enregistrement du service des capteurs pour la série
         self.assembler.register("capteurs", Capteurs, requires=["serie","config","log"])
@@ -125,9 +121,6 @@ class Container:
 
         #enregistrement du service de recherche de chemin
         self.assembler.register("rechercheChemin", RechercheChemin, requires=["table","config","log"])
-        
-        #enregistrement du service de génération des hooks
-        self.assembler.register("hookGenerator", HookGenerator, requires=["config","log"])
         
         #enregistrement du service d'instanciation des scripts
         def make_scripts(*dependencies):
