@@ -254,6 +254,14 @@ class ScriptDeposerVerres(Script): #contenu pipeau
     def point_entree(self):
         return Point(1300,200)
 
+class ScriptRecupererVerres(Script): #contenu pipeau
+    
+    def execute(self):
+        self.va_au_point(Point(1300,200))
+        self.va_au_point(Point(1300,1800))
+
+    def point_entree(self):
+        return Point(1300,200)
 
 class TestScript(unittest.TestCase):
     
