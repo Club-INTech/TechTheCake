@@ -16,7 +16,7 @@ class Strategie:
         self.log = log
         self.scripts = scripts
 
-        self.arguments = {"ScriptBougies": 1, "ScriptCadeaux": 1, "ScriptRecupererVerres": (), "ScriptDeposerVerres": (), "ScriptCasserTour": ()}
+        self.arguments = {"ScriptBougies": 1, "ScriptCadeaux": 1, "ScriptRecupererVerres": (), "ScriptDeposerVerres": (), "ScriptCasserTour": ()} #désormais inutile
         self.liste_points_entree = ["cadeau", "verreNous", "verreEnnemi", "Pipeau"]
         self.points={}
         self.note={}
@@ -45,11 +45,11 @@ class Strategie:
             #deuxième boucle sur tous les points entrées
                 if self.points[script]!=0:
                     self.log.debug("Notation du script "+script)
-                    note[script]=self._noter_script(script)
-                    self.log.debug("Note du script "+script+": "+str(note[script]))
+                    self.note[script]=self._noter_script(script)
+                    self.log.debug("Note du script "+script+": "+str(self.note[script]))
 
                     
-            noteInverse = dict(map(lambda item: (item[1],item[0]),note.items()))
+            noteInverse = dict(map(lambda item: (item[1],item[0]),self.note.items()))
             scriptAFaire=noteInverse[max(noteInverse.keys())]   #ce script a reçu la meilleure note
 
             self.log.debug("STRATÉGIE FAIT: "+scriptAFaire)
@@ -109,7 +109,8 @@ class Strategie:
             self.log.critical("Plus le temps d'exécuter "+script)
             return 0
         else:
-            distanceE=self._distance_ennemi(script)+1              #idem
+            distanceE=100
+#            distanceE=self._distance_ennemi(Point(100,100))+1              #idem
             try:
                 return 1000000000*(self.points[script])/(dureeScript*dureeScript*dureeScript*distanceE*distanceE)
             except ZeroDivisionError:
@@ -117,12 +118,13 @@ class Strategie:
                 return self.points[script]
 
 
-    def _distance_ennemi(self, script): #on prend la distance euclidienne, à vol d'oiseau. Attention, on prend le min: cette valeur est sensible aux mesures aberrantes
+    def _distance_ennemi(self, point_entree): #on prend la distance euclidienne, à vol d'oiseau. Attention, on prend le min: cette valeur est sensible aux mesures aberrantes
         distance_min=3000 #une distance très grande, borne sup de la valeur renvoyée.
+
         for obstacle in self.table.obstacles():
-            if Point.distance(self.scripts[script].point_entree(),obstacle.position.x)<distance_min:
-                distance_min=d
+            d = Point.distance(point_entree, obstacle.position)
+            if d < distance_min:
+                distance_min = d
+
         return distance_min
 
-#TODO
-#retirer du dictionnaire des scripts ceux déjà fait (entièrement)
