@@ -147,11 +147,17 @@ class Table:
         """
         return [c for c in self.cadeaux if not c["ouvert"]]
         
-    def cadeau_recupere(self, i):
+    def cadeau_recupere(self, cadeau):
         """
         Indique que le cadeau a été activé
         """
+        for i, c in enumerate(self.cadeaux):
+            if c["position"] == cadeau["position"]:
+                self._cadeau_recupere(i)
+        
+    def _cadeau_recupere(self, i):
         self.cadeaux[i]["ouvert"] = True
+        self.log.debug("cadeau n°{0} ouvert".format(i))
         self._rafraichir_entree_cadeaux()
         
     def _rafraichir_entree_cadeaux(self):
@@ -184,7 +190,7 @@ class Table:
         """
         return [b for b in self.bougies if not b["traitee"]]
         
-    def bougie_recupere(self, i):
+    def _bougie_recupere(self, i):
         """
         Indique que la bougie a été enfoncée
         """
@@ -373,12 +379,12 @@ class TableSimulation(Table):
             position = verre["position"]
             self.simulateur.drawCircle(position.x, position.y, 40, False, "black", "verre_" + str(i))
         
-    def cadeau_recupere(self, i):
-        Table.cadeau_recupere(self, i)
+    def _cadeau_recupere(self, i):
+        Table._cadeau_recupere(self, i)
         self.simulateur.clearEntity("cadeau_" + str(i))
         
-    def bougie_recupere(self, i):
-        Table.bougie_recupere(self, i)
+    def _bougie_recupere(self, i):
+        Table._bougie_recupere(self, i)
         self.simulateur.clearEntity("bougie_" + str(i))
         
     def verre_recupere(self, i):
@@ -445,25 +451,25 @@ class TestTable(ContainerTest):
         self.table = self.get_service("table")
         
     def test_point_entree_cadeau(self):
-        self.table.cadeau_recupere(2)
+        self.table._cadeau_recupere(2)
         self.assertEqual(self.table.points_entree_cadeaux, [0, 3])
-        self.table.cadeau_recupere(3)
+        self.table._cadeau_recupere(3)
         self.assertEqual(self.table.points_entree_cadeaux, [0, 1])
-        self.table.cadeau_recupere(1)
+        self.table._cadeau_recupere(1)
         self.assertEqual(self.table.points_entree_cadeaux, [0, 0])
-        self.table.cadeau_recupere(0)
+        self.table._cadeau_recupere(0)
         self.assertEqual(self.table.points_entree_cadeaux, [])
         
     def test_point_entree_bougie(self):
-        self.table.bougie_recupere(2)
+        self.table._bougie_recupere(2)
         self.assertEqual(self.table.points_entree_bougies, [3, 17])
-        self.table.bougie_recupere(18)
+        self.table._bougie_recupere(18)
         self.assertEqual(self.table.points_entree_bougies, [3, 17])
-        self.table.bougie_recupere(17)
+        self.table._bougie_recupere(17)
         self.assertEqual(self.table.points_entree_bougies, [3, 16])
-        self.table.bougie_recupere(13)
-        self.table.bougie_recupere(14)
-        self.table.bougie_recupere(15)
+        self.table._bougie_recupere(13)
+        self.table._bougie_recupere(14)
+        self.table._bougie_recupere(15)
         self.assertEqual(self.table.points_entree_bougies, [3, 16])
-        self.table.bougie_recupere(16)
+        self.table._bougie_recupere(16)
         self.assertEqual(self.table.points_entree_bougies, [3, 12])

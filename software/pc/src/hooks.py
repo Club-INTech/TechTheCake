@@ -46,8 +46,8 @@ class HookPosition(Hook):
         Hook.__init__(self, log)
         self.position_hook = position
         
-    def evaluate(self,robotX,robotY,**useless):
-        if ((robotX - self.position_hook.x)**2 + (robotY - self.position_hook.y)**2 <= _tolerance_distance_mm**2):
+    def evaluate(self, robotX, robotY, **useless):
+        if (Point(robotX, robotY).distance(self.position_hook) <= _tolerance_distance_mm):
             self.declencher()
         
 class HookOrientation(Hook):

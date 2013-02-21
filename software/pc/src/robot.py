@@ -656,18 +656,14 @@ class Robot(RobotInterface):
         """
         Ouvre le bras qui pousse le cadeau
         """
+        self.log.debug("ouverture du bras cadeaux")
         self.actionneurs.ouvrir_cadeau()
-        
-        # Marque le cadeau comme activé 
-        for i, cadeau in enumerate(self.table.cadeaux):
-            distance = Point(self.x, self.y).distance(cadeau["position"])
-            if distance < 500:
-                self.table.cadeau_recupere(i)
         
     def fermer_cadeau(self):
         """
         Ferme le bras qui a poussé le cadeau
         """
+        self.log.debug("fermeture du bras cadeaux")
         self.actionneurs.fermer_cadeau()
         
     def gonflage_ballon(self):
