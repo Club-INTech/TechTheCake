@@ -109,8 +109,7 @@ class Strategie:
             self.log.critical("Plus le temps d'exécuter "+script)
             return 0
         else:
-            distanceE=100
-#            distanceE=self._distance_ennemi(Point(100,100))+1              #idem
+            distanceE=self._distance_ennemi(Point(100,100))+1 #le +1 est pour empêcher la division par 0
             try:
                 return 1000000000*(self.points[script])/(dureeScript*dureeScript*dureeScript*distanceE*distanceE)
             except ZeroDivisionError:
@@ -122,9 +121,10 @@ class Strategie:
         distance_min=3000 #une distance très grande, borne sup de la valeur renvoyée.
 
         for obstacle in self.table.obstacles():
-            d = Point.distance(point_entree, obstacle.position)
-            if d < distance_min:
-                distance_min = d
+            if str(obstacle) == "None":                                         #ceci est TRES MOCHE et devra être rectifié dans un avenir proche
+                d = Point.distance(point_entree, obstacle.position)
+                if d < distance_min:
+                    distance_min = d
 
         return distance_min
 
