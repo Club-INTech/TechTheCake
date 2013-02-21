@@ -3,7 +3,6 @@ from time import time
 from outils_maths.point import Point
 import tests
 
-_tolerance_distance_mm   = 20
 _tolerance_angle_radians = 0.2
 
 class Hook:
@@ -42,12 +41,13 @@ class HookPosition(Hook):
     Classe des Hooks ayant pour condition une position du robot sur la table.
     La méthode evaluate() effectue l'action (callback) si le robot est dans un disque de tolérance centré sur position.
     """
-    def __init__(self, log, position):
+    def __init__(self, log, position, tolerance_mm):
         Hook.__init__(self, log)
         self.position_hook = position
+        self.tolerance_mm = tolerance_mm
         
     def evaluate(self, robotX, robotY, **useless):
-        if (Point(robotX, robotY).distance(self.position_hook) <= _tolerance_distance_mm):
+        if (Point(robotX, robotY).distance(self.position_hook) <= self.tolerance_mm):
             self.declencher()
         
 class HookOrientation(Hook):
@@ -77,6 +77,7 @@ class HookGenerator():
     def __init__(self, config, log):
         self.config = config
         self.log = log
+        self.test = 20
         self.types = {"position": HookPosition, "orientation": HookOrientation}
         
     def get_hook(self, type, condition, callback,*args,unique=True):
@@ -89,8 +90,14 @@ class HookGenerator():
         """
         return self.types[type](condition, unique, callback,*args)
         
-    def hook_position(self, position):
-        return HookPosition(self.log, position)
+    def hook_position(self, position, tolerance_mm=None):
+        """
+        Création d'un hook en position
+        """
+        if tolerance_mm == None:
+            tolerance_mm = self.config["hooks_tolerance_mm"]
+            
+        return HookPosition(self.log, position, tolerance_mm)
         
     def callback(self, fonction, arguments=(), unique=True):
         return Callback(fonction, arguments, unique)
@@ -103,10 +110,11 @@ class HookGeneratorSimulation(HookGenerator):
         HookGenerator.__init__(self, config, log)
         self.simulateur = simulateur
         
-    def hook_position(self, position):
+    def hook_position(self, position, tolerance_mm=None):
+        hook = HookGenerator.hook_position(self, position, tolerance_mm)
         self.simulateur.drawPoint(position.x, position.y, "black", "hook")
-        self.simulateur.drawCircle(position.x, position.y, _tolerance_distance_mm, False, "black", "hook")
-        return HookGenerator.hook_position(self, position)
+        self.simulateur.drawCircle(position.x, position.y, hook.tolerance_mm, False, "black", "hook")
+        return hook
         
         
 class TestHook(tests.ContainerTest):
