@@ -35,21 +35,7 @@ class Strategie:
 
         while not self.timer.get_fin_match():
 #            self.rechercheChemin.retirer_obstacles_dynamique();
-
-            self.points["ScriptBougies"]=0
-            for element in self.table.bougies:
-                if not element["couleur"]=="red" and not element["traitee"]:
-                    self.points["ScriptBougies"]+=4
-            for element in self.table.verres:
-                if element["present"]:       #à pondérer si l'ascenseur est plutôt plein ou plutôt vide
-                    self.points["ScriptRecupererVerres"]+=6 #à tirer vers le haut pour les faire en début de partie (et ensuite baisser les points par incertitude?)
-            self.points["ScriptCadeaux"]=0
-            for element in self.table.cadeaux:
-                if not element["ouvert"]:
-                    self.points["ScriptCadeaux"]+=4
-            self.points["ScriptDeposerVerres"]=4*max(self.robot.nb_verres_avant*(self.robot.nb_verres_avant+1)/2,self.robot.nb_verres_arriere*(self.robot.nb_verres_arriere+1)/2)
-            self.points["ScriptCasserTour"]=(time()-self.timer.get_date_debut())
-
+            initialiser_points()
             self.rechercheChemin.preparer_environnement()
 
             for script in self.scripts:
@@ -70,8 +56,24 @@ class Strategie:
             sleep(0.1)
         self.log.debug("Arrêt de la stratégie.")
 
-    def noter_script(self, script): #compléter cette méthode
 
+    def initialiser_points(self):
+        self.points["ScriptBougies"]=0
+        for element in self.table.bougies:
+            if not element["couleur"]=="red" and not element["traitee"]:
+                self.points["ScriptBougies"]+=4
+        for element in self.table.verres:
+            if element["present"]:       #à pondérer si l'ascenseur est plutôt plein ou plutôt vide
+                self.points["ScriptRecupererVerres"]+=6 #à tirer vers le haut pour les faire en début de partie (et ensuite baisser les points par incertitude?)
+        self.points["ScriptCadeaux"]=0
+        for element in self.table.cadeaux:
+            if not element["ouvert"]:
+                self.points["ScriptCadeaux"]+=4
+        self.points["ScriptDeposerVerres"]=4*max(self.robot.nb_verres_avant*(self.robot.nb_verres_avant+1)/2,self.robot.nb_verres_arriere*(self.robot.nb_verres_arriere+1)/2)
+        self.points["ScriptCasserTour"]=(time()-self.timer.get_date_debut())
+
+
+    def noter_script(self, script): #compléter cette méthode
         if script=="ScriptRecupererVerres" and dureeScript+deposer_verre.calcule()>(self.config["temps_match"]-time()+self.timer.get_date_debut()): #pour prendre les verres, on ajoute à durée script le temps de déposer les verres
             self.log.critical("Plus le temps de prendre des verres, on n'aurait pas le temps de les déposer.")
             note=0
@@ -93,6 +95,7 @@ class Strategie:
 
         return note
 
+
     def _distance_ennemi(self, script): #on prend la distance euclidienne, à vol d'oiseau. Attention, on prend le min: cette valeur est sensible aux mesures aberrantes
         distance_min=3000 #une distance très grande, borne sup de la valeur renvoyée.
         for obstacle in self.table.obstacles():
@@ -100,5 +103,3 @@ class Strategie:
                 distance_min=d
         return distance_min
 
-#TODO
-#dans robot, il faut le nombre de verres dans chaque ascenseur. ou dans table?
