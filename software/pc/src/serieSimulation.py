@@ -244,7 +244,7 @@ class SerieSimulation:
                 reponses = getattr(self.peripheriques[destinataire], method)(*args)
                 return reponses
             except Exception as e:
-                print('\x1b[31mErreur renvoyée par le simulateur\x1b[0m ', e)
+                self.log.critical("Erreur renvoyée par le simulateur " + str(e))
                 
     def set_arret_serie(self):
         """

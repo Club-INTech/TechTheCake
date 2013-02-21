@@ -1,5 +1,6 @@
 from suds.client import Client
 import math
+import logging
 
 class Simulateur:
 
@@ -49,3 +50,6 @@ class Simulateur:
         
         # Enregistrement du service SOAP
         self.soap = client.service
+        
+        # Affichage des logs suds de niveau critique seulement
+        logging.getLogger('suds.client').setLevel(logging.CRITICAL)
