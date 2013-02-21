@@ -27,6 +27,9 @@ class Strategie:
         if self.config["ennemi_fait_toutes_bougies"]:
             del self.scripts["ScriptBougies"]
             
+    """
+    Boucle qui gère la stratégie, en testant les différents scripts et en exécutant le plus avantageux
+    """
     def boucle_strategie(self):
         """
         Boucle principale de la stratégie. 
@@ -56,44 +59,62 @@ class Strategie:
             sleep(0.1)
         self.log.debug("Arrêt de la stratégie.")
 
-
+    """
+    Met à jour les points et retire les scripts qui ne peuvent plus en rapporter
+    """
     def _initialiser_points(self):
-        self.points["ScriptBougies"]=0
-        for element in self.table.bougies:
-            if not element["couleur"]=="red" and not element["traitee"]: #la condition sur la couleur est pipeau
-                self.points["ScriptBougies"]+=4
-        for element in self.table.verres:
-            if element["present"]:       #à pondérer si l'ascenseur est plutôt plein ou plutôt vide
-                self.points["ScriptRecupererVerres"]+=6 #à tirer vers le haut pour les faire en début de partie (et ensuite baisser les points par incertitude?)
-        self.points["ScriptCadeaux"]=0
-        for element in self.table.cadeaux:
-            if not element["ouvert"]:
-                self.points["ScriptCadeaux"]+=4
-        self.points["ScriptDeposerVerres"]=4*max(self.robot.nb_verres_avant*(self.robot.nb_verres_avant+1)/2,self.robot.nb_verres_arriere*(self.robot.nb_verres_arriere+1)/2)
-        self.points["ScriptCasserTour"]=(time()-self.timer.get_date_debut())
+        if "ScriptBougies" in self.scripts:
+            self.points["ScriptBougies"]=0
+            for element in self.table.bougies:
+                if not element["couleur"]=="red" and not element["traitee"]: #la condition sur la couleur est pipeau
+                    self.points["ScriptBougies"]+=4
+                if self.points["ScriptBougies"]==0:
+                    del self.script["ScriptBougies"]
+        if "ScriptRecupererVerres" in self.scripts:
+            for element in self.table.verres:
+                if element["present"]:       #à pondérer si l'ascenseur est plutôt plein ou plutôt vide
+                    self.points["ScriptRecupererVerres"]+=6 #à tirer vers le haut pour les faire en début de partie (et ensuite baisser les points par incertitude?)
+                if self.points["ScriptRecupererVerres"]==0:
+                    del self.script["ScriptRecupererVerres"]
+        if "ScriptCadeaux" in self.scripts:
+            self.points["ScriptCadeaux"]=0
+            for element in self.table.cadeaux:
+                if not element["ouvert"]:
+                    self.points["ScriptCadeaux"]+=4
+                if self.points["ScriptCadeaux"]==0:
+                    del self.script["ScriptCadeaux"]
+        if "ScriptDeposerVerres" in self.scripts:
+            self.points["ScriptDeposerVerres"]=4*max(self.robot.nb_verres_avant*(self.robot.nb_verres_avant+1)/2,self.robot.nb_verres_arriere*(self.robot.nb_verres_arriere+1)/2)
+            if self.points["ScriptDeposerVerres"]==0 and self.points["ScriptRecupererVerres"]==0:
+                del self.script["ScriptDeposerVerres"]
+        if "ScriptCasserTour" in self.scripts:
+            self.points["ScriptCasserTour"]=(time()-self.timer.get_date_debut())    #à revoir
 
+    """
+    Note un script (en fonction du nombre de points qu'il peut rapporter, de la position de l'ennemi et de sa durée)
+    """
+    def _noter_script(self, script):
+        dureeScript=self.scripts[script].calcule(self.arguments[script])+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
 
-    def _noter_script(self, script): #compléter cette méthode
-        if script=="ScriptRecupererVerres" and dureeScript+deposer_verre.calcule()>(self.config["temps_match"]-time()+self.timer.get_date_debut()): #pour prendre les verres, on ajoute à durée script le temps de déposer les verres
+        #normalement ce cas n'arrive plus
+        if dureeScript<=0:
+            self.log.warning(script+" a un temps d'exécution négatif!")
+            dureeScript=1
+
+        #pour prendre les verres, on ajoute à durée script le temps de déposer les verres
+        if script=="ScriptRecupererVerres" and dureeScript+deposer_verre.calcule()>(self.config["temps_match"]-time()+self.timer.get_date_debut()):
             self.log.critical("Plus le temps de prendre des verres, on n'aurait pas le temps de les déposer.")
-            note=0
+            return 0
         elif not dureeScript<(self.config["temps_match"]-time()+self.timer.get_date_debut()): #si on a le temps de faire l'action avant la fin du match
             self.log.critical("Plus le temps d'exécuter "+script)
-            note=0
+            return 0
         else:
-            dureeScript=self.scripts[script].calcule(self.arguments[script])+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
-            if dureeScript<=0:  #si si, c'est déjà arrivé
-                self.log.warning(script+" a un temps d'exécution négatif!")
-                dureeScript=1   #il vaudrait mieux trouver l'origine du bug...
-
             distanceE=self._distance_ennemi(script)+1              #idem
             try:
-                note=1000000000*(self.points[script])/(dureeScript*dureeScript*dureeScript*distanceE*distanceE)
+                return 1000000000*(self.points[script])/(dureeScript*dureeScript*dureeScript*distanceE*distanceE)
             except ZeroDivisionError:
-                note=self.points[script]
                 self.log.critical("Division par zéro dans le calcul de la note! :o") #sait-on jamais... je préfère ne pas prendre le risque de voir le robot se paralyser bêtement
-
-        return note
+                return self.points[script]
 
 
     def _distance_ennemi(self, script): #on prend la distance euclidienne, à vol d'oiseau. Attention, on prend le min: cette valeur est sensible aux mesures aberrantes
@@ -103,3 +124,5 @@ class Strategie:
                 distance_min=d
         return distance_min
 
+#TODO
+#retirer du dictionnaire des scripts ceux déjà fait (entièrement)
