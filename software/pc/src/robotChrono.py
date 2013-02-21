@@ -110,7 +110,7 @@ class RobotChrono(RobotInterface):
         """
         Fonction analogue à celle de robot. Avance. Si, si.
         """
-        self.duree += distance / self.vitesses_translation[self.vitesse_translation-1]
+        self.duree += abs (distance / self.vitesses_translation[self.vitesse_translation-1])
         self.x += distance*cos(self.orientation)
         self.y += distance*sin(self.orientation)
         
@@ -118,7 +118,7 @@ class RobotChrono(RobotInterface):
         """
         Fonction analogue à celle de robot. Bah... ça tourne quoi. Il vous faut un dessin?
         """
-        self.duree += angle / self.vitesses_rotation[self.vitesse_rotation-1]
+        self.duree += abs(angle / self.vitesses_rotation[self.vitesse_rotation-1])
         self.orientation = angle
         
         
