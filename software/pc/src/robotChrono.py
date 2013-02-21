@@ -129,7 +129,7 @@ class RobotChrono(RobotInterface):
         for position in chemin:
             self.va_au_point(position.x, position.y)
             
-    def va_au_point(self,consigne_x,consigne_y,**useless):
+    def va_au_point(self,consigne_x,consigne_y,hooks=[], virage_initial=False):
         delta_x = consigne_x-self.x
         delta_y = consigne_y-self.y
         distance = round(sqrt(delta_x**2 + delta_y**2),2)
