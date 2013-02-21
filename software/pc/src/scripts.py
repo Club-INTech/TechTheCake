@@ -216,8 +216,10 @@ class ScriptCadeaux(Script):
         # Création des hooks pour tous les cadeaux à activer
         hooks = []
         for cadeau in self.table.cadeaux_restants():
-            hooks.append(self.hookGenerator.get_hook("position", cadeau["position"] + Point(sens * 50, 250), self.robot.ouvrir_cadeau))
-            hooks.append(self.hookGenerator.get_hook("position", cadeau["position"] + Point(sens * 200, 250), self.robot.fermer_cadeau))
+            hook = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * 50, 250))
+            hook += self.hookGenerator.callback(self.robot.ouvrir_cadeau)
+            hooks.append(hook)
+            #hooks.append(self.hookGenerator.get_hook("position", cadeau["position"] + Point(sens * 200, 250), self.robot.fermer_cadeau))
             
         # Déplacement le long de la table
         self.robot.va_au_point(point_sortie.x, point_sortie.y, hooks)

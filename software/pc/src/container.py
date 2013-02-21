@@ -41,7 +41,7 @@ from recherche_de_chemin.rechercheChemin import RechercheChemin
 from scripts import ScriptManager
 from strategie import Strategie
 from log import *
-from hooks import HookGenerator
+from hooks import *
 from filtrage import FiltrageLaser
 from simulateur import Simulateur
 
