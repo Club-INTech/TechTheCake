@@ -16,8 +16,6 @@ class Strategie:
         self.log = log
         self.scripts = scripts
 
-        self.arguments = {"ScriptBougies": 1, "ScriptCadeaux": 1, "ScriptRecupererVerres": (), "ScriptDeposerVerres": (), "ScriptCasserTour": ()} #désormais inutile
-        self.liste_points_entree = ["cadeau", "verreNous", "verreEnnemi", "Pipeau"]
         self.points={}
         self.note={}
 
@@ -42,19 +40,18 @@ class Strategie:
             self.rechercheChemin.preparer_environnement()
 
             for script in self.scripts:
-            #deuxième boucle sur tous les points entrées
-                if self.points[script]!=0:
+                liste_versions = self.scripts[script].versions()
+                for version in liste_versions:
                     self.log.debug("Notation du script "+script)
-                    self.note[script]=self._noter_script(script)
+                    self.note[script]=self._noter_script(script, self.scripts[script].point_entree(version))
                     self.log.debug("Note du script "+script+": "+str(self.note[script]))
 
-                    
             noteInverse = dict(map(lambda item: (item[1],item[0]),self.note.items()))
             scriptAFaire=noteInverse[max(noteInverse.keys())]   #ce script a reçu la meilleure note
 
             self.log.debug("STRATÉGIE FAIT: "+scriptAFaire)
             if not self.timer.get_fin_match():
-                self.scripts[scriptAFaire].agit(self.arguments[scriptAFaire])
+                self.scripts[scriptAFaire].agit(1)
     
             sleep(0.1)
         self.log.debug("Arrêt de la stratégie.")
@@ -70,12 +67,16 @@ class Strategie:
                     self.points["ScriptBougies"]+=4
                 if self.points["ScriptBougies"]==0:
                     del self.script["ScriptBougies"]
+                    del self.note["ScriptBougies"]
+                    del self.points["ScriptBougies"]
         if "ScriptRecupererVerres" in self.scripts:
             for element in self.table.verres:
                 if element["present"]:       #à pondérer si l'ascenseur est plutôt plein ou plutôt vide
                     self.points["ScriptRecupererVerres"]+=6 #à tirer vers le haut pour les faire en début de partie (et ensuite baisser les points par incertitude?)
                 if self.points["ScriptRecupererVerres"]==0:
                     del self.script["ScriptRecupererVerres"]
+                    del self.note["ScriptRecupererVerres"]
+                    del self.points["ScriptRecupererVerres"]
         if "ScriptCadeaux" in self.scripts:
             self.points["ScriptCadeaux"]=0
             for element in self.table.cadeaux:
@@ -83,18 +84,23 @@ class Strategie:
                     self.points["ScriptCadeaux"]+=4
                 if self.points["ScriptCadeaux"]==0:
                     del self.script["ScriptCadeaux"]
+                    del self.note["ScriptCadeaux"]
+                    del self.points["ScriptCadeaux"]
         if "ScriptDeposerVerres" in self.scripts:
             self.points["ScriptDeposerVerres"]=4*max(self.robot.nb_verres_avant*(self.robot.nb_verres_avant+1)/2,self.robot.nb_verres_arriere*(self.robot.nb_verres_arriere+1)/2)
             if self.points["ScriptDeposerVerres"]==0 and self.points["ScriptRecupererVerres"]==0:
                 del self.script["ScriptDeposerVerres"]
+                del self.note["ScriptDeposerVerres"]
+                del self.points["ScriptDeposerVerres"]
         if "ScriptCasserTour" in self.scripts:
             self.points["ScriptCasserTour"]=(time()-self.timer.get_date_debut())    #à revoir
+
 
     """
     Note un script (en fonction du nombre de points qu'il peut rapporter, de la position de l'ennemi et de sa durée)
     """
-    def _noter_script(self, script):
-        dureeScript=self.scripts[script].calcule(self.arguments[script])+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
+    def _noter_script(self, script, point_entree):
+        dureeScript=self.scripts[script].calcule(1)+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
 
         #normalement ce cas n'arrive plus
         if dureeScript<=0:
@@ -109,7 +115,7 @@ class Strategie:
             self.log.critical("Plus le temps d'exécuter "+script)
             return 0
         else:
-            distanceE=self._distance_ennemi(Point(100,100))+1 #le +1 est pour empêcher la division par 0
+            distanceE=self._distance_ennemi(point_entree)+1 #le +1 est pour empêcher la division par 0
             try:
                 return 1000000000*(self.points[script])/(dureeScript*dureeScript*dureeScript*distanceE*distanceE)
             except ZeroDivisionError:
@@ -121,6 +127,7 @@ class Strategie:
         distance_min=3000 #une distance très grande, borne sup de la valeur renvoyée.
 
         for obstacle in self.table.obstacles():
+            self.log.debug("Position d'un obstacle: "+str(obstacle.position))
             if str(obstacle) == "None":                                         #ceci est TRES MOCHE et devra être rectifié dans un avenir proche
                 d = Point.distance(point_entree, obstacle.position)
                 if d < distance_min:
