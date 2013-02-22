@@ -53,3 +53,6 @@ class Simulateur:
         
         # Affichage des logs suds de niveau critique seulement
         logging.getLogger('suds.client').setLevel(logging.CRITICAL)
+
+class SimulateurNone:
+    pass

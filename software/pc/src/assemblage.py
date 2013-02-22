@@ -1,4 +1,4 @@
-class assembler(object):
+class Assembler(object):
     
     def __init__(self, parent=None):
         """

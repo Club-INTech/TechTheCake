@@ -1,7 +1,5 @@
 import os,sys
-
-from math import pi #pour l'orientation initiale du simulateur
-from time import sleep #pour l'attente du lancement des threads
+import time #pour l'attente du lancement des threads
 
 #retrouve le chemin de la racine "software/pc"
 directory = os.path.dirname(os.path.abspath(__file__))
@@ -12,32 +10,30 @@ chemin = directory[:directory.index(racine)]+racine
 sys.path.insert(0, os.path.join(chemin, "src/"))
 
 #module d'injection de dépendances
-from assemblage import assembler
-from mutex import Mutex
-
-from tests import ContainerTest
+import assemblage
+import mutex
 
 #module pour les threads
-from threads import *
+import threads
 
 #modules -> services
-from read_ini import Config
-from robot import Robot
-from robotChrono import RobotChrono
-from deplacements import Deplacements
-from capteurs import Capteurs
-from laser import *
-from actionneurs import Actionneurs
-from serie import Serie
-from serieSimulation import SerieSimulation
-from table import *
-from recherche_de_chemin.rechercheChemin import RechercheChemin
-from scripts import ScriptManager
-from strategie import Strategie
-from log import *
-from hooks import *
-from filtrage import FiltrageLaser
-from simulateur import Simulateur
+import read_ini
+import robot
+import robotChrono
+import deplacements
+import capteurs
+import laser
+import actionneurs
+import serie 
+import serieSimulation
+import table
+import recherche_de_chemin.rechercheChemin as rechercheChemin
+import scripts
+import strategie
+import log
+import hooks
+import filtrage
+import simulateur
 
 class Container:
     """
@@ -46,8 +42,8 @@ class Container:
     Les services chargés dépendent de la configuration (simulation/série) et sont ensuite utilisés de manière transparente.
     """
     def __init__(self, env="match"):
-        self.assembler = assembler()
-        self.mutex = Mutex()
+        self.assembler = assemblage.Assembler()
+        self.mutex = mutex.Mutex()
         self.env = env
         self._chargement_service()
         self._start_threads()
@@ -66,10 +62,10 @@ class Container:
         """
         #enregistrement du service de configuration
         def make_conf():
-            conf = Config()
+            conf = read_ini.Config()
             conf.set_chemin(chemin+"/config")
             return conf
-        self.assembler.register("config",Config,factory=make_conf)
+        self.assembler.register("config",read_ini.Config,factory=make_conf)
         
         #utilisation du service de configuration pour la suite
         self.config = self.get_service("config")
@@ -77,62 +73,67 @@ class Container:
         #enregistrement du service des logs
         def make_log(config):
             if self.env == "match":
-                log = Log(self.config)
-                log.set_chemin(chemin)
+                instanceLog = log.Log(self.config)
+                instanceLog.set_chemin(chemin)
             else:
-                log = LogTest()
-            return log
-        self.assembler.register("log", Log, requires = ["config"], factory=make_log)
+                instanceLog = log.LogTest()
+            return instanceLog
+        self.assembler.register("log", log.Log, requires = ["config"], factory=make_log)
         
         #services différents en fonction du mode simulateur on/off :
         if (self.config["mode_simulateur"]):
             def make_simulateur(config):
-                simulateur = Simulateur(config)
-                return simulateur.soap
-            self.assembler.register("simulateur", Simulateur, requires=["config"], factory=make_simulateur)
-            self.assembler.register("serie", SerieSimulation, requires=["simulateur","log"])
-            self.assembler.register("table", TableSimulation, requires=["simulateur","config","log"])
-            self.assembler.register("hookGenerator", HookGeneratorSimulation, requires=["config","log","simulateur"])
+                simulateurInstance = simulateur.Simulateur(config)
+                return simulateurInstance.soap
+            self.assembler.register("simulateur", simulateur.Simulateur, requires=["config"], factory=make_simulateur)
+            self.assembler.register("table", table.TableSimulation, requires=["simulateur","config","log"])
+            self.assembler.register("hookGenerator", hooks.HookGeneratorSimulation, requires=["config","log","simulateur"])
         else:
-            self.assembler.register("serie", Serie, requires=["log"])
-            self.assembler.register("table", Table, requires=["config","log"])
-            self.assembler.register("hookGenerator", HookGenerator, requires=["config","log"])
+            self.assembler.register("simulateur", simulateur.SimulateurNone)
+            self.assembler.register("table", table.Table, requires=["config","log"])
+            self.assembler.register("hookGenerator", hooks.HookGenerator, requires=["config","log"])
+            
+        if self.config["mode_serie"]:
+            self.assembler.register("serie", serie.Serie, requires=["log"])
+        else:
+            self.assembler.register("serie", serieSimulation.SerieSimulation, requires=["simulateur","log"])
+            
             
         #enregistrement du service des capteurs pour la série
-        self.assembler.register("capteurs", Capteurs, requires=["serie","config","log"])
+        self.assembler.register("capteurs", capteurs.Capteurs, requires=["serie","config","log"])
         
         #enregistrement du service des actionneurs pour la série
-        self.assembler.register("actionneurs", Actionneurs, requires=["serie","config","log"])
+        self.assembler.register("actionneurs", actionneurs.Actionneurs, requires=["serie","config","log"])
         
         #enregistrement du service des déplacements pour la série
-        self.assembler.register("deplacements", Deplacements, requires=["serie","config","log"])
+        self.assembler.register("deplacements", deplacements.Deplacements, requires=["serie","config","log"])
         
         #enregistrement du service laser pour la série
-        self.assembler.register("laser", Laser, requires=["robot","serie","config","log"])
+        self.assembler.register("laser", laser.Laser, requires=["robot","serie","config","log"])
+        
+        #enregistrement du service de filtrage
+        self.assembler.register("filtrage", filtrage.FiltrageLaser, requires=["config"])
         
         #enregistrement du service robot
-        self.assembler.register("robot", Robot, requires=["capteurs","actionneurs","deplacements","config","log","table"])
+        self.assembler.register("robot", robot.Robot, requires=["capteurs","actionneurs","deplacements","config","log","table"])
         
         #enregistrement du service robotChrono
-        self.assembler.register("robotChrono", RobotChrono, requires=["log"])
+        self.assembler.register("robotChrono", robotChrono.RobotChrono, requires=["log"])
         
         #enregistrement du service timer
-        self.assembler.register("timer", ThreadTimer, requires=["log","config","robot","table","capteurs"])
+        self.assembler.register("timer", threads.ThreadTimer, requires=["log","config","robot","table","capteurs"])
 
         #enregistrement du service de recherche de chemin
-        self.assembler.register("rechercheChemin", RechercheChemin, requires=["table","config","log"])
+        self.assembler.register("rechercheChemin", rechercheChemin.RechercheChemin, requires=["table","config","log"])
         
         #enregistrement du service d'instanciation des scripts
         def make_scripts(*dependencies):
-            scriptManager = ScriptManager(*dependencies)
+            scriptManager = scripts.ScriptManager(*dependencies)
             return scriptManager.scripts
-        self.assembler.register("scripts", ScriptManager, requires=["config", "log", "robot", "robotChrono", "hookGenerator", "rechercheChemin", "table"], factory = make_scripts)
+        self.assembler.register("scripts", scripts.ScriptManager, requires=["config", "log", "robot", "robotChrono", "hookGenerator", "rechercheChemin", "table"], factory = make_scripts)
         
         #enregistrement du service de stratégie
-        self.assembler.register("strategie", Strategie, requires=["robot", "scripts", "rechercheChemin", "table", "timer", "config", "log"])
-        
-        #enregistrement du service de filtrage
-        self.assembler.register("filtrage", FiltrageLaser, requires=["config"])
+        self.assembler.register("strategie", strategie.Strategie, requires=["robot", "scripts", "rechercheChemin", "table", "timer", "config", "log"])
         
         
     def _start_threads(self):
@@ -140,19 +141,19 @@ class Container:
         Le lancement des thread (et leur attente d'une initialisation) est gérée ici.
         """
         def lancement_des_threads():
-            AbstractThread.stop_threads = False
+            threads.AbstractThread.stop_threads = False
             
-            ThreadPosition(self).start()
-            ThreadCapteurs(self).start()
+            #threads.ThreadPosition(self).start()
+            #threads.ThreadCapteurs(self).start()
             self.get_service("timer").start()
             
             if self.config["lasers_demarrer_thread"]:
-                ThreadLaser(self).start()
+                threads.ThreadLaser(self).start()
             
             #attente d'une première mise à jour pour la suite
             robot = self.get_service("robot")
             while not robot.pret:
-                sleep(0.1)
+                time.sleep(0.1)
         
         #conditions sur le lancement des threads
         if self.config["mode_simulateur"]:
@@ -165,8 +166,8 @@ class Container:
                 lancement_des_threads()
     
     def _stop_threads(self):
-        AbstractThread.stop_threads = True
-        sleep(2)
+        threads.AbstractThread.stop_threads = True
+        time.sleep(2)
         
     def reset(self):
         """

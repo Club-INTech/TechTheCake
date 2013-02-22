@@ -44,10 +44,10 @@ class Table:
         # Liste des cadeaux (rouge)
         # La symétrie est gérée dans les scripts
         self.cadeaux = [	
-            {"position": Point(990,0), "ouvert": False},
-            {"position": Point(390,0), "ouvert": False},
-            {"position": Point(-210,0), "ouvert": False},
-            {"position": Point(-810,0), "ouvert": False}
+            {"id": 0, "position": Point(990,0), "ouvert": False},
+            {"id": 1, "position": Point(390,0), "ouvert": False},
+            {"id": 2, "position": Point(-210,0), "ouvert": False},
+            {"id": 3, "position": Point(-810,0), "ouvert": False}
         ]
             
         # Indique les points d'entrée sur les cadeaux
@@ -55,8 +55,7 @@ class Table:
         # Vide si plus aucun cadeau à valider
         self.points_entree_cadeaux = [0,3]
         
-        # La position des bougies est codée en pôlaire depuis le centre du gâteau :
-        # (rayon, angle depuis la verticale), elles sont ordonnées par ordre croissant d'angle.
+        """
         self.bougies = [
             {"position":-3.010, "traitee":False, "enHaut":False},
             {"position":-2.945, "traitee":False, "enHaut":True},
@@ -79,50 +78,52 @@ class Table:
             {"position":-0.196, "traitee":False, "enHaut":True},
             {"position":-0.131, "traitee":False, "enHaut":False}
         ]
-    
+        """
+        
         # Indique les points d'entrée sur les bougies
         # Contient les 2 indices des bougies aux extrémités du gateau (même si plus qu'une bougie)
         # Vide si plus aucune bougie à valider
         self.points_entree_bougies = [2,17]
         
-        # Pour lorsqu'on met le gateau en bas
+        # La position des bougies est codée en pôlaire depuis le centre du gâteau :
+        # (rayon, angle depuis la verticale), elles sont ordonnées par ordre croissant d'angle.
         self.bougies = [
-            {"position":3.010, "traitee":False, "couleur":"?", "enHaut":False},
-            {"position":2.945, "traitee":False, "couleur":"?", "enHaut":True},
-            {"position":2.748, "traitee":False, "couleur":"?", "enHaut":False},
-            {"position":2.552, "traitee":False, "couleur":"?", "enHaut":True},
-            {"position":2.487, "traitee":False, "couleur":"?", "enHaut":False},
-            {"position":2.225, "traitee":False, "couleur":"?", "enHaut":False},
-            {"position":2.159, "traitee":False, "couleur":"?", "enHaut":True},
-            {"position":1.963, "traitee":False, "couleur":"?", "enHaut":False},
-            {"position":1.767, "traitee":False, "couleur":"?", "enHaut":True},
-            {"position":1.701, "traitee":False, "couleur":"?", "enHaut":False},
-            {"position":1.440, "traitee":False, "couleur":"?", "enHaut":False},
-            {"position":1.374, "traitee":False, "couleur":"?", "enHaut":True},
-            {"position":1.178, "traitee":False, "couleur":"?", "enHaut":False},
-            {"position":0.982, "traitee":False, "couleur":"?", "enHaut":True},
-            {"position":0.916, "traitee":False, "couleur":"?", "enHaut":False},
-            {"position":0.654, "traitee":False, "couleur":"?", "enHaut":False},
-            {"position":0.589, "traitee":False, "couleur":"?", "enHaut":True},
-            {"position":0.393, "traitee":False, "couleur":"?", "enHaut":False},
-            {"position":0.196, "traitee":False, "couleur":"?", "enHaut":True},
-            {"position":0.131, "traitee":False, "couleur":"?", "enHaut":False}
+            {"id": 0, "position":3.010, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 1, "position":2.945, "traitee":False, "couleur":"?", "enHaut":True},
+            {"id": 2, "position":2.748, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 3, "position":2.552, "traitee":False, "couleur":"?", "enHaut":True},
+            {"id": 4, "position":2.487, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 5, "position":2.225, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 6, "position":2.159, "traitee":False, "couleur":"?", "enHaut":True},
+            {"id": 7, "position":1.963, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 8, "position":1.767, "traitee":False, "couleur":"?", "enHaut":True},
+            {"id": 9, "position":1.701, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 10, "position":1.440, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 11, "position":1.374, "traitee":False, "couleur":"?", "enHaut":True},
+            {"id": 12, "position":1.178, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 13, "position":0.982, "traitee":False, "couleur":"?", "enHaut":True},
+            {"id": 14, "position":0.916, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 15, "position":0.654, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 16, "position":0.589, "traitee":False, "couleur":"?", "enHaut":True},
+            {"id": 17, "position":0.393, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 18, "position":0.196, "traitee":False, "couleur":"?", "enHaut":True},
+            {"id": 19, "position":0.131, "traitee":False, "couleur":"?", "enHaut":False}
         ]
 
         # Le premier correspond à celui le plus en haut à gauche et le dernier le plus en bas à droite.
         self.verres = [
-            {"position": Point(600,1050), "present":True},
-            {"position": Point(300,1050), "present":True},
-            {"position": Point(450,800), "present":True},
-            {"position": Point(150,800), "present":True},
-            {"position": Point(600,550), "present":True},
-            {"position": Point(300,550), "present":True},
-            {"position": Point(-600,1050), "present":True},
-            {"position": Point(-300,1050), "present":True},
-            {"position": Point(-450,800), "present":True},
-            {"position": Point(-150,800), "present":True},
-            {"position": Point(-600,550), "present":True},
-            {"position": Point(-300,550), "present":True}
+            {"id": 0, "position": Point(600,1050), "present":True},
+            {"id": 1, "position": Point(300,1050), "present":True},
+            {"id": 2, "position": Point(450,800), "present":True},
+            {"id": 3, "position": Point(150,800), "present":True},
+            {"id": 4, "position": Point(600,550), "present":True},
+            {"id": 5, "position": Point(300,550), "present":True},
+            {"id": 6, "position": Point(-600,1050), "present":True},
+            {"id": 7, "position": Point(-300,1050), "present":True},
+            {"id": 8, "position": Point(-450,800), "present":True},
+            {"id": 9, "position": Point(-150,800), "present":True},
+            {"id": 10, "position": Point(-600,550), "present":True},
+            {"id": 11, "position": Point(-300,550), "present":True}
         ]
 	
         self.pointsEntreeVerres = [0,5,6,11]
@@ -131,33 +132,24 @@ class Table:
     ### GESTION DES CADEAUX
     ###############################################
     
-    def point_entree_cadeau(self, n):
+    def cadeaux_entrees(self):
         """
-        Récupère le cadeau correspondant au point d'entrée
+        Récupère la liste des cadeaux possibles comme point d'entrée
         """
-        if self.points_entree_cadeaux == []:
-            return None
-        i = self.points_entree_cadeaux[n]
+        return [self.cadeaux[i] for i in self.points_entree_cadeaux]
         
-        return self.cadeaux[i]
-    
     def cadeaux_restants(self):
         """
-        Récupère la liste des cadeaux restants
+        Récupère la liste des cadeaux restants à valider
         """
         return [c for c in self.cadeaux if not c["ouvert"]]
         
-    def cadeau_recupere(self, cadeau):
+    def cadeau_recupere(self, c):
         """
-        Indique que le cadeau a été activé
+        Indique qu'un cadeau a été ouvert
         """
-        for i, c in enumerate(self.cadeaux):
-            if c["position"] == cadeau["position"]:
-                self._cadeau_recupere(i)
-        
-    def _cadeau_recupere(self, i):
-        self.cadeaux[i]["ouvert"] = True
-        self.log.debug("cadeau n°{0} ouvert".format(i))
+        self.cadeaux[c["id"]]["ouvert"] = True
+        self.log.debug("cadeau n°{0} ouvert".format(c["id"]))
         self._rafraichir_entree_cadeaux()
         
     def _rafraichir_entree_cadeaux(self):
@@ -174,28 +166,24 @@ class Table:
     ### GESTION DES BOUGIES
     ###############################################
     
-    def point_entree_bougie(self, n):
+    def bougies_entrees(self):
         """
-        Récupère la bougie correspondante au point d'entrée
+        Récupère la liste des bougies possibles comme point d'entrée
         """
-        if self.points_entree_bougies == []:
-            return None
-        i = self.points_entree_bougies[n]
-        
-        return self.bougies[i]
+        return [self.bougies[i] for i in self.points_entree_bougies]
     
     def bougies_restantes(self):
         """
-        Récupère la liste des bougies restantes
+        Récupère la liste des bougies restantes à valider
         """
         return [b for b in self.bougies if not b["traitee"]]
         
-    def _bougie_recupere(self, i):
+    def bougie_recupere(self, b):
         """
         Indique que la bougie a été enfoncée
         """
-        self.bougies[i]["traitee"] = True
-        if i in self.points_entree_bougies:
+        self.bougies[b["id"]]["traitee"] = True
+        if b["id"] in self.points_entree_bougies:
             self._rafraichir_entree_bougies()
             
     def _rafraichir_entree_bougies(self):
@@ -379,13 +367,13 @@ class TableSimulation(Table):
             position = verre["position"]
             self.simulateur.drawCircle(position.x, position.y, 40, False, "black", "verre_" + str(i))
         
-    def _cadeau_recupere(self, i):
-        Table._cadeau_recupere(self, i)
-        self.simulateur.clearEntity("cadeau_" + str(i))
+    def cadeau_recupere(self, c):
+        Table.cadeau_recupere(self, c)
+        self.simulateur.clearEntity("cadeau_" + str(c["id"]))
         
-    def _bougie_recupere(self, i):
-        Table._bougie_recupere(self, i)
-        self.simulateur.clearEntity("bougie_" + str(i))
+    def bougie_recupere(self, b):
+        Table.bougie_recupere(self, b)
+        self.simulateur.clearEntity("bougie_" + str(b["id"]))
         
     def verre_recupere(self, i):
         Table.verre_recupere(self, i)
@@ -451,25 +439,27 @@ class TestTable(ContainerTest):
         self.table = self.get_service("table")
         
     def test_point_entree_cadeau(self):
-        self.table._cadeau_recupere(2)
+        cadeaux = self.table.cadeaux
+        self.table.cadeau_recupere(cadeaux[2])
         self.assertEqual(self.table.points_entree_cadeaux, [0, 3])
-        self.table._cadeau_recupere(3)
+        self.table.cadeau_recupere(cadeaux[3])
         self.assertEqual(self.table.points_entree_cadeaux, [0, 1])
-        self.table._cadeau_recupere(1)
+        self.table.cadeau_recupere(cadeaux[1])
         self.assertEqual(self.table.points_entree_cadeaux, [0, 0])
-        self.table._cadeau_recupere(0)
+        self.table.cadeau_recupere(cadeaux[0])
         self.assertEqual(self.table.points_entree_cadeaux, [])
         
     def test_point_entree_bougie(self):
-        self.table._bougie_recupere(2)
+        bougies = self.table.bougies
+        self.table.bougie_recupere(bougies[2])
         self.assertEqual(self.table.points_entree_bougies, [3, 17])
-        self.table._bougie_recupere(18)
+        self.table.bougie_recupere(bougies[18])
         self.assertEqual(self.table.points_entree_bougies, [3, 17])
-        self.table._bougie_recupere(17)
+        self.table.bougie_recupere(bougies[17])
         self.assertEqual(self.table.points_entree_bougies, [3, 16])
-        self.table._bougie_recupere(13)
-        self.table._bougie_recupere(14)
-        self.table._bougie_recupere(15)
+        self.table.bougie_recupere(bougies[13])
+        self.table.bougie_recupere(bougies[14])
+        self.table.bougie_recupere(bougies[15])
         self.assertEqual(self.table.points_entree_bougies, [3, 16])
-        self.table._bougie_recupere(16)
+        self.table.bougie_recupere(bougies[16])
         self.assertEqual(self.table.points_entree_bougies, [3, 12])

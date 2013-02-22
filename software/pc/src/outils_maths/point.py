@@ -36,6 +36,9 @@ class Point:
     def to_list(self):
         return [self.x, self.y]
         
+    def norme(self):
+        return self.distance(Point(0, 0))
+        
     def distance(self, point):
         v = self - point
         d = v.x ** 2 + v.y ** 2

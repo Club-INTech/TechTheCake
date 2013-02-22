@@ -1,4 +1,5 @@
 import math
+from outils_maths.point import Point
 
 class Laser:
     
@@ -28,6 +29,7 @@ class Laser:
         """
         Allumer le moteur et les lasers
         """
+        print("allumer")
         self.serie.communiquer("laser", ["motor_on"], 0)
         self.serie.communiquer("laser", ["laser_on"], 0)
         
@@ -56,26 +58,49 @@ class Laser:
         Ping une balise
         """
         ping = self.serie.communiquer("laser", ["ping", str(id_balise)], 1)
-        return ping != ["aucune réponse"]
+        return ping != ["NO_RESPONSE"]
         
     def frequence_moteur(self):
         """
         Récupère la fréquence actuelle du moteur
         """
         reponse = self.serie.communiquer("laser", ["freq"], 1)
-        return reponse[0]
+        return float(reponse[0])
         
     def position_balise(self, id_balise):
         """
         Récupère la valeur (rayon, angle) d'une balise
         """
         # Récupération de la position de la balise dans le repère du robot
-        reponse = self.serie.communiquer("laser", ["valeur", id_balise], 1)
-        rayon = reponse[0]
-        angle = reponse[1]
+        reponse = self.serie.communiquer("laser", ["value", id_balise], 2)
+        
+        if "NO_RESPONSE" in reponse:
+            print("NO_RESPONSE")
+            return None
+            
+        if "NO_VALUE" in reponse:
+            print("NO_VALUE")
+            return None
+           
+        # Fréquence actuelle du moteur
+        freq = self.frequence_moteur()
+        
+        # Valeur de la distance, sur l'échelle du timer 8 bit
+        timer = float(reponse[0])
+        
+        # Délai du passage des deux lasers, en seconde
+        delai = 128 * timer / 20000000
+        
+        # Calcul de la distance (en mm)
+        ecart_laser = 35
+        theta = delai * freq * 2 * math.pi
+        distance = ecart_laser / math.sin(theta / 2)
+        
+        # Angle
+        angle = float(reponse[1])
         
         # Changement dans le repère de la table
-        x = float(self.robot.x) + rayon * math.cos(angle + self.robot.orientation)
-        y = float(self.robot.y) + rayon * math.sin(angle + self.robot.orientation)
+        x = float(self.robot.x) + distance * math.cos(angle + self.robot.orientation)
+        y = float(self.robot.y) + distance * math.sin(angle + self.robot.orientation)
         
-        return [x, y]
+        return Point(x, y)
