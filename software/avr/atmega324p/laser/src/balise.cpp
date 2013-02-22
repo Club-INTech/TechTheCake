@@ -127,8 +127,45 @@ void Balise::execute(char *order)
         serial_pc::print(order);
     }
     
-    // Ping des balises
+    // Ping d'une balise
     else if (strcmp(order, "ping") == 0)
+    {
+        serial_pc::ack();
+        serial_pc::print("ID ?");
+        
+        uint8_t id;
+        serial_pc::read(id);
+        serial_pc::ack();
+        
+        xbee::send(balise_address[id], "?");
+        uint8_t ping;
+        uint16_t source_address;
+        uint8_t signal_strength;
+        
+        if (xbee::read(ping, source_address, signal_strength, TIMEOUT) == xbee::READ_SUCCESS)
+        {
+            // Identifiant et adresse de la balise
+            serial_pc::write("réponse: ");
+            serial_pc::write(ping);
+            serial_pc::write(", adresse: ");
+            serial_pc::write(source_address);
+				
+            // Force du signal
+            serial_pc::write(", signal: -");
+            serial_pc::write(signal_strength);
+            serial_pc::write("dBm (");
+            serial_pc::write(signal_strength * -100 / 92 + 100);
+            serial_pc::write("%)");
+            serial_pc::send_ln();
+        }
+        else
+        {
+            serial_pc::print("NO_RESPONSE");
+        }
+    }
+    
+    // Ping de toutes les balises
+    else if (strcmp(order, "ping_all") == 0)
     {
         serial_pc::ack();
         
@@ -207,13 +244,14 @@ void Balise::execute(char *order)
     }
     
     // Valeur des balises
-    else if (strcmp(order, "valeur") == 0)
+    else if (strcmp(order, "value") == 0)
     {
         serial_pc::ack();
         serial_pc::print("ID ?");
         
         uint8_t id;
         serial_pc::read(id);
+        serial_pc::ack();
         
         uint16_t offset_;
         uint8_t distance_;
@@ -252,15 +290,23 @@ void Balise::execute(char *order)
 				distance_ = 0;
 				angle_ = 0;
 			}
-				
-			// Affichage de la distance
-			serial_pc::print(distance_);
-			serial_pc::print(angle_, 1);
+            
+            if (distance_ == 0)
+            {
+                serial_pc::print("NO_VALUE");
+                serial_pc::print("NO_VALUE");
+            }
+            else
+            {
+                // Affichage de la distance
+                serial_pc::print(distance_);
+                serial_pc::print(angle_, 3);
+            }
 		}
 		else
 		{
-			serial_pc::print("aucune réponse");
-            serial_pc::print("aucune réponse");
+			serial_pc::print("NO_RESPONSE");
+            serial_pc::print("NO_RESPONSE");
 		}
     }
     
@@ -366,8 +412,25 @@ float Balise::angle(int32_t offset)
     while (t0 < 0) {
 		t0 += last_period();
     }
+    
+    // Angle sur [0, 2*Pi]
+    float angle = (float)t0 * 2 * PI / (float)last_period();
+    
+    // Soustraction de l'angle pour ramener l'origine
+    angle -= ANGLE_ORIGIN_OFFSET;
+    if (angle < 0)
+    {
+        angle += 2 * PI;
+    }
+    else if (angle > 2 * PI)
+    {
+        angle -= 2 * PI;
+    }
+    
+    // Angle sur [-Pi, Pi]
+    angle -= PI;
 	
-	return (float)t0 * 360.0 / (float)last_period();
+	return angle;
 }
 
 // -----------------------

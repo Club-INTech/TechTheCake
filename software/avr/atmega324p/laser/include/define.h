@@ -4,8 +4,10 @@
 #define BALISE_BAUDRATE   		115200
 #define ROBOT_BAUDRATE    		9600
 #define PING_ID           		4
-#define DEFAULT_SPEED_ORDER		-15
+#define DEFAULT_SPEED_ORDER		15
 #define TIMEOUT			  		100
+#define PI                      3.14159265359
+#define ANGLE_ORIGIN_OFFSET     1.35
 
 #define BALISE_NUMBER     		2
 
