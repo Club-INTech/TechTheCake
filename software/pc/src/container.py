@@ -86,13 +86,18 @@ class Container:
                 simulateurInstance = simulateur.Simulateur(config)
                 return simulateurInstance.soap
             self.assembler.register("simulateur", simulateur.Simulateur, requires=["config"], factory=make_simulateur)
-            self.assembler.register("serie", serieSimulation.SerieSimulation, requires=["simulateur","log"])
             self.assembler.register("table", table.TableSimulation, requires=["simulateur","config","log"])
             self.assembler.register("hookGenerator", hooks.HookGeneratorSimulation, requires=["config","log","simulateur"])
         else:
-            self.assembler.register("serie", serie.Serie, requires=["log"])
+            self.assembler.register("simulateur", simulateur.SimulateurNone)
             self.assembler.register("table", table.Table, requires=["config","log"])
             self.assembler.register("hookGenerator", hooks.HookGenerator, requires=["config","log"])
+            
+        if self.config["mode_serie"]:
+            self.assembler.register("serie", serie.Serie, requires=["log"])
+        else:
+            self.assembler.register("serie", serieSimulation.SerieSimulation, requires=["simulateur","log"])
+            
             
         #enregistrement du service des capteurs pour la série
         self.assembler.register("capteurs", capteurs.Capteurs, requires=["serie","config","log"])
@@ -105,6 +110,9 @@ class Container:
         
         #enregistrement du service laser pour la série
         self.assembler.register("laser", laser.Laser, requires=["robot","serie","config","log"])
+        
+        #enregistrement du service de filtrage
+        self.assembler.register("filtrage", filtrage.FiltrageLaser, requires=["config"])
         
         #enregistrement du service robot
         self.assembler.register("robot", robot.Robot, requires=["capteurs","actionneurs","deplacements","config","log","table"])
@@ -127,9 +135,6 @@ class Container:
         #enregistrement du service de stratégie
         self.assembler.register("strategie", strategie.Strategie, requires=["robot", "scripts", "rechercheChemin", "table", "timer", "config", "log"])
         
-        #enregistrement du service de filtrage
-        self.assembler.register("filtrage", filtrage.FiltrageLaser, requires=["config"])
-        
         
     def _start_threads(self):
         """
@@ -138,8 +143,8 @@ class Container:
         def lancement_des_threads():
             threads.AbstractThread.stop_threads = False
             
-            threads.ThreadPosition(self).start()
-            threads.ThreadCapteurs(self).start()
+            #threads.ThreadPosition(self).start()
+            #threads.ThreadCapteurs(self).start()
             self.get_service("timer").start()
             
             if self.config["lasers_demarrer_thread"]:

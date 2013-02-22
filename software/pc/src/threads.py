@@ -209,6 +209,8 @@ class ThreadLaser(AbstractThread):
 
         log.debug("Lancement du thread des lasers")
 
+        laser.allumer()
+
         # Attente du démarrage du match et qu'au moins une balise réponde
         while not timer.match_demarre or laser.verifier_balises_connectes() == 0:
             if AbstractThread.stop_threads:
@@ -233,15 +235,18 @@ class ThreadLaser(AbstractThread):
                 # Récupération de la position brute
                 p_bruit = laser.position_balise(balise["id"])
                 
+                if p_bruit is None:
+                    continue
+                    
                 # Mise à jour du modèle de filtrage
-                filtrage.update(p_bruit[0], p_bruit[1])
+                filtrage.update(p_bruit.x, p_bruit.y)
                 
                 # Récupération des valeurs filtrées
                 p_filtre = filtrage.position()
                 vitesse = filtrage.vitesse()
                 
                 # Mise à jour de la table
-                table.deplacer_robot_adverse(0, Point(int(p_filtre[0]), int(p_filtre[1])), Vitesse(int(vitesse[0]), int(vitesse[1])))
+                table.deplacer_robot_adverse(0, p_filtre, vitesse)
                 
                 # Affichage des points sur le simulateur
                 if config["mode_simulateur"]:
@@ -250,7 +255,7 @@ class ThreadLaser(AbstractThread):
                     if config["lasers_afficher_valeurs_filtre"]:
                         simulateur.drawPoint(int(p_filtre[0]), int(p_filtre[1]), "blue")
             
-            sleep(1./config["lasers_frequence"])
+            sleep(0.01)
             
         log.debug("Fin du thread des lasers")
         

@@ -17,9 +17,7 @@ class Capteurs():
             self.log.debug("Il y a " + str(self.nb_capteurs_infrarouge_avant) + " capteurs infrarouge à l'avant, " + str(self.nb_capteurs_infrarouge_arriere) + " à l'arrière.")
             self.log.debug("Il y a " + str(self.nb_capteurs_ultrason_avant) + " capteurs ultrason à l'avant, " + str(self.nb_capteurs_ultrason_arriere) + " à l'arrière.")
         except Exception as e:
-            self.log.warning("la carte capteur n'a pas été atteinte lors de la construction du service")
-            print(e)
-            input()
+            self.log.critical("la carte capteur n'a pas été atteinte lors de la construction du service")
             
     def mesurer(self, marche_arriere=False):
 

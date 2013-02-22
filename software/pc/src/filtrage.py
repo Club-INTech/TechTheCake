@@ -1,4 +1,7 @@
 import numpy
+import collections
+from outils_maths.point import Point
+from outils_maths.vitesse import Vitesse
 #on peut trouver les sources de numpy ici : http://bit.ly/13boxRp
 #et les ajouter comme ca : $python3 setup.py install
 
@@ -33,7 +36,7 @@ class FiltrageLaser:
     
     def __init__(self, config):
         self.config = config
-        self.dt = 0.2
+        self.dt = 0.3
         x = numpy.array([1400,100,0.,0.])[:, numpy.newaxis] # vecteur d'état au départ
         P = numpy.matrix([[30.,0.,0.,0.],[0.,30.,0.,0.],[0.,0.,10.,0.],[0.,0.,0.,10.]]) # incertitude initiale
         F = numpy.matrix([[1.,0.,self.dt,0.],[0.,1.,0.,self.dt],[0.,0.,1.,0.],[0.,0.,0.,1.]]) # matrice de transition
@@ -43,6 +46,8 @@ class FiltrageLaser:
         #Q *= 20;
         Q = numpy.matrix([[3, 0, 0, 0],[0, 3, 0, 0],[0, 0, 3, 0],[0, 0, 0, 3]])
         self.filtre_kalman = Kalman(x, P, F, H, R, Q)
+        self.historique = collections.deque(maxlen=2)
+        self.valeurs_rejetees = 0
         
     def etat_robot_adverse(self):
         return self.filtre_kalman.x
@@ -52,13 +57,35 @@ class FiltrageLaser:
         self.filtre_kalman.F[2,4] = new_dt
     
     def position(self):
-        state = self.filtre_kalman.x;
-        return [ state[0], state[1] ]
+        state = self.filtre_kalman.x
+        return Point(int(state[0]), int(state[1]))
     
     def vitesse(self):
-        state = self.filtre_kalman.x;
-        return [ state[2], state[3] ]
+        state = self.filtre_kalman.x
+        return Vitesse(int(state[2]), int(state[3]))
                 
     def update(self, x, y):
-        self.filtre_kalman.prediction()
-        self.filtre_kalman.measurement(numpy.array([x,y])[:, numpy.newaxis])
+        if self._filtrage_acceleration(Point(x, y)):
+            self.filtre_kalman.prediction()
+            self.filtre_kalman.measurement(numpy.array([x,y])[:, numpy.newaxis])
+            self.historique.append(self.position())
+        
+    def _filtrage_acceleration(self, pointm0):
+        """
+        Vérifie si le point est cohérent avec la position actuelle, en basant sur l'accélération
+        """
+        # Pas suffisamment de valeurs précédentes pour calculer l'accélération
+        if len(self.historique) != 2:
+            return True
+            
+        pointm1 = self.historique[1]
+        pointm2 = self.historique[0]
+        acceleration = (pointm0 - pointm1 - pointm1 + pointm2).norme() / self.dt**2
+        
+        if acceleration > 1000 and self.valeurs_rejetees < 3:
+            self.valeurs_rejetees += 1
+            print("accelération {0} trop élevée".format(acceleration))
+            return False
+        else:
+            self.valeurs_rejetees = 0
+            return True
