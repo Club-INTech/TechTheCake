@@ -94,7 +94,7 @@ class ScriptBougies(Script):
         Traite le maximum de bougies possibles en partant d'un point d'entrée, et suivant 
         sens : +1 de droite a gauche et -1 de gauche a droite
         """
-                
+
         #pour les tests
         gateauEnBas = False
         
@@ -237,6 +237,24 @@ class ScriptTestRecalcul(Script):
         self.va_au_point(Point(-100,500))
 
 class ScriptCasserTour(Script):
+    
+    def execute(self):
+        self.va_au_point(Point(1300,200))
+        self.va_au_point(Point(1300,1800))
+
+    def point_entree(self):
+        return Point(1300,200)
+
+class ScriptDeposerVerres(Script): #contenu pipeau
+    
+    def execute(self):
+        self.va_au_point(Point(1300,200))
+        self.va_au_point(Point(1300,1800))
+
+    def point_entree(self):
+        return Point(1300,200)
+
+class ScriptRecupererVerres(Script): #contenu pipeau
     
     def execute(self):
         self.va_au_point(Point(1300,200))

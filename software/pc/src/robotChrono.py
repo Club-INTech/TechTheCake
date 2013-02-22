@@ -110,7 +110,7 @@ class RobotChrono(RobotInterface):
         """
         Fonction analogue à celle de robot. Avance. Si, si.
         """
-        self.duree += distance / self.vitesses_translation[self.vitesse_translation-1]
+        self.duree += abs (distance / self.vitesses_translation[self.vitesse_translation-1])
         self.x += distance*cos(self.orientation)
         self.y += distance*sin(self.orientation)
         
@@ -118,7 +118,7 @@ class RobotChrono(RobotInterface):
         """
         Fonction analogue à celle de robot. Bah... ça tourne quoi. Il vous faut un dessin?
         """
-        self.duree += angle / self.vitesses_rotation[self.vitesse_rotation-1]
+        self.duree += abs(angle / self.vitesses_rotation[self.vitesse_rotation-1])
         self.orientation = angle
         
         
@@ -129,7 +129,7 @@ class RobotChrono(RobotInterface):
         for position in chemin:
             self.va_au_point(position.x, position.y)
             
-    def va_au_point(self,consigne_x,consigne_y,**useless):
+    def va_au_point(self,consigne_x,consigne_y,hooks=[], virage_initial=False):
         delta_x = consigne_x-self.x
         delta_y = consigne_y-self.y
         distance = round(sqrt(delta_x**2 + delta_y**2),2)
