@@ -92,7 +92,7 @@ class Serie:
                     except:
                         pass
                 except Exception as e:
-                    print(e)
+                    log.warning("exception durant la détection des périphériques série: {0}".format(e))
                     
         #attribue les instances de série pour les périphériques ayant le bon ping
         for destinataire in (self.peripheriques):
@@ -128,12 +128,24 @@ class Serie:
                 #parcourt la liste des messages envoyés
                 for message in messages:
                     #print(str(message)+"<")
-                    self.peripheriques[destinataire].serie.write(bytes(str(message) + '\r',"utf-8"))
+                    try:
+                        self.peripheriques[destinataire].serie.write(bytes(str(message) + '\r',"utf-8"))
+                    except Exception as e:
+                        self.log.warning(
+                            "exception lors de la tentative d'envoi du message {0} à la carte {1}: {2}"
+                            .format(message, destinataire, e)
+                        )
                     #chaque envoi est acquité par le destinataire, pour permettre d'émettre en continu sans flooder la série
-                    acquittement = ""
-                    while acquittement != "_":
-                        acquittement = self._clean_string(str(self.peripheriques[destinataire].serie.readline(),"utf-8"))
-                        #print("\t a>"+destinataire+acquittement)
+                    try:
+                        acquittement = ""
+                        while acquittement != "_":
+                            acquittement = self._clean_string(str(self.peripheriques[destinataire].serie.readline(),"utf-8"))
+                            #print("\t a>"+destinataire+acquittement)
+                    except Exception as e:
+                        self.log.warning(
+                            "exception lors de la lecture de la réponse au message {0} à la carte {1}: {2}"
+                            .format(message, destinataire, e)
+                        )
                         
                 #liste des réponses
                 reponses = []
