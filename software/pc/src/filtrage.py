@@ -48,6 +48,7 @@ class FiltrageLaser:
         self.filtre_kalman = Kalman(x, P, F, H, R, Q)
         self.historique = collections.deque(maxlen=2)
         self.valeurs_rejetees = 0
+        self.acceleration = None
         
     def etat_robot_adverse(self):
         return self.filtre_kalman.x
@@ -78,11 +79,21 @@ class FiltrageLaser:
         if len(self.historique) != 2:
             return True
             
+        # 2 derniers points valides
         pointm1 = self.historique[1]
         pointm2 = self.historique[0]
-        acceleration = (pointm0 - pointm1 - pointm1 + pointm2).norme() / self.dt**2
         
-        if acceleration > 1000 and self.valeurs_rejetees < 3:
+        # Vecteurs vitesses et accélération
+        vitesse_actuelle = pointm0 - pointm1
+        vitesse_precedente = pointm1 - pointm2
+        acceleration = vitesse_actuelle - vitesse_precedente
+        
+        # Produit scalaire pour savoir s'il y a accélération ou décélération
+        produit = acceleration.x * vitesse_precedente.x + acceleration.y * vitesse_precedente.y
+        
+        # Rejette les accélérations brutales
+        if acceleration.norme() / self.dt**2 > 1000 and produit > 0 and self.valeurs_rejetees < 3:
+            #print("accélération rejetée {0}, produit = {1}".format(acceleration, produit))
             self.valeurs_rejetees += 1
             return False
         else:

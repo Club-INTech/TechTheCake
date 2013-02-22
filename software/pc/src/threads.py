@@ -205,11 +205,8 @@ class ThreadLaser(AbstractThread):
         filtrage = self.container.get_service("filtrage")
         table = self.container.get_service("table")
         timer = self.container.get_service("timer")
-        simulateur = self.container.get_service("simulateur")
 
         log.debug("Lancement du thread des lasers")
-
-        laser.allumer()
 
         # Attente du démarrage du match et qu'au moins une balise réponde
         while not timer.match_demarre or laser.verifier_balises_connectes() == 0:
@@ -217,6 +214,9 @@ class ThreadLaser(AbstractThread):
                 log.debug("Stoppage du thread laser")
                 return None
             sleep(0.1)
+            
+        # Allumage des lasers
+        laser.allumer()
             
         # Liste des balises non prises en compte
         for balise in laser.balises_ignorees():
@@ -235,6 +235,7 @@ class ThreadLaser(AbstractThread):
                 # Récupération de la position brute
                 p_bruit = laser.position_balise(balise["id"])
                 
+                # Aucune réponse valable
                 if p_bruit is None:
                     continue
                     
@@ -247,13 +248,14 @@ class ThreadLaser(AbstractThread):
                 
                 # Mise à jour de la table
                 table.deplacer_robot_adverse(0, p_filtre, vitesse)
-                
+
                 # Affichage des points sur le simulateur
                 if config["mode_simulateur"]:
+                    simulateur = self.container.get_service("simulateur")
                     if config["lasers_afficher_valeurs_brutes"]:
-                        simulateur.drawPoint(p_bruit[0], p_bruit[1], "gris")
+                        simulateur.drawPoint(p_bruit.x, p_bruit.y, "gris")
                     if config["lasers_afficher_valeurs_filtre"]:
-                        simulateur.drawPoint(int(p_filtre[0]), int(p_filtre[1]), "blue")
+                        simulateur.drawPoint(p_filtre.x, p_filtre.y, "blue")
             
             sleep(0.01)
             

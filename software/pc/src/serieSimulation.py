@@ -189,6 +189,12 @@ class ProtocoleVirtuelLaser:
         
         ecart_laser = 35
         freq = 18
+        
+        # Cas où la balise est très proche du robot
+        # Provoque un overflow du timer sur la balise
+        if distance < 300:
+            distance = 2000
+        
         theta = 2 * math.asin(ecart_laser / distance)
         delai = theta / (2 * math.pi * freq)
         timer = 20000000 * delai / 128

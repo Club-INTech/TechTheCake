@@ -40,7 +40,7 @@ class Simulateur:
             client.service.setRobotPosition(1200,300)
                     
         # Déclaration d'un robot adverse
-        client.service.addEnemy(1, 80, ennemi)
+        client.service.addEnemy(0, 80, ennemi)
                 
         # Definition des zones des capteurs
         client.service.addSensor(0,{"list":[{"int":[0,-100]},{"int":[-135.,-1100.]},{"int":[135,-1100]}]}) # infrarouge arrière
@@ -53,6 +53,3 @@ class Simulateur:
         
         # Affichage des logs suds de niveau critique seulement
         logging.getLogger('suds.client').setLevel(logging.CRITICAL)
-
-class SimulateurNone:
-    pass

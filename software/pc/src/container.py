@@ -89,7 +89,6 @@ class Container:
             self.assembler.register("table", table.TableSimulation, requires=["simulateur","config","log"])
             self.assembler.register("hookGenerator", hooks.HookGeneratorSimulation, requires=["config","log","simulateur"])
         else:
-            self.assembler.register("simulateur", simulateur.SimulateurNone)
             self.assembler.register("table", table.Table, requires=["config","log"])
             self.assembler.register("hookGenerator", hooks.HookGenerator, requires=["config","log"])
             
