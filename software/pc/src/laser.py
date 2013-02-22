@@ -73,15 +73,10 @@ class Laser:
         # Récupération de la position de la balise dans le repère du robot
         reponse = self.serie.communiquer("laser", ["value", id_balise], 2)
         
-        if reponse is None:
-            return None
-        
         if "NO_RESPONSE" in reponse:
-            print("NO_RESPONSE")
             return None
             
         if "NO_VALUE" in reponse:
-            print("NO_VALUE")
             return None
            
         # Fréquence actuelle du moteur

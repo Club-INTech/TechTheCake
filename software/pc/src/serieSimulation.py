@@ -1,5 +1,6 @@
 from mutex import Mutex
 import random
+import math
 
 ################################################################################
 #####  PROTOCOLE VIRTUEL POUR SIMULATION DE LA SERIE SUR LES DEPLACEMENTS  #####
@@ -183,8 +184,16 @@ class ProtocoleVirtuelLaser:
         
     def value(self, id_balise):
         position_reelle = self.simulateur.getEnemyPositionFromRobot(id_balise)
-        position_bruitee = [position_reelle[0] + random.gauss(0,20), position_reelle[1] + random.gauss(0,0.03)]
-        return position_bruitee
+        distance = position_reelle[0] + random.gauss(0,20)
+        angle = position_reelle[1] + random.gauss(0,0.03)
+        
+        ecart_laser = 35
+        freq = 18
+        theta = 2 * math.asin(ecart_laser / distance)
+        delai = theta / (2 * math.pi * freq)
+        timer = 20000000 * delai / 128
+        
+        return [timer, angle]
 
 ################################################################################
 #####  CLASSE DE SERIE EN SIMULATION : UTILISE DES PERIPHERIQUES VIRTUELS  #####
