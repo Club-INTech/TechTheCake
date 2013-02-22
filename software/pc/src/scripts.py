@@ -2,8 +2,14 @@ from time import sleep,time
 from outils_maths.point import Point
 import math
 import unittest
+import abc
 
-class Script:
+
+"""
+Quand on écrit un script, on considère qu'on est ROUGE.
+"""
+
+class Script(metaclass=abc.ABCMeta):
     """
     classe mère des scripts
     se charge des dépendances
@@ -67,7 +73,24 @@ class Script:
         else:
             self.execute(params)
         return self.robot.get_compteur()
+
+    @abc.abstractmethod
+    def versions(self):
+        pass
         
+    @abc.abstractmethod
+    def point_entree(self, id_version):
+        pass
+        
+    @abc.abstractmethod
+    def score(self):
+        pass
+
+    @abc.abstractmethod
+    def execute(self, id_version):
+        pass
+
+             
 class ScriptManager:
     
     def __init__(self, config, log, robot, robotChrono, hookGenerator, rechercheChemin, table):
@@ -77,12 +100,14 @@ class ScriptManager:
         
         # Instanciation automatique des classes héritant de Script
         classes = inspect.getmembers(sys.modules[__name__], inspect.isclass)
-        for name, obj in classes:
+        for nom, obj in classes:
             heritage = list(inspect.getmro(obj))
-            if Script in heritage:
-                self.scripts[name] = obj()
-                self.scripts[name].dependances(config, log, robot, robotChrono, hookGenerator, rechercheChemin, table)
-        
+            if Script in heritage and obj != Script:
+                print(nom)
+                self.scripts[nom] = obj()
+                self.scripts[nom].dependances(config, log, robot, robotChrono, hookGenerator, rechercheChemin, table)
+
+
 class ScriptBougies(Script):
     """
     exemple de classe de script pour les bougies
@@ -164,26 +189,20 @@ class ScriptBougies(Script):
                 print(str(id))
         print("...enfin j'crois...")
 
-    def point_entree(self): #mettre ici les coordonnées de la première bougie soufflée
-        return Point(1300,200)
+    def versions(self):
+        return []
+        
+    def point_entree(self, id_version):
+        pass
+        
+    def score(self):
+        point=0
+        for element in self.table.bougies:
+            if not element["couleur"]=="red" and not element["traitee"]: #la condition sur la couleur est pipeau
+                point+=4
+        return point
 
-
-class ScriptTestHooks(Script):
     
-    def execute(self):
-            
-        def aFaire(texte):
-            print("appel du callback : "+texte)
-            
-        hooks = []
-        hooks.append(self.hookGenerator.get_hook("position", Point(910,300), aFaire, "lapin", unique = False))
-        hooks.append(self.hookGenerator.get_hook("orientation", math.pi, aFaire, "chèvre"))
-        
-        self.robot.avancer(300,hooks)
-        self.robot.tourner(math.pi/2,hooks)
-        self.robot.avancer(500,hooks)
-        
-        
 class ScriptCadeaux(Script):
         
     def execute(self, sens): #sens = -1 ou 1
@@ -227,32 +246,51 @@ class ScriptCadeaux(Script):
             #hooks.append(self.hookGenerator.get_hook("position", cadeau["position"] + Point(sens * 200, 250), self.robot.fermer_cadeau))
             
         # Déplacement le long de la table
-        self.robot.va_au_point(point_sortie.x, point_sortie.y, hooks)
-        
-        
-class ScriptTestRecalcul(Script):
-    
-    def execute(self):
-        self.va_au_point(Point(0,300))
-        self.va_au_point(Point(-100,500))
+        self.robot.va_au_point(point_sortie.x, point_sortie.y, hooks)        
 
+    def versions(self):
+        return []
+        
+    def point_entree(self, id_version):
+        pass
+        
+    def score(self):
+        point=0
+        for element in self.table.cadeaux:
+            if not element["ouvert"]:
+                point+=4
+        return point
+        
 class ScriptCasserTour(Script):
-    
-    def execute(self):
-        self.va_au_point(Point(1300,200))
-        self.va_au_point(Point(1300,1800))
 
-    def point_entree(self):
-        return Point(1300,200)
+    def versions(self):
+        return []
+        
+    def point_entree(self, id_version):
+        pass
+        
+    def score(self):
+        pass
 
+    def execute(self, id_version):
+        return (time()-self.timer.get_date_debut())    #à revoir
+        
+"""        
 class ScriptDeposerVerres(Script): #contenu pipeau
     
     def execute(self):
         self.va_au_point(Point(1300,200))
         self.va_au_point(Point(1300,1800))
 
-    def point_entree(self):
-        return Point(1300,200)
+    def versions(self):
+        return []
+        
+    def point_entree(self, id_version):
+        pass
+
+    def score(self):
+        return 4*max(self.robot.nb_verres_avant*(self.robot.nb_verres_avant+1)/2,self.robot.nb_verres_arriere*(self.robot.nb_verres_arriere+1)/2)
+
 
 class ScriptRecupererVerres(Script): #contenu pipeau
     
@@ -260,8 +298,17 @@ class ScriptRecupererVerres(Script): #contenu pipeau
         self.va_au_point(Point(1300,200))
         self.va_au_point(Point(1300,1800))
 
-    def point_entree(self):
-        return Point(1300,200)
+    def versions(self):
+        return []
+        
+    def point_entree(self, id_version):
+        pass
+
+    def score(self):
+    point=0
+    for element in self.table.verres:
+        if element["present"]:       #à pondérer si l'ascenseur est plutôt plein ou plutôt vide
+            point+=6 #à tirer vers le haut pour les faire en début de partie (et ensuite baisser les points par incertitude?)
 
 class TestScript(unittest.TestCase):
     
@@ -270,3 +317,4 @@ class TestScript(unittest.TestCase):
 
     def test_shuffle(self):
         self.assertTrue(True)
+"""
