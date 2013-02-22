@@ -16,12 +16,11 @@ class Strategie:
         self.log = log
         self.scripts = scripts
 
-        self.points={}
-        self.note={}
+        self.note = {}
 
         for key in self.scripts.keys():
-            self.points[key] = 0
             self.note[key] = 0
+
         if self.config["ennemi_fait_toutes_bougies"]:
             del self.scripts["ScriptBougies"]
             
@@ -36,7 +35,7 @@ class Strategie:
 
         while not self.timer.get_fin_match():
 #            self.rechercheChemin.retirer_obstacles_dynamique();
-            self._initialiser_points()
+            self._maj_script()
             self.rechercheChemin.preparer_environnement()
 
             for script in self.scripts:
@@ -59,42 +58,23 @@ class Strategie:
     """
     Met à jour les points et retire les scripts qui ne peuvent plus en rapporter
     """
-    def _initialiser_points(self):
-        if "ScriptBougies" in self.scripts:
-            self.points["ScriptBougies"]=0
-            for element in self.table.bougies:
-                if not element["couleur"]=="red" and not element["traitee"]: #la condition sur la couleur est pipeau
-                    self.points["ScriptBougies"]+=4
-                if self.points["ScriptBougies"]==0:
-                    del self.script["ScriptBougies"]
-                    del self.note["ScriptBougies"]
-                    del self.points["ScriptBougies"]
-        if "ScriptRecupererVerres" in self.scripts:
-            for element in self.table.verres:
-                if element["present"]:       #à pondérer si l'ascenseur est plutôt plein ou plutôt vide
-                    self.points["ScriptRecupererVerres"]+=6 #à tirer vers le haut pour les faire en début de partie (et ensuite baisser les points par incertitude?)
-                if self.points["ScriptRecupererVerres"]==0:
-                    del self.script["ScriptRecupererVerres"]
-                    del self.note["ScriptRecupererVerres"]
-                    del self.points["ScriptRecupererVerres"]
-        if "ScriptCadeaux" in self.scripts:
-            self.points["ScriptCadeaux"]=0
-            for element in self.table.cadeaux:
-                if not element["ouvert"]:
-                    self.points["ScriptCadeaux"]+=4
-                if self.points["ScriptCadeaux"]==0:
-                    del self.script["ScriptCadeaux"]
-                    del self.note["ScriptCadeaux"]
-                    del self.points["ScriptCadeaux"]
-        if "ScriptDeposerVerres" in self.scripts:
-            self.points["ScriptDeposerVerres"]=4*max(self.robot.nb_verres_avant*(self.robot.nb_verres_avant+1)/2,self.robot.nb_verres_arriere*(self.robot.nb_verres_arriere+1)/2)
-            if self.points["ScriptDeposerVerres"]==0 and self.points["ScriptRecupererVerres"]==0:
-                del self.script["ScriptDeposerVerres"]
-                del self.note["ScriptDeposerVerres"]
-                del self.points["ScriptDeposerVerres"]
-        if "ScriptCasserTour" in self.scripts:
-            self.points["ScriptCasserTour"]=(time()-self.timer.get_date_debut())    #à revoir
+    def _maj_script(self):
 
+        if self.scripts["ScriptBougies"].score()==0:
+            del self.script["ScriptBougies"]
+            del self.note["ScriptBougies"]
+
+        if self.scripts["ScriptRecupererVerres"].score()==0:
+            del self.script["ScriptRecupererVerres"]
+            del self.note["ScriptRecupererVerres"]
+
+        if self.scripts["ScriptCadeaux"].score()==0:
+            del self.script["ScriptCadeaux"]
+            del self.note["ScriptCadeaux"]
+
+        if self.scripts["ScriptDeposerVerres"].score()==0 and self.scripts["ScriptRecupererVerres"].score()==0:
+            del self.script["ScriptDeposerVerres"]
+            del self.note["ScriptDeposerVerres"]
 
     """
     Note un script (en fonction du nombre de points qu'il peut rapporter, de la position de l'ennemi et de sa durée)
@@ -117,10 +97,10 @@ class Strategie:
         else:
             distanceE=self._distance_ennemi(point_entree)+1 #le +1 est pour empêcher la division par 0
             try:
-                return 1000000000*(self.points[script])/(dureeScript*dureeScript*dureeScript*distanceE*distanceE)
+                return 1000000000*(self.scripts[script].score())/(dureeScript*dureeScript*dureeScript*distanceE*distanceE)
             except ZeroDivisionError:
                 self.log.critical("Division par zéro dans le calcul de la note! :o") #sait-on jamais... je préfère ne pas prendre le risque de voir le robot se paralyser bêtement
-                return self.points[script]
+                return self.scripts[script].score()
 
 
     def _distance_ennemi(self, point_entree): #on prend la distance euclidienne, à vol d'oiseau. Attention, on prend le min: cette valeur est sensible aux mesures aberrantes
