@@ -143,8 +143,8 @@ class Container:
         def lancement_des_threads():
             threads.AbstractThread.stop_threads = False
             
-            #threads.ThreadPosition(self).start()
-            #threads.ThreadCapteurs(self).start()
+            threads.ThreadPosition(self).start()
+            threads.ThreadCapteurs(self).start()
             self.get_service("timer").start()
             
             if self.config["lasers_demarrer_thread"]:

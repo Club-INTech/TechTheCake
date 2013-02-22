@@ -9,7 +9,6 @@ class Laser:
         self.config = config
         self.log = log
         self.balises = [
-            {"id": 0, "active": False},
             {"id": 1, "active": False}
         ]
         
@@ -73,6 +72,9 @@ class Laser:
         """
         # Récupération de la position de la balise dans le repère du robot
         reponse = self.serie.communiquer("laser", ["value", id_balise], 2)
+        
+        if reponse is None:
+            return None
         
         if "NO_RESPONSE" in reponse:
             print("NO_RESPONSE")
