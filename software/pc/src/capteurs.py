@@ -1,3 +1,5 @@
+import tests
+
 class Capteurs():
     """
     classe gérant les capteurs (communication via la série avec la carte appropriée).
@@ -42,3 +44,13 @@ class Capteurs():
     def demarrage_match(self):
         #TODO : jumper
         return True
+        
+class TestCapteurs(tests.ContainerTest):
+    
+    def setUp(self):
+        self.capteurs = self.get_service("capteurs")
+
+    def test_mesurer(self): #faire les tests sur la mesure en présence d'un robot
+        self.assertEqual(1, 2)
+
+
