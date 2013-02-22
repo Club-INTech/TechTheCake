@@ -84,7 +84,7 @@ class FiltrageLaser:
         
         if acceleration > 1000 and self.valeurs_rejetees < 3:
             self.valeurs_rejetees += 1
-            print("accelération {0} trop élevée".format(acceleration))
+            #print("accelération {0} trop élevée".format(acceleration))
             return False
         else:
             self.valeurs_rejetees = 0

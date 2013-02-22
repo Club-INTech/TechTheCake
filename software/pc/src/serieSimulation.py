@@ -158,30 +158,30 @@ class ProtocoleVirtuelLaser:
         self.log = log
         
     def laser_on(self):
-        self.simulateur.log("Allumage des lasers")
+        #self.simulateur.log("Allumage des lasers")
         return []
         
     def motor_on(self):
         return []
     
     def laser_off(self):
-        self.simulateur.log("Extinction des lasers") 
+        #self.simulateur.log("Extinction des lasers") 
         return []
         
     def motor_off(self):
         return []
     
     def freq(self):
-        return []
+        return ["18"]
         
     def ping(self, id_balise):
         try:
             self.simulateur.getEnemyPositionFromRobot(id_balise)
-            return ["réponse"]
+            return ["ping"]
         except Exception:
-            return ["aucune réponse"]
+            return ["NO_RESPONSE"]
         
-    def valeur(self, id_balise):
+    def value(self, id_balise):
         position_reelle = self.simulateur.getEnemyPositionFromRobot(id_balise)
         position_bruitee = [position_reelle[0] + random.gauss(0,20), position_reelle[1] + random.gauss(0,0.03)]
         return position_bruitee
