@@ -25,6 +25,7 @@ import capteurs
 import laser
 import actionneurs
 import serie 
+import serieReelle
 import serieSimulation
 import table
 import recherche_de_chemin.rechercheChemin as rechercheChemin
@@ -70,6 +71,8 @@ class Container:
         def make_conf():
             conf = read_ini.Config()
             conf.set_chemin(chemin+"/config")
+            conf["cartes_serie"] = conf["cartes_serie"].split(",")
+            conf["cartes_simulation"] = conf["cartes_simulation"].split(",")
             return conf
         self.assembler.register("config",read_ini.Config,factory=make_conf)
         
@@ -86,23 +89,51 @@ class Container:
             return instanceLog
         self.assembler.register("log", log.Log, requires = ["config"], factory=make_log)
         
-        #services différents en fonction du mode simulateur on/off :
-        if (self.config["mode_simulateur"]):
+        
+        #### SERVICES POUR LA SÉRIE ####
+        #service de la série réelle si besoin :
+        if not self.config["cartes_serie"] == ['']:
+            
+            #série réelle, qui controle le robot. Utilisée dans le service `serie`.
+            self.assembler.register("serieReelle", serieReelle.SerieReelle, requires=["log"])
+        else:
+            
+            #service vide pour créer le service `serie`. Ne sera pas utilisé.
+            def voidFactory():
+                return None
+            self.assembler.register("serieReelle", None, requires=[], factory=voidFactory)
+            
+        #service de la série simulée si besoin :
+        if not self.config["cartes_simulation"] == ['']:
+            
+            #service du simulateur
             def make_simulateur(config):
                 simulateurInstance = simulateur.Simulateur(config)
                 return simulateurInstance.soap
             self.assembler.register("simulateur", simulateur.Simulateur, requires=["config"], factory=make_simulateur)
+            
+            #visualisation sur le simulateur pour la table et les hooks
             self.assembler.register("table", table.TableSimulation, requires=["simulateur","config","log"])
             self.assembler.register("hookGenerator", hooks.HookGeneratorSimulation, requires=["config","log","simulateur"])
+            
+            #série virtuelle, qui redirige vers le simulateur
+            self.assembler.register("serieSimulation", serieSimulation.SerieSimulation, requires=["simulateur", "log"])
         else:
+            
+            #pas de visualisation sur le simulateur pour la table et les hooks
             self.assembler.register("table", table.Table, requires=["config","log"])
             self.assembler.register("hookGenerator", hooks.HookGenerator, requires=["config","log"])
             
-        if self.config["mode_serie"]:
-            self.assembler.register("serie", serie.Serie, requires=["log"])
-        else:
-            self.assembler.register("serie", serieSimulation.SerieSimulation, requires=["simulateur","log"])
+            def voidFactory():
+                return None
+            #service vide pour créer le service `serie`. Ne sera pas utilisé.
+            self.assembler.register("serieSimulation", None, requires=[], factory=voidFactory)
             
+        #service générique de série, qui redirige vers le service approprié (série réelle ou simulée)
+        self.assembler.register("serie", serie.Serie, requires=["serieReelle", "serieSimulation", "config", "log"])
+            
+        ################################
+        
         #enregistrement du service des capteurs pour la série
         self.assembler.register("capteurs", capteurs.Capteurs, requires=["serie","config","log"])
         
@@ -161,15 +192,7 @@ class Container:
             while not robot.pret:
                 time.sleep(0.1)
         
-        #conditions sur le lancement des threads
-        if self.config["mode_simulateur"]:
-            #si on est en mode simulateur...
-            lancement_des_threads()
-        else:
-            #...ou si l'asservissement en série est présent
-            serie = self.get_service("serie")
-            if hasattr(serie.peripheriques["asservissement"],'serie'):
-                lancement_des_threads()
+        lancement_des_threads()
     
     def stop_threads(self):
         """

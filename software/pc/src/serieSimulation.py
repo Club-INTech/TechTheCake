@@ -223,19 +223,9 @@ class SerieSimulation:
         self.capteurs = ProtocoleVirtuelCapteurs(simulateur, log)
         self.laser = ProtocoleVirtuelLaser(simulateur, log)
         
-        #dictionnaire des périphériques virtuels
-        self.peripheriques = {
-            "asservissement": self.deplacements,
-            "capteurs_actionneurs" : self.capteurs,
-            "capteur_couleur" : self.capteurs,
-            "laser" : self.laser,
-            "cadeaux" : self.actionneurs,
-            "ascenseur": self.actionneurs,
-            "pince_verre": self.actionneurs,
-            "actionneur_bougies": self.actionneurs
-        }
-        
-        self.arret_serie=False
+    def definir_peripheriques(self, dico_infos_peripheriques):
+        #dictionnaire des périphériques de simulation à partir des données fournies
+        self.peripheriques = dict(map(lambda c: (c[0],getattr(self, c[1][1])),dico_infos_peripheriques.items()))
         
     def communiquer(self, destinataire, messages, nb_lignes_reponse):
         """
@@ -247,24 +237,17 @@ class SerieSimulation:
         
         Une liste messages d'un seul élément : ["chaine"] peut éventuellement être remplacée par l'élément simple : "chaine".  #userFriendly
         """
-        if not self.arret_serie:
-            if not type(messages) is list:
-                #permet l'envoi d'un seul message, sans structure de liste
-                messages = [messages]
-            
-            #Utilisation du protocole série sur le périphérique virtuel. Renvoit une liste de réponses, éventuellement vide.
-            method = messages[0].replace("?","")
-            args = tuple(messages[1:])
-            try:
-                reponses = getattr(self.peripheriques[destinataire], method)(*args)
-                return reponses
-            except Exception as e:
-                self.log.critical("Erreur renvoyée par le simulateur " + str(e))
-                
-    def set_arret_serie(self):
-        """
-        Méthode pour arrêter le service série, appelée par le service timer à la fin du match.
-        """
-        with self.mutex:
-            self.arret_serie=True
+        if not type(messages) is list:
+            #permet l'envoi d'un seul message, sans structure de liste
+            messages = [messages]
         
+        #Utilisation du protocole série sur le périphérique virtuel. Renvoit une liste de réponses, éventuellement vide.
+        method = messages[0].replace("?","")
+        args = tuple(messages[1:])
+        
+        try:
+            reponses = getattr(self.peripheriques[destinataire], method)(*args)
+            return reponses
+        except Exception as e:
+            self.log.critical("Erreur renvoyée par le simulateur " + str(e))
+                

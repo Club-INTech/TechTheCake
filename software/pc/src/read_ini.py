@@ -34,6 +34,10 @@ class Config :
     def __getitem__(self, key) :
         return self._dic[key]
         
+    # Possibilité de réecrire la config (genre pour y construire un tableau)
+    def __setitem__(self, key, value) :
+        self._dic[key] = value
+        
     def _get_local_mode(self) :		
         return self._local.items("global")[0][1]
 

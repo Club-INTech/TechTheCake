@@ -70,7 +70,7 @@ class Robot(RobotInterface):
         self.pret = False
         
         #sleep pour la boucle d'acquittement : divisé en 2 pour le simulateur, car il ne peut pas tourner et avancer en même temps
-        if self.config["mode_simulateur"]:
+        if "asservissement" in self.config["cartes_simulation"]:
             self.sleep_milieu_boucle_acquittement = self.config["sleep_acquit_simu"]/2.
             self.sleep_fin_boucle_acquittement = self.config["sleep_acquit_simu"]/2.
         else:
@@ -368,7 +368,7 @@ class Robot(RobotInterface):
         #vitesses pour le parcours de l'arc de cercle
         #TODO : passer ca dans déplacements ?
         self.set_vitesse_translation(1)
-        if not self.config["mode_simulateur"]:
+        if "asservissement" in self.config["cartes_serie"]:
             #ATTENTION : cette vitesse est ajustée pour un rayon donné ! (celui utilisé pour enfoncer les bougies)
             self.deplacements.serie.communiquer("asservissement",["crv",1.5,2.0,self.config["vitesse_rot_arc_cercle"]], 0)
         else:
