@@ -2,12 +2,6 @@ import tests.tests
 
 class TestScriptCadeaux(tests.tests.ContainerTest):
     
-    def setUp(self):
-        pass
-
-    def test_shuffle(self):
-        self.assertTrue(True)
-
     def test_point_entree(self):
         table = self.get_service("table")
         scripts_cadeaux = self.get_service("scripts")["ScriptCadeaux"]
@@ -43,6 +37,6 @@ class TestScriptCadeaux(tests.tests.ContainerTest):
         table = self.get_service("table")
         scripts_cadeaux = self.get_service("scripts")["ScriptCadeaux"]
         self.assertEqual(scripts_cadeaux.versions(), [0, 1])
-        scripts_cadeaux.executer(0)
+        scripts_cadeaux.agit(0)
         self.assertEqual(table.cadeaux_restants(), [])
         
