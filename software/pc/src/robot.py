@@ -497,12 +497,14 @@ class Robot(RobotInterface):
             else:
                 self.stopper()
                 self.log.warning("rotation arrêtée car blocage !")
+                self.log.warning("abandon du mouvement en cours")
                 raise ExceptionMouvementImpossible
                 
         #détection d'un robot adverse
         except ExceptionCollision:
             self.stopper()
-            self.log.warning("détection d'un robot adverse, arrêt du robot")
+            self.log.warning("détection d'un robot adverse")
+            self.log.warning("abandon du mouvement en cours")
             raise ExceptionMouvementImpossible
             
     def suit_chemin(self, chemin, hooks=[]):
@@ -534,17 +536,19 @@ class Robot(RobotInterface):
         #blocage durant le mouvement
         except ExceptionBlocage:
             self.log.warning("mouvement arrêté car blocage !")
+            self.log.warning("abandon du mouvement en cours")
             raise ExceptionMouvementImpossible
         
         #détection d'un robot adverse
         except ExceptionCollision:
-            self.log.warning("détection d'un robot adverse, arrêt du robot")
+            self.log.warning("détection d'un robot adverse")
             self.stopper()
             if nombre_tentatives > 0:
-                self.log.warning("attente avant nouvelle tentative...")
+                self.log.warning("attente avant nouvelle tentative... reste {0} tentative(s)".format(nombre_tentatives))
                 sleep(1)
                 self.va_au_point(point, hooks, virage_initial, nombre_tentatives - 1)
             else:
+                self.log.warning("abandon du mouvement en cours")
                 raise ExceptionMouvementImpossible
             
             

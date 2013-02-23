@@ -4,9 +4,13 @@ import math
 import unittest
 import abc
 
-
 """
-Quand on écrit un script, on considère qu'on est ROUGE.
+
+Règles concernant l'écriture de scripts:
+
+- On considère dans tous les scripts qu'on est ROUGE.
+- On peut utilier les méthodes de robot pour gérer la symétrie (robot.effectuer_symetrie) ou la marche arrière (robot.marche_arriere)
+
 """
 
 class Script(metaclass=abc.ABCMeta):
@@ -45,19 +49,16 @@ class Script(metaclass=abc.ABCMeta):
 
     def agit(self, params):
         """
-        L'appel script.agit() effectue vraiment les instructions contenues dans executer().
-        C'est à dire : envoi de trames sur la série, ou utilisation du simulateur. 
-        On peut appeler agit(None) lorsqu'il n'y a pas de paramètres, 
-        agit((3,"foo","bar")) pour passer n paramètres dans un tuple, 
-        agit(3) pour passer un seul paramètre (ici entier casté en tuple).
+        L'appel script.agit() effectue vraiment les instructions contenues dans _execute().
+        Les paramètres de agit() sont les mêmes que ceux envoyés à _execute()
         """
         self.robot = self.robotVrai
         if type(params) is tuple:
-            self.executer(*params)
+            self._execute(*params)
         elif params is None:
-            self.executer()
+            self._execute()
         else:
-            self.executer(params)
+            self._execute(params)
         
     def calcule(self, params):
         """
@@ -87,7 +88,7 @@ class Script(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def executer(self, id_version):
+    def _execute(self, id_version):
         pass
 
              
@@ -113,7 +114,7 @@ class ScriptBougies(Script):
     hérite de la classe mère Script
     """
             
-    def executer(self,sens):
+    def _execute(self, sens):
         """
         Traite le maximum de bougies possibles en partant d'un point d'entrée, et suivant 
         sens : +1 de droite a gauche et -1 de gauche a droite
@@ -203,7 +204,7 @@ class ScriptBougies(Script):
     
 class ScriptCadeaux(Script):
         
-    def executer(self, version):
+    def _execute(self, version):
         # A TERMINER APRES REFLEXIONS SUR LE SENS DE PARCOURS
 
         sens = self.info_versions[version]["sens"]
@@ -283,12 +284,12 @@ class ScriptCasserTour(Script):
     def score(self):
         pass
 
-    def executer(self, id_version):
+    def _execute(self, id_version):
         return (time()-self.timer.get_date_debut())    #à revoir
         
 class ScriptDeposerVerres(Script): #contenu pipeau
     
-    def executer(self):
+    def _execute(self):
         self.va_au_point(Point(1300,200))
         self.va_au_point(Point(1300,1800))
 
@@ -304,7 +305,7 @@ class ScriptDeposerVerres(Script): #contenu pipeau
 
 class ScriptRecupererVerres(Script): #contenu pipeau
     
-    def executer(self):
+    def _execute(self):
         self.va_au_point(Point(1300,200))
         self.va_au_point(Point(1300,1800))
 
