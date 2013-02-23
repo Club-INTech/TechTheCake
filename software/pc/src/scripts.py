@@ -45,7 +45,7 @@ class Script(metaclass=abc.ABCMeta):
 
     def agit(self, params):
         """
-        L'appel script.agit() effectue vraiment les instructions contenues dans execute().
+        L'appel script.agit() effectue vraiment les instructions contenues dans executer().
         C'est à dire : envoi de trames sur la série, ou utilisation du simulateur. 
         On peut appeler agit(None) lorsqu'il n'y a pas de paramètres, 
         agit((3,"foo","bar")) pour passer n paramètres dans un tuple, 
@@ -53,25 +53,25 @@ class Script(metaclass=abc.ABCMeta):
         """
         self.robot = self.robotVrai
         if type(params) is tuple:
-            self.execute(*params)
+            self.executer(*params)
         elif params is None:
-            self.execute()
+            self.executer()
         else:
-            self.execute(params)
+            self.executer(params)
         
     def calcule(self, params):
         """
-        L'appel script.calcule() retourne la durée estimée des actions contenues dans execute().
+        L'appel script.calcule() retourne la durée estimée des actions contenues dans executer().
         """
         self.robot = self.robotChrono
         self.robot.reset_compteur()
         self.robot.maj_x_y_o(self.robotVrai.x, self.robotVrai.y, self.robotVrai.orientation)
         if type(params) is tuple:
-            self.execute(*params)
+            self.executer(*params)
         elif params is None:
-            self.execute()
+            self.executer()
         else:
-            self.execute(params)
+            self.executer(params)
         return self.robot.get_compteur()
 
     @abc.abstractmethod
@@ -87,7 +87,7 @@ class Script(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def execute(self, id_version):
+    def executer(self, id_version):
         pass
 
              
@@ -107,18 +107,18 @@ class ScriptManager:
                 self.scripts[nom] = obj()
                 self.scripts[nom].dependances(config, log, robot, robotChrono, hookGenerator, rechercheChemin, table)
 
-
+"""
 class ScriptBougies(Script):
-    """
+    """"""
     exemple de classe de script pour les bougies
     hérite de la classe mère Script
-    """
+    """"""
             
-    def execute(self,sens):
-        """
+    def executer(self,sens):
+        """"""
         Traite le maximum de bougies possibles en partant d'un point d'entrée, et suivant 
         sens : +1 de droite a gauche et -1 de gauche a droite
-        """
+        """"""
 
         #pour les tests
         gateauEnBas = False
@@ -201,43 +201,28 @@ class ScriptBougies(Script):
             if not element["couleur"]=="red" and not element["traitee"]: #la condition sur la couleur est pipeau
                 point+=4
         return point
-
+"""
     
 class ScriptCadeaux(Script):
         
-    def execute(self, sens): #sens = -1 ou 1
-    
+    def executer(self, version):
         # A TERMINER APRES REFLEXIONS SUR LE SENS DE PARCOURS
-        
-        if sens == 1:
-            i_entree = 0
-            i_sortie = 1
-        else:
-            i_entree = 1
-            i_sortie = 0
-            
-        # Cadeaux aux extrémités
-        cadeau_entree = self.table.point_entree_cadeau(i_entree)
-        cadeau_sortie = self.table.point_entree_cadeau(i_sortie)
-        
-        # Points d'entrée et de sortie du script
-        point_entree = cadeau_entree["position"] + Point(sens * 100, 250)
-        point_sortie = cadeau_sortie["position"] + Point(0, 250)
-        
-        # Mise en place du robot sur le point d'entrée
-        self.robot.va_au_point(point_entree.x, point_entree.y)
-        #self.robot.tourner(math.pi)
+
+        sens = self.info_versions[version]["sens"]
+        self.log.debug("Va au point: "+str(self.info_versions[version]["point_entree"]))
+
+
+        self.robot.va_au_point(self.info_versions[version]["point_entree"])
         
         # Orientation du robot
-        if sens == -1:
-            self.robot.set_marche_arriere(True)
+        self.robot.set_marche_arriere(self.info_versions[version]["marche_arriere"])
         
         # Création des hooks pour tous les cadeaux à activer
         hooks = []
         for cadeau in self.table.cadeaux_restants():
             
             # Ouverture du bras
-            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * 50, 250))
+            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * -50, 250))
             hook_ouverture += self.hookGenerator.callback(self.robot.ouvrir_cadeau)
             hook_ouverture += self.hookGenerator.callback(self.table.cadeau_recupere, (cadeau,))
             hooks.append(hook_ouverture)
@@ -246,21 +231,46 @@ class ScriptCadeaux(Script):
             #hooks.append(self.hookGenerator.get_hook("position", cadeau["position"] + Point(sens * 200, 250), self.robot.fermer_cadeau))
             
         # Déplacement le long de la table
-        self.robot.va_au_point(point_sortie.x, point_sortie.y, hooks)        
+        self.robot.va_au_point(self.info_versions[1-version]["point_entree"], hooks)
 
     def versions(self):
-        return []
+        self.info_versions = []
+        self.decalage_gauche = Point(-100,250)
+        self.decalage_droit = Point(100,250)
+        
+        cadeaux = self.table.cadeaux_entrees()
+        marche_arriere = self.config["couleur"] == "rouge"
+        
+        if cadeaux == []:
+            return []
+        elif len(cadeaux) == 1:
+            self.info_versions = [
+                {"point_entree": cadeaux[0]["position"]+self.decalage_gauche, "sens": 1, "marche_arriere": not marche_arriere},
+                {"point_entree": cadeaux[0]["position"]+self.decalage_droit, "sens": -1, "marche_arriere": marche_arriere}
+            ]
+        elif cadeaux[0]["position"].x < cadeaux[1]["position"].x:
+            self.info_versions = [
+                {"point_entree": cadeaux[0]["position"]+self.decalage_gauche, "sens": 1, "marche_arriere": not marche_arriere},               
+                {"point_entree": cadeaux[1]["position"]+self.decalage_droit, "sens": -1, "marche_arriere": marche_arriere}
+            ]
+        else:           
+            self.info_versions = [
+                {"point_entree": cadeaux[0]["position"]+self.decalage_droit, "sens": -1, "marche_arriere": marche_arriere},
+                {"point_entree": cadeaux[1]["position"]+self.decalage_gauche, "sens": 1, "marche_arriere": not marche_arriere}
+            ]
+        return [0, 1]
         
     def point_entree(self, id_version):
-        pass
-        
+        return self.info_versions[id_version]["point_entree"]
+                
     def score(self):
-        point=0
+        point = 0
         for element in self.table.cadeaux:
             if not element["ouvert"]:
-                point+=4
+                point += 4
         return point
-        
+
+"""        
 class ScriptCasserTour(Script):
 
     def versions(self):
@@ -272,13 +282,12 @@ class ScriptCasserTour(Script):
     def score(self):
         pass
 
-    def execute(self, id_version):
+    def executer(self, id_version):
         return (time()-self.timer.get_date_debut())    #à revoir
         
-"""        
 class ScriptDeposerVerres(Script): #contenu pipeau
     
-    def execute(self):
+    def executer(self):
         self.va_au_point(Point(1300,200))
         self.va_au_point(Point(1300,1800))
 
@@ -289,12 +298,12 @@ class ScriptDeposerVerres(Script): #contenu pipeau
         pass
 
     def score(self):
-        return 4*max(self.robot.nb_verres_avant*(self.robot.nb_verres_avant+1)/2,self.robot.nb_verres_arriere*(self.robot.nb_verres_arriere+1)/2)
+        return 4*max(self.robotVrai.nb_verres_avant*(self.robotVrai.nb_verres_avant+1)/2,self.robotVrai.nb_verres_arriere*(self.robotVrai.nb_verres_arriere+1)/2)
 
 
 class ScriptRecupererVerres(Script): #contenu pipeau
     
-    def execute(self):
+    def executer(self):
         self.va_au_point(Point(1300,200))
         self.va_au_point(Point(1300,1800))
 
@@ -305,10 +314,11 @@ class ScriptRecupererVerres(Script): #contenu pipeau
         pass
 
     def score(self):
-    point=0
-    for element in self.table.verres:
-        if element["present"]:       #à pondérer si l'ascenseur est plutôt plein ou plutôt vide
-            point+=6 #à tirer vers le haut pour les faire en début de partie (et ensuite baisser les points par incertitude?)
+        point=0
+        for element in self.table.verres:
+            if element["present"]:       #à pondérer si l'ascenseur est plutôt plein ou plutôt vide
+                point+=6 #à tirer vers le haut pour les faire en début de partie (et ensuite baisser les points par incertitude?)
+"""
 
 class TestScript(unittest.TestCase):
     
@@ -317,4 +327,4 @@ class TestScript(unittest.TestCase):
 
     def test_shuffle(self):
         self.assertTrue(True)
-"""
+
