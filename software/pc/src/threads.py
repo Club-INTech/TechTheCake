@@ -2,7 +2,7 @@ import threading
 from mutex import Mutex
 from outils_maths.point import Point
 from outils_maths.vitesse import Vitesse
-from math import cos,sin
+from math import cos,sin,pi
 from time import sleep
 from time import time
 
@@ -97,10 +97,14 @@ class ThreadCapteurs(AbstractThread):
                 return None
             
             distance = capteurs.mesurer(robot.marche_arriere)
-            if distance >= 0:                       
-                x = robot.x + (distance + config["rayon_robot_adverse"]/2) * cos(robot.orientation)
-                y = robot.y + (distance + config["rayon_robot_adverse"]/2) * sin(robot.orientation)
-                
+            if distance >= 0:
+                if robot.marche_arriere:
+                    x = robot.x - (distance + config["rayon_robot_adverse"]/2 + config["largeur_robot"]/2) * cos(robot.orientation)
+                    y = robot.y - (distance + config["rayon_robot_adverse"]/2 + config["largeur_robot"]/2) * sin(robot.orientation)
+                else:
+                    x = robot.x + (distance + config["rayon_robot_adverse"]/2 + config["largeur_robot"]/2) * cos(robot.orientation)
+                    y = robot.y + (distance + config["rayon_robot_adverse"]/2 + config["largeur_robot"]/2) * sin(robot.orientation)
+                 
                 # Vérifie si l'obstacle est sur la table et qu'il n'a pas déjà été ajouté récemment
                 if x > (-config["table_x"]/2) and y > 0 and x < config["table_x"]/2 and y < config["table_y"] and time() - dernier_ajout > tempo:
                     table.creer_obstacle(Point(x,y))
