@@ -184,8 +184,12 @@ class ProtocoleVirtuelLaser:
         
     def value(self, id_balise):
         position_reelle = self.simulateur.getEnemyPositionFromRobot(id_balise)
-        distance = position_reelle[0] + random.gauss(0,20)
-        angle = position_reelle[1] + random.gauss(0,0.03)
+        distance = position_reelle[0] + random.gauss(0,15)
+        angle = position_reelle[1] + random.gauss(0,0.025)
+        
+        # Valeur fausse random
+        if random.randint(0, 15) == 0:
+            angle = random.uniform(-math.pi, math.pi)
         
         ecart_laser = 35
         freq = 18

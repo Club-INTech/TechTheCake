@@ -225,6 +225,8 @@ class ThreadLaser(AbstractThread):
         balises = laser.balises_actives()
         
         while not timer.get_fin_match():
+            start = time()
+            
             if AbstractThread.stop_threads:
                 log.debug("Stoppage du thread laser")
                 return None
@@ -256,7 +258,12 @@ class ThreadLaser(AbstractThread):
                     if config["lasers_afficher_valeurs_filtre"]:
                         simulateur.drawPoint(p_filtre.x, p_filtre.y, "blue")
             
-            sleep(0.01)
+            sleep(1./config["lasers_frequence"])
+            
+            # Mise à jour de l'intervalle de temps pour le filtrage
+            end = time()
+            filtrage.update_dt(end-start)
+            
             
         log.debug("Fin du thread des lasers")
         
