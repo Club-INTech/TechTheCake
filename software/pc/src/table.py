@@ -216,19 +216,19 @@ class Table:
     ### GESTION DES VERRES
     ###############################################
     
-    def etat_verre(self, i):
+    def etat_verre(self, verre):
         """
         Indique l'état d'un verre
         """
         with self.mutex:
-            return self.verres[i]["present"]
+            return self.verres[verre["id"]]["present"]
 
-    def verre_recupere(self, i):
+    def verre_recupere(self, verre):
         """
         Indique qu'un verre a été pris
         """
-        self.verres[i]["present"] = False
-        self._reattribuePointEntreeVerres(i)
+        self.verres[verre["id"]]["present"] = False
+        #self._reattribuePointEntreeVerres(i)
  
     def _detection_collision_verre(self, position):
         """
@@ -239,7 +239,7 @@ class Table:
             if verre["present"]:
                 distance = verre["position"].distance(position)
                 if distance < self.config["rayon_robot_adverse"] + self.config["table_tolerance_verre_actif"]:
-                    self.verre_recupere(i)
+                    self.verre_recupere(verre)
                     
     # Change les points d'entrée pour les verres
     def _reattribuePointEntreeVerres(self, id):
@@ -374,9 +374,9 @@ class TableSimulation(Table):
         Table.bougie_recupere(self, b)
         self.simulateur.clearEntity("bougie_" + str(b["id"]))
         
-    def verre_recupere(self, i):
-        Table.verre_recupere(self, i)
-        self.simulateur.clearEntity("verre_" + str(i))
+    def verre_recupere(self, v):
+        Table.verre_recupere(self, v)
+        self.simulateur.clearEntity("verre_" + str(v["id"]))
         
     def definir_couleurs_bougies(self, code):
         Table.definir_couleurs_bougies(self, code)

@@ -137,7 +137,7 @@ class Container:
         def make_scripts(*dependencies):
             scriptManager = scripts.ScriptManager(*dependencies)
             return scriptManager.scripts
-        self.assembler.register("scripts", scripts.ScriptManager, requires=["config", "log", "robot", "robotChrono", "hookGenerator", "rechercheChemin", "table"], factory = make_scripts)
+        self.assembler.register("scripts", scripts.ScriptManager, requires=["config", "log", "robot", "robotChrono", "hookGenerator", "rechercheChemin", "table"], factory=make_scripts)
         
         #enregistrement du service de stratégie
         self.assembler.register("strategie", strategie.Strategie, requires=["robot", "scripts", "rechercheChemin", "table", "threads.timer", "config", "log"])
