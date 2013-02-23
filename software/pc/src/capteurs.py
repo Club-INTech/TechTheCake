@@ -1,4 +1,3 @@
-import tests
 
 class Capteurs():
     """
@@ -45,12 +44,5 @@ class Capteurs():
         #TODO : jumper
         return True
         
-class TestCapteurs(tests.ContainerTest):
-    
-    def setUp(self):
-        self.capteurs = self.get_service("capteurs")
-
-    def test_mesurer(self): #faire les tests sur la mesure en présence d'un robot
-        self.assertEqual(1, 2)
 
 

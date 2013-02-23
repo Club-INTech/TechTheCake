@@ -2,7 +2,6 @@ import threading
 from mutex import Mutex
 from outils_maths.point import Point
 from outils_maths.vitesse import Vitesse
-from tests import ContainerTest
 from math import cos,sin
 from time import sleep
 from time import time

@@ -13,4 +13,3 @@ class ContainerTest(unittest.TestCase):
         
     def tearDown(self):
         self.container.reset()
-    
