@@ -46,7 +46,7 @@ class Container:
         self.mutex = mutex.Mutex()
         self.env = env
         self._chargement_service()
-        self._start_threads()
+        self.start_threads()
         
     def get_service(self,id):
         """
@@ -60,6 +60,12 @@ class Container:
         """
         Enregistrement des services
         """
+        
+        #enregistrement du container en tant que service
+        def make_container(*dependencies):
+            return self
+        self.assembler.register("container", None, factory=make_container)
+        
         #enregistrement du service de configuration
         def make_conf():
             conf = read_ini.Config()
@@ -97,7 +103,6 @@ class Container:
         else:
             self.assembler.register("serie", serieSimulation.SerieSimulation, requires=["simulateur","log"])
             
-            
         #enregistrement du service des capteurs pour la série
         self.assembler.register("capteurs", capteurs.Capteurs, requires=["serie","config","log"])
         
@@ -120,7 +125,10 @@ class Container:
         self.assembler.register("robotChrono", robotChrono.RobotChrono, requires=["log"])
         
         #enregistrement du service timer
-        self.assembler.register("timer", threads.ThreadTimer, requires=["log","config","robot","table","capteurs"])
+        self.assembler.register("threads.timer", threads.ThreadTimer, requires=["log","config","robot","table","capteurs"])
+        self.assembler.register("threads.position", threads.ThreadPosition, requires=["container"])
+        self.assembler.register("threads.capteurs", threads.ThreadCapteurs, requires=["container"])
+        self.assembler.register("threads.laser", threads.ThreadLaser, requires=["container"])
 
         #enregistrement du service de recherche de chemin
         self.assembler.register("rechercheChemin", rechercheChemin.RechercheChemin, requires=["table","config","log"])
@@ -132,22 +140,21 @@ class Container:
         self.assembler.register("scripts", scripts.ScriptManager, requires=["config", "log", "robot", "robotChrono", "hookGenerator", "rechercheChemin", "table"], factory = make_scripts)
         
         #enregistrement du service de stratégie
-        self.assembler.register("strategie", strategie.Strategie, requires=["robot", "scripts", "rechercheChemin", "table", "timer", "config", "log"])
+        self.assembler.register("strategie", strategie.Strategie, requires=["robot", "scripts", "rechercheChemin", "table", "threads.timer", "config", "log"])
         
-        
-    def _start_threads(self):
+    def start_threads(self):
         """
-        Le lancement des thread (et leur attente d'une initialisation) est gérée ici.
+        Lancement des threads
         """
         def lancement_des_threads():
             threads.AbstractThread.stop_threads = False
             
-            threads.ThreadPosition(self).start()
-            threads.ThreadCapteurs(self).start()
-            self.get_service("timer").start()
+            self.get_service("threads.position").start()
+            self.get_service("threads.capteurs").start()
+            self.get_service("threads.timer").start()
             
             if self.config["lasers_demarrer_thread"]:
-                threads.ThreadLaser(self).start()
+                self.get_service("threads.laser").start()
             
             #attente d'une première mise à jour pour la suite
             robot = self.get_service("robot")
@@ -164,16 +171,39 @@ class Container:
             if hasattr(serie.peripheriques["asservissement"],'serie'):
                 lancement_des_threads()
     
-    def _stop_threads(self):
+    def stop_threads(self):
+        """
+        Stoppage des threads lancés (fonction bloquante jusqu'à l'arrêt)
+        """
+        #envoi de l'ordre de fin aux threads
         threads.AbstractThread.stop_threads = True
-        time.sleep(2)
+        
+        #attente de la fin du thread position
+        position = self.get_service("threads.position")
+        if position.is_alive():
+            position.join()
+         
+        #attente de la fin du thread capteurs
+        capteurs = self.get_service("threads.capteurs")
+        if capteurs.is_alive():
+            capteurs.join()
+            
+        #attente de la fin du thread capteurs
+        timer = self.get_service("threads.timer")
+        if timer.is_alive():
+            timer.join()
+            
+        #attente de la fin du thread laser
+        laser = self.get_service("threads.laser")
+        if laser.is_alive():
+            laser.join()
         
     def reset(self):
         """
         Supprime toutes les instances de service et relance le container
         """
-        self._stop_threads()
+        self.stop_threads()
         self.assembler.reset()
         self._chargement_service()
-        self._start_threads()
+        self.start_threads()
         

@@ -22,7 +22,7 @@ class ThreadPosition(AbstractThread):
     def run(self):
         log = self.container.get_service("log")
         robot = self.container.get_service("robot")
-        timer = self.container.get_service("timer")
+        timer = self.container.get_service("threads.timer")
         
         log.debug("lancement du thread de mise à jour")
         
@@ -73,7 +73,7 @@ class ThreadCapteurs(AbstractThread):
         robot = self.container.get_service("robot")
         capteurs = self.container.get_service("capteurs")
         table = self.container.get_service("table")
-        timer = self.container.get_service("timer")
+        timer = self.container.get_service("threads.timer")
 
         log.debug("Lancement du thread de capteurs")
 
@@ -203,7 +203,7 @@ class ThreadLaser(AbstractThread):
         laser = self.container.get_service("laser")
         filtrage = self.container.get_service("filtrage")
         table = self.container.get_service("table")
-        timer = self.container.get_service("timer")
+        timer = self.container.get_service("threads.timer")
 
         log.debug("Lancement du thread des lasers")
 
