@@ -227,8 +227,8 @@ class ScriptCadeaux(Script):
             hooks.append(hook_ouverture)
             
             # Fermeture du bras
-            hook_fermeture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * 50, 250))
-            hook_ouverture += self.hookGenerator.callback(self.robot.fermer_cadeau)
+            hook_fermeture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * 200, 250))
+            hook_fermeture += self.hookGenerator.callback(self.robot.fermer_cadeau)
             hooks.append(hook_fermeture)
 
         # Déplacement le long de la table
