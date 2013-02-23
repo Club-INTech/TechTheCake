@@ -43,10 +43,10 @@ class Simulateur:
         client.service.addEnemy(0, 80, ennemi)
                 
         # Definition des zones des capteurs
-        client.service.addSensor(0,{"list":[{"int":[0,-100]},{"int":[-135.,-1100.]},{"int":[135,-1100]}]}) # infrarouge arrière
-        client.service.addSensor(1,{"list":[{"int":[0,100]},{"int":[-135.,1100.]},{"int":[135,1100]}]})    # infrarouge avant
-        client.service.addSensor(2,{"list":[{"int":[0,-100]},{"int":[-600.,-1600.]},{"int":[600,-1600]}]}) # ultra son arrière
-        client.service.addSensor(3,{"list":[{"int":[0,100]},{"int":[-600.,1600.]},{"int":[600,1600]}]})    # ultra son avant
+        client.service.addSensor(0,{"list":[{"int":[0,-config["largeur_robot"]/2]},{"int":[-135.,-1100.]},{"int":[135,-1100]}]}) # infrarouge arrière
+        client.service.addSensor(1,{"list":[{"int":[0,config["largeur_robot"]/2]},{"int":[-135.,1100.]},{"int":[135,1100]}]})    # infrarouge avant
+        client.service.addSensor(2,{"list":[{"int":[0,-config["largeur_robot"]/2]},{"int":[-600.,-1600.]},{"int":[600,-1600]}]}) # ultra son arrière
+        client.service.addSensor(3,{"list":[{"int":[0,config["largeur_robot"]/2]},{"int":[-600.,1600.]},{"int":[600,1600]}]})    # ultra son avant
         
         # Enregistrement du service SOAP
         self.soap = client.service
