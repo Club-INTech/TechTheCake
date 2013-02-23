@@ -519,9 +519,9 @@ class Robot(RobotInterface):
             if self.config["couleur"] == "bleu":
                 #symétrie du point consigne
                 point.x *= -1
-            self.log.debug("va au point ("+str(point)+") (symétrie appliquée), virage inital : "+str(virage_initial))
+            self.log.debug("va au point ("+str(point)+") (symétrie vérifiée pour le "+self.config["couleur"]+"), virage inital : "+str(virage_initial))
         else:
-            self.log.debug("va au point ("+str(point)+") (sans symétrie), virage inital : "+str(virage_initial))
+            self.log.debug("va au point ("+str(point)+") (sans symétrie pour la couleur), virage inital : "+str(virage_initial))
                 
         retour = self._va_au_point(point.x, point.y, hooks, virage_initial)
         if retour == 1:
