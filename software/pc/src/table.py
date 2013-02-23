@@ -295,7 +295,8 @@ class Table:
         Récupération de la liste des obstacles sur la table
         """
         with self.mutex:
-            return self.robots_adverses + self.obstacles_capteurs
+            obstacles = self.robots_adverses + self.obstacles_capteurs
+            return [obstacle for obstacle in obstacles if obstacle.position is not None]
             
     def creer_obstacle(self, position):
         """

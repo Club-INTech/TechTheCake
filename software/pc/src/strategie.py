@@ -21,8 +21,8 @@ class Strategie:
         for key in self.scripts.keys():
             self.note[key] = 0
 
-        if self.config["ennemi_fait_toutes_bougies"]:
-            del self.scripts["ScriptBougies"]
+#        if self.config["ennemi_fait_toutes_bougies"]: #à décommenter une fois que le script bougies sera fini
+#            del self.scripts["ScriptBougies"]
             
     """
     Boucle qui gère la stratégie, en testant les différents scripts et en exécutant le plus avantageux
@@ -60,19 +60,19 @@ class Strategie:
     """
     def _maj_script(self):
 
-        if self.scripts["ScriptBougies"].score()==0:
+        if "ScriptBougies" in self.scripts and self.scripts["ScriptBougies"].score()==0:
             del self.script["ScriptBougies"]
             del self.note["ScriptBougies"]
 
-        if self.scripts["ScriptRecupererVerres"].score()==0:
+        if "ScriptRecupererVerres" in self.scripts and self.scripts["ScriptRecupererVerres"].score()==0:
             del self.script["ScriptRecupererVerres"]
             del self.note["ScriptRecupererVerres"]
 
-        if self.scripts["ScriptCadeaux"].score()==0:
+        if "ScriptCadeaux" in self.scripts and self.scripts["ScriptCadeaux"].score()==0:
             del self.script["ScriptCadeaux"]
             del self.note["ScriptCadeaux"]
 
-        if self.scripts["ScriptDeposerVerres"].score()==0 and self.scripts["ScriptRecupererVerres"].score()==0:
+        if "ScriptDeposerVerres" in self.scripts and "ScriptRecupererVerres" in self.scripts and self.scripts["ScriptDeposerVerres"].score()==0 and self.scripts["ScriptRecupererVerres"].score()==0:
             del self.script["ScriptDeposerVerres"]
             del self.note["ScriptDeposerVerres"]
 
@@ -107,11 +107,9 @@ class Strategie:
         distance_min=3000 #une distance très grande, borne sup de la valeur renvoyée.
 
         for obstacle in self.table.obstacles():
-            self.log.debug("Position d'un obstacle: "+str(obstacle.position))
-            if str(obstacle) == "None":                                         #ceci est TRES MOCHE et devra être rectifié dans un avenir proche
-                d = Point.distance(point_entree, obstacle.position)
-                if d < distance_min:
-                    distance_min = d
+            d = point_entree.distance(obstacle.position)
+            if d < distance_min:
+                distance_min = d
 
         return distance_min
 

@@ -24,7 +24,7 @@ class RobotInterface(metaclass=abc.ABCMeta):
         pass
             
     @abc.abstractmethod
-    def va_au_point(self,consigne_x,consigne_y,**useless):
+    def va_au_point(self,point_consigne,**useless):
         pass
     
     @abc.abstractmethod
@@ -129,9 +129,9 @@ class RobotChrono(RobotInterface):
         for position in chemin:
             self.va_au_point(position.x, position.y)
             
-    def va_au_point(self,consigne_x,consigne_y,hooks=[], virage_initial=False):
-        delta_x = consigne_x-self.x
-        delta_y = consigne_y-self.y
+    def va_au_point(self, point_consigne, hooks=[], virage_initial=False):
+        delta_x = point_consigne.x-self.x
+        delta_y = point_consigne.y-self.y
         distance = round(sqrt(delta_x**2 + delta_y**2),2)
         angle = round(atan2(delta_y,delta_x),4)
         self.tourner(angle)

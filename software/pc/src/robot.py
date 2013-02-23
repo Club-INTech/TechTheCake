@@ -506,7 +506,7 @@ class Robot(RobotInterface):
         for position in chemin:
             self.va_au_point(position.x, position.y, hooks)
             
-    def va_au_point(self, x, y, hooks=[], virage_initial=False):
+    def va_au_point(self, point, hooks=[], virage_initial=False):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.
         Elle permet de parcourir un segment : le robot se rend en (x,y) en corrigeant dynamiquement ses consignes en rotation et translation.
@@ -518,12 +518,12 @@ class Robot(RobotInterface):
         if self.effectuer_symetrie:
             if self.config["couleur"] == "bleu":
                 #symétrie du point consigne
-                x *= -1
-            self.log.debug("va au point ("+str(x)+", "+str(y)+") (symétrie appliquée), virage inital : "+str(virage_initial))
+                point.x *= -1
+            self.log.debug("va au point ("+str(point)+") (symétrie appliquée), virage inital : "+str(virage_initial))
         else:
-            self.log.debug("va au point ("+str(x)+", "+str(y)+") (sans symétrie), virage inital : "+str(virage_initial))
+            self.log.debug("va au point ("+str(point)+") (sans symétrie), virage inital : "+str(virage_initial))
                 
-        retour = self._va_au_point(x, y, hooks, virage_initial)
+        retour = self._va_au_point(point.x, point.y, hooks, virage_initial)
         if retour == 1:
             print("point de destination atteint !")
         elif retour == 2:
