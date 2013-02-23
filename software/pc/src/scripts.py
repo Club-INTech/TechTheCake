@@ -107,19 +107,18 @@ class ScriptManager:
                 self.scripts[nom] = obj()
                 self.scripts[nom].dependances(config, log, robot, robotChrono, hookGenerator, rechercheChemin, table)
 
-"""
 class ScriptBougies(Script):
-    """"""
+    """
     exemple de classe de script pour les bougies
     hérite de la classe mère Script
-    """"""
+    """
             
     def executer(self,sens):
-        """"""
+        """
         Traite le maximum de bougies possibles en partant d'un point d'entrée, et suivant 
         sens : +1 de droite a gauche et -1 de gauche a droite
-        """"""
-
+        """
+        return None
         #pour les tests
         gateauEnBas = False
         
@@ -201,7 +200,6 @@ class ScriptBougies(Script):
             if not element["couleur"]=="red" and not element["traitee"]: #la condition sur la couleur est pipeau
                 point+=4
         return point
-"""
     
 class ScriptCadeaux(Script):
         
@@ -215,8 +213,9 @@ class ScriptCadeaux(Script):
         self.robot.va_au_point(self.info_versions[version]["point_entree"])
         
         # Orientation du robot
-        self.robot.set_marche_arriere(self.info_versions[version]["marche_arriere"])
-        
+        self.robot.marche_arriere = self.info_versions[version]["marche_arriere"]
+        #robot.effectuer_symetrie      
+          
         # Création des hooks pour tous les cadeaux à activer
         hooks = []
         for cadeau in self.table.cadeaux_restants():
@@ -228,8 +227,10 @@ class ScriptCadeaux(Script):
             hooks.append(hook_ouverture)
             
             # Fermeture du bras
-            #hooks.append(self.hookGenerator.get_hook("position", cadeau["position"] + Point(sens * 200, 250), self.robot.fermer_cadeau))
-            
+            hook_fermeture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * 50, 250))
+            hook_ouverture += self.hookGenerator.callback(self.robot.fermer_cadeau)
+            hooks.append(hook_fermeture)
+
         # Déplacement le long de la table
         self.robot.va_au_point(self.info_versions[1-version]["point_entree"], hooks)
 
