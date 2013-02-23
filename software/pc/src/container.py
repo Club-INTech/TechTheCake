@@ -99,9 +99,9 @@ class Container:
         else:
             
             #service vide pour créer le service `serie`. Ne sera pas utilisé.
-            def voidFactory():
+            def make_none():
                 return None
-            self.assembler.register("serieReelle", None, requires=[], factory=voidFactory)
+            self.assembler.register("serieReelle", None, requires=[], factory=make_none)
             
         #service de la série simulée si besoin :
         if not self.config["cartes_simulation"] == ['']:
@@ -124,10 +124,10 @@ class Container:
             self.assembler.register("table", table.Table, requires=["config","log"])
             self.assembler.register("hookGenerator", hooks.HookGenerator, requires=["config","log"])
             
-            def voidFactory():
+            def make_none():
                 return None
             #service vide pour créer le service `serie`. Ne sera pas utilisé.
-            self.assembler.register("serieSimulation", None, requires=[], factory=voidFactory)
+            self.assembler.register("serieSimulation", None, requires=[], factory=make_none)
             
         #service générique de série, qui redirige vers le service approprié (série réelle ou simulée)
         self.assembler.register("serie", serie.Serie, requires=["serieReelle", "serieSimulation", "config", "log"])
