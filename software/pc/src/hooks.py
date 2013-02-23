@@ -10,7 +10,8 @@ class Hook:
     elle stocke en attribut le callback (action à effectuer), ses paramètres (dans args)
     et un booléen unique spécifiant si le hook ne doit etre executé qu'une seule fois (valeur par défaut)
     """
-    def __init__(self, log):
+    def __init__(self, config, log):
+        self._config = config
         self._log = log
         self._callbacks = []
         
@@ -40,8 +41,10 @@ class HookPosition(Hook):
     Classe des Hooks ayant pour condition une position du robot sur la table.
     La méthode evaluate() effectue l'action (callback) si le robot est dans un disque de tolérance centré sur position.
     """
-    def __init__(self, log, position, tolerance_mm):
-        Hook.__init__(self, log)
+    def __init__(self, config, log, position, tolerance_mm):
+        Hook.__init__(self, config, log)
+        if self._config["couleur"] == "bleu":
+            position.x *= -1
         self.position_hook = position
         self.tolerance_mm = tolerance_mm
         
@@ -54,9 +57,8 @@ class HookOrientation(Hook):
     Classe des Hooks ayant pour condition une orientation absolue du robot sur la table.
     La méthode evaluate() effectue l'action (callback) si l'orientation du robot est dans un arc de tolérance autour de orientation.
     """
-    def __init__(self, orientation, unique, callback,*args):
-        Hook.__init__(self,unique, callback,args)
-        #angle déclencheur
+    def __init__(self, config, log, orientation, unique, callback,*args):
+        Hook.__init__(self, config, log)
         self.orientation_hook = orientation
         
     def evaluate(self,robotOrientation,**useless):
