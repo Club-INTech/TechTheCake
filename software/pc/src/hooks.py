@@ -98,7 +98,7 @@ class HookGenerator():
         if tolerance_mm == None:
             tolerance_mm = self.config["hooks_tolerance_mm"]
             
-        return HookPosition(self.log, position, tolerance_mm)
+        return HookPosition(self.config, self.log, position, tolerance_mm)
         
     def callback(self, fonction, arguments=(), unique=True):
         return Callback(fonction, arguments, unique)
