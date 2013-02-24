@@ -269,18 +269,14 @@ class ScriptBougies(Script):
 class ScriptCadeaux(Script):
         
     def _execute(self, version):
-        # A TERMINER APRES REFLEXIONS SUR LE SENS DE PARCOURS
 
         sens = self.info_versions[version]["sens"]
-        self.log.debug("Va au point: "+str(self.info_versions[version]["point_entree"]))
-
-
         self.robot.va_au_point(self.info_versions[version]["point_entree"])
         
         # Orientation du robot
         self.robot.marche_arriere = self.info_versions[version]["marche_arriere"]
-        #robot.effectuer_symetrie      
-          
+        self.robot.effectuer_symetrie = True
+
         # Création des hooks pour tous les cadeaux à activer
         hooks = []
         for cadeau in self.table.cadeaux_restants():
@@ -296,11 +292,15 @@ class ScriptCadeaux(Script):
             hook_fermeture += self.hookGenerator.callback(self.robot.fermer_cadeau)
             hooks.append(hook_fermeture)
 
+        # La dernière fermeture du bras n'est pas attachée à une position
+        hooks.pop()
+
         # Déplacement le long de la table
         self.robot.va_au_point(self.info_versions[1-version]["point_entree"], hooks)
+        self.robot.tourner(math.pi / 2)
+        self.robot.fermer_cadeau()
 
     def versions(self):
-        self.info_versions = []
         self.decalage_gauche = Point(-100,250)
         self.decalage_droit = Point(100,250)
         
@@ -309,21 +309,19 @@ class ScriptCadeaux(Script):
         
         if cadeaux == []:
             return []
-        elif len(cadeaux) == 1:
-            self.info_versions = [
-                {"point_entree": cadeaux[0]["position"]+self.decalage_gauche, "sens": 1, "marche_arriere": not marche_arriere},
-                {"point_entree": cadeaux[0]["position"]+self.decalage_droit, "sens": -1, "marche_arriere": marche_arriere}
-            ]
+
+        # S'il n'y a plus qu'un seul cadeau, cadeaux contient quand même deux éléments
         elif cadeaux[0]["position"].x < cadeaux[1]["position"].x:
             self.info_versions = [
                 {"point_entree": cadeaux[0]["position"]+self.decalage_gauche, "sens": 1, "marche_arriere": not marche_arriere},               
                 {"point_entree": cadeaux[1]["position"]+self.decalage_droit, "sens": -1, "marche_arriere": marche_arriere}
             ]
-        else:           
+        else:
             self.info_versions = [
                 {"point_entree": cadeaux[0]["position"]+self.decalage_droit, "sens": -1, "marche_arriere": marche_arriere},
                 {"point_entree": cadeaux[1]["position"]+self.decalage_gauche, "sens": 1, "marche_arriere": not marche_arriere}
             ]
+
         return [0, 1]
         
     def point_entree(self, id_version):
@@ -381,12 +379,4 @@ class ScriptRecupererVerres(Script): #contenu pipeau
             if element["present"]:       #à pondérer si l'ascenseur est plutôt plein ou plutôt vide
                 point+=6 #à tirer vers le haut pour les faire en début de partie (et ensuite baisser les points par incertitude?)
 """
-
-class TestScript(unittest.TestCase):
-    
-    def setUp(self):
-        pass
-
-    def test_shuffle(self):
-        self.assertTrue(True)
 
