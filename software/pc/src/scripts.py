@@ -127,7 +127,9 @@ class ScriptBougies(Script):
         delta_angle_lever_bras = 30 / rayon_bras
         hooks = []
         
-        for bougie in self.table.bougies_restantes():
+        # Récupération des bougies restantes dans notre couleur
+        couleur = self.table.COULEUR_BOUGIE_ROUGE
+        for bougie in self.table.bougies_restantes(couleur):
             
             # Baisser le bras
             point_baisser_bras = self._correspondance_point_angle(bougie["position"] + delta_angle_baisser_bras)
