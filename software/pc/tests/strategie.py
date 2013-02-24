@@ -10,29 +10,30 @@ class TestStrategie(tests.tests.ContainerTest):
         strategie = self.get_service("strategie")
         scripts["ScriptCadeaux"].versions()
 
-        print("Droit")
         note_cadeau_droit = strategie._noter_script("ScriptCadeaux", 0)
-        print(note_cadeau_droit)
-        print("Gauche")
         note_cadeau_gauche = strategie._noter_script("ScriptCadeaux", 1)
-        print(note_cadeau_gauche)
         self.assertTrue(note_cadeau_droit > note_cadeau_gauche)
 
         robot.avancer(1000)
 
         note_cadeau_droit = strategie._noter_script("ScriptCadeaux", 0)
         note_cadeau_gauche = strategie._noter_script("ScriptCadeaux", 1)
-        print(note_cadeau_droit)
-        print(note_cadeau_gauche)
         self.assertTrue(note_cadeau_droit > note_cadeau_gauche)
 
-        robot.avancer(1000)
+        robot.avancer(500)
 
         note_cadeau_droit = strategie._noter_script("ScriptCadeaux", 0)
         note_cadeau_gauche = strategie._noter_script("ScriptCadeaux", 1)
-        print(note_cadeau_droit)
-        print(note_cadeau_gauche)
         self.assertTrue(note_cadeau_droit < note_cadeau_gauche)
+        
+        simulateur = self.get_service("simulateur")
+        simulateur.addEnemy(0, 80)
+        simulateur.scriptEnemyPosition(0, {"list":[{"float":[robot.x-500,robot.y]}]})
+        simulateur.startEnemyScript(0)
+
+        note_cadeau_droit = strategie._noter_script("ScriptCadeaux", 0)
+        note_cadeau_gauche = strategie._noter_script("ScriptCadeaux", 1)
+        self.assertTrue(note_cadeau_droit > note_cadeau_gauche)
 
     def test_executer(self):
         table = self.get_service("table")
