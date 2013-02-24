@@ -69,11 +69,11 @@ class Script(metaclass=abc.ABCMeta):
         self.robot.reset_compteur()
         self.robot.maj_x_y_o(self.robotVrai.x, self.robotVrai.y, self.robotVrai.orientation)
         if type(params) is tuple:
-            self.executer(*params)
+            self._execute(*params)
         elif params is None:
-            self.executer()
+            self._execute()
         else:
-            self.executer(params)
+            self._execute(params)
         return self.robot.get_compteur()
 
     @abc.abstractmethod
