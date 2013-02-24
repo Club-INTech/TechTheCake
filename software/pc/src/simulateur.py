@@ -40,7 +40,8 @@ class Simulateur:
             client.service.setRobotPosition(1200,300)
                     
         # Déclaration d'un robot adverse
-        client.service.addEnemy(0, 80, ennemi)
+        if config["activer_ennemi_principal"]:
+            client.service.addEnemy(0, 80, ennemi)
                 
         # Definition des zones des capteurs
         client.service.addSensor(0,{"list":[{"int":[0,-config["largeur_robot"]/2]},{"int":[-135.,-1100.]},{"int":[135,-1100]}]}) # infrarouge arrière
