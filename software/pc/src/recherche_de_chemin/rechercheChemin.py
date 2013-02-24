@@ -158,7 +158,9 @@ class RechercheChemin:
         """
         cercleObstacle = enlarge.elargit_cercle(Cercle(centre,rayon),self.rayonPropre)
         self.environnement_initial.ajoute_cercle(cercleObstacle)
-        self._recouper_aux_bords_table(-1,self.environnement_initial)
+        troncPolygon = self._recouper_aux_bords_table(-1,self.environnement_initial)
+        self.environnement_initial.polygones[-1] = troncPolygon
+        self.environnement_initial.cercles[-1] = cercleObstacle
     
     def _ajoute_obstacle_initial_rectangle(self, rectangle):
         """
@@ -168,7 +170,9 @@ class RechercheChemin:
         polygoneVisilibity = Polygone(list(map(lambda p: Point(p.x,p.y), rectangle)))
         rectangleObstacle = enlarge.elargit_rectangle(polygoneVisilibity, self.rayonPropre)
         self.environnement_initial.ajoute_rectangle(rectangleObstacle)
-        self._recouper_aux_bords_table(-1,self.environnement_initial)
+        troncPolygon = self._recouper_aux_bords_table(-1,self.environnement_initial)
+        self.environnement_initial.polygones[-1] = troncPolygon
+        self.environnement_initial.cercles[-1] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
         
     def _ajoute_obstacle_initial_polygone(self, polygone):
         """
@@ -178,7 +182,9 @@ class RechercheChemin:
         polygoneVisilibity = Polygone(list(map(lambda p: Point(p.x,p.y), polygone)))
         polygoneObstacle = enlarge.elargit_polygone(polygoneVisilibity, self.rayonPropre, Environnement.cote_polygone)
         self.environnement_initial.ajoute_polygone(polygoneObstacle)
-        self._recouper_aux_bords_table(-1,self.environnement_initial)
+        troncPolygon = self._recouper_aux_bords_table(-1,self.environnement_initial)
+        self.environnement_initial.polygones[-1] = troncPolygon
+        self.environnement_initial.cercles[-1] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
         
     def _recouper_aux_bords_table(self,id,environnement):
         """
@@ -316,8 +322,7 @@ class RechercheChemin:
             
         #remplacement du polygone par sa version tronquée
         troncPolygon = Polygone(troncateObstacle)
-        environnement.polygones[id] = troncPolygon
-        environnement.cercles[id] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
+        return troncPolygon
         
     def _fusionner_avec_obstacles_en_contact(self,sEstDejaRetrouveEnferme=False):
         #teste le dernier polygone ajouté avec tous les autres, en les parcourant par id décroissant
@@ -502,7 +507,9 @@ class RechercheChemin:
         """
         cercleObstacle = enlarge.elargit_cercle(Cercle(centre,rayon),self.rayonPropre)
         self.environnement_complet.ajoute_cercle(cercleObstacle)
-        self._recouper_aux_bords_table(-1,self.environnement_complet)
+        troncPolygon = self._recouper_aux_bords_table(-1,self.environnement_complet)
+        self.environnement_complet.polygones[-1] = troncPolygon
+        self.environnement_complet.cercles[-1] = cercleObstacle
         self._fusionner_avec_obstacles_en_contact()
         
     def ajoute_obstacle_polygone(self, polygone):
@@ -513,7 +520,9 @@ class RechercheChemin:
         polygoneVisilibity = Polygone(list(map(lambda p: Point(p.x,p.y), polygone)))
         polygoneObstacle = enlarge.elargit_polygone(polygoneVisilibity, self.rayonPropre, Environnement.cote_polygone)
         self.environnement_complet.ajoute_polygone(polygoneObstacle)
-        self._recouper_aux_bords_table(-1,self.environnement_complet)
+        troncPolygon = self._recouper_aux_bords_table(-1,self.environnement_complet)
+        self.environnement_complet.polygones[-1] = troncPolygon
+        self.environnement_complet.cercles[-1] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
         self._fusionner_avec_obstacles_en_contact()
         
     def ajoute_obstacle_rectangle(self, rectangle):
@@ -525,7 +534,9 @@ class RechercheChemin:
         polygoneVisilibity = Polygone(list(map(lambda p: Point(p.x,p.y), rectangle)))
         rectangleObstacle = enlarge.elargit_rectangle(polygoneVisilibity, self.rayonPropre)
         self.environnement_complet.ajoute_rectangle(rectangleObstacle)
-        self._recouper_aux_bords_table(-1,self.environnement_complet)
+        troncPolygon = self._recouper_aux_bords_table(-1,self.environnement_complet)
+        self.environnement_complet.polygones[-1] = troncPolygon
+        self.environnement_complet.cercles[-1] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
         self._fusionner_avec_obstacles_en_contact()
             
     def retirer_obstacles_dynamiques(self):
@@ -538,7 +549,7 @@ class RechercheChemin:
     def preparer_environnement(self):
         haut_gauche = int(-self.config["table_x"]/2), int(self.config["table_y"])
         bas_droite = int(self.config["table_x"]/2), int(0)
-        self.graphe_table = aStar.AStar.creer_graphe(haut_gauche, bas_droite, self.environnement_complet.polygones)
+        self.graphe_table = aStar.AStar.creer_graphe(haut_gauche, bas_droite, self.environnement_complet.cercles)
         
     def get_obstacles(self):
         """
