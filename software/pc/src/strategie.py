@@ -36,13 +36,11 @@ class Strategie:
 
         while not self.timer.get_fin_match():
 #            self.rechercheChemin.retirer_obstacles_dynamique();
-            self._maj_script()
             self.rechercheChemin.preparer_environnement()
 
             for script in self.scripts:
                 liste_versions = self.scripts[script].versions()
                 for version in liste_versions:
-                    self.log.debug("Notation du script "+script)
                     self.note[script]=self._noter_script(script, self.scripts[script].point_entree(version))
                     self.log.debug("Note du script "+script+": "+str(self.note[script]))
 
@@ -61,27 +59,6 @@ class Strategie:
         self.log.debug("Arrêt de la stratégie.")
 
     """
-    Met à jour les points et retire les scripts qui ne peuvent plus en rapporter
-    """
-    def _maj_script(self):
-
-        if "ScriptBougies" in self.scripts and self.scripts["ScriptBougies"].score()==0:
-            del self.script["ScriptBougies"]
-            del self.note["ScriptBougies"]
-
-        if "ScriptRecupererVerres" in self.scripts and self.scripts["ScriptRecupererVerres"].score()==0:
-            del self.script["ScriptRecupererVerres"]
-            del self.note["ScriptRecupererVerres"]
-
-        if "ScriptCadeaux" in self.scripts and self.scripts["ScriptCadeaux"].score()==0:
-            del self.script["ScriptCadeaux"]
-            del self.note["ScriptCadeaux"]
-
-        if "ScriptDeposerVerres" in self.scripts and "ScriptRecupererVerres" in self.scripts and self.scripts["ScriptDeposerVerres"].score()==0 and self.scripts["ScriptRecupererVerres"].score()==0:
-            del self.script["ScriptDeposerVerres"]
-            del self.note["ScriptDeposerVerres"]
-
-    """
     Note un script (en fonction du nombre de points qu'il peut rapporter, de la position de l'ennemi et de sa durée)
     """
     def _noter_script(self, script, point_entree):
@@ -94,17 +71,17 @@ class Strategie:
 
         #pour prendre les verres, on ajoute à durée script le temps de déposer les verres
         if script=="ScriptRecupererVerres" and dureeScript+deposer_verre.calcule()>(self.config["temps_match"]-time()+self.timer.get_date_debut()):
-            self.log.critical("Plus le temps de prendre des verres, on n'aurait pas le temps de les déposer.")
+            self.log.warning("Plus le temps de prendre des verres, on n'aurait pas le temps de les déposer.")
             return 0
         elif not dureeScript<(self.config["temps_match"]-time()+self.timer.get_date_debut()): #si on a le temps de faire l'action avant la fin du match
-            self.log.critical("Plus le temps d'exécuter "+script)
+            self.log.warning("Plus le temps d'exécuter "+script)
             return 0
         else:
             distanceE=self._distance_ennemi(point_entree)+1 #le +1 est pour empêcher la division par 0
             try:
                 return 1000000000*(self.scripts[script].score())/(dureeScript*dureeScript*dureeScript*distanceE*distanceE)
             except ZeroDivisionError:
-                self.log.critical("Division par zéro dans le calcul de la note! :o") #sait-on jamais... je préfère ne pas prendre le risque de voir le robot se paralyser bêtement
+                self.log.critical("Division par zéro dans le calcul de la note de "+script+"! :o") #sait-on jamais... je préfère ne pas prendre le risque de voir le robot se paralyser bêtement
                 return self.scripts[script].score()
 
 
