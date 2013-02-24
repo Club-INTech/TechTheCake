@@ -128,8 +128,7 @@ class ScriptBougies(Script):
         hooks = []
         
         # Récupération des bougies restantes dans notre couleur
-        couleur = self.table.COULEUR_BOUGIE_ROUGE
-        for bougie in self.table.bougies_restantes(couleur):
+        for bougie in self.table.bougies_restantes(self.couleur_a_traiter):
             
             # Baisser le bras
             point_baisser_bras = self._correspondance_point_angle(bougie["position"] + delta_angle_baisser_bras)
@@ -231,6 +230,7 @@ class ScriptBougies(Script):
         - 2 versions sinon, où le gateau est parcouru dans un sens différent en validant toutes les bougies restantes
         """
         # Récupération des bougies restantes
+        self.couleur_a_traiter = self.table.COULEUR_BOUGIE_ROUGE if self.config["couleur"] == "rouge" else self.table.COULEUR_BOUGIE_BLEU
         bougies = self.table.bougies_entrees()
         
         # Cas où toutes les bougies sont déjà validées
