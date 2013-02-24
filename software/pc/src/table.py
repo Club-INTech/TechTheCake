@@ -30,6 +30,11 @@ class ObstacleCapteur(Obstacle):
        
 class Table:
     
+    COULEUR_BOUGIE_INCONNUE = 1
+    COULEUR_BOUGIE_BLANC = 2
+    COULEUR_BOUGIE_ROUGE = 4
+    COULEUR_BOUGIE_BLEU = 8
+    
     def __init__(self, config, log):
     
         self.config = config
@@ -54,31 +59,6 @@ class Table:
         # Vide si plus aucun cadeau à valider
         self.points_entree_cadeaux = [0,3]
         
-        """
-        self.bougies = [
-            {"position":-3.010, "traitee":False, "enHaut":False},
-            {"position":-2.945, "traitee":False, "enHaut":True},
-            {"position":-2.748, "traitee":False, "enHaut":False},
-            {"position":-2.552, "traitee":False, "enHaut":True},
-            {"position":-2.487, "traitee":False, "enHaut":False},
-            {"position":-2.225, "traitee":False, "enHaut":False},
-            {"position":-2.159, "traitee":False, "enHaut":True},
-            {"position":-1.963, "traitee":False, "enHaut":False},
-            {"position":-1.767, "traitee":False, "enHaut":True},
-            {"position":-1.701, "traitee":False, "enHaut":False},
-            {"position":-1.440, "traitee":False, "enHaut":False},
-            {"position":-1.374, "traitee":False, "enHaut":True},
-            {"position":-1.178, "traitee":False, "enHaut":False},
-            {"position":-0.982, "traitee":False, "enHaut":True},
-            {"position":-0.916, "traitee":False, "enHaut":False},
-            {"position":-0.654, "traitee":False, "enHaut":False},
-            {"position":-0.589, "traitee":False, "enHaut":True},
-            {"position":-0.393, "traitee":False, "enHaut":False},
-            {"position":-0.196, "traitee":False, "enHaut":True},
-            {"position":-0.131, "traitee":False, "enHaut":False}
-        ]
-        """
-        
         # Indique les points d'entrée sur les bougies
         # Contient les 2 indices des bougies aux extrémités du gateau (même si plus qu'une bougie)
         # Vide si plus aucune bougie à valider
@@ -86,6 +66,31 @@ class Table:
         
         # La position des bougies est codée en pôlaire depuis le centre du gâteau :
         # (rayon, angle depuis la verticale), elles sont ordonnées par ordre croissant d'angle.
+        """
+        self.bougies = [
+            {"id": 0, "position":-3.010, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 1, "position":-2.945, "traitee":False, "couleur":"?", "enHaut":True},
+            {"id": 2, "position":-2.748, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 3, "position":-2.552, "traitee":False, "couleur":"?", "enHaut":True},
+            {"id": 4, "position":-2.487, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 5, "position":-2.225, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 6, "position":-2.159, "traitee":False, "couleur":"?", "enHaut":True},
+            {"id": 7, "position":-1.963, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 8, "position":-1.767, "traitee":False, "couleur":"?", "enHaut":True},
+            {"id": 9, "position":-1.701, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 10, "position":-1.440, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 11, "position":-1.374, "traitee":False, "couleur":"?", "enHaut":True},
+            {"id": 12, "position":-1.178, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 13, "position":-0.982, "traitee":False, "couleur":"?", "enHaut":True},
+            {"id": 14, "position":-0.916, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 15, "position":-0.654, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 16, "position":-0.589, "traitee":False, "couleur":"?", "enHaut":True},
+            {"id": 17, "position":-0.393, "traitee":False, "couleur":"?", "enHaut":False},
+            {"id": 18, "position":-0.196, "traitee":False, "couleur":"?", "enHaut":True},
+            {"id": 19, "position":-0.131, "traitee":False, "couleur":"?", "enHaut":False}
+        ]
+        """
+        
         self.bougies = [
             {"id": 0, "position":3.010, "traitee":False, "couleur":"?", "enHaut":False},
             {"id": 1, "position":2.945, "traitee":False, "couleur":"?", "enHaut":True},
@@ -108,7 +113,8 @@ class Table:
             {"id": 18, "position":0.196, "traitee":False, "couleur":"?", "enHaut":True},
             {"id": 19, "position":0.131, "traitee":False, "couleur":"?", "enHaut":False}
         ]
-
+        
+        
         # Le premier correspond à celui le plus en haut à gauche et le dernier le plus en bas à droite.
         self.verres = [
             {"id": 0, "position": Point(600,1050), "present":True},

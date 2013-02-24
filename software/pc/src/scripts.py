@@ -18,7 +18,7 @@ class Script(metaclass=abc.ABCMeta):
     classe mère des scripts
     se charge des dépendances
     """
-    def dependances(self, config, log, robot, robotChrono, hookGenerator, rechercheChemin, table):
+    def dependances(self, config, log, robot, robotChrono, hookGenerator, rechercheChemin, table, simulateur):
         """
         Gère les services nécessaires aux scripts. On n'utilise pas de constructeur.
         """
@@ -29,6 +29,7 @@ class Script(metaclass=abc.ABCMeta):
         self.config = config
         self.log = log
         self.table = table
+        self.simulateur = simulateur
         
     def va_au_point(self,position):
         """
@@ -94,7 +95,7 @@ class Script(metaclass=abc.ABCMeta):
              
 class ScriptManager:
     
-    def __init__(self, config, log, robot, robotChrono, hookGenerator, rechercheChemin, table):
+    def __init__(self, config, log, robot, robotChrono, hookGenerator, rechercheChemin, table, simulateur):
         import inspect, sys
         self.log = log
         self.scripts = {}
@@ -106,21 +107,46 @@ class ScriptManager:
             if Script in heritage and obj != Script:
                 print(nom)
                 self.scripts[nom] = obj()
-                self.scripts[nom].dependances(config, log, robot, robotChrono, hookGenerator, rechercheChemin, table)
+                self.scripts[nom].dependances(config, log, robot, robotChrono, hookGenerator, rechercheChemin, table, simulateur)
 
 class ScriptBougies(Script):
-    """
-    exemple de classe de script pour les bougies
-    hérite de la classe mère Script
-    """
+   
+    def _execute(self, version):
+
+        # Il n'y a aucune symétrie sur la couleur dans les déplacements
+        self.robot.effectuer_symetrie = False
+        
+        # Déplacement vers le point d'entrée
+        entree = self.info_versions[version]["point_entree"]
+        sortie = self.info_versions[1-version]["point_entree"]
+        self.robot.va_au_point(entree)
+        
+        # Hooks sur chaque bougie à enfoncer
+        rayon_bras = float(500 + self.config["distance_au_gateau"])
+        delta_angle_baisser_bras = -15 / rayon_bras
+        delta_angle_lever_bras = 30 / rayon_bras
+        hooks = []
+        
+        for bougie in self.table.bougies_restantes():
             
-    def _execute(self, sens):
+            # Baisser le bras
+            point_baisser_bras = self._correspondance_point_angle(bougie["position"] + delta_angle_baisser_bras)
+            hook_baisser_bras = self.hookGenerator.hook_position(point_baisser_bras)
+            hook_baisser_bras += self.hookGenerator.callback(self.robot.traiter_bougie, (bougie["enHaut"],))
+            hook_baisser_bras += self.hookGenerator.callback(self.table.bougie_recupere, (bougie,))
+            hooks.append(hook_baisser_bras)
+            
+            # Lever le bras
+            #~ point_lever_bras = self._correspondance_point_angle(bougie["position"] + delta_angle_lever_bras)
+            #~ hook_lever_bras = self.hookGenerator.hook_position(point_lever_bras)
+            #~ hook_lever_bras += self.hookGenerator.callback(self.robot.initialiser_bras_bougie(bougie["enHaut"]))
+            #~ hooks.append(hook_lever_bras)
+        
+        # Lancement de l'arc de cercle
+        self.robot.marche_arriere = self.info_versions[version]["marche_arriere"]
+        self.robot.arc_de_cercle(sortie.x, sortie.y, hooks)
+        
         """
-        Traite le maximum de bougies possibles en partant d'un point d'entrée, et suivant 
-        sens : +1 de droite a gauche et -1 de gauche a droite
-        """
-        return None
-        #pour les tests
         gateauEnBas = False
         
         rayonAuBras = float(500+self.config["distance_au_gateau"])
@@ -188,12 +214,48 @@ class ScriptBougies(Script):
             if self.table.bougies[id]["traitee"]:
                 print(str(id))
         print("...enfin j'crois...")
+        """
+    def _correspondance_point_angle(self, angle):
+        """
+        Retourne le point sur la table correspondant à un angle de bougie
+        """
+        rayon = 500 + self.config["distance_au_gateau"] + self.config["longueur_robot"] / 2
+        return Point(0, 2000) - Point(rayon * math.cos(angle), rayon * math.sin(angle))
 
     def versions(self):
-        return []
+        """
+        Récupération des versions du script
+        - [] si aucune bougie à valider
+        - 2 versions sinon, où le gateau est parcouru dans un sens différent en validant toutes les bougies restantes
+        """
+        # Récupération des bougies restantes
+        bougies = self.table.bougies_entrees()
+        
+        # Cas où toutes les bougies sont déjà validées
+        if bougies == []:
+            return []
+            
+        # Cas où il reste au moins une bougie
+        delta_angle = -20 / float(500 + self.config["distance_au_gateau"])
+        self.info_versions = [
+            {
+                "angle_entree": bougies[0]["position"] - delta_angle,
+                "point_entree": self._correspondance_point_angle(bougies[0]["position"] - delta_angle),
+                "marche_arriere": True,
+                "sens": 1
+            },               
+            {
+                "angle_entree": bougies[1]["position"] + delta_angle,
+                "point_entree": self._correspondance_point_angle(bougies[1]["position"] + delta_angle),
+                "marche_arriere": False,
+                "sens": -1
+            }
+        ]
+        
+        return [0, 1]
         
     def point_entree(self, id_version):
-        pass
+        return self.info_versions[id_version]["point_entree"]
         
     def score(self):
         point=0
@@ -266,11 +328,7 @@ class ScriptCadeaux(Script):
         return self.info_versions[id_version]["point_entree"]
                 
     def score(self):
-        point = 0
-        for element in self.table.cadeaux:
-            if not element["ouvert"]:
-                point += 4
-        return point
+        return 4 * len(self.table.cadeaux_restants())
 
 """        
 class ScriptCasserTour(Script):

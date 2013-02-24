@@ -15,7 +15,7 @@ class Actionneurs :
     def gonfler_ballon(self) :
         self.log.debug("Gonflage du ballon")
         
-    def initialiser_bras_bougie(self,enHaut) : 
+    def initialiser_bras_bougie(self, enHaut) : 
         if enHaut:
             self.log.debug("Relève l'actionneur bougie du haut")
             self.serie.communiquer("actionneur_bougies",["haut",67],0)
@@ -23,7 +23,7 @@ class Actionneurs :
             self.log.debug("Relève l'actionneur bougie du bas")
             self.serie.communiquer("actionneur_bougies",["bas",80],0)
 
-    def enfoncer_bougie(self,enHaut) :
+    def enfoncer_bougie(self, enHaut) :
         if enHaut:
             self.log.debug("Enfonce une bougie avec l'actionneur du haut")
             self.serie.communiquer("actionneur_bougies",["haut",85],0)

@@ -328,20 +328,20 @@ class Robot(RobotInterface):
         ######################
         ##si gateau en haut :
         ##sens de parcours
-        #if xM < self.x:
-            #pas *= -1
+        if xM < self.x:
+            pas *= -1
         ##centre du cercle
-        #xO = 0
-        #yO = 2000
+        xO = 0
+        yO = 2000
         
         ####################
         #si gateau en bas :
         #sens de parcours
-        if xM > self.x:
-            pas *= -1
-        #centre du cercle
-        xO = 0
-        yO = 0
+        #~ if xM > self.x:
+            #~ pas *= -1
+        #~ #centre du cercle
+        #~ xO = 0
+        #~ yO = 0
         
         #rayon du cercle
         r = float(sqrt((self.x-xO)**2+(self.y-yO)**2))
@@ -648,17 +648,11 @@ class Robot(RobotInterface):
         self.deplacements.set_vitesse_rotation(valeur)
         self.vitesse_rotation = int(valeur)
 
-    def traiter_bougie(self,id,enHaut):
+    def traiter_bougie(self, enHaut):
         """
         teste la couleur puis enfonce si c'est la bonne couleur
         """
-        couleur_mesuree = self.capteurs.lire_couleur()
-        print(couleur_mesuree)
-        if(couleur_mesuree == self.config["couleur"]):
-            self.actionneurs.enfoncer_bougie(enHaut)
-            
-        #met à jour les éléments de jeu dans le service de table
-        self.table.bougie_recupere(id)
+        self.actionneurs.enfoncer_bougie(enHaut)
 
     def initialiser_bras_bougie(self,enHaut) : 
         """
