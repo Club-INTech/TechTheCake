@@ -109,6 +109,7 @@ class ScriptManager:
                 self.scripts[nom] = obj()
                 self.scripts[nom].dependances(config, log, robot, robotChrono, hookGenerator, rechercheChemin, table, simulateur)
 
+
 class ScriptBougies(Script):
    
     def _execute(self, version):
@@ -260,11 +261,7 @@ class ScriptBougies(Script):
         return self.info_versions[id_version]["point_entree"]
         
     def score(self):
-        point=0
-        for element in self.table.bougies:
-            if not element["couleur"]=="red" and not element["traitee"]: #la condition sur la couleur est pipeau
-                point+=4
-        return point
+        return 4 * len([element for element in self.table.bougies_restantes(self.couleur_a_traiter)])
     
 class ScriptCadeaux(Script):
         
