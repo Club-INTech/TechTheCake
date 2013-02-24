@@ -83,14 +83,14 @@ class Strategie:
         else:
             distanceE=self._distance_ennemi(self.scripts[script].point_entree(version))+1 #le +1 est pour empêcher la division par 0
             try:
-                return 1000000000*(self.scripts[script].score())/(dureeScript*dureeScript*dureeScript*distanceE*distanceE)
+                return self.scripts[script].score()*self.scripts[script].score()*distanceE/(dureeScript*dureeScript)
             except ZeroDivisionError:
                 self.log.critical("Division par zéro dans le calcul de la note de "+script+"! :o") #sait-on jamais... je préfère ne pas prendre le risque de voir le robot se paralyser bêtement
                 return self.scripts[script].score()
 
 
     def _distance_ennemi(self, point_entree): #on prend la distance euclidienne, à vol d'oiseau. Attention, on prend le min: cette valeur est sensible aux mesures aberrantes
-        distance_min=3000 #une distance très grande, borne sup de la valeur renvoyée.
+        distance_min=2000 #une distance très grande, borne sup de la valeur renvoyée.
 
         for obstacle in self.table.obstacles():
             d = point_entree.distance(obstacle.position)
