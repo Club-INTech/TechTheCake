@@ -19,6 +19,7 @@ class Strategie:
 
 #        if self.config["ennemi_fait_toutes_bougies"]: #à décommenter une fois que le script bougies sera fini
 #            del self.scripts["ScriptBougies"]
+        del self.scripts["ScriptBougies"]
             
     """
     Boucle qui gère la stratégie, en testant les différents scripts et en exécutant le plus avantageux
@@ -43,7 +44,7 @@ class Strategie:
             for script in self.scripts:
                 liste_versions = self.scripts[script].versions()
                 for version in liste_versions:
-                    notes[script].append(self._noter_script(script, self.scripts[script].point_entree(version)))
+                    notes[script].append(self._noter_script(script, version))
                     if premier or notes[script][version] > notes[scriptAFaire][versionAFaire]:
                         scriptAFaire = script
                         versionAFaire = version
@@ -53,25 +54,25 @@ class Strategie:
             self.log.debug("STRATÉGIE FAIT: "+str(scriptAFaire)+", version "+str(versionAFaire))
             if not self.timer.get_fin_match():
                 try:
-                    self.scripts[scriptAFaire].agit(1)
+                    self.scripts[scriptAFaire].agit(versionAFaire)
                 except robot.ExceptionMouvementImpossible:
                     self.log.warning("Mouvement impossible lors du script: "+scriptAFaire)
                     
-    
             sleep(0.1)
         self.log.debug("Arrêt de la stratégie.")
 
     """
     Note un script (en fonction du nombre de points qu'il peut rapporter, de la position de l'ennemi et de sa durée)
     """
-    def _noter_script(self, script, point_entree):
-        dureeScript=self.scripts[script].calcule(1)+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
+    def _noter_script(self, script, version):
+        dureeScript=self.scripts[script].calcule(version)+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
 
         #normalement ce cas n'arrive plus
         if dureeScript<=0:
             self.log.warning(script+" a un temps d'exécution négatif!")
             dureeScript=1
 
+            #il vaudrait mieux que les if suivant soient gérés par les scripts!
         #pour prendre les verres, on ajoute à durée script le temps de déposer les verres
         if script=="ScriptRecupererVerres" and dureeScript+deposer_verre.calcule()>(self.config["temps_match"]-time()+self.timer.get_date_debut()):
             self.log.warning("Plus le temps de prendre des verres, on n'aurait pas le temps de les déposer.")
@@ -80,7 +81,7 @@ class Strategie:
             self.log.warning("Plus le temps d'exécuter "+script)
             return 0
         else:
-            distanceE=self._distance_ennemi(point_entree)+1 #le +1 est pour empêcher la division par 0
+            distanceE=self._distance_ennemi(self.scripts[script].point_entree(version))+1 #le +1 est pour empêcher la division par 0
             try:
                 return 1000000000*(self.scripts[script].score())/(dureeScript*dureeScript*dureeScript*distanceE*distanceE)
             except ZeroDivisionError:
