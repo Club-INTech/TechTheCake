@@ -17,11 +17,6 @@ class Strategie:
         self.log = log
         self.scripts = scripts
 
-        self.note = {}
-
-        for key in self.scripts.keys():
-            self.note[key] = 0
-
 #        if self.config["ennemi_fait_toutes_bougies"]: #à décommenter une fois que le script bougies sera fini
 #            del self.scripts["ScriptBougies"]
             
@@ -35,19 +30,27 @@ class Strategie:
         self.log.debug("Stratégie lancée.")
 
         while not self.timer.get_fin_match():
+
+            notes = {}
+            for key in self.scripts.keys():
+                notes[key] = []
+            premier = True
+
 #            self.rechercheChemin.retirer_obstacles_dynamique();
             self.rechercheChemin.preparer_environnement()
 
+            # holala, deux for imbriqués avec un if... Marc va s'arracher les cheveux! Je lui ferais tout de même remarqué que les conventions typographiques du reptile ont été respectées.
             for script in self.scripts:
                 liste_versions = self.scripts[script].versions()
                 for version in liste_versions:
-                    self.note[script]=self._noter_script(script, self.scripts[script].point_entree(version))
-                    self.log.debug("Note du script "+script+": "+str(self.note[script]))
+                    notes[script].append(self._noter_script(script, self.scripts[script].point_entree(version)))
+                    if premier or notes[script][version] > notes[scriptAFaire][versionAFaire]:
+                        scriptAFaire = script
+                        versionAFaire = version
+                        premier = False
+                self.log.debug("Notes du script "+script+": "+str(notes[script]))
 
-            noteInverse = dict(map(lambda item: (item[1],item[0]),self.note.items()))
-            scriptAFaire=noteInverse[max(noteInverse.keys())]   #ce script a reçu la meilleure note
-
-            self.log.debug("STRATÉGIE FAIT: "+scriptAFaire)
+            self.log.debug("STRATÉGIE FAIT: "+str(scriptAFaire)+", version "+str(versionAFaire))
             if not self.timer.get_fin_match():
                 try:
                     self.scripts[scriptAFaire].agit(1)
