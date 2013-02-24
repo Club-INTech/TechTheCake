@@ -21,80 +21,80 @@ class Strategie:
 #            del self.scripts["ScriptBougies"]
         del self.scripts["ScriptBougies"]
             
-    """
-    Boucle qui gère la stratégie, en testant les différents scripts et en exécutant le plus avantageux
-    """
     def boucle_strategie(self):
         """
-        Boucle principale de la stratégie. 
+        Boucle qui gère la stratégie, en testant les différents scripts et en exécutant le plus avantageux
         """
         self.log.debug("Stratégie lancée.")
 
         while not self.timer.get_fin_match():
 
             notes = {}
-            for key in self.scripts.keys():
-                notes[key] = []
-            premier = True
 
 #            self.rechercheChemin.retirer_obstacles_dynamique();
             self.rechercheChemin.preparer_environnement()
 
-            # holala, deux for imbriqués avec un if... Marc va s'arracher les cheveux! Je lui ferais tout de même remarqué que les conventions typographiques du reptile ont été respectées.
+            # Notation des scripts
             for script in self.scripts:
-                liste_versions = self.scripts[script].versions()
-                for version in liste_versions:
-                    notes[script].append(self._noter_script(script, version))
-                    if premier or notes[script][version] > notes[scriptAFaire][versionAFaire]:
-                        scriptAFaire = script
-                        versionAFaire = version
-                        premier = False
-                self.log.debug("Notes du script "+script+": "+str(notes[script]))
+                for version in self.scripts[script].versions():
+                    notes[(script,version)] = self._noter_script(script, version)
+            self.log.debug("Notes des scripts: " + str(notes))
 
-            self.log.debug("STRATÉGIE FAIT: "+str(scriptAFaire)+", version "+str(versionAFaire))
+            # Choix du script avec la meilleure note
+            (script_a_faire, version_a_faire) = max(notes)
+            self.log.debug("Stratégie ordonne: "+str(script_a_faire)+", version "+str(version_a_faire))
+
+            # Lancement du script si le match n'est pas terminé
             if not self.timer.get_fin_match():
                 try:
-                    self.scripts[scriptAFaire].agit(versionAFaire)
+                    self.scripts[script_a_faire].agit(version_a_faire)
                 except robot.ExceptionMouvementImpossible:
-                    self.log.warning("Mouvement impossible lors du script: "+scriptAFaire)
-                    
-            sleep(0.1)
+                    self.log.warning("Mouvement impossible lors du script: "+script_a_faire)
+
         self.log.debug("Arrêt de la stratégie.")
 
-    """
-    Note un script (en fonction du nombre de points qu'il peut rapporter, de la position de l'ennemi et de sa durée)
-    """
     def _noter_script(self, script, version):
-        dureeScript=self.scripts[script].calcule(version)+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
+        """
+        Note un script (en fonction du nombre de points qu'il peut rapporter, de la position de l'ennemi et de sa durée)
+        """
+        duree_script = self.scripts[script].calcule(version)
 
-        #normalement ce cas n'arrive plus
-        if dureeScript <= 0:
-            self.log.warning(script+" a un temps d'exécution négatif!")
-            dureeScript = 1
+        # Erreur dans la durée script, script ignoré
+        if duree_script <= 0:
+            self.log.critical("{0} a un temps d'exécution négatif ou nul!".format((script,version)))
+            return 0
 
         #pour prendre les verres, on ajoute à durée script le temps de déposer les verres
-        if script == "ScriptRecupererVerres" and dureeScript+deposer_verre.calcule() > (self.config["temps_match"] - time() + self.timer.get_date_debut()):
-            self.log.warning("Plus le temps de prendre des verres, on n'aurait pas le temps de les déposer.")
+#        if script == "ScriptRecupererVerres" and duree_script + deposer_verre.calcule() > (self.config["temps_match"] - time() + self.timer.get_date_debut()):
+#            self.log.warning("Plus le temps de prendre des verres, on n'aurait pas le temps de les déposer.")
+#            return 0
+
+        # Si on n'a pas le temps de faire le script avant la fin du match
+        if not duree_script < (self.config["temps_match"] - time() + self.timer.get_date_debut()):
+            self.log.warning("Plus le temps d'exécuter " + script)
             return 0
-        elif not dureeScript<(self.config["temps_match"]-time()+self.timer.get_date_debut()): #si on a le temps de faire l'action avant la fin du match
-            self.log.warning("Plus le temps d'exécuter "+script)
+
+        distance_ennemi = self._distance_ennemi(self.scripts[script].point_entree(version))
+
+        note = [
+            # Densité de points
+            1*score/duree_script,
+
+            # On évite l'ennemi s'il est proche de l'objectif
+            distance_ennemi/500
+        ]
+
+        return sum(note)
+
+    def _distance_ennemi(self, point_entree):
+        """
+        Calcule la distance avec les ennemis
+        On prend la distance euclidienne, à vol d'oiseau.
+        Attention, on prend le min: cette valeur est sensible aux mesures aberrantes
+        """
+
+        if self.table.obstacles() == []:
             return 0
-        else:
-            distanceE=self._distance_ennemi(self.scripts[script].point_entree(version))+1 #le +1 est pour empêcher la division par 0
-            try:
-                return self.scripts[script].score()*self.scripts[script].score()*distanceE/(dureeScript*dureeScript)
-            except ZeroDivisionError:
-                self.log.critical("Division par zéro dans le calcul de la note de "+script+"! :o") #sait-on jamais... je préfère ne pas prendre le risque de voir le robot se paralyser bêtement
-                return self.scripts[script].score()
-
-
-    def _distance_ennemi(self, point_entree): #on prend la distance euclidienne, à vol d'oiseau. Attention, on prend le min: cette valeur est sensible aux mesures aberrantes
-        distance_min=2000 #une distance très grande, borne sup de la valeur renvoyée.
-
-        for obstacle in self.table.obstacles():
-            d = point_entree.distance(obstacle.position)
-            if d < distance_min:
-                distance_min = d
-
-        return distance_min
+            
+        return min([point_entree.distance(obstacle.position) for obstacle in self.table.obstacles()])
 
