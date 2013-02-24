@@ -548,7 +548,6 @@ class Robot(RobotInterface):
                 sleep(1)
                 self.va_au_point(point, hooks, virage_initial, nombre_tentatives - 1)
             else:
-                self.log.warning("abandon du mouvement en cours")
                 raise ExceptionMouvementImpossible
             
             
