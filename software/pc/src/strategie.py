@@ -68,13 +68,12 @@ class Strategie:
         dureeScript=self.scripts[script].calcule(version)+1    #au cas où, pour éviter une division par 0... (ce serait vraiment dommage!)
 
         #normalement ce cas n'arrive plus
-        if dureeScript<=0:
+        if dureeScript <= 0:
             self.log.warning(script+" a un temps d'exécution négatif!")
-            dureeScript=1
+            dureeScript = 1
 
-            #il vaudrait mieux que les if suivant soient gérés par les scripts!
         #pour prendre les verres, on ajoute à durée script le temps de déposer les verres
-        if script=="ScriptRecupererVerres" and dureeScript+deposer_verre.calcule()>(self.config["temps_match"]-time()+self.timer.get_date_debut()):
+        if script == "ScriptRecupererVerres" and dureeScript+deposer_verre.calcule() > (self.config["temps_match"] - time() + self.timer.get_date_debut()):
             self.log.warning("Plus le temps de prendre des verres, on n'aurait pas le temps de les déposer.")
             return 0
         elif not dureeScript<(self.config["temps_match"]-time()+self.timer.get_date_debut()): #si on a le temps de faire l'action avant la fin du match
