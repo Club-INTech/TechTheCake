@@ -1,5 +1,6 @@
 from time import sleep,time
 from scripts import *
+import robot
 
 class Strategie:
     """
@@ -50,7 +51,11 @@ class Strategie:
 
             self.log.debug("STRATÉGIE FAIT: "+scriptAFaire)
             if not self.timer.get_fin_match():
-                self.scripts[scriptAFaire].agit(1)
+                try:
+                    self.scripts[scriptAFaire].agit(1)
+                except robot.ExceptionMouvementImpossible:
+                    self.log.warning("Mouvement impossible lors du script: "+scriptAFaire)
+                    
     
             sleep(0.1)
         self.log.debug("Arrêt de la stratégie.")
