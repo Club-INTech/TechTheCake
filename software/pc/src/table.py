@@ -59,10 +59,6 @@ class Table:
         # Vide si plus aucun cadeau à valider
         self.points_entree_cadeaux = [0,3]
         
-        # Indique les points d'entrée sur les bougies
-        # Contient les 2 indices des bougies aux extrémités du gateau (même si plus qu'une bougie)
-        # Vide si plus aucune bougie à valider
-        self.points_entree_bougies = [2,17]
         
         # La position des bougies est codée en pôlaire depuis le centre du gâteau :
         # (rayon, angle depuis la verticale), elles sont ordonnées par ordre croissant d'angle.
@@ -114,6 +110,8 @@ class Table:
             {"id": 19, "position":0.131, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False}
         ]
         
+        # Bougies ignorées car impossible à atteindre
+        self.bougies_ignorees = [0, 1, 18, 19]
         
         # Le premier correspond à celui le plus en haut à gauche et le dernier le plus en bas à droite.
         self.verres = [
@@ -121,17 +119,15 @@ class Table:
             {"id": 1, "position": Point(300,1050), "present":True},
             {"id": 2, "position": Point(450,800), "present":True},
             {"id": 3, "position": Point(150,800), "present":True},
-            {"id": 4, "position": Point(600,550), "present":True},
-            {"id": 5, "position": Point(300,550), "present":True},
+            {"id": 4, "position": Point(300,550), "present":True},
+            {"id": 5, "position": Point(600,550), "present":True},
             {"id": 6, "position": Point(-600,1050), "present":True},
             {"id": 7, "position": Point(-300,1050), "present":True},
-            {"id": 8, "position": Point(-450,800), "present":True},
-            {"id": 9, "position": Point(-150,800), "present":True},
+            {"id": 8, "position": Point(-150,800), "present":True},
+            {"id": 9, "position": Point(-450,800), "present":True},
             {"id": 10, "position": Point(-600,550), "present":True},
             {"id": 11, "position": Point(-300,550), "present":True}
         ]
-	
-        self.pointsEntreeVerres = [0,5,6,11]
         
     ###############################################
     ### GESTION DES CADEAUX
@@ -171,36 +167,27 @@ class Table:
     ### GESTION DES BOUGIES
     ###############################################
     
-    def bougies_entrees(self):
+    def bougies_entrees(self, couleur=COULEUR_BOUGIE_INCONNUE|COULEUR_BOUGIE_BLANC|COULEUR_BOUGIE_ROUGE|COULEUR_BOUGIE_BLEU):
         """
         Récupère la liste des bougies possibles comme point d'entrée
         """
-        return [self.bougies[i] for i in self.points_entree_bougies]
+        bougies_restantes = self.bougies_restantes(couleur)
+        if len(bougies_restantes) > 0:
+            return [bougies_restantes[0], bougies_restantes[-1]]
+        else:
+            return []
     
     def bougies_restantes(self, couleur=COULEUR_BOUGIE_INCONNUE|COULEUR_BOUGIE_BLANC|COULEUR_BOUGIE_ROUGE|COULEUR_BOUGIE_BLEU):
         """
         Récupère la liste des bougies restantes à valider
         """
-        return [b for b in self.bougies if not b["traitee"] and b["couleur"] & couleur == b["couleur"]]
+        return [b for i,b in enumerate(self.bougies) if i not in self.bougies_ignorees and not b["traitee"] and b["couleur"] & couleur > 0]
         
     def bougie_recupere(self, b):
         """
         Indique que la bougie a été enfoncée
         """
         self.bougies[b["id"]]["traitee"] = True
-        if b["id"] in self.points_entree_bougies:
-            self._rafraichir_entree_bougies()
-            
-    def _rafraichir_entree_bougies(self):
-        """
-        Met à jour la liste des points d'entrée pour les bougies
-        """
-        bougies_ignorees = [0, 1, 18, 19]
-        bougies_restantes = [i for i,b in enumerate(self.bougies) if not b["traitee"] and i not in bougies_ignorees]
-        if len(bougies_restantes) > 0:
-            self.points_entree_bougies = [bougies_restantes[0], bougies_restantes[-1]]
-        else:
-            self.points_entree_bougies = []
             
     def definir_couleurs_bougies(self, code):
         """
@@ -232,20 +219,54 @@ class Table:
     ### GESTION DES VERRES
     ###############################################
     
+    def verres_entrees(self, zone_couleur):
+        """
+        Récupère la liste des verres possibles comme point d'entrée sur une des deux zones de la table
+        """
+        if zone_couleur == "rouge":
+            restants_zone_demandee = [v["id"] for v in self.verres_restants() if v["id"] < 6]
+        else:
+            restants_zone_demandee = [v["id"] for v in self.verres_restants() if v["id"] >= 6]
+        
+        if len(restants_zone_demandee) == 0:
+            return []
+        elif len(restants_zone_demandee) == 1:
+            return [self.verres[restants_zone_demandee[0]]]
+        else:
+            return [self.verres[min(restants_zone_demandee)], self.verres[max(restants_zone_demandee)]]
+        
+    def verres_restants(self):
+        """
+        Récupère les verres restants sur la table
+        """
+        return [v for v in self.verres if v["present"]]
+        
     def etat_verre(self, verre):
         """
         Indique l'état d'un verre
         """
         with self.mutex:
             return self.verres[verre["id"]]["present"]
-
+            
     def verre_recupere(self, verre):
         """
         Indique qu'un verre a été pris
         """
         self.verres[verre["id"]]["present"] = False
-        #self._reattribuePointEntreeVerres(i)
- 
+            
+    def verre_le_plus_proche(self, position):
+        """
+        Récupère le verre le plus proche d'une position
+        None est renvoyé si aucun verre présent sur la table
+        """
+        distances = {}
+        
+        for verre in self.verres:
+            if verre["present"]:
+                distances[verre["id"]] = position.distance(verre["position"])
+                
+        return None if len(distances) == 0 else self.verres[min(distances, key=distances.get)]
+
     def _detection_collision_verre(self, position):
         """
         Détecte s'il y a collision entre un robot adverse et un verre sur la table.
@@ -257,50 +278,6 @@ class Table:
                 if distance < self.config["rayon_robot_adverse"] + self.config["table_tolerance_verre_actif"]:
                     self.verre_recupere(verre)
                     
-    # Change les points d'entrée pour les verres
-    def _reattribuePointEntreeVerres(self, id):
-        """
-        C'est la panique ici
-        """
-        newId = id
-        
-        if id == self.pointsEntreeVerres[0] : # cas où c'est le point d'entrée gauche chez nous.
-            while not self.etat_verre(newId) and newId < 5 :
-                newId+=1
-            if self.etat_verre(newId) : # petite manip' au cas où tous les verres de la première moitié sont utilisés.
-                newId+=1
-            if newId >= 0 and newId < 5 :
-                self.pointsEntreeVerres[0] = newId
-            else :
-                if len(self.pointsEntreeVerres) == 4 :
-                    self.pointsEntreeVerres = [ -1, -1, self.pointsEntreeVerres[2], self.pointsEntreeVerres[3] ]
-                elif len(self.pointsEntreeVerres) == 2 :
-                    self.pointsEntreeVerres = []
-                    
-        elif id == self.pointsEntreeVerres[1] : # cas où c'est le point d'entrée droit chez nous.
-            while not self.etat_verre(newId) and newId > 0 :
-                newId-=1
-            if newId >= 0 and newId < 5 :
-                self.pointsEntreeVerres[1] = newId
-                
-        elif id == self.pointsEntreeVerres[2] : # cas où c'est le point d'entrée gauche chez eux.
-            while not self.etat_verre(newId) and newId < 11 :
-                newId+=1
-            if self.etat_verre(newId) :
-                newId+=1
-            if newId >= 6 and newId < 11 :
-                self.pointsEntreeVerres[2] = newId
-            else :
-                if len(self.pointsEntreeVerres) == 4 :
-                    self.pointsEntreeVerres = [ self.pointsEntreeVerres[0], self.pointsEntreeVerres[1], -1, -1 ]
-                elif len(self.pointsEntreeVerres) == 2 :
-                    self.pointsEntreeVerres = []
-                
-        elif id == self.pointsEntreeVerres[3] : # cas où c'est le point d'entrée droit chez eux.
-            while not self.etat_verre(newId) and newId > 6 :
-                newId-=1
-            if newId >= 6 and newId < 11 :
-                self.pointsEntreeVerres[3] = newId
     
     ###############################################
     ### GESTION DES OBSTACLES

@@ -5,7 +5,8 @@ import robot
 class Strategie:
     """
     Classe gérant l'intelligence artificielle.
-    Son rôle est de noter différents scripts (selon leur durée, la distance d'un ennemi, ...) et de choisir le plus avantageux. C'est également cette classe qui fait les appels d'ajout d'obstacle à la recherche de chemin.
+    Son rôle est de noter différents scripts (selon leur durée, la distance d'un ennemi, ...) et de choisir le plus avantageux. 
+    C'est également cette classe qui fait les appels d'ajout d'obstacle à la recherche de chemin.
     """
     def __init__(self, robot, scripts, rechercheChemin, table, timer, config, log): #retirer robot
 
@@ -41,7 +42,7 @@ class Strategie:
             self.log.debug("Notes des scripts: " + str(notes))
 
             # Choix du script avec la meilleure note
-            (script_a_faire, version_a_faire) = max(notes)
+            (script_a_faire, version_a_faire) = max(notes, key=notes.get)
             self.log.debug("Stratégie ordonne: "+str(script_a_faire)+", version "+str(version_a_faire))
 
             # Lancement du script si le match n'est pas terminé
