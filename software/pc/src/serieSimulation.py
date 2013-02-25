@@ -253,5 +253,5 @@ class SerieSimulation:
             reponses = getattr(self.peripheriques[destinataire], method)(*args)
             return reponses
         except Exception as e:
-            self.log.critical("Erreur renvoyée par le simulateur " + str(e))
+            self.log.critical("Erreur renvoyée par le simulateur : \"" + str(e) + "\" lors de l'envoi de '"+method+"' à '"+destinataire+"'.")
                 
