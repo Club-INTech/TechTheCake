@@ -8,16 +8,15 @@ chemin = directory[:directory.index(racine)]+racine
 #répertoires d'importation
 sys.path.insert(0, os.path.join(chemin, "src/"))
 
-#bibliothèque compilée de recherche de chemin
-try:
-    import recherche_de_chemin.aStar as aStar
-except:
-    input("\n\nproblème d'importation de la bibliothèque de recherche de chemin aStar !\n")
 
+#bibliothèque compilée de recherche de chemin
 try:
     import recherche_de_chemin.visilibity as vis
 except:
     input("\n\nProblème avec la bibliothèque compilée _visilibity.so !\nConsultez le README dans src/recherche_de_chemin/visilibity/\n")
+
+#bibliothèque de recherche de chemin A* (en python)
+import recherche_de_chemin.aStar as aStar
 
 #fonctions auxiliaires pour les calculs géométriques
 import recherche_de_chemin.collisions as collisions
@@ -625,19 +624,22 @@ class RechercheChemin:
         
     def get_obstacles(self):
         """
-        Renvoi la liste des polygones obstacles (initiaux et dynamiques)
+        (pour affichage de debug) Renvoie la liste des polygones obstacles (initiaux et dynamiques)
         """
         return (self.environnement_complet.polygones)
         
     def get_cercles_conteneurs(self):
         """
-        Renvoi la liste des cercles contenant les obstacles (initiaux et dynamiques)
+        (pour affichage de debug) Renvoie la liste des cercles contenant les obstacles (initiaux et dynamiques), éventuellement fusionnés. 
+        Ils sont approximés par des polygones.
         """
         return list(map(lambda cercle: Environnement._polygone_du_cercle(cercle), self.environnement_complet.cercles_conteneurs))
     
     def get_cercles_astar(self):
         """
-        Renvoi la liste des cercles contenant les obstacles (initiaux et dynamiques)
+        (pour affichage de debug) Renvoie la liste des obstacles circulaires considérés par A*. 
+        Ils peuvent se superposer sans être fusionnés. 
+        Ils sont approximés par des polygones.
         """
         return list(map(lambda cercle: Environnement._polygone_du_cercle(cercle), self.environnement_complet.cercles_astar))
     

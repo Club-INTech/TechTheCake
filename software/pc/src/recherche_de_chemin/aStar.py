@@ -1,5 +1,10 @@
-#sudo easy_install-3.2 networkx-1.7-py3.2.egg
-import networkx as nx
+try:
+    import networkx as nx
+except:
+    print("\n\nVeuillez installer les paquets suivants pour utiliser la recherche de chemin aStar !")
+    print("$ sudo apt-get install python-setuptools python-dev")
+    input("$ sudo easy_install networkx-1.7-py3.2.egg\n")
+
 import math
 
 import outils_maths.point as point #point.Point : format de sortie de la recherche de chemin
