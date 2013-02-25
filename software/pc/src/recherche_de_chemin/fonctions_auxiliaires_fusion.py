@@ -1,4 +1,5 @@
-from outils_maths.point import Point
+#from outils_maths.point import Point
+from recherche_de_chemin.visilibity import Point
 import math
 
 def get_angle(a,o,b):

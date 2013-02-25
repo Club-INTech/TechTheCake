@@ -1,4 +1,5 @@
-from outils_maths.point import Point
+#from outils_maths.point import Point
+from recherche_de_chemin.visilibity import Point
 from outils_maths.polygone import Polygone
 import recherche_de_chemin.fonctions_auxiliaires_fusion as fus
 

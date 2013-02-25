@@ -2,7 +2,8 @@
 import networkx as nx
 import math
 
-from outils_maths.point import Point
+from recherche_de_chemin.visilibity import Point
+#from outils_maths.point import Point
 
 import builtins
 
