@@ -2,17 +2,7 @@ from time import sleep,time
 from outils_maths.point import Point
 import table
 import math
-import unittest
 import abc
-
-"""
-
-Règles concernant l'écriture de scripts:
-
-- On considère dans tous les scripts qu'on est ROUGE.
-- On peut utilier les méthodes de robot pour gérer la symétrie (robot.effectuer_symetrie) ou la marche arrière (robot.marche_arriere)
-
-"""
 
 class Script(metaclass=abc.ABCMeta):
     """
@@ -263,6 +253,7 @@ class ScriptBougies(Script):
     def score(self):
         return 4 * len([element for element in self.table.bougies_restantes(self.couleur_a_traiter)])
     
+
 class ScriptCadeaux(Script):
         
     def _execute(self, version):
@@ -327,22 +318,51 @@ class ScriptCadeaux(Script):
     def score(self):
         return 4 * len(self.table.cadeaux_restants())
         
+
 class ScriptRecupererVerres(Script):
         
     def _execute(self, version):
+        
+        # Désactivation de la symétrie
+        self.robot.effectuer_symetrie = False
         
         # Point d'entrée du script
         entree = self._point_recuperation_verre(self.info_versions[version]["point_entree"])
         zone = self.info_versions[version]["zone"]
         
-        # Récupération du premier verre
-        self.robot.va_au_point(entree)
-        self.table.verre_recupere(self.info_versions[version]["verre_entree"])
-        
+        # Récupération du premier verre, avec recherche de chemin
+        self._recuperation_verre(self.info_versions[version]["verre_entree"])
+
         # Récupération des verres restants dans la zone
-        for verre in self.table.verres_restants(zone):
-            self.robot.va_au_point(verre["position"])
-            self.table.verre_recupere(verre)
+        while True:
+            position = Point(self.robot.x, self.robot.y)
+            verre = self.table.verre_le_plus_proche(position, zone)
+            if verre is None:
+                break
+            self._recuperation_verre(verre)
+            
+    def _recuperation_verre(self, verre):
+        """
+        Procédure de récupération d'un verre
+        """
+        avant = self._choix_ascenceur()
+        self.robot.marche_arriere = not avant
+        self.robot.va_au_point(verre["position"])
+        self.robot.recuperer_verre(avant)
+        self.table.verre_recupere(verre)
+        
+    def _choix_ascenceur(self):
+        """
+        Effectue le choix de l'ascenceur avant ou arrière
+        """
+        # Prend par l'avant par défaut
+        choix = True
+        
+        # Vérification de la capacité
+        if self.robot.places_disponibles(choix) == 0:
+            return not choix
+        
+        return choix
             
     def _point_recuperation_verre(self, point):
         """
@@ -359,8 +379,15 @@ class ScriptRecupererVerres(Script):
         
             
     def versions(self):
+        
+        # Zone à traiter
+        if self.config["couleur"] == "rouge":
+            zone = table.Table.ZONE_VERRE_ROUGE
+        else:
+            zone = table.Table.ZONE_VERRE_BLEU
+          
         # Récupération des verres d'entrées
-        verres = self.table.verres_entrees()
+        verres = self.table.verres_entrees(zone)
         
         # Plus aucun verre sur la table
         if len(verres) == 0:
@@ -369,13 +396,13 @@ class ScriptRecupererVerres(Script):
         # Un seul verre
         elif len(verres) == 1:
             self.info_versions = [
-                {"point_entree": verres[0]["position"], "verre_entree": verres[0], "zone": table.Table.ZONE_VERRE_ROUGE}
+                {"point_entree": verres[0]["position"], "verre_entree": verres[0], "zone": zone}
             ]
             
         # Cas général: 2 points d'entrées
         else:
             self.info_versions = [
-                {"point_entree": verre["position"], "verre_entree": verres[0], "zone": table.Table.ZONE_VERRE_ROUGE} for verre in verres
+                {"point_entree": verre["position"], "verre_entree": verre, "zone": zone} for verre in verres
             ]
             
         return list(range(len(self.info_versions)))
@@ -384,7 +411,8 @@ class ScriptRecupererVerres(Script):
         return self.info_versions[id_version]["point_entree"]
 
     def score(self):
-        return 4 * len(self.table.cadeaux_restants())
+        return 42
+
 
 """        
 class ScriptCasserTour(Script):

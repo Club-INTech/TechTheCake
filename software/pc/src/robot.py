@@ -678,6 +678,39 @@ class Robot(RobotInterface):
         """
         self.log.debug("fermeture du bras cadeaux")
         self.actionneurs.fermer_cadeau()
+       
+    def places_disponibles(self, avant):
+        """
+        Renvoie le nombre de places disponibles sur un ascenceur
+        """
+        if avant:
+            return 4 - self.nb_verres_avant
+        else:
+            return 4 - self.nb_verres_arriere
+ 
+    def recuperer_verre(self, avant):
+        """
+        Lance la procédure de récupération d'un verre
+        """
+        # Vérification de la capacité
+        if self.places_disponibles(avant) == 0:
+            if avant:
+                self.log.critical("le robot ne peut pas porter plus de verres à l'avant")
+            else:
+                self.log.critical("le robot ne peut pas porter plus de verres à l'arrière")
+            raise ExceptionMouvementImpossible
+        
+        # Vérification de la présence du verre
+        
+        # Lancement des actionneurs
+        
+        # Mise à jour du total de verres portés
+        if avant:
+            self.nb_verres_avant += 1
+        else:
+            self.nb_verres_arriere += 1
+            
+        self.log.debug("le robot a {0} verre(s) à l'avant, {1} à l'arrière".format(self.nb_verres_avant, self.nb_verres_arriere))
         
     def gonflage_ballon(self):
         """

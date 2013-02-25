@@ -266,15 +266,25 @@ class Table:
     def verre_le_plus_proche(self, position, zone=ZONE_VERRE_ROUGE|ZONE_VERRE_BLEU):
         """
         Récupère le verre le plus proche d'une position
-        None est renvoyé si aucun verre présent sur la table
+        None est renvoyé si aucun verre présent sur la table dans la zone demandée
         """
-        distances = {}
+        verres = self.verres_restants(zone)
         
-        for verre in self.verres:
-            if verre["present"]:
-                distances[verre["id"]] = position.distance(verre["position"])
+        if verres == []:
+            return None
+            
+        choix = verres[0]
+        distance_min = position.distance(choix["position"])
+        
+        # Choix du verre le plus proche et le plus au centre de la table
+        # Les verres proches de l'autre zone doivent être récupérés le plus vite
+        for verre in verres:
+            distance = position.distance(verre["position"])
+            if distance - distance_min <= 20 and math.fabs(verre["position"].x) < math.fabs(choix["position"].x):
+                choix = verre
+                distance_min = distance
                 
-        return None if len(distances) == 0 else self.verres[min(distances, key=distances.get)]
+        return choix
 
     def _detection_collision_verre(self, position):
         """
