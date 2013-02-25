@@ -41,12 +41,12 @@ class HookPosition(Hook):
     Classe des Hooks ayant pour condition une position du robot sur la table.
     La méthode evaluate() effectue l'action (callback) si le robot est dans un disque de tolérance centré sur position.
     """
-    def __init__(self, config, log, position, tolerance_mm):
+    def __init__(self, config, log, position, tolerance_mm, effectuer_symetrie):
         Hook.__init__(self, config, log)
-        if self._config["couleur"] == "bleu":
-            position.x *= -1
         self.position_hook = position
         self.tolerance_mm = tolerance_mm
+        if effectuer_symetrie:
+            self.position_hook.x *= -1
         
     def evaluate(self, robotX, robotY, **useless):
         if (Point(robotX, robotY).distance(self.position_hook) <= self.tolerance_mm):
@@ -91,14 +91,14 @@ class HookGenerator():
         """
         return self.types[type](condition, unique, callback,*args)
         
-    def hook_position(self, position, tolerance_mm=None):
+    def hook_position(self, position, tolerance_mm=None, effectuer_symetrie=False):
         """
         Création d'un hook en position
         """
         if tolerance_mm == None:
             tolerance_mm = self.config["hooks_tolerance_mm"]
             
-        return HookPosition(self.config, self.log, position, tolerance_mm)
+        return HookPosition(self.config, self.log, position, tolerance_mm, effectuer_symetrie)
         
     def callback(self, fonction, arguments=(), unique=True):
         return Callback(fonction, arguments, unique)

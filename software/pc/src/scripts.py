@@ -207,7 +207,7 @@ class ScriptBougies(Script):
         Retourne le point sur la table correspondant à un angle de bougie
         """
         rayon = 500 + self.config["distance_au_gateau"] + self.config["longueur_robot"] / 2
-        return Point(0, 2000) - Point(rayon * math.cos(angle), rayon * math.sin(angle))
+        return Point(0, 2000) + Point(rayon * math.cos(angle), rayon * math.sin(angle))
 
     def versions(self):
         """
@@ -217,14 +217,14 @@ class ScriptBougies(Script):
         """
         # Récupération des bougies restantes
         self.couleur_a_traiter = self.table.COULEUR_BOUGIE_ROUGE if self.config["couleur"] == "rouge" else self.table.COULEUR_BOUGIE_BLEU
-        bougies = self.table.bougies_entrees()
-        
+        bougies = self.table.bougies_entrees(self.couleur_a_traiter)
+
         # Cas où toutes les bougies sont déjà validées
         if bougies == []:
             return []
             
         # Cas où il reste au moins une bougie
-        delta_angle = -20 / float(500 + self.config["distance_au_gateau"])
+        delta_angle = 20 / float(500 + self.config["distance_au_gateau"])
         self.info_versions = [
             {
                 "angle_entree": bougies[0]["position"] - delta_angle,
@@ -269,13 +269,13 @@ class ScriptCadeaux(Script):
         for cadeau in self.table.cadeaux_restants():
             
             # Ouverture du bras
-            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * -50, 250))
+            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * -50, 250), effectuer_symetrie=True)
             hook_ouverture += self.hookGenerator.callback(self.robot.ouvrir_cadeau)
             hook_ouverture += self.hookGenerator.callback(self.table.cadeau_recupere, (cadeau,))
             hooks.append(hook_ouverture)
             
             # Fermeture du bras
-            hook_fermeture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * 200, 250))
+            hook_fermeture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * 200, 250), effectuer_symetrie=True)
             hook_fermeture += self.hookGenerator.callback(self.robot.fermer_cadeau)
             hooks.append(hook_fermeture)
 

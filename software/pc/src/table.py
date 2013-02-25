@@ -66,33 +66,32 @@ class Table:
         self.points_entree_cadeaux = [0,3]
         
         
-        # La position des bougies est codée en pôlaire depuis le centre du gâteau :
-        # (rayon, angle depuis la verticale), elles sont ordonnées par ordre croissant d'angle.
-        """
+        # La position des bougies est codée en pôlaire depuis le centre du gâteau
+        # L'origine de l'angle est l'axe x habituel
         self.bougies = [
-            {"id": 0, "position":-3.010, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 1, "position":-2.945, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":True},
-            {"id": 2, "position":-2.748, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 3, "position":-2.552, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":True},
-            {"id": 4, "position":-2.487, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 5, "position":-2.225, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 6, "position":-2.159, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":True},
-            {"id": 7, "position":-1.963, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 8, "position":-1.767, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":True},
-            {"id": 9, "position":-1.701, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 10, "position":-1.440, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 11, "position":-1.374, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":True},
-            {"id": 12, "position":-1.178, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 13, "position":-0.982, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":True},
-            {"id": 14, "position":-0.916, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 15, "position":-0.654, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 16, "position":-0.589, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":True},
-            {"id": 17, "position":-0.393, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 18, "position":-0.196, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":True},
-            {"id": 19, "position":-0.131, "traitee":False, "couleur": COULEUR_BOUGIE_INCONNUE, "enHaut":False}
+            {"id": 0, "position":-3.010, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
+            {"id": 1, "position":-2.945, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":True},
+            {"id": 2, "position":-2.748, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
+            {"id": 3, "position":-2.552, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":True},
+            {"id": 4, "position":-2.487, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
+            {"id": 5, "position":-2.225, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
+            {"id": 6, "position":-2.159, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":True},
+            {"id": 7, "position":-1.963, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
+            {"id": 8, "position":-1.767, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":True},
+            {"id": 9, "position":-1.701, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
+            {"id": 10, "position":-1.440, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
+            {"id": 11, "position":-1.374, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":True},
+            {"id": 12, "position":-1.178, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
+            {"id": 13, "position":-0.982, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":True},
+            {"id": 14, "position":-0.916, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
+            {"id": 15, "position":-0.654, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
+            {"id": 16, "position":-0.589, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":True},
+            {"id": 17, "position":-0.393, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
+            {"id": 18, "position":-0.196, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":True},
+            {"id": 19, "position":-0.131, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False}
         ]
-        """
         
+        """
         self.bougies = [
             {"id": 0, "position":3.010, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
             {"id": 1, "position":2.945, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":True},
@@ -115,6 +114,7 @@ class Table:
             {"id": 18, "position":0.196, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":True},
             {"id": 19, "position":0.131, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False}
         ]
+        """
         
         # Bougies ignorées car impossible à atteindre
         self.bougies_ignorees = [0, 1, 18, 19]
@@ -457,7 +457,7 @@ class TableSimulation(Table):
             r = 350 if bougie["enHaut"] else 450
             a = bougie["position"]
             x = r * math.cos(a)
-            y = 2000 - r * math.sin(a)
+            y = 2000 + r * math.sin(a)
             
             # Dessin du support de bougie
             couleur = {
