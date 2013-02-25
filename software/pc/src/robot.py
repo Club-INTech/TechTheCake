@@ -2,6 +2,7 @@ from math import pi,sqrt,atan2,atan,cos,sin
 from time import time,sleep
 from mutex import Mutex
 from outils_maths.point import Point
+import hooks as hooks_module
 
 #interface pour les méthodes publiques
 from robotChrono import RobotInterface
@@ -718,7 +719,35 @@ class Robot(RobotInterface):
         """
         self.actionneurs.gonfler_ballon()
         
-
+class RobotSimulation(Robot):
+    
+    def __init__(self, simulateur, capteurs, actionneurs, deplacements, config, log, table):
+        super().__init__(capteurs, actionneurs, deplacements, config, log, table)
+        self.simulateur = simulateur
+        
+    def avancer(self, distance, hooks=[], pas_reessayer=False):
+        self._afficher_hooks(hooks)
+        super().avancer(distance, hooks, pas_reessayer)
+        
+    def tourner(self, angle_consigne, forcer=False, hooks=[]):
+        self._afficher_hooks(hooks)
+        super().tourner(angle_consigne, forcer, hooks)
+        
+    def va_au_point(self, point, hooks=[], virage_initial=False, nombre_tentatives=3):
+        self._afficher_hooks(hooks)
+        super().va_au_point(point, hooks, virage_initial, nombre_tentatives)
+        
+    def arc_de_cercle(self, xM, yM, hooks=[]):
+        self._afficher_hooks(hooks)
+        super().arc_de_cercle(xM, yM, hooks)
+        
+    def _afficher_hooks(self, hooks):
+        self.simulateur.clearEntity("hook")
+        for hook in hooks:
+            if isinstance(hook, hooks_module.HookPosition):
+                self.simulateur.drawPoint(hook.position_hook.x, hook.position_hook.y, "black", "hook")
+                self.simulateur.drawCircle(hook.position_hook.x, hook.position_hook.y, hook.tolerance_mm, False, "black", "hook")
+        
 class ExceptionBlocage(Exception):
     """
     Exception levée lorsque le robot est physiquement bloqué par un obstacle

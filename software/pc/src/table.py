@@ -2,6 +2,7 @@ from time import time
 from mutex import Mutex
 from outils_maths.point import Point
 import math
+import copy
 
 class Obstacle:
     
@@ -133,6 +134,20 @@ class Table:
             {"id": 10, "position": Point(-600,550), "present":True},
             {"id": 11, "position": Point(-300,550), "present":True}
         ]
+        
+    def sauvegarder(self):
+        """
+        Sauvegarde de l'état de la table, utilisé par les scripts chrono qui peuvent modifier l'état de la table
+        """
+        self.sauvegarde = {
+            "verres": copy.deepcopy(self.verres)
+        }
+        
+    def restaurer(self):
+        """
+        Rétablissement de l'état de la table à la dernière sauvegarde
+        """
+        self.verres = self.sauvegarde["verres"]
         
     ###############################################
     ### GESTION DES CADEAUX
@@ -356,10 +371,12 @@ class Table:
 class TableSimulation(Table):
     
     def __init__(self, simulateur, config, log):
-        # Héritage de la classe Table
         self.simulateur = simulateur
-        Table.__init__(self, config, log)
-        
+        super().__init__(config, log)
+        self._afficher_table()
+        self.desactiver_dessin = False
+            
+    def _afficher_table(self):
         # Affichage des cadeaux
         for i, cadeau in enumerate(self.cadeaux):
             position = cadeau["position"]
@@ -379,25 +396,38 @@ class TableSimulation(Table):
             position = verre["position"]
             self.simulateur.drawCircle(position.x, position.y, 40, False, "black", "verre_" + str(i))
         
+    def sauvegarder(self):
+        super().sauvegarder()
+        self.desactiver_dessin = True
+        
+    def restaurer(self):
+        super().restaurer()
+        self.desactiver_dessin = False
+        
     def cadeau_recupere(self, c):
         Table.cadeau_recupere(self, c)
-        self.simulateur.clearEntity("cadeau_" + str(c["id"]))
+        if not self.desactiver_dessin:
+            self.simulateur.clearEntity("cadeau_" + str(c["id"]))
         
     def bougie_recupere(self, b):
         Table.bougie_recupere(self, b)
-        self.simulateur.clearEntity("bougie_" + str(b["id"]))
+        if not self.desactiver_dessin:
+            self.simulateur.clearEntity("bougie_" + str(b["id"]))
         
     def verre_recupere(self, v):
         Table.verre_recupere(self, v)
-        self.simulateur.clearEntity("verre_" + str(v["id"]))
+        if not self.desactiver_dessin:
+            self.simulateur.clearEntity("verre_" + str(v["id"]))
         
     def definir_couleurs_bougies(self, code):
         Table.definir_couleurs_bougies(self, code)
-        self._dessiner_bougies()
+        if not self.desactiver_dessin:
+            self._dessiner_bougies()
         
     def creer_obstacle(self, position):
         id = Table.creer_obstacle(self, position)
-        self.simulateur.drawCircle(position.x, position.y, self.config["rayon_robot_adverse"], False, "black", "obstacle_" + str(id))
+        if not self.desactiver_dessin:
+            self.simulateur.drawCircle(position.x, position.y, self.config["rayon_robot_adverse"], False, "black", "obstacle_" + str(id))
         
     def deplacer_robot_adverse(self, i, position, vitesse=None):
         Table.deplacer_robot_adverse(self, i, position, vitesse)
@@ -414,7 +444,8 @@ class TableSimulation(Table):
             self.simulateur.drawVector(ennemi.position.x, ennemi.position.y, ennemi.position.x + vitesse.vx, ennemi.position.y + vitesse.vy, "black", "vitesse_laser")
         
     def _supprimer_obstacle(self, i):
-        self.simulateur.clearEntity("obstacle_" + str(self.obstacles_capteurs[i].id))
+        if not self.desactiver_dessin:
+            self.simulateur.clearEntity("obstacle_" + str(self.obstacles_capteurs[i].id))
         Table._supprimer_obstacle(self, i)
         
     def _dessiner_bougies(self):

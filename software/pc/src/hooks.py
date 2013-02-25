@@ -113,6 +113,6 @@ class HookGeneratorSimulation(HookGenerator):
         
     def hook_position(self, position, tolerance_mm=None):
         hook = HookGenerator.hook_position(self, position, tolerance_mm)
-        self.simulateur.drawPoint(position.x, position.y, "black", "hook")
-        self.simulateur.drawCircle(position.x, position.y, hook.tolerance_mm, False, "black", "hook")
+        #~ self.simulateur.drawPoint(position.x, position.y, "black", "hook")
+        #~ self.simulateur.drawCircle(position.x, position.y, hook.tolerance_mm, False, "black", "hook")
         return hook

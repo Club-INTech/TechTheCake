@@ -112,17 +112,17 @@ class Container:
                 return simulateurInstance.soap
             self.assembler.register("simulateur", simulateur.Simulateur, requires=["config"], factory=make_simulateur)
             
-            #visualisation sur le simulateur pour la table et les hooks
+            #visualisation sur le simulateur pour la table et le robot
             self.assembler.register("table", table.TableSimulation, requires=["simulateur","config","log"])
-            self.assembler.register("hookGenerator", hooks.HookGeneratorSimulation, requires=["config","log","simulateur"])
+            self.assembler.register("robot", robot.RobotSimulation, requires=["simulateur","capteurs","actionneurs","deplacements","config","log","table"])
             
             #série virtuelle, qui redirige vers le simulateur
             self.assembler.register("serieSimulation", serieSimulation.SerieSimulation, requires=["simulateur", "log"])
         else:
             
-            #pas de visualisation sur le simulateur pour la table et les hooks
+            #pas de visualisation sur le simulateur pour la table et le robot
             self.assembler.register("table", table.Table, requires=["config","log"])
-            self.assembler.register("hookGenerator", hooks.HookGenerator, requires=["config","log"])
+            self.assembler.register("robot", robot.Robot, requires=["capteurs","actionneurs","deplacements","config","log","table"])
             
             def make_none():
                 return None
@@ -149,11 +149,11 @@ class Container:
         #enregistrement du service de filtrage
         self.assembler.register("filtrage", filtrage.FiltrageLaser, requires=["config"])
         
-        #enregistrement du service robot
-        self.assembler.register("robot", robot.Robot, requires=["capteurs","actionneurs","deplacements","config","log","table"])
-        
         #enregistrement du service robotChrono
         self.assembler.register("robotChrono", robotChrono.RobotChrono, requires=["log"])
+        
+        #enregistrement du service hookGenerator
+        self.assembler.register("hookGenerator", hooks.HookGenerator, requires=["config","log"])
         
         #enregistrement du service timer
         self.assembler.register("threads.timer", threads.ThreadTimer, requires=["log","config","robot","table","capteurs"])

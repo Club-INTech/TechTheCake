@@ -1,3 +1,6 @@
+import inspect
+import sys
+import pickle
 from time import sleep,time
 from outils_maths.point import Point
 import table
@@ -39,32 +42,24 @@ class Script(metaclass=abc.ABCMeta):
             calcule_chemin(position)
         self.robot.suit_chemin(self.dernierChemin)
 
-    def agit(self, params):
+    def agit(self, version):
         """
         L'appel script.agit() effectue vraiment les instructions contenues dans _execute().
         Les paramètres de agit() sont les mêmes que ceux envoyés à _execute()
         """
         self.robot = self.robotVrai
-        if type(params) is tuple:
-            self._execute(*params)
-        elif params is None:
-            self._execute()
-        else:
-            self._execute(params)
+        self._execute(version)
         
-    def calcule(self, params):
+    def calcule(self, version):
         """
         L'appel script.calcule() retourne la durée estimée des actions contenues dans executer().
         """
         self.robot = self.robotChrono
         self.robot.reset_compteur()
         self.robot.maj_x_y_o(self.robotVrai.x, self.robotVrai.y, self.robotVrai.orientation)
-        if type(params) is tuple:
-            self._execute(*params)
-        elif params is None:
-            self._execute()
-        else:
-            self._execute(params)
+        self.table.sauvegarder()
+        self._execute(version)
+        self.table.restaurer()
         return self.robot.get_compteur()
 
     @abc.abstractmethod
@@ -87,7 +82,6 @@ class Script(metaclass=abc.ABCMeta):
 class ScriptManager:
     
     def __init__(self, config, log, robot, robotChrono, hookGenerator, rechercheChemin, table, simulateur):
-        import inspect, sys
         self.log = log
         self.scripts = {}
         
@@ -336,7 +330,7 @@ class ScriptRecupererVerres(Script):
         # Récupération du premier verre, avec recherche de chemin
         self._recuperation_verre(self.info_versions[version]["verre_entree"])
 
-        # Récupération des verres restants dans la zone
+        # Récupération du verre le plus proche dans la zone
         while True:
             position = Point(self.robot.x, self.robot.y)
             verre = self.table.verre_le_plus_proche(position, zone)
@@ -405,7 +399,7 @@ class ScriptRecupererVerres(Script):
                 {"point_entree": verres[0]["position"], "verre_entree": verres[0], "zone": zone}
             ]
             
-        # Cas général: 2 points d'entrées
+        # Cas général: plusieurs points d'entrées
         else:
             self.info_versions = [
                 {"point_entree": verre["position"], "verre_entree": verre, "zone": zone} for verre in verres
