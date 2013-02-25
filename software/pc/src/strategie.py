@@ -20,8 +20,7 @@ class Strategie:
 
 #        if self.config["ennemi_fait_toutes_bougies"]: #à décommenter une fois que le script bougies sera fini
 #            del self.scripts["ScriptBougies"]
-        del self.scripts["ScriptBougies"]
-            
+
     def boucle_strategie(self):
         """
         Boucle qui gère la stratégie, en testant les différents scripts et en exécutant le plus avantageux
@@ -42,7 +41,7 @@ class Strategie:
             self.log.debug("Notes des scripts: " + str(notes))
 
             # Choix du script avec la meilleure note
-            (script_a_faire, version_a_faire) = max(notes, key=notes.get)
+            (script_a_faire, version_a_faire) = max(notes, key=notes.get) #ATTENTION, VERIFIER SI C'EST VIDE
             self.log.debug("Stratégie ordonne: "+str(script_a_faire)+", version "+str(version_a_faire))
 
             # Lancement du script si le match n'est pas terminé
@@ -76,6 +75,7 @@ class Strategie:
             return 0
 
         distance_ennemi = self._distance_ennemi(self.scripts[script].point_entree(version))
+        score = self.scripts[script].score()
 
         note = [
             # Densité de points
