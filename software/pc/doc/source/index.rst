@@ -17,7 +17,6 @@ Contents:
    deplacements
    hooks
    log
-   point
    read_ini
    rechercheChemin
    robotChrono
@@ -27,9 +26,7 @@ Contents:
    serieSimulation
    strategie
    table
-   thread_capteurs
-   thread_MAJ
-   timer
+   threads
 
 Indices and tables
 ==================
