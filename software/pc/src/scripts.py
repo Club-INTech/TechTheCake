@@ -252,15 +252,18 @@ class ScriptBougies(Script):
 class ScriptCadeaux(Script):
         
     def _execute(self, version):
-
-        sens = self.info_versions[version]["sens"]
         
+        # Effectue une symétrie sur tous les déplacements
         self.robot.effectuer_symetrie = True
+        
+        # Déplacement vers le point d'entrée
+        self.robot.marche_arriere = False
         self.robot.va_au_point(self.info_versions[version]["point_entree"])
 
         # Orientation du robot
         self.robot.marche_arriere = self.info_versions[version]["marche_arriere"]
-
+        sens = self.info_versions[version]["sens"]
+        
         # Création des hooks pour tous les cadeaux à activer
         hooks = []
         for cadeau in self.table.cadeaux_restants():
@@ -276,12 +279,10 @@ class ScriptCadeaux(Script):
             hook_fermeture += self.hookGenerator.callback(self.robot.fermer_cadeau)
             hooks.append(hook_fermeture)
 
-        # La dernière fermeture du bras n'est pas attachée à une position
-        hooks.pop()
-
-        # Déplacement le long de la table
-
+        # Déplacement le long de la table (peut être un peu trop loin ?)
         self.robot.va_au_point(self.info_versions[1-version]["point_entree"], hooks)
+        
+        # Fermeture du bras (le dernier hook n'étant pas atteint)
         self.robot.tourner(math.pi / 2)
         self.robot.fermer_cadeau()
 

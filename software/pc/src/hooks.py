@@ -102,17 +102,3 @@ class HookGenerator():
         
     def callback(self, fonction, arguments=(), unique=True):
         return Callback(fonction, arguments, unique)
-        
-class HookGeneratorSimulation(HookGenerator):
-    """
-    Héritage du hook factory pour afficher les hooks sur le simulateur
-    """
-    def __init__(self, config, log, simulateur):
-        HookGenerator.__init__(self, config, log)
-        self.simulateur = simulateur
-        
-    def hook_position(self, position, tolerance_mm=None):
-        hook = HookGenerator.hook_position(self, position, tolerance_mm)
-        #~ self.simulateur.drawPoint(position.x, position.y, "black", "hook")
-        #~ self.simulateur.drawCircle(position.x, position.y, hook.tolerance_mm, False, "black", "hook")
-        return hook
