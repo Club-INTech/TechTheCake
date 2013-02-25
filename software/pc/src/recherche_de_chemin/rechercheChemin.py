@@ -160,53 +160,81 @@ class RechercheChemin:
         Ajoute un obstacle circulaire à l'environnement initial. 
         Cette méthode recoupe ensuite le dernier polygone de l'environnement (indice -1) s'il sort de la table.
         """
+        #élargissement de l'obstacle pour un robot non ponctuel
         cercleObstacle = enlarge.elargit_cercle(Cercle(centre,rayon),self.rayonPropre)
+        #ajout à l'environnement (ce qui calcule le polygone approchant le cercle)
         self.environnement_initial.ajoute_cercle(cercleObstacle)
-        troncPolygon = self._recouper_aux_bords_table(-1,self.environnement_initial)
-        self.environnement_initial.polygones[-1] = troncPolygon
-        self.environnement_initial.cercles[-1] = cercleObstacle
-    
+        #calcul du polygone recoupé aux bords
+        troncPolygon = self._recouper_aux_bords_table(self.environnement_initial.polygones[-1], cercleObstacle, self.environnement_initial)
+        if troncPolygon is None:
+            #le polygone n'est pas dans la table : on le retire
+            del self.environnement_initial.polygones[-1]
+            del self.environnement_initial.cercles[-1]
+        else:
+            #on enregistre le nouveau polygone tronqué
+            self.environnement_initial.polygones[-1] = troncPolygon
+            
     def _ajoute_obstacle_initial_rectangle(self, rectangle):
         """
         Ajoute un obstacle rectangulaire à l'environnement initial. 
         Cette méthode recoupe ensuite le dernier polygone de l'environnement (indice -1) s'il sort de la table.
         """
+        #traduction du rectangle en une structure de polygone compatible avec visilibity
         polygoneVisilibity = vis.Polygon(list(map(lambda p: Point(p.x,p.y), rectangle)))
+        #élargissement de l'obstacle pour un robot non ponctuel
         rectangleObstacle = enlarge.elargit_rectangle(polygoneVisilibity, self.rayonPropre)
+        #ajout à l'environnement (ce qui calcule le cercle contenant du rectangle)
         self.environnement_initial.ajoute_rectangle(rectangleObstacle)
-        troncPolygon = self._recouper_aux_bords_table(-1,self.environnement_initial)
-        self.environnement_initial.polygones[-1] = troncPolygon
-        self.environnement_initial.cercles[-1] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
+        #calcul du polygone recoupé aux bords
+        troncPolygon = self._recouper_aux_bords_table(rectangleObstacle, self.environnement_initial.cercles[-1], self.environnement_initial)
+        if troncPolygon is None:
+            #le polygone n'est pas dans la table : on le retire
+            del self.environnement_initial.polygones[-1]
+            del self.environnement_initial.cercles[-1]
+        else:
+            #on enregistre le nouveau polygone tronqué
+            self.environnement_initial.polygones[-1] = troncPolygon
+            self.environnement_initial.cercles[-1] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
         
     def _ajoute_obstacle_initial_polygone(self, polygone):
         """
         Ajoute un obstacle polygonal à l'environnement initial. 
         Cette méthode recoupe ensuite le dernier polygone de l'environnement (indice -1) s'il sort de la table.
         """
+        #traduction du polygone en une structure de polygone compatible avec visilibity
         polygoneVisilibity = vis.Polygon(list(map(lambda p: Point(p.x,p.y), polygone)))
+        #élargissement de l'obstacle pour un robot non ponctuel
         polygoneObstacle = enlarge.elargit_polygone(polygoneVisilibity, self.rayonPropre, Environnement.cote_polygone)
+        #ajout à l'environnement (ce qui calcule le cercle contenant du rectangle)
         self.environnement_initial.ajoute_polygone(polygoneObstacle)
-        troncPolygon = self._recouper_aux_bords_table(-1,self.environnement_initial)
-        self.environnement_initial.polygones[-1] = troncPolygon
-        self.environnement_initial.cercles[-1] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
-        
-    def _recouper_aux_bords_table(self,id,environnement):
+        #calcul du polygone recoupé aux bords
+        troncPolygon = self._recouper_aux_bords_table(polygoneObstacle, self.environnement_initial.cercles[-1], self.environnement_initial)
+        if troncPolygon is None:
+            #le polygone n'est pas dans la table : on le retire
+            del self.environnement_initial.polygones[-1]
+            del self.environnement_initial.cercles[-1]
+        else:
+            #on enregistre le nouveau polygone tronqué
+            self.environnement_initial.polygones[-1] = troncPolygon
+            self.environnement_initial.cercles[-1] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
+            
+    def _recouper_aux_bords_table(self,polygone_a_recouper,cercle_a_recouper,environnement):
         """
-        Cette méthode recoupe le id-ème polygone de l'environnement passé en paramètre s'il sort de la table.
+        Cette méthode recoupe le polygone de l'environnement passé en paramètre s'il sort de la table.
         """
         #les obstacles une fois tronqués devront être distants de eps des bords
         eps = 1
         
         #test rapide de collision du polygone avec les bords de la table, via son cercle circonscrit
-        cx = environnement.cercles[id].centre.x
-        cy = environnement.cercles[id].centre.y
-        cr = environnement.cercles[id].rayon
+        cx = cercle_a_recouper.centre.x
+        cy = cercle_a_recouper.centre.y
+        cr = cercle_a_recouper.rayon
         if cx+cr < self.config["table_x"]/2-eps and cx-cr > -self.config["table_x"]/2+eps and cy+cr < self.config["table_y"]-eps and cy-cr > eps:
             #self.log.warning("le cercle de l'obstacle "+str(i)+" ne rentre pas en collision avec les bords.")#@
-            return environnement.polygones[id]
+            return polygone_a_recouper
         
         #alias pour la clarté. Les polygones NE SONT PAS dupliqués (pointeurs)
-        poly1 = environnement.polygones[id]
+        poly1 = polygone_a_recouper
         poly2 = self.bords
         #élection d'un point du poly1 qui ne sort pas de la table
         a1 = None
@@ -507,40 +535,72 @@ class RechercheChemin:
         Ajout un obstacle circulaire sur la table.
         Il est considéré comme dynamique et peut etre retiré via retirer_obstacles_dynamiques()
         """
+        #élargissement de l'obstacle pour un robot non ponctuel
         cercleObstacle = enlarge.elargit_cercle(Cercle(centre,rayon),self.rayonPropre)
+        #ajout à l'environnement (ce qui calcule le polygone approchant le cercle)
         self.environnement_complet.ajoute_cercle(cercleObstacle)
-        troncPolygon = self._recouper_aux_bords_table(-1,self.environnement_complet)
-        if troncPolygon:
+        #calcul du polygone recoupé aux bords
+        troncPolygon = self._recouper_aux_bords_table(self.environnement_complet.polygones[-1], cercleObstacle, self.environnement_complet)
+        if troncPolygon is None:
+            #le polygone n'est pas dans la table : on le retire
+            del self.environnement_complet.polygones[-1]
+            del self.environnement_complet.cercles[-1]
+        else:
+            #on enregistre le nouveau polygone tronqué
             self.environnement_complet.polygones[-1] = troncPolygon
-            self.environnement_complet.cercles[-1] = cercleObstacle
-        self._fusionner_avec_obstacles_en_contact()
-        
-    def ajoute_obstacle_polygone(self, polygone):
-        """
-        Ajout un obstacle polygonal sur la table (liste de points). 
-        Il est considéré comme dynamique et peut etre retiré via retirer_obstacles_dynamiques()
-        """
-        polygoneVisilibity = vis.Polygon(list(map(lambda p: Point(p.x,p.y), polygone)))
-        polygoneObstacle = enlarge.elargit_polygone(polygoneVisilibity, self.rayonPropre, Environnement.cote_polygone)
-        self.environnement_complet.ajoute_polygone(polygoneObstacle)
-        troncPolygon = self._recouper_aux_bords_table(-1,self.environnement_complet)
-        self.environnement_complet.polygones[-1] = troncPolygon
-        self.environnement_complet.cercles[-1] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
-        self._fusionner_avec_obstacles_en_contact()
-        
+            #on vérifie si ce polygone doit etre fusionné avec d'autres obstacles en cas de contact
+            self._fusionner_avec_obstacles_en_contact()
+    
     def ajoute_obstacle_rectangle(self, rectangle):
         """
         Ajout un obstacle rectangulaire sur la table (liste de points). 
         Idem que ajoute_obstacle_polygone() mais avec une optimisation du calcul du cercle circonscrit. 
         Il est considéré comme dynamique et peut etre retiré via retirer_obstacles_dynamiques()
         """
+        #traduction du rectangle en une structure de polygone compatible avec visilibity
         polygoneVisilibity = vis.Polygon(list(map(lambda p: Point(p.x,p.y), rectangle)))
+        #élargissement de l'obstacle pour un robot non ponctuel
         rectangleObstacle = enlarge.elargit_rectangle(polygoneVisilibity, self.rayonPropre)
+        #ajout à l'environnement (ce qui calcule le cercle contenant du rectangle)
         self.environnement_complet.ajoute_rectangle(rectangleObstacle)
-        troncPolygon = self._recouper_aux_bords_table(-1,self.environnement_complet)
-        self.environnement_complet.polygones[-1] = troncPolygon
-        self.environnement_complet.cercles[-1] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
-        self._fusionner_avec_obstacles_en_contact()
+        #calcul du polygone recoupé aux bords
+        troncPolygon = self._recouper_aux_bords_table(rectangleObstacle, self.environnement_complet.cercles[-1], self.environnement_complet)
+        if troncPolygon is None:
+            #le polygone n'est pas dans la table : on le retire
+            del self.environnement_complet.polygones[-1]
+            del self.environnement_complet.cercles[-1]
+        else:
+            #on enregistre le nouveau polygone tronqué
+            self.environnement_complet.polygones[-1] = troncPolygon
+            #le cercle du polygone initial optimise en général mieux le calcul que celui du polygone tronqué
+            #self.environnement_complet.cercles[-1] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
+            #on vérifie si ce polygone doit etre fusionné avec d'autres obstacles en cas de contact
+            self._fusionner_avec_obstacles_en_contact()
+    
+    def ajoute_obstacle_polygone(self, polygone):
+        """
+        Ajout un obstacle polygonal sur la table (liste de points). 
+        Il est considéré comme dynamique et peut etre retiré via retirer_obstacles_dynamiques()
+        """
+        #traduction du polygone en une structure de polygone compatible avec visilibity
+        polygoneVisilibity = vis.Polygon(list(map(lambda p: Point(p.x,p.y), polygone)))
+        #élargissement de l'obstacle pour un robot non ponctuel
+        polygoneObstacle = enlarge.elargit_polygone(polygoneVisilibity, self.rayonPropre, Environnement.cote_polygone)
+        #ajout à l'environnement (ce qui calcule le cercle contenant du rectangle)
+        self.environnement_complet.ajoute_polygone(polygoneObstacle)
+        #calcul du polygone recoupé aux bords
+        troncPolygon = self._recouper_aux_bords_table(polygoneObstacle, self.environnement_complet.cercles[-1], self.environnement_complet)
+        if troncPolygon is None:
+            #le polygone n'est pas dans la table : on le retire
+            del self.environnement_complet.polygones[-1]
+            del self.environnement_complet.cercles[-1]
+        else:
+            #on enregistre le nouveau polygone tronqué
+            self.environnement_complet.polygones[-1] = troncPolygon
+            #le cercle du polygone initial optimise en général mieux le calcul que celui du polygone tronqué
+            #self.environnement_complet.cercles[-1] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
+            #on vérifie si ce polygone doit etre fusionné avec d'autres obstacles en cas de contact
+            self._fusionner_avec_obstacles_en_contact()
             
     def retirer_obstacles_dynamiques(self):
         """
