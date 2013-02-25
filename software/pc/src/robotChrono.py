@@ -6,6 +6,10 @@ import abc
 ##################################################################################################################
 
 class RobotInterface(metaclass=abc.ABCMeta):
+
+    #le nombre de verres dans l'ascenseur avant ou arrière
+    verres_avant = 0
+    verres_arriere = 0
     
     @abc.abstractmethod
     def stopper(self):
@@ -62,7 +66,15 @@ class RobotInterface(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def gonflage_ballon(self):
         pass
-    
+        
+    @abc.abstractmethod
+    def places_disponibles(self, avant):
+        pass
+
+    @abc.abstractmethod
+    def recuperer_verre(self, avant):
+        pass
+
 ###################################################################################################################
 #####  CLASSE ROBOTCHRONO, permet de mesurer le temps d'une succession d'actions (utilisé dans Script.calcule() ###
 ###################################################################################################################
@@ -106,7 +118,7 @@ class RobotChrono(RobotInterface):
     def stopper(self):
         pass
     
-    def avancer(self, distance, hooks=[], pasReessayer=False):
+    def avancer(self, distance, hooks=[], pas_reessayer=False):
         """
         Fonction analogue à celle de robot. Avance. Si, si.
         """
@@ -170,3 +182,10 @@ class RobotChrono(RobotInterface):
         
     def gonflage_ballon(self):
         pass
+        
+    def places_disponibles(self, avant):
+        pass
+
+    def recuperer_verre(self, avant):
+        pass
+

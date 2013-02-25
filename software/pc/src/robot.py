@@ -434,7 +434,7 @@ class Robot(RobotInterface):
         self.blocage = True
         self.deplacements.stopper()
 
-    def avancer(self, distance, hooks=[], pasReessayer=False):
+    def avancer(self, distance, hooks=[], pas_reessayer=False):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.
         Elle permet d'effectuer une translation en visant un point consigne devant le robot,
@@ -459,7 +459,7 @@ class Robot(RobotInterface):
             self.stopper()
             print("translation arrêtée car blocage !")
         elif retour == 3:
-            if pasReessayer:
+            if pas_reessayer:
                 self.stopper()
             else:
                 delta_x=self.x-mem_x
