@@ -2,18 +2,17 @@
 import networkx as nx
 import math
 
-from recherche_de_chemin.visilibity import Point
-#from outils_maths.point import Point
+import outils_maths.point as point #point.Point : format de sortie de la recherche de chemin
+from recherche_de_chemin.visilibity import Point #pas de namespace : permet de changer facilement le type Point
 
-import builtins
+#debug #@
+#import builtins#@
 
-def drawLigne(x1,y1,x2,y2):
-    builtins.simulateur.drawVector(x1,y1,x2,y2,"green",True)
+#def drawLigne(x1,y1,x2,y2):#@
+    #builtins.simulateur.drawVector(x1,y1,x2,y2,"green",True)#@
     
 class AStar:
     
-    #pas_x = 400
-    #pas_y = 500
     pas_x = 300
     pas_y = 200
     
@@ -29,13 +28,11 @@ class AStar:
         y0 = int(AStar.minY+AStar.pas_y/2)
         for x in range(int(AStar.minX+AStar.pas_x/2), int(AStar.maxX-AStar.pas_x),AStar.pas_x):
             G.add_edge((x,y0),(x+AStar.pas_x,y0),weight=AStar.pas_x)
-            #drawLigne(x,y0,x+AStar.pas_x,y0)#@
             
         #première colonne
         x0 = int(AStar.minX+AStar.pas_x/2)
         for y in range(int(AStar.minY+AStar.pas_y/2), int(AStar.maxY-AStar.pas_y), AStar.pas_y):
             G.add_edge((x0,y),(x0,y+AStar.pas_y),weight=AStar.pas_y)
-            #drawLigne(x0,y,x0,y+AStar.pas_y)#@
                 
         #autres arêtes, avec diagonales
         poids_diagonale = int(math.sqrt(AStar.pas_x**2 + AStar.pas_y**2))
@@ -43,16 +40,12 @@ class AStar:
             for x in range(int(AStar.minX+3*AStar.pas_x/2), int(AStar.maxX),AStar.pas_x):
                 #horizontale
                 G.add_edge((x-AStar.pas_x,y),(x,y),weight=AStar.pas_x)
-                #drawLigne(x-AStar.pas_x,y,x,y)#@
                 #verticales
                 G.add_edge((x,y-AStar.pas_y),(x,y),weight=AStar.pas_y)
-                #drawLigne(x,y-AStar.pas_y,x,y)#@
                 #diagonale /
                 G.add_edge((x-AStar.pas_x,y-AStar.pas_y),(x,y),weight=poids_diagonale)
-                #drawLigne(x-AStar.pas_x,y-AStar.pas_y,x,y)#@
                 #diagonale \
                 G.add_edge((x-AStar.pas_x,y),(x,y-AStar.pas_y),weight=poids_diagonale)
-                #drawLigne(x-AStar.pas_x,y,x,y-AStar.pas_y)#@
         return G
                 
     def _noeud_plus_proche(point, G):
@@ -132,8 +125,8 @@ class AStar:
                         G.remove_node(noeud)
                     a_explorer.remove(noeud)
                     
-        for ((x1,y1),(x2,y2)) in G.edges():#@
-            drawLigne(x1,y1,x2,y2)#@
+        #for ((x1,y1),(x2,y2)) in G.edges():#@
+            #drawLigne(x1,y1,x2,y2)#@
         return G
         
     def plus_court_chemin(depart, arrivee, G):
@@ -142,6 +135,6 @@ class AStar:
         
         Nchemin = nx.astar_path(G, Ndepart, Narrivee, heuristic=AStar._distance_euclidienne, weight='weight')
         
-        chemin = list(map(lambda noeud: Point(noeud[0],noeud[1]),Nchemin))
+        chemin = list(map(lambda noeud: point.Point(noeud[0],noeud[1]),Nchemin))
         chemin.append(arrivee)
         return chemin
