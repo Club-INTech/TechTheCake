@@ -105,6 +105,7 @@ class ScriptBougies(Script):
     def _execute(self, version):
 
         # Il n'y a aucune symétrie sur la couleur dans les déplacements
+        self.robot.marche_arriere = False
         self.robot.effectuer_symetrie = False
         
         # Déplacement vers le point d'entrée
@@ -259,11 +260,12 @@ class ScriptCadeaux(Script):
     def _execute(self, version):
 
         sens = self.info_versions[version]["sens"]
-        self.robot.va_au_point(self.info_versions[version]["point_entree"])
         
+        self.robot.effectuer_symetrie = True
+        self.robot.va_au_point(self.info_versions[version]["point_entree"])
+
         # Orientation du robot
         self.robot.marche_arriere = self.info_versions[version]["marche_arriere"]
-        self.robot.effectuer_symetrie = True
 
         # Création des hooks pour tous les cadeaux à activer
         hooks = []
@@ -284,6 +286,7 @@ class ScriptCadeaux(Script):
         hooks.pop()
 
         # Déplacement le long de la table
+
         self.robot.va_au_point(self.info_versions[1-version]["point_entree"], hooks)
         self.robot.tourner(math.pi / 2)
         self.robot.fermer_cadeau()
@@ -363,6 +366,9 @@ class ScriptRecupererVerres(Script):
             return not choix
         
         return choix
+        
+        # Chez moi, on aurait plutôt écrit comme ça. Ce n'est pas assez clair, c'est ça?
+        return self.robot.places_disponibles(True) != 0
             
     def _point_recuperation_verre(self, point):
         """
