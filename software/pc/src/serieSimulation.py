@@ -159,14 +159,12 @@ class ProtocoleVirtuelLaser:
         self.log = log
         
     def laser_on(self):
-        #self.simulateur.log("Allumage des lasers")
         return []
         
     def motor_on(self):
         return []
     
     def laser_off(self):
-        #self.simulateur.log("Extinction des lasers") 
         return []
         
     def motor_off(self):

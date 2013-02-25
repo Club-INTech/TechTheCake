@@ -271,3 +271,36 @@ class ThreadLaser(AbstractThread):
             
         log.debug("Fin du thread des lasers")
         
+        
+class ThreadCouleurBougies(AbstractThread):
+    
+    def __init__(self, container):
+        super().__init__(container)
+        
+    def run(self):
+        """
+        Cette fonction sera lancée dans un thread parallèle à la stratégie.
+        Une socket vers le téléphone est ouverte pour récupérer les couleurs des bougies
+        """
+        # importation des services nécessaires
+        log = self.container.get_service("log")
+        config = self.container.get_service("config")
+        table = self.container.get_service("table")
+        timer = self.container.get_service("threads.timer")
+
+        log.debug("Lancement du thread de détection des couleurs des bougies")
+
+        # Attente du démarrage du match
+        while not timer.match_demarre:
+            if AbstractThread.stop_threads:
+                log.debug("Stoppage du thread laser")
+                return None
+            sleep(0.1)
+            
+        # Ouverture de la socket
+        sleep(3)
+        table.definir_couleurs_bougies("rrbrrbbbrr")
+            
+        
+        log.debug("Fin du thread de détection des couleurs des bougies")
+        

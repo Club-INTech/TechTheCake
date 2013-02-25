@@ -160,6 +160,7 @@ class Container:
         self.assembler.register("threads.position", threads.ThreadPosition, requires=["container"])
         self.assembler.register("threads.capteurs", threads.ThreadCapteurs, requires=["container"])
         self.assembler.register("threads.laser", threads.ThreadLaser, requires=["container"])
+        self.assembler.register("threads.bougies", threads.ThreadCouleurBougies, requires=["container"])
 
         #enregistrement du service de recherche de chemin
         self.assembler.register("rechercheChemin", rechercheChemin.RechercheChemin, requires=["table","config","log"])
@@ -180,9 +181,10 @@ class Container:
         def lancement_des_threads():
             threads.AbstractThread.stop_threads = False
             
+            self.get_service("threads.timer").start()
             self.get_service("threads.position").start()
             self.get_service("threads.capteurs").start()
-            self.get_service("threads.timer").start()
+            self.get_service("threads.bougies").start()
             
             if self.config["lasers_demarrer_thread"]:
                 self.get_service("threads.laser").start()
@@ -220,6 +222,11 @@ class Container:
         laser = self.get_service("threads.laser")
         if laser.is_alive():
             laser.join()
+            
+        #attente de la fin du thread bougies
+        bougies = self.get_service("threads.bougies")
+        if bougies.is_alive():
+            bougies.join()
         
     def reset(self):
         """

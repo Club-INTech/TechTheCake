@@ -207,7 +207,8 @@ class Robot(RobotInterface):
         self._consigne_orientation = angle
         self.deplacements.tourner(angle)
         
-        while not self._acquittement():
+        #pas de détection de collision dans les rotations
+        while not self._acquittement(detection_collision=False):
             #vérification des hooks
             infosRobot={"robotX" : self.x,"robotY" : self.y,"robotOrientation" : self.orientation}
             for hook in hooks:
@@ -285,7 +286,7 @@ class Robot(RobotInterface):
             self.deplacements.avancer(distance)
             
     
-    def _acquittement(self):
+    def _acquittement(self, detection_collision=True):
         """
         Boucle d'acquittement générique. Retourne des valeurs spécifiques en cas d'arrêt anormal (blocage, capteur)
         """
@@ -300,12 +301,13 @@ class Robot(RobotInterface):
             raise ExceptionBlocage
             
         #ennemi détecté devant le robot ?
-        signe = -1 if self.marche_arriere else 1
-        centre_detection = Point(self.x, self.y) + Point(signe * 200 * cos(self.orientation), signe * 200 * sin(self.orientation))
-        for obstacle in self.table.obstacles():
-            if obstacle.position.distance(centre_detection) < 200:
-                self.log.warning("ennemi détecté")
-                raise ExceptionCollision
+        if detection_collision:
+            signe = -1 if self.marche_arriere else 1
+            centre_detection = Point(self.x, self.y) + Point(signe * 200 * cos(self.orientation), signe * 200 * sin(self.orientation))
+            for obstacle in self.table.obstacles():
+                if obstacle.position.distance(centre_detection) < 200:
+                    self.log.warning("ennemi détecté")
+                    raise ExceptionCollision
         
         #robot arrivé ?
         if not self.deplacements.update_enMouvement(**infos):
