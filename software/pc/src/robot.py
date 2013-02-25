@@ -304,6 +304,7 @@ class Robot(RobotInterface):
         centre_detection = Point(self.x, self.y) + Point(signe * 200 * cos(self.orientation), signe * 200 * sin(self.orientation))
         for obstacle in self.table.obstacles():
             if obstacle.position.distance(centre_detection) < 200:
+                self.log.warning("ennemi détecté")
                 raise ExceptionCollision
         
         #robot arrivé ?
@@ -497,15 +498,11 @@ class Robot(RobotInterface):
                 self.set_vitesse_rotation(mem_vitesse)
             else:
                 self.stopper()
-                self.log.warning("rotation arrêtée car blocage !")
-                self.log.warning("abandon du mouvement en cours")
                 raise ExceptionMouvementImpossible
                 
         #détection d'un robot adverse
         except ExceptionCollision:
             self.stopper()
-            self.log.warning("détection d'un robot adverse")
-            self.log.warning("abandon du mouvement en cours")
             raise ExceptionMouvementImpossible
             
     def suit_chemin(self, chemin, hooks=[]):
@@ -536,13 +533,10 @@ class Robot(RobotInterface):
             
         #blocage durant le mouvement
         except ExceptionBlocage:
-            self.log.warning("mouvement arrêté car blocage !")
-            self.log.warning("abandon du mouvement en cours")
             raise ExceptionMouvementImpossible
         
         #détection d'un robot adverse
         except ExceptionCollision:
-            self.log.warning("détection d'un robot adverse")
             self.stopper()
             if nombre_tentatives > 0:
                 self.log.warning("attente avant nouvelle tentative... reste {0} tentative(s)".format(nombre_tentatives))
@@ -552,24 +546,26 @@ class Robot(RobotInterface):
                 raise ExceptionMouvementImpossible
             
             
-    def arc_de_cercle(self,xM,yM,hooks=[]):
+    def arc_de_cercle(self, point_destination, hooks=[]):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.
         Elle permet d'effectuer un arc de cercle à partir de la position courante vers le projetté de M sur le cercle passant par la position courante.
         Faites pas cette tête, c'est intuitif.
         Les hooks sont executés, et différentes relances sont implémentées en cas de retour particulier.
         """
-        self.log.debug("effectue un arc de cercle entre ("+str(self.x)+", "+str(self.y)+") et ("+str(xM)+", "+str(yM)+")")
+        self.log.debug("effectue un arc de cercle entre ("+str(self.x)+", "+str(self.y)+") et ("+str(point_destination)+")")
         
-        retour = self._arc_de_cercle(xM,yM,hooks)
+        try:
+            self._arc_de_cercle(point_destination.x, point_destination.y, hooks)
         
-        if retour == 1:
-            print("point de destination atteint !")
-        elif retour == 2:
-            print("déplacement arrêté car blocage !")
-        elif retour == 3:
+        #blocage durant le mouvement
+        except ExceptionBlocage:
+            raise ExceptionMouvementImpossible
+        
+        #détection d'un robot adverse
+        except ExceptionCollision:
             self.stopper()
-            print("capteurs !")
+            raise ExceptionMouvementImpossible
         
     def recaler(self):
         """
@@ -679,15 +675,6 @@ class Robot(RobotInterface):
         """
         self.log.debug("fermeture du bras cadeaux")
         self.actionneurs.fermer_cadeau()
-       
-    def places_disponibles(self, avant):
-        """
-        Renvoie le nombre de places disponibles sur un ascenceur
-        """
-        if avant:
-            return 4 - self.nb_verres_avant
-        else:
-            return 4 - self.nb_verres_arriere
  
     def recuperer_verre(self, avant):
         """
@@ -706,10 +693,7 @@ class Robot(RobotInterface):
         # Lancement des actionneurs
         
         # Mise à jour du total de verres portés
-        if avant:
-            self.nb_verres_avant += 1
-        else:
-            self.nb_verres_arriere += 1
+        super().recuperer_verre(avant)
             
         self.log.debug("le robot a {0} verre(s) à l'avant, {1} à l'arrière".format(self.nb_verres_avant, self.nb_verres_arriere))
         
@@ -737,9 +721,9 @@ class RobotSimulation(Robot):
         self._afficher_hooks(hooks)
         super().va_au_point(point, hooks, virage_initial, nombre_tentatives)
         
-    def arc_de_cercle(self, xM, yM, hooks=[]):
+    def arc_de_cercle(self, point, hooks=[]):
         self._afficher_hooks(hooks)
-        super().arc_de_cercle(xM, yM, hooks)
+        super().arc_de_cercle(point, hooks)
         
     def _afficher_hooks(self, hooks):
         self.simulateur.clearEntity("hook")

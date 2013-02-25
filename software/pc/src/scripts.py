@@ -57,6 +57,7 @@ class Script(metaclass=abc.ABCMeta):
         self.robot = self.robotChrono
         self.robot.reset_compteur()
         self.robot.maj_x_y_o(self.robotVrai.x, self.robotVrai.y, self.robotVrai.orientation)
+        self.robot.maj_capacite_verres(self.robotVrai.nb_verres_avant, self.robotVrai.nb_verres_arriere)
         self.table.sauvegarder()
         self._execute(version)
         self.table.restaurer()
@@ -131,7 +132,7 @@ class ScriptBougies(Script):
         
         # Lancement de l'arc de cercle
         self.robot.marche_arriere = self.info_versions[version]["marche_arriere"]
-        self.robot.arc_de_cercle(sortie.x, sortie.y, hooks)
+        self.robot.arc_de_cercle(sortie, hooks)
         
         """
         gateauEnBas = False
@@ -377,7 +378,6 @@ class ScriptRecupererVerres(Script):
         recuperation = point + 100 * direction
         
         return recuperation
-        
             
     def versions(self):
         

@@ -1,15 +1,12 @@
 from math import sqrt,atan2, cos, sin
 import abc
+import copy
 
 ##################################################################################################################
 #####  CLASSE ROBOTINTERFACE, permet de vérifier l'équivalence des méthodes publiques de Robot et RobotChrono. ###
 ##################################################################################################################
 
 class RobotInterface(metaclass=abc.ABCMeta):
-
-    #le nombre de verres dans l'ascenseur avant ou arrière
-    verres_avant = 0
-    verres_arriere = 0
     
     @abc.abstractmethod
     def stopper(self):
@@ -28,11 +25,11 @@ class RobotInterface(metaclass=abc.ABCMeta):
         pass
             
     @abc.abstractmethod
-    def va_au_point(self,point_consigne,**useless):
+    def va_au_point(self, point_consigne, **useless):
         pass
     
     @abc.abstractmethod
-    def arc_de_cercle(self,xM,yM,hooks=[]):
+    def arc_de_cercle(self, point_destination, hooks=[]):
         pass
         
     @abc.abstractmethod
@@ -67,13 +64,23 @@ class RobotInterface(metaclass=abc.ABCMeta):
     def gonflage_ballon(self):
         pass
         
-    @abc.abstractmethod
     def places_disponibles(self, avant):
-        pass
+        """
+        Renvoie le nombre de places disponibles sur un ascenceur
+        """
+        if avant:
+            return 4 - self.nb_verres_avant
+        else:
+            return 4 - self.nb_verres_arriere
 
-    @abc.abstractmethod
     def recuperer_verre(self, avant):
-        pass
+        """
+        Lance la procédure de récupération d'un verre
+        """
+        if avant:
+            self.nb_verres_avant += 1
+        else:
+            self.nb_verres_arriere += 1
 
 ###################################################################################################################
 #####  CLASSE ROBOTCHRONO, permet de mesurer le temps d'une succession d'actions (utilisé dans Script.calcule() ###
@@ -104,6 +111,10 @@ class RobotChrono(RobotInterface):
         self.x = x
         self.y = y
         self.orientation = orientation
+        
+    def maj_capacite_verres(self, avant, arriere):
+        self.nb_verres_avant = avant
+        self.nb_verres_arriere = arriere
         
     def reset_compteur(self):
         self.duree = 0
