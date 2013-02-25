@@ -24,7 +24,7 @@ class Point:
     def __sub__(self, other):
         return Point(self.x - other.x, self.y - other.y)
     
-    def __mul__(self, other):
+    def __rmul__(self, other):
         return Point(self.x*other, self.y*other)
     
     def __str__(self) :
@@ -35,6 +35,10 @@ class Point:
         
     def to_list(self):
         return [self.x, self.y]
+        
+    def unitaire(self):
+        n = self.norme()
+        return Point(self.x / n, self.y / n)
         
     def norme(self):
         return self.distance(Point(0, 0))

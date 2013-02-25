@@ -1,5 +1,6 @@
 from time import sleep,time
 from outils_maths.point import Point
+import table
 import math
 import unittest
 import abc
@@ -105,7 +106,6 @@ class ScriptManager:
         for nom, obj in classes:
             heritage = list(inspect.getmro(obj))
             if Script in heritage and obj != Script:
-                print(nom)
                 self.scripts[nom] = obj()
                 self.scripts[nom].dependances(config, log, robot, robotChrono, hookGenerator, rechercheChemin, table, simulateur)
 
@@ -324,6 +324,65 @@ class ScriptCadeaux(Script):
     def point_entree(self, id_version):
         return self.info_versions[id_version]["point_entree"]
                 
+    def score(self):
+        return 4 * len(self.table.cadeaux_restants())
+        
+class ScriptRecupererVerres(Script):
+        
+    def _execute(self, version):
+        
+        # Point d'entrée du script
+        entree = self._point_recuperation_verre(self.info_versions[version]["point_entree"])
+        zone = self.info_versions[version]["zone"]
+        
+        # Récupération du premier verre
+        self.robot.va_au_point(entree)
+        self.table.verre_recupere(self.info_versions[version]["verre_entree"])
+        
+        # Récupération des verres restants dans la zone
+        for verre in self.table.verres_restants(zone):
+            self.robot.va_au_point(verre["position"])
+            self.table.verre_recupere(verre)
+            
+    def _point_recuperation_verre(self, point):
+        """
+        Récupère le point de destination pour récupérer un verre
+        S'appuie sur la position actuelle du robot
+        """
+        # Vecteur de direction du verre vers le robot
+        direction = (Point(self.robot.x, self.robot.y) - point).unitaire()
+        
+        # Point de récupération
+        recuperation = point + 100 * direction
+        
+        return recuperation
+        
+            
+    def versions(self):
+        # Récupération des verres d'entrées
+        verres = self.table.verres_entrees()
+        
+        # Plus aucun verre sur la table
+        if len(verres) == 0:
+            self.info_versions = []
+
+        # Un seul verre
+        elif len(verres) == 1:
+            self.info_versions = [
+                {"point_entree": verres[0]["position"], "verre_entree": verres[0], "zone": table.Table.ZONE_VERRE_ROUGE}
+            ]
+            
+        # Cas général: 2 points d'entrées
+        else:
+            self.info_versions = [
+                {"point_entree": verre["position"], "verre_entree": verres[0], "zone": table.Table.ZONE_VERRE_ROUGE} for verre in verres
+            ]
+            
+        return list(range(len(self.info_versions)))
+        
+    def point_entree(self, id_version):
+        return self.info_versions[id_version]["point_entree"]
+
     def score(self):
         return 4 * len(self.table.cadeaux_restants())
 

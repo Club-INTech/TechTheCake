@@ -1,4 +1,5 @@
 import tests.tests
+import src.table
 
 class TestTable(tests.tests.ContainerTest):
     
@@ -34,14 +35,14 @@ class TestTable(tests.tests.ContainerTest):
     def test_point_entree_verre(self):
         verres = self.table.verres
         self.table.verre_recupere(verres[0])
-        self.assertEqual(self.table.verres_entrees("rouge"), [verres[1], verres[5]])
+        self.assertEqual(self.table.verres_entrees(src.table.Table.ZONE_VERRE_ROUGE), [verres[1], verres[5]])
         self.table.verre_recupere(verres[5])
-        self.assertEqual(self.table.verres_entrees("rouge"), [verres[1], verres[4]])
+        self.assertEqual(self.table.verres_entrees(src.table.Table.ZONE_VERRE_ROUGE), [verres[1], verres[4]])
         self.table.verre_recupere(verres[2])
-        self.assertEqual(self.table.verres_entrees("rouge"), [verres[1], verres[4]])
+        self.assertEqual(self.table.verres_entrees(src.table.Table.ZONE_VERRE_ROUGE), [verres[1], verres[4]])
         self.table.verre_recupere(verres[3])
-        self.assertEqual(self.table.verres_entrees("rouge"), [verres[1], verres[4]])
+        self.assertEqual(self.table.verres_entrees(src.table.Table.ZONE_VERRE_ROUGE), [verres[1], verres[4]])
         self.table.verre_recupere(verres[1])
-        self.assertEqual(self.table.verres_entrees("rouge"), [verres[4]])
+        self.assertEqual(self.table.verres_entrees(src.table.Table.ZONE_VERRE_ROUGE), [verres[4]])
         self.table.verre_recupere(verres[4])
-        self.assertEqual(self.table.verres_entrees("rouge"), [])
+        self.assertEqual(self.table.verres_entrees(src.table.Table.ZONE_VERRE_ROUGE), [])

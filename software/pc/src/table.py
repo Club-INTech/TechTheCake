@@ -30,10 +30,15 @@ class ObstacleCapteur(Obstacle):
        
 class Table:
     
+    # Masques pour les couleurs des bougies
     COULEUR_BOUGIE_INCONNUE = 1
     COULEUR_BOUGIE_BLANC = 2
     COULEUR_BOUGIE_ROUGE = 4
     COULEUR_BOUGIE_BLEU = 8
+    
+    # Masques pour les deux zones des verres
+    ZONE_VERRE_ROUGE = 1
+    ZONE_VERRE_BLEU = 2
     
     def __init__(self, config, log):
     
@@ -181,7 +186,7 @@ class Table:
         """
         Récupère la liste des bougies restantes à valider
         """
-        return [b for i,b in enumerate(self.bougies) if i not in self.bougies_ignorees and not b["traitee"] and b["couleur"] & couleur > 0]
+        return [b for i,b in enumerate(self.bougies) if i not in self.bougies_ignorees and not b["traitee"] and b["couleur"] & couleur]
         
     def bougie_recupere(self, b):
         """
@@ -219,15 +224,12 @@ class Table:
     ### GESTION DES VERRES
     ###############################################
     
-    def verres_entrees(self, zone_couleur):
+    def verres_entrees(self, zone=ZONE_VERRE_ROUGE|ZONE_VERRE_BLEU):
         """
         Récupère la liste des verres possibles comme point d'entrée sur une des deux zones de la table
         """
-        if zone_couleur == "rouge":
-            restants_zone_demandee = [v["id"] for v in self.verres_restants() if v["id"] < 6]
-        else:
-            restants_zone_demandee = [v["id"] for v in self.verres_restants() if v["id"] >= 6]
-        
+        restants_zone_demandee = [v["id"] for v in self.verres_restants(zone)]
+
         if len(restants_zone_demandee) == 0:
             return []
         elif len(restants_zone_demandee) == 1:
@@ -235,11 +237,18 @@ class Table:
         else:
             return [self.verres[min(restants_zone_demandee)], self.verres[max(restants_zone_demandee)]]
         
-    def verres_restants(self):
+    def verres_restants(self, zone=ZONE_VERRE_ROUGE|ZONE_VERRE_BLEU):
         """
         Récupère les verres restants sur la table
         """
-        return [v for v in self.verres if v["present"]]
+        verres = []
+        
+        if zone & Table.ZONE_VERRE_ROUGE:
+            verres += [v for v in self.verres if v["present"] and v["id"] < 6]
+        if zone & Table.ZONE_VERRE_BLEU:
+            verres += [v for v in self.verres if v["present"] and v["id"] >= 6]
+            
+        return verres
         
     def etat_verre(self, verre):
         """
@@ -254,7 +263,7 @@ class Table:
         """
         self.verres[verre["id"]]["present"] = False
             
-    def verre_le_plus_proche(self, position):
+    def verre_le_plus_proche(self, position, zone=ZONE_VERRE_ROUGE|ZONE_VERRE_BLEU):
         """
         Récupère le verre le plus proche d'une position
         None est renvoyé si aucun verre présent sur la table
