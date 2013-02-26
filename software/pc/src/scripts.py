@@ -391,7 +391,7 @@ class ScriptRecupererVerres(Script):
         verres = self.table.verres_entrees(zone)
         
         # Plus aucun verre sur la table
-        if len(verres) == 0:
+        if len(verres) == 0 or (self.robotVrai.places_disponibles(True) == 0 and self.robotVrai.places_disponibles(False) == 0):
             self.info_versions = []
 
         # Un seul verre
