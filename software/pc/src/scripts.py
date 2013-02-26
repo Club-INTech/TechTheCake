@@ -90,7 +90,7 @@ class ScriptManager:
         classes = inspect.getmembers(sys.modules[__name__], inspect.isclass)
         for nom, obj in classes:
             heritage = list(inspect.getmro(obj))
-            if Script in heritage and obj != Script:
+            if not inspect.isabstract(obj) and Script in heritage:
                 self.scripts[nom] = obj()
                 self.scripts[nom].dependances(config, log, robot, robotChrono, hookGenerator, rechercheChemin, table, simulateur)
 
@@ -327,7 +327,6 @@ class ScriptRecupererVerres(Script):
         
         # Point d'entrée du script
         entree = self._point_recuperation_verre(self.info_versions[version]["point_entree"])
-        zone = self.info_versions[version]["zone"]
         
         # Récupération du premier verre, avec recherche de chemin
         self._recuperation_verre(self.info_versions[version]["verre_entree"])
@@ -335,7 +334,7 @@ class ScriptRecupererVerres(Script):
         # Récupération du verre le plus proche dans la zone
         while self.robot.places_disponibles(True) != 0 or self.robot.places_disponibles(False) != 0:
             position = Point(self.robot.x, self.robot.y)
-            verre = self.table.verre_le_plus_proche(position, zone)
+            verre = self.table.verre_le_plus_proche(position, self.zone)
             if verre is None:
                 break
             self._recuperation_verre(verre)
@@ -354,16 +353,7 @@ class ScriptRecupererVerres(Script):
         """
         Effectue le choix de l'ascenceur avant ou arrière
         """
-        # Prend par l'avant par défaut
-        choix = True
-        
-        # Vérification de la capacité
-        if self.robot.places_disponibles(choix) == 0:
-            return not choix
-        
-        return choix
-        
-        # Chez moi, on aurait plutôt écrit comme ça. Ce n'est pas assez clair, c'est ça?
+        # Prend par l'avant par défaut, l'arrière s'il n'y a plus de places
         return self.robot.places_disponibles(True) != 0
             
     def _point_recuperation_verre(self, point):
@@ -378,17 +368,15 @@ class ScriptRecupererVerres(Script):
         recuperation = point + 100 * direction
         
         return recuperation
-            
+         
+    @abc.abstractmethod
     def versions(self):
-        
-        # Zone à traiter
-        if self.config["couleur"] == "rouge":
-            zone = table.Table.ZONE_VERRE_ROUGE
-        else:
-            zone = table.Table.ZONE_VERRE_BLEU
-          
+        """
+        Récupération des versions du script.
+        Doit être surchargé dans les 2 scripts enfants, un par couleur
+        """
         # Récupération des verres d'entrées
-        verres = self.table.verres_entrees(zone)
+        verres = self.table.verres_entrees(self.zone)
         
         # Plus aucun verre sur la table ou plus de place dans le robot
         if len(verres) == 0 or (self.robotVrai.places_disponibles(True) == 0 and self.robotVrai.places_disponibles(False) == 0):
@@ -397,13 +385,13 @@ class ScriptRecupererVerres(Script):
         # Un seul verre
         elif len(verres) == 1:
             self.info_versions = [
-                {"point_entree": verres[0]["position"], "verre_entree": verres[0], "zone": zone}
+                {"point_entree": verres[0]["position"], "verre_entree": verres[0]}
             ]
             
         # Cas général: plusieurs points d'entrées
         else:
             self.info_versions = [
-                {"point_entree": verre["position"], "verre_entree": verre, "zone": zone} for verre in verres
+                {"point_entree": verre["position"], "verre_entree": verre} for verre in verres
             ]
             
         return list(range(len(self.info_versions)))
@@ -412,7 +400,7 @@ class ScriptRecupererVerres(Script):
         return self.info_versions[id_version]["point_entree"]
 
     def score(self):
-        nb_verres_restants = len(self.table.verres_restants(table.Table.ZONE_VERRE_ROUGE)) #la couleur est pour le moment pipeau et devrait être passée en paramètre
+        nb_verres_restants = len(self.table.verres_restants(self.zone))
         verres_stockable_avant = self.robotVrai.places_disponibles(True)
         verres_stockable_arriere = self.robotVrai.places_disponibles(False)
         
@@ -437,6 +425,24 @@ class ScriptRecupererVerres(Script):
         return points_avant + points_arriere
 
 
+class ScriptRecupererVerresZoneRouge(ScriptRecupererVerres):
+    
+    def __init__(self):
+        self.zone = table.Table.ZONE_VERRE_ROUGE
+        
+    def versions(self):
+        return super().versions()
+        
+        
+class ScriptRecupererVerresZoneBleu(ScriptRecupererVerres):
+    
+    def __init__(self):
+        self.zone = table.Table.ZONE_VERRE_BLEU
+        
+    def versions(self):
+        return super().versions()
+        
+        
 """        
 class ScriptCasserTour(Script):
 

@@ -268,7 +268,6 @@ class ThreadLaser(AbstractThread):
             end = time()
             filtrage.update_dt(end-start)
             
-            
         log.debug("Fin du thread des lasers")
         
         
@@ -293,7 +292,7 @@ class ThreadCouleurBougies(AbstractThread):
         # Attente du démarrage du match
         while not timer.match_demarre:
             if AbstractThread.stop_threads:
-                log.debug("Stoppage du thread laser")
+                log.debug("Stoppage du thread de détection des couleurs des bougies")
                 return None
             sleep(0.1)
             
