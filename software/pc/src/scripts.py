@@ -270,13 +270,13 @@ class ScriptCadeaux(Script):
         for cadeau in self.table.cadeaux_restants():
             
             # Ouverture du bras
-            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * -50, 250), effectuer_symetrie=True)
+            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * -50, 250), effectuer_symetrie=(self.config["couleur"] == "bleu"))
             hook_ouverture += self.hookGenerator.callback(self.robot.ouvrir_cadeau)
             hook_ouverture += self.hookGenerator.callback(self.table.cadeau_recupere, (cadeau,))
             hooks.append(hook_ouverture)
             
             # Fermeture du bras
-            hook_fermeture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * 200, 250), effectuer_symetrie=True)
+            hook_fermeture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * 200, 250), effectuer_symetrie=(self.config["couleur"] == "bleu"))
             hook_fermeture += self.hookGenerator.callback(self.robot.fermer_cadeau)
             hooks.append(hook_fermeture)
 
