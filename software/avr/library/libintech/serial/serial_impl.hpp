@@ -32,6 +32,7 @@ private:
     };
 
     static volatile ring_buffer rx_buffer_;
+    static volatile bool acquittement;
 
 private:
 
@@ -308,6 +309,8 @@ public:
         uint8_t status = read(buffer, timeout);
         val = atol(buffer);
 
+        if (acquittement) ack();
+
         return status;
     }
 
@@ -319,6 +322,8 @@ public:
         static char buffer[20];
         uint8_t status = read(buffer, timeout);
         val = atof(buffer);
+
+        if (acquittement) ack();
 
         return status;
     }
@@ -354,14 +359,24 @@ public:
         // Remplace le délimiteur par une fin de chaine
         string[i - 1] = '\0';
 
+        if (acquittement) ack();
+
         return READ_SUCCESS;
     }
+
+    static inline void activer_acquittement(bool activation) {
+        acquittement = activation;        
+    }
+
 
 };
 
 
 template<uint8_t ID>
 volatile typename Serial<ID>::ring_buffer Serial<ID>::rx_buffer_;
+
+template<uint8_t ID>
+volatile bool Serial<ID>::acquittement;
 
 #endif  /* SERIAL_HPP */
 
