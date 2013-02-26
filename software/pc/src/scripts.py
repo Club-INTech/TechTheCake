@@ -412,7 +412,30 @@ class ScriptRecupererVerres(Script):
         return self.info_versions[id_version]["point_entree"]
 
     def score(self):
-        return 42
+        nb_verres_restants = len(self.table.verres_restants(table.Table.ZONE_VERRE_ROUGE)) #la couleur est pour le moment pipeau et devrait être passée en paramètre
+        verres_stockable_avant = self.robotVrai.places_disponibles(True)
+        verres_stockable_arriere = self.robotVrai.places_disponibles(False)
+        
+        # On calcule le nombre de verre qu'on pourra mettre à l'avant
+        if nb_verres_restants > verres_stockable_avant:
+            nb_verres_avant = verres_stockable_avant
+        else:
+            nb_verres_avant = nb_verres_restants
+
+        # Puis le nombre qu'on pourra mettre à l'arrière
+        if nb_verres_restants - nb_verres_avant > verres_stockable_arriere:
+            nb_verres_arriere = verres_stockable_arriere
+        else:
+            nb_verres_arriere = nb_verres_restants - nb_verres_avant
+
+        # Le nombre de points gagnés en remplissant l'ascenseur avant
+        points_avant = 4*((self.robotVrai.nb_verres_avant + nb_verres_avant) * (self.robotVrai.nb_verres_avant + nb_verres_avant + 1) / 2 - (self.robotVrai.nb_verres_avant) * (self.robotVrai.nb_verres_avant + 1) / 2)
+
+        # Le nombre de points gagnés en remplissant l'ascenseur arrière
+        points_arriere = 4*((self.robotVrai.nb_verres_arriere + nb_verres_arriere) * (self.robotVrai.nb_verres_arriere + nb_verres_arriere + 1) / 2 - (self.robotVrai.nb_verres_arriere) * (self.robotVrai.nb_verres_arriere + 1) / 2)
+        self.log.warning("nb_verres_restants = " + str(nb_verres_restants) + ". nb_verres_avant = " + str(nb_verres_avant) + ". nb_verres_arriere = " + str(nb_verres_arriere))
+
+        return points_avant + points_arriere
 
 
 """        
@@ -443,7 +466,7 @@ class ScriptDeposerVerres(Script): #contenu pipeau
         pass
 
     def score(self):
-        return 4*max(self.robotVrai.nb_verres_avant*(self.robotVrai.nb_verres_avant+1)/2,self.robotVrai.nb_verres_arriere*(self.robotVrai.nb_verres_arriere+1)/2)
+        return 4*(self.robotVrai.nb_verres_avant*(self.robotVrai.nb_verres_avant+1)/2+self.robotVrai.nb_verres_arriere*(self.robotVrai.nb_verres_arriere+1)/2)
 
 
 class ScriptRecupererVerres(Script): #contenu pipeau
