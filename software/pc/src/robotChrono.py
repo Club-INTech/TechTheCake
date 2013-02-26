@@ -8,6 +8,7 @@ import copy
 
 class RobotInterface(metaclass=abc.ABCMeta):
     
+
     @abc.abstractmethod
     def stopper(self):
         pass
@@ -69,9 +70,9 @@ class RobotInterface(metaclass=abc.ABCMeta):
         Renvoie le nombre de places disponibles sur un ascenceur
         """
         if avant:
-            return 4 - self.nb_verres_avant
+            return self.config["nb_max_verre"] - self.nb_verres_avant
         else:
-            return 4 - self.nb_verres_arriere
+            return self.config["nb_max_verre"] - self.nb_verres_arriere
 
     def recuperer_verre(self, avant):
         """
