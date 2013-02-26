@@ -1,4 +1,5 @@
 import tests.tests
+from time import sleep
 
 class TestStrategie(tests.tests.ContainerTest):
     
@@ -30,6 +31,9 @@ class TestStrategie(tests.tests.ContainerTest):
         simulateur.addEnemy(0, 80)
         simulateur.scriptEnemyPosition(0, {"list":[{"float":[robot.x-500,robot.y]}]})
         simulateur.startEnemyScript(0)
+        
+        # Afin que la balise se cale effectivement sur l'ennemi
+        sleep(10)
 
         note_cadeau_droit = strategie._noter_script("ScriptCadeaux", 0)
         note_cadeau_gauche = strategie._noter_script("ScriptCadeaux", 1)
