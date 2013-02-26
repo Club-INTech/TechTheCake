@@ -19,8 +19,9 @@ class Strategie:
         self.scripts = scripts
         self.echecs = {}
 
-#        if self.config["ennemi_fait_toutes_bougies"]: #à décommenter une fois que le script bougies sera fini
-#            del self.scripts["ScriptBougies"]
+        if self.config["ennemi_fait_toutes_bougies"]: #à décommenter une fois que le script bougies sera fini
+            self.log.warning("Comme l'ennemi fait toutes les bougies, on ne les fera pas.")
+            del self.scripts["ScriptBougies"]
 
     def boucle_strategie(self):
 
