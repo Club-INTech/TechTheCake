@@ -390,7 +390,7 @@ class ScriptRecupererVerres(Script):
         # Récupération des verres d'entrées
         verres = self.table.verres_entrees(zone)
         
-        # Plus aucun verre sur la table
+        # Plus aucun verre sur la table ou plus de place dans le robot
         if len(verres) == 0 or (self.robotVrai.places_disponibles(True) == 0 and self.robotVrai.places_disponibles(False) == 0):
             self.info_versions = []
 
@@ -433,7 +433,6 @@ class ScriptRecupererVerres(Script):
 
         # Le nombre de points gagnés en remplissant l'ascenseur arrière
         points_arriere = 4*((self.robotVrai.nb_verres_arriere + nb_verres_arriere) * (self.robotVrai.nb_verres_arriere + nb_verres_arriere + 1) / 2 - (self.robotVrai.nb_verres_arriere) * (self.robotVrai.nb_verres_arriere + 1) / 2)
-        self.log.warning("nb_verres_restants = " + str(nb_verres_restants) + ". nb_verres_avant = " + str(nb_verres_avant) + ". nb_verres_arriere = " + str(nb_verres_arriere))
 
         return points_avant + points_arriere
 
