@@ -333,7 +333,7 @@ class ScriptRecupererVerres(Script):
         self._recuperation_verre(self.info_versions[version]["verre_entree"])
 
         # Récupération du verre le plus proche dans la zone
-        while True:
+        while self.robot.places_disponibles(True) != 0 or self.robot.places_disponibles(False) != 0:
             position = Point(self.robot.x, self.robot.y)
             verre = self.table.verre_le_plus_proche(position, zone)
             if verre is None:
