@@ -5,6 +5,7 @@ Communications::Communications()
 {
     serie_robot::init();
     serie_robot::change_baudrate(9600);
+    jumper_t_::init();
 }
 
 void Communications::execute(char ordre[])
@@ -60,19 +61,15 @@ void Communications::execute(char ordre[])
             
             serie_robot::read(angle);
             actionneurs.cadeaux.goTo(angle); //Angle d'entrée commandé
-
-            // serial_PC_::print("Déplacement effectué\n");
         }
         
         // Changement de vitesse
         else if(strcmp(ordre, "ch_vit") == 0)
         {	
             uint16_t speed;
-            
-            serie_robot::read(speed);
-            
-            actionneurs.cadeaux.changeSpeed(speed);
 
+            serie_robot::read(speed);
+            actionneurs.cadeaux.changeSpeed(speed);
         }
 
         // ACTIONNEURS BOUGIES
@@ -91,6 +88,12 @@ void Communications::execute(char ordre[])
           serie_robot::read(angle);
           actionneurs.bougies_haut.goTo(angle); //Angle d'entrée commandé
         }
-        
+
+        // JUMPER DE DÉBUT DE MATCH        
+        else if (strcmp(ordre, "j") == 0)
+        {
+            serie_robot::print(jumper_t_::value());
+        }
+
 }
 
