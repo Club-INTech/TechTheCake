@@ -5,13 +5,13 @@
 
 #include "communications.h"
 
-volatile Communications communications;
+    Communications communications;
 
 int main() 
 {
-    
     while(1)
     {
+//            Communications::serie_robot::print("Salut!");
 		char buffer[20];
         Communications::serie_robot::read(buffer);
         communications.execute(buffer);

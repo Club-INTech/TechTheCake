@@ -3,6 +3,8 @@
 
 Communications::Communications()
 {
+    serie_robot::init();
+    serie_robot::change_baudrate(9600);
 }
 
 void Communications::execute(char ordre[])
@@ -51,8 +53,7 @@ void Communications::execute(char ordre[])
             serie_robot::print(3);
         }
 
-        // ACTIONNEURS CADEAUX
-        
+        // ACTIONNEURS CADEAUX        
         else if(strcmp(ordre, "g") == 0)
         {
             uint16_t angle;
@@ -75,6 +76,21 @@ void Communications::execute(char ordre[])
         }
 
         // ACTIONNEURS BOUGIES
+        else if(strcmp(ordre, "bas") == 0)
+        {
+          uint16_t angle;
 
+          serie_robot::read(angle);
+          actionneurs.bougies_bas.goTo(angle); //Angle d'entrée commandé
+        }
+        
+        else if(strcmp(ordre, "haut") == 0)
+        {
+          uint16_t angle;
+
+          serie_robot::read(angle);
+          actionneurs.bougies_haut.goTo(angle); //Angle d'entrée commandé
+        }
+        
 }
 
