@@ -276,7 +276,7 @@ class ScriptCadeaux(Script):
             hooks.append(hook_ouverture)
             
             # Fermeture du bras
-            hook_fermeture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * 200, 250), effectuer_symetrie=(self.config["couleur"] == "bleu"))
+            hook_fermeture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * 100, 250), effectuer_symetrie=(self.config["couleur"] == "bleu"))
             hook_fermeture += self.hookGenerator.callback(self.robot.fermer_cadeau)
             hooks.append(hook_fermeture)
 
