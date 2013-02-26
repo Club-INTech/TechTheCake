@@ -92,6 +92,7 @@ class Strategie:
 
         distance_ennemi = self._distance_ennemi(self.scripts[script].point_entree(version))
         score = self.scripts[script].score()
+        poids = self.scripts[script].poids()
         
         # Echecs précédents sur le même script
         if (script, version) in self.echecs:
