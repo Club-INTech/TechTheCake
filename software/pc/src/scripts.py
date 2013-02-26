@@ -25,7 +25,7 @@ class Script(metaclass=abc.ABCMeta):
         self.table = table
         self.simulateur = simulateur
         
-    def va_au_point(self,position):
+    def va_au_point(self, position):
         """
         Méthode pour atteindre un point de la carte après avoir effectué une recherche de chemin.
         Le chemin n'est pas recalculé s'il a été exploré récemment.
@@ -331,12 +331,18 @@ class ScriptRecupererVerres(Script):
         # Récupération du premier verre, avec recherche de chemin
         self._recuperation_verre(self.info_versions[version]["verre_entree"])
 
-        # Récupération du verre le plus proche dans la zone
+        # Tant qu'il y a de la place dans le robot
         while self.robot.places_disponibles(True) != 0 or self.robot.places_disponibles(False) != 0:
+            
+            # Indentification du verre le plus proche dans la zone
             position = Point(self.robot.x, self.robot.y)
             verre = self.table.verre_le_plus_proche(position, self.zone)
+            
+            # Sortie du script si plus aucun verre
             if verre is None:
                 break
+            
+            # Récupération du verre
             self._recuperation_verre(verre)
             
     def _recuperation_verre(self, verre):
@@ -364,7 +370,7 @@ class ScriptRecupererVerres(Script):
         # Vecteur de direction du verre vers le robot
         direction = (Point(self.robot.x, self.robot.y) - point).unitaire()
         
-        # Point de récupération
+        # Point de récupération (à déterminer)
         recuperation = point + 100 * direction
         
         return recuperation
