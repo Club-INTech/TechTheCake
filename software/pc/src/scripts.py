@@ -230,13 +230,13 @@ class ScriptBougies(Script):
             {
                 "angle_entree": bougies[0]["position"] - delta_angle,
                 "point_entree": self._correspondance_point_angle(bougies[0]["position"] - delta_angle),
-                "marche_arriere": True,
+                "marche_arriere": False,
                 "sens": 1
             },               
             {
                 "angle_entree": bougies[1]["position"] + delta_angle,
                 "point_entree": self._correspondance_point_angle(bougies[1]["position"] + delta_angle),
-                "marche_arriere": False,
+                "marche_arriere": True,
                 "sens": -1
             }
         ]
