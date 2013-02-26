@@ -23,6 +23,9 @@ class Strategie:
 #            del self.scripts["ScriptBougies"]
 
     def boucle_strategie(self):
+
+        while not self.timer.match_demarre:
+            sleep(.5)
         """
         Boucle qui gère la stratégie, en testant les différents scripts et en exécutant le plus avantageux
         """
