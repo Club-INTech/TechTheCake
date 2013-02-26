@@ -368,7 +368,8 @@ class ScriptRecupererVerres(Script):
         avant = self._choix_ascenceur()
         self.robot.marche_arriere = not avant
         self.robot.va_au_point(verre["position"])
-        self.robot.recuperer_verre(avant)
+        if verre["present"]:
+            self.robot.recuperer_verre(avant)
         self.table.verre_recupere(verre)
         
     def _choix_ascenceur(self):
