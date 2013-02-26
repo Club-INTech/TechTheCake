@@ -40,6 +40,11 @@ class Strategie:
                     notes[(script,version)] = self._noter_script(script, version)
             self.log.debug("Notes des scripts: " + str(notes))
 
+            # S'il n'y a plus de script à exécuter (ce qui ne devrait jamais arriver), on interrompt la stratégie
+            if notes == {}:
+                self.log.critical("Plus de scripts à exécuter!")
+                break
+
             # Choix du script avec la meilleure note
             (script_a_faire, version_a_faire) = max(notes, key=notes.get) #ATTENTION, VERIFIER SI C'EST VIDE
             self.log.debug("Stratégie ordonne: "+str(script_a_faire)+", version "+str(version_a_faire))
