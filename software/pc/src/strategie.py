@@ -17,6 +17,7 @@ class Strategie:
         self.config = config
         self.log = log
         self.scripts = scripts
+        self.echecs = {}
 
 #        if self.config["ennemi_fait_toutes_bougies"]: #à décommenter une fois que le script bougies sera fini
 #            del self.scripts["ScriptBougies"]
@@ -25,7 +26,7 @@ class Strategie:
         """
         Boucle qui gère la stratégie, en testant les différents scripts et en exécutant le plus avantageux
         """
-        self.log.debug("Stratégie lancée.")
+        self.log.debug("Stratégie lancée")
 
         while not self.timer.get_fin_match():
 
@@ -46,17 +47,27 @@ class Strategie:
                 break
 
             # Choix du script avec la meilleure note
-            (script_a_faire, version_a_faire) = max(notes, key=notes.get) #ATTENTION, VERIFIER SI C'EST VIDE
-            self.log.debug("Stratégie ordonne: "+str(script_a_faire)+", version "+str(version_a_faire))
+            (script_a_faire, version_a_faire) = max(notes, key=notes.get)
+            self.log.debug("Stratégie ordonne: ({0}, version n°{1})".format(script_a_faire, version_a_faire))
 
             # Lancement du script si le match n'est pas terminé
             if not self.timer.get_fin_match():
+                
                 try:
+                    # Tentative d'execution du script
                     self.scripts[script_a_faire].agit(version_a_faire)
+                    
                 except robot.ExceptionMouvementImpossible:
-                    self.log.warning("Mouvement impossible lors du script: "+script_a_faire)
+                    
+                    # Enregistrement de l'échec du script
+                    if (script_a_faire, version_a_faire) in self.echecs:
+                        self.echecs[(script_a_faire, version_a_faire)] += 1
+                    else:
+                        self.echecs[(script_a_faire, version_a_faire)] = 1
+                        
+                    self.log.warning('Abandon du script "{0}"'.format(script_a_faire))
 
-        self.log.debug("Arrêt de la stratégie.")
+        self.log.debug("Arrêt de la stratégie")
 
     def _noter_script(self, script, version):
         """
@@ -81,15 +92,23 @@ class Strategie:
 
         distance_ennemi = self._distance_ennemi(self.scripts[script].point_entree(version))
         score = self.scripts[script].score()
+        
+        # Echecs précédents sur le même script
+        if (script, version) in self.echecs:
+            note_echecs = -self.echecs[(script, version)]
+        else:
+            note_echecs = 0
 
         note = [
             # Densité de points
             1*score/duree_script,
 
             # On évite l'ennemi s'il est proche de l'objectif
-            distance_ennemi/400
+            distance_ennemi/400,
+            
+            # Echecs précédents
+            note_echecs
         ]
-
 
         return sum(note)
 

@@ -523,7 +523,8 @@ class Robot(RobotInterface):
         Les hooks sont executés, et différentes relances sont implémentées en cas de retour particulier.
         """
         
-        if self.effectuer_symetrie:
+        #application de la symétrie si demandée et si première tentative
+        if self.effectuer_symetrie and nombre_tentatives == 3:
             if self.config["couleur"] == "bleu":
                 point.x *= -1
             self.log.debug("va au point ({0}) (symétrie vérifiée pour le {1}), virage initial: {2}".format(point, self.config["couleur"], virage_initial))
