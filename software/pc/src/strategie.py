@@ -87,8 +87,9 @@ class Strategie:
             1*score/duree_script,
 
             # On évite l'ennemi s'il est proche de l'objectif
-            distance_ennemi/500
+            distance_ennemi/400
         ]
+
 
         return sum(note)
 
