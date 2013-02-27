@@ -1,7 +1,6 @@
 #ifndef COMMUNICATIONS_H
 #define COMMUNICATIONS_H
 
-#include <libintech/singleton.hpp>
 #include <libintech/serial/serial_0.hpp>
 #include <libintech/jumper.hpp>
 
@@ -17,7 +16,7 @@ class Communications
 
     public:
 		typedef Serial<0> serie_robot;
-        typedef jumper< AVR_PORTC<PORTC1> > jumper_t_;
+        typedef jumper< AVR_PORTC<PORTB5> > jumper_t_;
         Actionneurs actionneurs;
         Capteurs capteurs;       
 
