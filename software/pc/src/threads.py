@@ -181,15 +181,7 @@ class ThreadTimer(AbstractThread):
         with self.mutex:
             return self.fin_match
 
-    
-#TODO
-#Méthodes à mettre en place:
-#
-#demarrage_match() dans le service capteurs qui renvoie un booléen
-#timestamp_obstacles() dans le service table qui renvoie une liste contenant les timestamps de tous les obstacles en disposant. Attention, cette liste est supposée triée (car on la remplit par ordre d'arrivée, et donc par ordre de départ)
-#supprimer_obstacles(entier i) dans le service table qui supprime les obstacles temporaires à partir de l'indice i (compris)
-#gonflage_ballon() dans le service robot qui lance le gonflage du ballon
-
+   
 class ThreadLaser(AbstractThread):
     
     def __init__(self, container):

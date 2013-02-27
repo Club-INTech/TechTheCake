@@ -89,6 +89,10 @@ class Script(metaclass=abc.ABCMeta):
     def _execute(self, id_version):
         pass
 
+    @abc.abstractmethod
+    def poids(self):
+        pass
+
              
 class ScriptManager:
     
@@ -262,6 +266,8 @@ class ScriptBougies(Script):
     def score(self):
         return 4 * len([element for element in self.table.bougies_restantes(self.couleur_a_traiter)])
     
+    def poids(self):
+        return 1
 
 class ScriptCadeaux(Script):
         
@@ -289,7 +295,7 @@ class ScriptCadeaux(Script):
             hooks.append(hook_ouverture)
             
             # Fermeture du bras
-            hook_fermeture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * 200, 250), effectuer_symetrie=(self.config["couleur"] == "bleu"))
+            hook_fermeture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * 100, 250), effectuer_symetrie=(self.config["couleur"] == "bleu"))
             hook_fermeture += self.hookGenerator.callback(self.robot.fermer_cadeau)
             hooks.append(hook_fermeture)
 
@@ -332,7 +338,9 @@ class ScriptCadeaux(Script):
                 
     def score(self):
         return 4 * len(self.table.cadeaux_restants())
-        
+
+    def poids(self):
+        return 1
 
 class ScriptRecupererVerres(Script):
         
@@ -450,6 +458,8 @@ class ScriptRecupererVerres(Script):
 
         return points_avant + points_arriere
 
+    def poids(self):
+        return 1
 
 class ScriptRecupererVerresZoneRouge(ScriptRecupererVerres):
     
@@ -483,6 +493,9 @@ class ScriptCasserTour(Script):
 
     def _execute(self, id_version):
         return (time()-self.timer.get_date_debut())    #à revoir
+
+    def poids(self):
+        return 1
         
 class ScriptDeposerVerres(Script): #contenu pipeau
     
@@ -499,23 +512,6 @@ class ScriptDeposerVerres(Script): #contenu pipeau
     def score(self):
         return 4*(self.robotVrai.nb_verres_avant*(self.robotVrai.nb_verres_avant+1)/2+self.robotVrai.nb_verres_arriere*(self.robotVrai.nb_verres_arriere+1)/2)
 
-
-class ScriptRecupererVerres(Script): #contenu pipeau
-    
-    def _execute(self):
-        self.va_au_point(Point(1300,200))
-        self.va_au_point(Point(1300,1800))
-
-    def versions(self):
-        return []
-        
-    def point_entree(self, id_version):
-        pass
-
-    def score(self):
-        point=0
-        for element in self.table.verres:
-            if element["present"]:       #à pondérer si l'ascenseur est plutôt plein ou plutôt vide
-                point+=6 #à tirer vers le haut pour les faire en début de partie (et ensuite baisser les points par incertitude?)
+    def poids(self):
+        return 1
 """
-

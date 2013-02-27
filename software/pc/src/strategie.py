@@ -19,10 +19,14 @@ class Strategie:
         self.scripts = scripts
         self.echecs = {}
 
-#        if self.config["ennemi_fait_toutes_bougies"]: #à décommenter une fois que le script bougies sera fini
-#            del self.scripts["ScriptBougies"]
+        if self.config["ennemi_fait_toutes_bougies"]: #à décommenter une fois que le script bougies sera fini
+            self.log.warning("Comme l'ennemi fait toutes les bougies, on ne les fera pas.")
+            del self.scripts["ScriptBougies"]
 
     def boucle_strategie(self):
+
+        while not self.timer.match_demarre:
+            sleep(.5)
         """
         Boucle qui gère la stratégie, en testant les différents scripts et en exécutant le plus avantageux
         """
@@ -92,6 +96,7 @@ class Strategie:
 
         distance_ennemi = self._distance_ennemi(self.scripts[script].point_entree(version))
         score = self.scripts[script].score()
+        poids = self.scripts[script].poids()
         
         # Echecs précédents sur le même script
         if (script, version) in self.echecs:

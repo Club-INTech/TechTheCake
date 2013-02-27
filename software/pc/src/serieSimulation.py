@@ -114,6 +114,10 @@ class ProtocoleVirtuelCapteurs:
         #capteurs infrarouges de l'avant
         return [self._valeur_capteur(0)]
 
+    def j(self):
+        #jumper
+        return [1]
+
     def c(self):
         #TODO
         return ["rouge"]
