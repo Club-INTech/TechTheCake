@@ -228,12 +228,22 @@ class RechercheChemin:
             self.environnement_initial.polygones[-1] = troncPolygon
             self.environnement_initial.cercles_conteneurs[-1] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
             
+    def _est_dans_table(self, point):
+        """
+        Teste si le point est effectivement dans la table, afin d'éviter de renvoyer un chemin dégénéré (passant par les bords)
+        """
+        eps = 2.1*RechercheChemin.tolerance
+        return ((point.x > -self.config["table_x"]/2+eps) and
+                (point.x < self.config["table_x"]/2-eps) and
+                (point.y > eps) and
+                (point.y < self.config["table_y"]-eps))
+        
     def _recouper_aux_bords_table(self,polygone_a_recouper,cercle_a_recouper,environnement):
         """
         Cette méthode recoupe le polygone de l'environnement passé en paramètre s'il sort de la table.
         """
         #les obstacles une fois tronqués devront être distants de eps des bords
-        eps = 1
+        eps = 2*RechercheChemin.tolerance
         
         #test rapide de collision du polygone avec les bords de la table, via son cercle circonscrit
         cx = cercle_a_recouper.centre.x
@@ -735,4 +745,9 @@ class RechercheChemin:
         cheminVis = self.environnement_visilibity.shortest_path(departVis, arriveeVis, RechercheChemin.tolerance)
         
         #conversion en type point.Point. Exclusion du point de départ cheminVis[0].
-        return [point.Point(cheminVis[i].x,cheminVis[i].y) for i in range(1,cheminVis.size())]
+        chemin = [point.Point(cheminVis[i].x,cheminVis[i].y) for i in range(1,cheminVis.size()) if self._est_dans_table(cheminVis[i])]
+        if len(chemin) == cheminVis.size()-1:
+            return chemin
+        else:
+            self.log.critical("Aucun chemin ne convient !")
+            raise Exception
