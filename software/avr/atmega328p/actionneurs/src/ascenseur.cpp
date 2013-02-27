@@ -1,17 +1,18 @@
 #include <libintech/moteur.hpp>
 #include <libintech/serial/serial_0.hpp>
 
+
 #include "ascenseur.h"
 #include "actionneurs.h"
 
 
 template<class Moteur,class Codeuse>
 Ascenseur<Moteur, Codeuse>::Ascenseur():
-	_asservissement(0.1,0.001,0.),
+	_asservissement(0.01,0.00,0.001),
 	_compteur_blocage(0),
 	_est_asservi(true)
 {
-	_asservissement.valeur_bridage(150);
+	_asservissement.valeur_bridage(175);
 }
 
 template<class Moteur,class Codeuse>
@@ -31,7 +32,7 @@ void Ascenseur<Moteur, Codeuse>::asservir()
 	
 	// Si blocage moteur
 	
-	bool bouge_pas = !((derivee_erreur <= 10) && (derivee_erreur >= -10));
+	bool bouge_pas = !((derivee_erreur <= 30) && (derivee_erreur >= -30));
 	bool moteur_force = (pwm >= 75) || (pwm <= -75);
 	if (bouge_pas && moteur_force)
 	{
@@ -45,7 +46,7 @@ void Ascenseur<Moteur, Codeuse>::asservir()
 				_codeuse = 0;
 			}
 			_compteur_blocage = 0;
-			_asservissement.consigne(_codeuse);
+			_asservissement.consigne(libcodeuse.compteur());
 		}
 	}
 	else
