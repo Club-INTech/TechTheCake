@@ -216,10 +216,10 @@ class Robot(RobotInterface):
             
             sleep(self.sleep_milieu_boucle_acquittement)
         
-    def _va_au_point(self, x, y, hooks=[], virage_initial=False):
+    def _va_au_point(self, x, y, hooks=[], trajectoire_courbe=False):
         """
         Méthode pour parcourir un segment : le robot se rend en (x,y) en corrigeant dynamiquement ses consignes en rotation et translation.
-        Si le paramètre virage_initial=False, le robot évite d'effectuer un virage, et donc tourne sur lui meme avant la translation.
+        Si le paramètre trajectoire_courbe=False, le robot évite d'effectuer un virage, et donc tourne sur lui meme avant la translation.
         Les hooks sont évalués, et une boucle d'acquittement générique est utilisée.
         """
 
@@ -241,7 +241,7 @@ class Robot(RobotInterface):
             distance *= -1
             angle += pi 
             
-        if not virage_initial:
+        if not trajectoire_courbe:
             #sans virage : la première rotation est blocante
             self._tourner(angle)
             self.deplacements.avancer(distance)
@@ -514,12 +514,12 @@ class Robot(RobotInterface):
         for position in chemin:
             self.va_au_point(position.x, position.y, hooks)
             
-    def va_au_point(self, point, hooks=[], virage_initial=False, nombre_tentatives=3):
+    def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=3):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.
         Elle permet de parcourir un segment : le robot se rend en (x,y) en corrigeant dynamiquement ses consignes en rotation et translation.
         La symétrie est prise en compte.
-        Si le paramètre virage_initial=False, le robot évite d'effectuer un virage, et donc tourne sur lui meme avant la translation.
+        Si le paramètre trajectoire_courbe=False, le robot évite d'effectuer un virage, et donc tourne sur lui meme avant la translation.
         Les hooks sont executés, et différentes relances sont implémentées en cas de retour particulier.
         """
         
@@ -527,12 +527,12 @@ class Robot(RobotInterface):
         if self.effectuer_symetrie and nombre_tentatives == 3:
             if self.config["couleur"] == "bleu":
                 point.x *= -1
-            self.log.debug("va au point ({0}) (symétrie vérifiée pour le {1}), virage initial: {2}".format(point, self.config["couleur"], virage_initial))
+            self.log.debug("va au point ({0}) (symétrie vérifiée pour le {1}), virage initial: {2}".format(point, self.config["couleur"], trajectoire_courbe))
         else:
-            self.log.debug("va au point ({0}) (sans symétrie pour la couleur), virage initial: {1}".format(point, virage_initial))
+            self.log.debug("va au point ({0}) (sans symétrie pour la couleur), virage initial: {1}".format(point, trajectoire_courbe))
                 
         try:
-            self._va_au_point(point.x, point.y, hooks, virage_initial)
+            self._va_au_point(point.x, point.y, hooks, trajectoire_courbe)
             
         #blocage durant le mouvement
         except ExceptionBlocage:
@@ -544,7 +544,7 @@ class Robot(RobotInterface):
             if nombre_tentatives > 0:
                 self.log.warning("attente avant nouvelle tentative... reste {0} tentative(s)".format(nombre_tentatives))
                 sleep(1)
-                self.va_au_point(point, hooks, virage_initial, nombre_tentatives - 1)
+                self.va_au_point(point, hooks, trajectoire_courbe, nombre_tentatives - 1)
             else:
                 raise ExceptionMouvementImpossible
             
@@ -720,9 +720,9 @@ class RobotSimulation(Robot):
         self._afficher_hooks(hooks)
         super().tourner(angle_consigne, forcer, hooks)
         
-    def va_au_point(self, point, hooks=[], virage_initial=False, nombre_tentatives=3):
+    def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=3):
         self._afficher_hooks(hooks)
-        super().va_au_point(point, hooks, virage_initial, nombre_tentatives)
+        super().va_au_point(point, hooks, trajectoire_courbe, nombre_tentatives)
         
     def arc_de_cercle(self, point, hooks=[]):
         self._afficher_hooks(hooks)
