@@ -1,11 +1,13 @@
 import inspect
 import sys
-import pickle
+import math
+import abc
+
 from time import sleep,time
 from outils_maths.point import Point
 import table
-import math
-import abc
+import robot
+
 
 class Script(metaclass=abc.ABCMeta):
     """
@@ -46,7 +48,11 @@ class Script(metaclass=abc.ABCMeta):
         Les paramètres de agit() sont les mêmes que ceux envoyés à _execute()
         """
         self.robot = self.robotVrai
-        self._execute(version)
+        try:
+            self._execute(version)
+        except robot.ExceptionMouvementImpossible:
+            self._termine()
+            raise robot.ExceptionMouvementImpossible
         
     def calcule(self, version):
         """
@@ -71,6 +77,10 @@ class Script(metaclass=abc.ABCMeta):
         
     @abc.abstractmethod
     def score(self):
+        pass
+        
+    @abc.abstractmethod
+    def _termine(self):
         pass
 
     @abc.abstractmethod
@@ -212,6 +222,9 @@ class ScriptBougies(Script):
         rayon = 500 + self.config["distance_au_gateau"] + self.config["longueur_robot"] / 2
         return Point(0, 2000) + Point(rayon * math.cos(angle), rayon * math.sin(angle))
 
+    def _termine(self):
+        pass
+        
     def versions(self):
         """
         Récupération des versions du script
@@ -291,6 +304,9 @@ class ScriptCadeaux(Script):
         self.robot.tourner(math.pi / 2)
         self.robot.fermer_cadeau()
 
+    def _termine(self):
+        pass
+        
     def versions(self):
         self.decalage_gauche = Point(-100,250)
         self.decalage_droit = Point(100,250)
@@ -382,6 +398,9 @@ class ScriptRecupererVerres(Script):
         
         return recuperation
          
+    def _termine(self):
+        pass
+        
     @abc.abstractmethod
     def versions(self):
         """

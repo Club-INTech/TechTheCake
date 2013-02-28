@@ -213,7 +213,7 @@ class Container:
         if capteurs.is_alive():
             capteurs.join()
             
-        #attente de la fin du thread capteurs
+        #attente de la fin du thread timer
         timer = self.get_service("threads.timer")
         if timer.is_alive():
             timer.join()
