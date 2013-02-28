@@ -642,7 +642,7 @@ class RechercheChemin:
         """
         (pour affichage de debug) Renvoie la liste des polygones obstacles (initiaux et dynamiques)
         """
-        return (self.environnement_complet.polygones)
+        return self.environnement_complet.polygones
         
     def get_cercles_conteneurs(self):
         """
