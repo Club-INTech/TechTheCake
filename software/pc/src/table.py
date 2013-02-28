@@ -213,6 +213,7 @@ class Table:
         """
         Indique la couleur des bougies, avec le format du programme Android
         """
+        #TODO : ajouter des vérifications :  2x couleur robot sur le coté + supports blancs au milieu
         for i, couleur in enumerate(list(code)):
             
             conversion = {
