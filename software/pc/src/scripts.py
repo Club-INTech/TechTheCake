@@ -32,17 +32,15 @@ class Script(metaclass=abc.ABCMeta):
         Méthode pour atteindre un point de la carte après avoir effectué une recherche de chemin.
         Le chemin n'est pas recalculé s'il a été exploré récemment.
         """
-        def calcule_chemin(position):
-            self.dernierChemin = self.rechercheChemin.get_chemin(Point(self.robot.x,self.robot.y),position)
-            self.dateDernierChemin = time()
-        try:
-            if self.dernierChemin[-1] != position or time() - self.dateDernierChemin > self.config["duree_peremption_chemin"]:
-                #le chemin est périmé et doit être recalculé
-                calcule_chemin(position)
-        except:
-            #le chemin n'a jamais été calculé
-            calcule_chemin(position)
-        self.robot.suit_chemin(self.dernierChemin)
+        
+        if self.robot is self.robotChrono:
+            #instance virtuelle de robot pour mesurer le script : recherche de chemin rapide A*
+            chemin = self.rechercheChemin.cherche_chemin_avec_a_star(Point(self.robot.x,self.robot.y),position)
+        elif self.robot is self.robotVrai:
+            #instance véritable du robot pour effectuer le script : recherche de chemin précise visibility
+            self.rechercheChemin.prepare_environnement_pour_visilibity()
+            chemin = self.rechercheChemin.cherche_chemin_avec_visilibity(Point(self.robot.x,self.robot.y),position)
+        self.robot.suit_chemin(self.chemin)
 
     def agit(self, version):
         """

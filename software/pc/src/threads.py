@@ -3,8 +3,8 @@ from mutex import Mutex
 from outils_maths.point import Point
 from outils_maths.vitesse import Vitesse
 from math import cos,sin,pi
-from time import sleep
-from time import time
+from time import sleep,time
+import socket
 
 class AbstractThread(threading.Thread):
     
@@ -289,9 +289,16 @@ class ThreadCouleurBougies(AbstractThread):
             sleep(0.1)
             
         # Ouverture de la socket
-        sleep(3)
-        table.definir_couleurs_bougies("rrbrrbbbrr")
-            
-        
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            client_socket.connect((config["ip_android"], 8080))
+            client_socket.send(bytes(config["couleur"][0]+"\n", 'UTF-8'))
+            rcv = str(client_socket.recv(14),"utf-8").replace("\n","")
+            table.definir_couleurs_bougies(rcv)
+        except:
+            table.definir_couleurs_bougies("rrbrrbbbrr")
+        finally:
+            client_socket.close()
+           
         log.debug("Fin du thread de détection des couleurs des bougies")
         

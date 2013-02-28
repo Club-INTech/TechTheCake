@@ -37,7 +37,7 @@ class Strategie:
             notes = {}
 
 #            self.rechercheChemin.retirer_obstacles_dynamique();
-            self.rechercheChemin.preparer_environnement()
+            self.rechercheChemin.prepare_environnement_pour_a_star()
 
             # Notation des scripts
             for script in self.scripts:
