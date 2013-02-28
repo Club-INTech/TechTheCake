@@ -1,8 +1,10 @@
-import recherche_de_chemin.visilibity as vis
+#from outils_maths.point import Point
+from recherche_de_chemin.visilibity import Point
+from outils_maths.polygone import Polygone
 import recherche_de_chemin.fonctions_auxiliaires_fusion as fus
 
 import math
-from recherche_de_chemin.cercle import Cercle
+from outils_maths.cercle import Cercle
 
 #DEBUG# import builtins
 
@@ -24,14 +26,14 @@ def elargit_rectangle(polygone, distance):
         #le point recherché est le quatrième du losange qui passe par polygone[i],pointsNormauxA[i] et pointsNormauxB[i-1]
         
         #barycentre de pointsNormauxA[i],pointsNormauxB[i-1] :
-        bar = vis.Point((pointsNormauxA[k].x + pointsNormauxB[k-1].x)/2., (pointsNormauxA[k].y + pointsNormauxB[k-1].y)/2.)
+        bar = Point((pointsNormauxA[k].x + pointsNormauxB[k-1].x)/2., (pointsNormauxA[k].y + pointsNormauxB[k-1].y)/2.)
         #DEBUG# builtins.simulateur.drawPoint(bar.x,bar.y,"green",True)#@
         #point recherché :
-        polygoneEtendu.append(vis.Point(2*bar.x-polygone[k].x, 2*bar.y-polygone[k].y))
+        polygoneEtendu.append(Point(2*bar.x-polygone[k].x, 2*bar.y-polygone[k].y))
         #DEBUG# builtins.simulateur.drawPoint(2*bar.x-polygone[k].x,2*bar.y-polygone[k].y,"red",True)#@
         
     #on obtient le polygone étendu recherché
-    return vis.Polygon(polygoneEtendu)
+    return Polygone(polygoneEtendu)
     
 def elargit_polygone(polygone, distance, cote_polygone):
     """
@@ -84,7 +86,7 @@ def elargit_polygone(polygone, distance, cote_polygone):
             pointX = polygone[k].x + rayonExinscrit*math.cos(thetaPoint)
             pointY = polygone[k].y + rayonExinscrit*math.sin(thetaPoint)
             
-            polygoneEtendu.append(vis.Point(pointX, pointY))
+            polygoneEtendu.append(Point(pointX, pointY))
             #DEBUG# builtins.simulateur.drawPoint(pointX,pointY,"red",True)#@
             
             thetaPoint = (thetaPoint - ecart_angulaire)%(2*math.pi)
@@ -102,7 +104,7 @@ def elargit_polygone(polygone, distance, cote_polygone):
             #DEBUG# builtins.simulateur.drawPoint(pointsNormauxB[k-1].x,pointsNormauxB[k-1].y,"green",True)#@
         
     #on obtient le polygone étendu recherché
-    return vis.Polygon(polygoneEtendu)
+    return Polygone(polygoneEtendu)
     
     
 def _etablit_points_normaux(polygone, distance):
@@ -120,19 +122,19 @@ def _etablit_points_normaux(polygone, distance):
         b = fus.avancerSurPolygone(polygone,a)
         
         #détermination du sergment AB et de l'orientation de son vecteur normal
-        segmentAB = vis.Point(polygone[b].x-polygone[a].x,polygone[b].y-polygone[a].y)
+        segmentAB = Point(polygone[b].x-polygone[a].x,polygone[b].y-polygone[a].y)
         orientationSegment = math.atan2(segmentAB.y,segmentAB.x)
         normaleSegment = orientationSegment + math.pi/2
         
         #sauvegarde des points pointNormalA et pointNormalB, formant un segment parallèle à AB et distant de distance
         pointNormalA_X = polygone[a].x + distance*math.cos(normaleSegment)
         pointNormalA_Y = polygone[a].y + distance*math.sin(normaleSegment)
-        pointsNormauxA.append(vis.Point(pointNormalA_X,pointNormalA_Y))
+        pointsNormauxA.append(Point(pointNormalA_X,pointNormalA_Y))
         #DEBUG# builtins.simulateur.drawPoint(pointNormalA_X,pointNormalA_Y,"blue",True)#@
         
         pointNormalB_X = polygone[b].x + distance*math.cos(normaleSegment)
         pointNormalB_Y = polygone[b].y + distance*math.sin(normaleSegment)
-        pointsNormauxB.append(vis.Point(pointNormalB_X,pointNormalB_Y))
+        pointsNormauxB.append(Point(pointNormalB_X,pointNormalB_Y))
         #DEBUG# builtins.simulateur.drawPoint(pointNormalB_X,pointNormalB_Y,"blue",True)#@
         
         #progression circulaire sur le polygone

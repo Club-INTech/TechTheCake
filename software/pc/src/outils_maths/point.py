@@ -47,3 +47,6 @@ class Point:
         v = self - point
         d = v.x ** 2 + v.y ** 2
         return math.sqrt(d)
+    
+    def copy(self):
+        return Point(self.x, self.y)

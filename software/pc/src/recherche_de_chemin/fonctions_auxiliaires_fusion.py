@@ -1,9 +1,10 @@
-import recherche_de_chemin.visilibity as vis
+#from outils_maths.point import Point
+from recherche_de_chemin.visilibity import Point
 import math
 
 def get_angle(a,o,b):
-    oa = vis.Point(a.x-o.x,a.y-o.y)
-    ob = vis.Point(b.x-o.x,b.y-o.y)
+    oa = Point(a.x-o.x,a.y-o.y)
+    ob = Point(b.x-o.x,b.y-o.y)
     theta = math.atan2(ob.y,ob.x) - math.atan2(oa.y,oa.x)
     if theta > math.pi :theta -= 2*math.pi
     elif theta <= -math.pi :theta += 2*math.pi
@@ -77,8 +78,8 @@ def segments_meme_origine(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclag
 def segments_confondus(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclage):
     #input("segments ["+str(poly1[a1])+", "+str(poly1[b1])+"] et ["+str(poly2[a2])+", "+str(poly2[b2])+"] confondus !")#@
     #vecteurs
-    ab1 = vis.Point(poly1[b1].x - poly1[a1].x, poly1[b1].y - poly1[a1].y)
-    ab2 = vis.Point(poly2[b2].x - poly1[a1].x, poly2[b2].y - poly1[a1].y)
+    ab1 = Point(poly1[b1].x - poly1[a1].x, poly1[b1].y - poly1[a1].y)
+    ab2 = Point(poly2[b2].x - poly1[a1].x, poly2[b2].y - poly1[a1].y)
     if ps(ab1,ab2) >= ps(ab1,ab1):
         #cas où b1 survient avant b2, dans l'alignement
         c1 = avancerSurPolygone(poly1,b1)
