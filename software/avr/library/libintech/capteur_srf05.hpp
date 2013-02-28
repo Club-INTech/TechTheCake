@@ -68,7 +68,9 @@ class CapteurSRF
 
     uint16_t value()
     {
-        return derniereDistance;
+        uint16_t cache = derniereDistance;
+        derniereDistance = 0;
+        return cache;
     }
 
     void refresh()
@@ -106,11 +108,17 @@ class CapteurSRF
         // Fin de l'impulsion
         else if(!(bit) && bit!=ancienBit)
         {
+            uint16_t temps_impulsion;
             ancienBit=bit;
-                //Enregistrement de la dernière distance calculée, mais pas envoyer (l'envoi se fait par la méthode value)
-            ringBufferValeurs.append(((Timer::value()+Timer::value_max()-origineTimer)&Timer::value_max())*(1700-0.0000325*F_CPU)/1800.);
+                //Enregistrement de la dernière distance calculée, mais sans l'envoyer (l'envoi se fait par la méthode value)
+
+            temps_impulsion = (Timer::value() + Timer::value_max() - origineTimer) & Timer::value_max();
+            
+
+            ringBufferValeurs.append( ( (Timer::value() + Timer::value_max() - origineTimer) & Timer::value_max() ) * (1700-0.0000325 * F_CPU) / 1800.);
                          /*interpolation linéaire entre deux valeurs
                          mesurées: 1050/1800 à 20MHz, 1180/1800 à 16MHz*/
+
             derniereDistance=mediane(ringBufferValeurs);
 
         }
