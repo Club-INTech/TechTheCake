@@ -8,6 +8,7 @@ chemin = directory[:directory.index(racine)]+racine
 sys.path.insert(0, os.path.join(chemin, "src/"))
 
 from recherche_de_chemin.visilibity import Point
+#from outils_maths.point import Point
 import math
 
 #def collisionPolygonePoint(polygone,point):

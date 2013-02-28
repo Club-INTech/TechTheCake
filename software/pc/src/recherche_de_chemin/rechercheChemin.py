@@ -8,39 +8,48 @@ chemin = directory[:directory.index(racine)]+racine
 #répertoires d'importation
 sys.path.insert(0, os.path.join(chemin, "src/"))
 
+
 #bibliothèque compilée de recherche de chemin
 try:
     import recherche_de_chemin.visilibity as vis
 except:
     input("\n\nProblème avec la bibliothèque compilée _visilibity.so !\nConsultez le README dans src/recherche_de_chemin/visilibity/\n")
 
+#bibliothèque de recherche de chemin A* (en python)
+import recherche_de_chemin.aStar as aStar
+
 #fonctions auxiliaires pour les calculs géométriques
 import recherche_de_chemin.collisions as collisions
 import recherche_de_chemin.fonctions_auxiliaires_fusion as fus
 import recherche_de_chemin.fonctions_auxiliaires_elargissement as enlarge
 
-from recherche_de_chemin.cercle import Cercle
+from outils_maths.cercle import Cercle
+import outils_maths.point as point #point.Point : format de sortie de la recherche de chemin
+from recherche_de_chemin.visilibity import Point #pas de namespace : permet de changer facilement le type Point
 
 class Environnement:
     # côté des polygones qui représentent des cercles, en mm (petit : précision, grand : complexité moindre)
     cote_polygone = 500
     
     def __init__(self):
-        self.cercles = []
+        
+        #stocke les polygones des obstacles de la table. Les obstacles seront fusionnés en cas de contact
         self.polygones = []
+        #cercles contenant les polygones, pour optimiser les calculs. En cas de fusion, on ne conserve que le cercle du polygone de fusion.
+        self.cercles_conteneurs = []
+        #cercles représentant les obstacles pour la recherche de chemin avec A*. Ils ne sont pas fusionnés et peuvent se superposer.
+        self.cercles_astar = []
         
     def copy(self):
         """
         Clone un objet environnement pour éviter d'avoir deux pointeurs vers la même instance. 
         Tous ses attributs doivent être clonés, de manière récursive. 
-        Le module python copy.copy() ne fonctionne pas avec la classe vis.Polygon de la bibliothèque compilée. 
         """
         new = Environnement()
-        new.cercles = list(map(lambda c: c.copy(), self.cercles))
+        new.cercles_conteneurs = list(map(lambda c: c.copy(), self.cercles_conteneurs))
+        new.cercles_astar = list(map(lambda c: c.copy(), self.cercles_astar))
         for poly in self.polygones:
-            newPoly = []
-            for k in range(poly.n()):
-                newPoly.append(vis.Point(poly[k].x, poly[k].y))
+            newPoly = [Point(poly[k].x, poly[k].y) for k in range(poly.n())]
             new.polygones.append(vis.Polygon(newPoly))
         return new
     
@@ -59,7 +68,7 @@ class Environnement:
             rayonExinscrit = cercle.rayon*math.sqrt(1+math.sin(math.pi/(2*nbSegments)))
             x = cercle.centre.x + rayonExinscrit*math.cos(theta)
             y = cercle.centre.y + rayonExinscrit*math.sin(theta)
-            listePointsVi.append(vis.Point(x,y))
+            listePointsVi.append(Point(x,y))
         return vis.Polygon(listePointsVi)
         
     def _cercle_circonscrit_du_rectangle(rectangle):
@@ -67,7 +76,7 @@ class Environnement:
         méthode de conversion rectangle -> cercle circonscrit
         """
         #le segment reliant les sommets 0 et 2 est une grande diagonale du rectangle
-        centre = vis.Point((rectangle[0].x + rectangle[2].x)/2,(rectangle[0].y + rectangle[2].y)/2)
+        centre = Point((rectangle[0].x + rectangle[2].x)/2,(rectangle[0].y + rectangle[2].y)/2)
         rayon = math.sqrt((rectangle[0].x - rectangle[2].x)**2 + (rectangle[0].y - rectangle[2].y)**2)/2.
         return Cercle(centre,rayon)
         
@@ -82,10 +91,10 @@ class Environnement:
             parcourt["minY"] = min(parcourt["minY"],polygone[i].y)
             parcourt["maxX"] = max(parcourt["maxX"],polygone[i].x)
             parcourt["maxY"] = max(parcourt["maxY"],polygone[i].y)
-        a = vis.Point(parcourt["minX"],parcourt["maxY"])
-        b = vis.Point(parcourt["maxX"],parcourt["maxY"])
-        c = vis.Point(parcourt["maxX"],parcourt["minY"])
-        d = vis.Point(parcourt["minX"],parcourt["minY"])
+        a = Point(parcourt["minX"],parcourt["maxY"])
+        b = Point(parcourt["maxX"],parcourt["maxY"])
+        c = Point(parcourt["maxX"],parcourt["minY"])
+        d = Point(parcourt["minX"],parcourt["minY"])
         return Environnement._cercle_circonscrit_du_rectangle([a,b,c,d])
         
     def ajoute_cercle(self, cercle):
@@ -93,7 +102,8 @@ class Environnement:
         Ajoute un obstacle circulaire à l'environnement. 
         L'obstacle proprement dit est le polygone. Le cercle stocké permet d'optimiser les calculs de collisions.
         """
-        self.cercles.append(cercle)
+        self.cercles_conteneurs.append(cercle)
+        self.cercles_astar.append(cercle)
         self.polygones.append(Environnement._polygone_du_cercle(cercle))
     
     def ajoute_rectangle(self, polygoneVisilibity):
@@ -102,7 +112,8 @@ class Environnement:
         Le cercle stocké permet d'optimiser les calculs de collisions. 
         """
         self.polygones.append(polygoneVisilibity)
-        self.cercles.append(Environnement._cercle_circonscrit_du_rectangle(polygoneVisilibity))
+        self.cercles_conteneurs.append(Environnement._cercle_circonscrit_du_rectangle(polygoneVisilibity))
+        self.cercles_astar.append(self.cercles_conteneurs[-1])
         
     def ajoute_polygone(self, polygoneVisilibity):
         """
@@ -110,7 +121,8 @@ class Environnement:
         Le cercle stocké permet d'optimiser les calculs de collisions. 
         """
         self.polygones.append(polygoneVisilibity)
-        self.cercles.append(Environnement._cercle_circonscrit_du_polygone(polygoneVisilibity))
+        self.cercles_conteneurs.append(Environnement._cercle_circonscrit_du_polygone(polygoneVisilibity))
+        self.cercles_astar.append(self.cercles_conteneurs[-1])
         
 class RechercheChemin:
     """
@@ -133,72 +145,118 @@ class RechercheChemin:
         self.rayonPropre = self.config["rayon_robot"]
         
         # bords de la carte
-        self.bords = vis.Polygon([vis.Point(-self.config["table_x"]/2,0), vis.Point(self.config["table_x"]/2,0), vis.Point(self.config["table_x"]/2,self.config["table_y"]), vis.Point(-self.config["table_x"]/2,self.config["table_y"])])
+        self.bords = vis.Polygon([Point(-self.config["table_x"]/2,0), Point(self.config["table_x"]/2,0), Point(self.config["table_x"]/2,self.config["table_y"]), Point(-self.config["table_x"]/2,self.config["table_y"])])
         
         # environnement initial : obstacles fixes sur la carte
         self.environnement_initial = Environnement()
-        # Définition des polygones des obstacles fixes. Ils doivent être non croisés et définis dans le sens des aiguilles d'une montre.
         
+        # Définition des polygones des obstacles fixes. Ils doivent être non croisés et définis dans le sens des aiguilles d'une montre.
         ####---- pour intech-2013 ----
         #gâteau
-        self._ajoute_obstacle_initial_cercle(vis.Point(0,2000),500)
+        self._ajoute_obstacle_initial_cercle(Point(0,2000),500)
         
         #supports en bois dans les coins
-        self._ajoute_obstacle_initial_rectangle([vis.Point(-1500, 0),vis.Point(-1500, 100),vis.Point(-1100, 100),vis.Point(-1100, 0)])
-        self._ajoute_obstacle_initial_rectangle([vis.Point(1500, 100),vis.Point(1500, 0),vis.Point(1100, 0),vis.Point(1100, 100)])
-        self._ajoute_obstacle_initial_rectangle([vis.Point(-1500, 1900),vis.Point(-1500, 2000),vis.Point(-1100, 2000),vis.Point(-1100, 1900)])
-        self._ajoute_obstacle_initial_rectangle([vis.Point(1100, 1900),vis.Point(1100, 2000),vis.Point(1500, 2000),vis.Point(1500, 1900)])
+        self._ajoute_obstacle_initial_rectangle([Point(-1500, 0),Point(-1500, 100),Point(-1100, 100),Point(-1100, 0)])
+        self._ajoute_obstacle_initial_rectangle([Point(1500, 100),Point(1500, 0),Point(1100, 0),Point(1100, 100)])
+        self._ajoute_obstacle_initial_rectangle([Point(-1500, 1900),Point(-1500, 2000),Point(-1100, 2000),Point(-1100, 1900)])
+        self._ajoute_obstacle_initial_rectangle([Point(1100, 1900),Point(1100, 2000),Point(1500, 2000),Point(1500, 1900)])
         ####--------------------------
         
         # environnement dynamique : liste des obstacles mobiles qui sont mis à jour régulièrement
         self.environnement_complet = self.environnement_initial.copy()
+        #autorise la cherche de chemin avec visilibity
+        self.valide = True
         
     def _ajoute_obstacle_initial_cercle(self, centre, rayon):
         """
         Ajoute un obstacle circulaire à l'environnement initial. 
         Cette méthode recoupe ensuite le dernier polygone de l'environnement (indice -1) s'il sort de la table.
         """
+        #élargissement de l'obstacle pour un robot non ponctuel
         cercleObstacle = enlarge.elargit_cercle(Cercle(centre,rayon),self.rayonPropre)
+        #ajout à l'environnement (ce qui calcule le polygone approchant le cercle)
         self.environnement_initial.ajoute_cercle(cercleObstacle)
-        self._recouper_aux_bords_table(-1,self.environnement_initial)
-    
+        #calcul du polygone recoupé aux bords
+        troncPolygon = self._recouper_aux_bords_table(self.environnement_initial.polygones[-1], cercleObstacle, self.environnement_initial)
+        if troncPolygon is None:
+            #le polygone n'est pas dans la table : on le retire
+            del self.environnement_initial.polygones[-1]
+            del self.environnement_initial.cercles_conteneurs[-1]
+        else:
+            #on enregistre le nouveau polygone tronqué
+            self.environnement_initial.polygones[-1] = troncPolygon
+            
     def _ajoute_obstacle_initial_rectangle(self, rectangle):
         """
         Ajoute un obstacle rectangulaire à l'environnement initial. 
         Cette méthode recoupe ensuite le dernier polygone de l'environnement (indice -1) s'il sort de la table.
         """
-        polygoneVisilibity = vis.Polygon(list(map(lambda p: vis.Point(p.x,p.y), rectangle)))
+        #traduction du rectangle en une structure de polygone compatible avec visilibity
+        polygoneVisilibity = vis.Polygon(list(map(lambda p: Point(p.x,p.y), rectangle)))
+        #élargissement de l'obstacle pour un robot non ponctuel
         rectangleObstacle = enlarge.elargit_rectangle(polygoneVisilibity, self.rayonPropre)
+        #ajout à l'environnement (ce qui calcule le cercle contenant du rectangle)
         self.environnement_initial.ajoute_rectangle(rectangleObstacle)
-        self._recouper_aux_bords_table(-1,self.environnement_initial)
+        #calcul du polygone recoupé aux bords
+        troncPolygon = self._recouper_aux_bords_table(rectangleObstacle, self.environnement_initial.cercles_conteneurs[-1], self.environnement_initial)
+        if troncPolygon is None:
+            #le polygone n'est pas dans la table : on le retire
+            del self.environnement_initial.polygones[-1]
+            del self.environnement_initial.cercles_conteneurs[-1]
+        else:
+            #on enregistre le nouveau polygone tronqué
+            self.environnement_initial.polygones[-1] = troncPolygon
+            self.environnement_initial.cercles_conteneurs[-1] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
         
     def _ajoute_obstacle_initial_polygone(self, polygone):
         """
         Ajoute un obstacle polygonal à l'environnement initial. 
         Cette méthode recoupe ensuite le dernier polygone de l'environnement (indice -1) s'il sort de la table.
         """
-        polygoneVisilibity = vis.Polygon(list(map(lambda p: vis.Point(p.x,p.y), polygone)))
+        #traduction du polygone en une structure de polygone compatible avec visilibity
+        polygoneVisilibity = vis.Polygon(list(map(lambda p: Point(p.x,p.y), polygone)))
+        #élargissement de l'obstacle pour un robot non ponctuel
         polygoneObstacle = enlarge.elargit_polygone(polygoneVisilibity, self.rayonPropre, Environnement.cote_polygone)
+        #ajout à l'environnement (ce qui calcule le cercle contenant du rectangle)
         self.environnement_initial.ajoute_polygone(polygoneObstacle)
-        self._recouper_aux_bords_table(-1,self.environnement_initial)
-        
-    def _recouper_aux_bords_table(self,id,environnement):
+        #calcul du polygone recoupé aux bords
+        troncPolygon = self._recouper_aux_bords_table(polygoneObstacle, self.environnement_initial.cercles_conteneurs[-1], self.environnement_initial)
+        if troncPolygon is None:
+            #le polygone n'est pas dans la table : on le retire
+            del self.environnement_initial.polygones[-1]
+            del self.environnement_initial.cercles_conteneurs[-1]
+        else:
+            #on enregistre le nouveau polygone tronqué
+            self.environnement_initial.polygones[-1] = troncPolygon
+            self.environnement_initial.cercles_conteneurs[-1] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
+            
+    def _est_dans_table(self, point):
         """
-        Cette méthode recoupe le id-ème polygone de l'environnement passé en paramètre s'il sort de la table.
+        Teste si le point est effectivement dans la table, afin d'éviter de renvoyer un chemin dégénéré (passant par les bords)
+        """
+        eps = 2.1*RechercheChemin.tolerance
+        return ((point.x > -self.config["table_x"]/2+eps) and
+                (point.x < self.config["table_x"]/2-eps) and
+                (point.y > eps) and
+                (point.y < self.config["table_y"]-eps))
+        
+    def _recouper_aux_bords_table(self,polygone_a_recouper,cercle_a_recouper,environnement):
+        """
+        Cette méthode recoupe le polygone de l'environnement passé en paramètre s'il sort de la table.
         """
         #les obstacles une fois tronqués devront être distants de eps des bords
         eps = 2*RechercheChemin.tolerance
         
         #test rapide de collision du polygone avec les bords de la table, via son cercle circonscrit
-        cx = environnement.cercles[id].centre.x
-        cy = environnement.cercles[id].centre.y
-        cr = environnement.cercles[id].rayon
+        cx = cercle_a_recouper.centre.x
+        cy = cercle_a_recouper.centre.y
+        cr = cercle_a_recouper.rayon
         if cx+cr < self.config["table_x"]/2-eps and cx-cr > -self.config["table_x"]/2+eps and cy+cr < self.config["table_y"]-eps and cy-cr > eps:
             #self.log.warning("le cercle de l'obstacle "+str(i)+" ne rentre pas en collision avec les bords.")#@
-            return None
+            return polygone_a_recouper
         
         #alias pour la clarté. Les polygones NE SONT PAS dupliqués (pointeurs)
-        poly1 = environnement.polygones[id]
+        poly1 = polygone_a_recouper
         poly2 = self.bords
         #élection d'un point du poly1 qui ne sort pas de la table
         a1 = None
@@ -209,8 +267,6 @@ class RechercheChemin:
                 break
         if not type(a1) == int:
             #Le polygone n'a aucun sommet dans la table. On considère qu'on peut l'ignorer. Et on s'casse.
-            del environnement.polygones[id]
-            del environnement.cercles[id]
             return None
         #création de l'obstacle recoupé
         troncateObstacle = []
@@ -218,7 +274,7 @@ class RechercheChemin:
         #pour celà on avance sur le polygone avec cette fonction auxiliaire, 
         # qui sait faire revenir l'indice à 0 et tourne dans le sens opposé pour les bords de la table
         b1 = fus.avancerSurPolygoneBords(poly1,a1,self.bords)
-        #le watchdog lève une exception en cas de récursivité non terminale. Meuh non, ca n'arrive pas (plus)...
+        #le watchdog lève une exception en cas de récursivité non terminale. Meuh non, ca n'arrive pas...
         WATCHDOG = 0
         auMoinsUneCollision = False
         conditionBouclage = True
@@ -236,7 +292,7 @@ class RechercheChemin:
                 pCollision = collisions.collisionSegmentSegment(poly1[a1],poly1[b1],poly2[a2],poly2[b2])
                 if pCollision:
                     #self.log.critical("collision à "+str(pCollision[1]))#@
-                    if type(pCollision[1])==vis.Point:
+                    if type(pCollision[1])==Point:
                         pointCollision = pCollision[1]
                         collision = True
                         auMoinsUneCollision = True
@@ -268,7 +324,7 @@ class RechercheChemin:
                         b2 = fus.avancerSurPolygoneBords(poly2,a2,self.bords)
                         pCollision = collisions.collisionSegmentSegment(pointCollision,poly1[a1],poly2[a2],poly2[b2])
                         if pCollision:
-                            if type(pCollision[1])==vis.Point:
+                            if type(pCollision[1])==Point:
                                 #self.log.warning("autre collision à "+str(pCollision[1]))#@
                                 pointCollision = pCollision[1]
                                 collision = True
@@ -302,8 +358,10 @@ class RechercheChemin:
                 troncateObstacle,conditionBouclage = fus.ajouterObstacle(poly1[a1],troncateObstacle,conditionBouclage)
                 
         if WATCHDOG == 100:
-            self.log.critical("récursion non terminale pour le polygone tronqué !")
-            raise Exception
+            #self.log.critical("récursion non terminale pour le polygone tronqué !")
+            #raise Exception
+            self.valide = False
+            return vis.Polygon(troncateObstacle)
         
         #les obstacles tronqués doivent être éloignés de plus de 'tolérance' des bords pour que Visilibity accepte le calcul.
         for i in range(len(troncateObstacle)):
@@ -317,17 +375,15 @@ class RechercheChemin:
                 troncateObstacle[i].y = self.config["table_y"]-eps
             
         #remplacement du polygone par sa version tronquée
-        troncPolygon = vis.Polygon(troncateObstacle)
-        environnement.polygones[id] = troncPolygon
-        environnement.cercles[id] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
+        return vis.Polygon(troncateObstacle)
         
     def _fusionner_avec_obstacles_en_contact(self,sEstDejaRetrouveEnferme=False):
         #teste le dernier polygone ajouté avec tous les autres, en les parcourant par id décroissant
         for i in range(len(self.environnement_complet.polygones)-2,-1,-1):
             #self.log.debug("--> "+str(i))#@
             #test rapide de collision entre les cercles circonscrits aux 2 polygones
-            if not collisions.collision_2_cercles(self.environnement_complet.cercles[i],self.environnement_complet.cercles[-1]):
-                #self.log.warning("pas de collision avec le cercle de l'obstacle "+str(i)+"à "+str(self.environnement_complet.cercles[i].centre)+".")#@
+            if not collisions.collision_2_cercles(self.environnement_complet.cercles_conteneurs[i],self.environnement_complet.cercles_conteneurs[-1]):
+                #self.log.warning("pas de collision avec le cercle de l'obstacle "+str(i)+"à "+str(self.environnement_complet.cercles_conteneurs[i].centre)+".")#@
                 continue
             
             #alias pour la clarté. Les polygones NE SONT PAS dupliqués (pointeurs)
@@ -383,7 +439,7 @@ class RechercheChemin:
                     b2 = fus.avancerSurPolygone(poly2,a2)
                     pCollision = collisions.collisionSegmentSegment(poly1[a1],poly1[b1],poly2[a2],poly2[b2])
                     if pCollision:
-                        if type(pCollision[1])==vis.Point:
+                        if type(pCollision[1])==Point:
                             #point d'intersection entre 2 segments
                             pointCollision = pCollision[1]
                             collision = True,True
@@ -423,7 +479,7 @@ class RechercheChemin:
                             b2 = fus.avancerSurPolygone(poly2,a2)
                             pCollision = collisions.collisionSegmentSegment(pointCollision,poly1[a1],poly2[a2],poly2[b2])
                             if pCollision: 
-                                if type(pCollision[1])==vis.Point:
+                                if type(pCollision[1])==Point:
                                     if not pCollision[1] == pointCollision:
                                         #self.log.warning("autre collision à "+str(pCollision[1])+" de "+str(poly1.n())+" sur "+str(poly2.n()))#@
                                         pointCollision = pCollision[1]
@@ -468,11 +524,13 @@ class RechercheChemin:
                     mergeObstacle,conditionBouclage = fus.ajouterObstacle(poly1[a1],mergeObstacle,conditionBouclage)
                     #self.log.debug("On passe à "+str(poly1[a1])+", on attend "+str(mergeObstacle[0]))#@
             if WATCHDOG == 100:
-                self.log.critical("récursion non terminale pour le polygone de fusion !")
-                raise Exception
+                #self.log.critical("récursion non terminale pour le polygone de fusion !")
+                #raise Exception
+                self.valide = False
+                return None
                 
             if auMoinsUneCollision:
-                #self.log.warning("cet obstacle rentre en collision avec l'obstacle "+str(i)+"à "+str(self.environnement_complet.cercles[i].centre)+". Ils ont été fusionnés.")
+                #self.log.warning("cet obstacle rentre en collision avec l'obstacle "+str(i)+"à "+str(self.environnement_complet.cercles_conteneurs[i].centre)+". Ils ont été fusionnés.")
                 #remplacement du premier obstacle par l'obstacle de fusion 
                 mergePolygon = vis.Polygon(mergeObstacle)
                 
@@ -480,10 +538,10 @@ class RechercheChemin:
                 if mergePolygon.area() < 0:
                     #polygone ok, on le place dans l'environnement
                     self.environnement_complet.polygones[-1] = mergePolygon
-                    self.environnement_complet.cercles[-1] = Environnement._cercle_circonscrit_du_polygone(mergePolygon)
+                    self.environnement_complet.cercles_conteneurs[-1] = Environnement._cercle_circonscrit_du_polygone(mergePolygon)
                     #suppression du deuxième obstacle
                     del self.environnement_complet.polygones[i]
-                    del self.environnement_complet.cercles[i]
+                    del self.environnement_complet.cercles_conteneurs[i]
                 else:
                     #mauvaise déclaration, ce qui veut dire que le polygone est la 'cour intérieure' d'un ensemble de polygones
                     if not sEstDejaRetrouveEnferme:
@@ -495,40 +553,82 @@ class RechercheChemin:
                 
             else:
                 pass
-                #self.log.warning("cet obstacle ne rentre pas en collision avec l'obstacle "+str(i)+"à "+str(self.environnement_complet.cercles[i].centre)+".")
+                #self.log.warning("cet obstacle ne rentre pas en collision avec l'obstacle "+str(i)+"à "+str(self.environnement_complet.cercles_conteneurs[i].centre)+".")
                 
     def ajoute_obstacle_cercle(self, centre, rayon):
         """
         Ajout un obstacle circulaire sur la table.
         Il est considéré comme dynamique et peut etre retiré via retirer_obstacles_dynamiques()
         """
+        #élargissement de l'obstacle pour un robot non ponctuel
         cercleObstacle = enlarge.elargit_cercle(Cercle(centre,rayon),self.rayonPropre)
+        #ajout à l'environnement (ce qui calcule le polygone approchant le cercle)
         self.environnement_complet.ajoute_cercle(cercleObstacle)
-        self._recouper_aux_bords_table(-1,self.environnement_complet)
-        self._fusionner_avec_obstacles_en_contact()
-        
-    def ajoute_obstacle_polygone(self, polygone):
-        """
-        Ajout un obstacle polygonal sur la table (liste de points). 
-        Il est considéré comme dynamique et peut etre retiré via retirer_obstacles_dynamiques()
-        """
-        polygoneVisilibity = vis.Polygon(list(map(lambda p: vis.Point(p.x,p.y), polygone)))
-        polygoneObstacle = enlarge.elargit_polygone(polygoneVisilibity, self.rayonPropre, Environnement.cote_polygone)
-        self.environnement_complet.ajoute_polygone(polygoneObstacle)
-        self._recouper_aux_bords_table(-1,self.environnement_complet)
-        self._fusionner_avec_obstacles_en_contact()
-        
+        #calcul du polygone recoupé aux bords
+        troncPolygon = self._recouper_aux_bords_table(self.environnement_complet.polygones[-1], cercleObstacle, self.environnement_complet)
+        if troncPolygon is None:
+            #le polygone n'est pas dans la table : on le retire
+            del self.environnement_complet.polygones[-1]
+            del self.environnement_complet.cercles_conteneurs[-1]
+            del self.environnement_complet.cercles_astar[-1]
+        else:
+            #on enregistre le nouveau polygone tronqué
+            self.environnement_complet.polygones[-1] = troncPolygon
+            #on vérifie si ce polygone doit etre fusionné avec d'autres obstacles en cas de contact
+            self._fusionner_avec_obstacles_en_contact()
+    
     def ajoute_obstacle_rectangle(self, rectangle):
         """
         Ajout un obstacle rectangulaire sur la table (liste de points). 
         Idem que ajoute_obstacle_polygone() mais avec une optimisation du calcul du cercle circonscrit. 
         Il est considéré comme dynamique et peut etre retiré via retirer_obstacles_dynamiques()
         """
-        polygoneVisilibity = vis.Polygon(list(map(lambda p: vis.Point(p.x,p.y), rectangle)))
+        #traduction du rectangle en une structure de polygone compatible avec visilibity
+        polygoneVisilibity = vis.Polygon(list(map(lambda p: Point(p.x,p.y), rectangle)))
+        #élargissement de l'obstacle pour un robot non ponctuel
         rectangleObstacle = enlarge.elargit_rectangle(polygoneVisilibity, self.rayonPropre)
+        #ajout à l'environnement (ce qui calcule le cercle contenant du rectangle)
         self.environnement_complet.ajoute_rectangle(rectangleObstacle)
-        self._recouper_aux_bords_table(-1,self.environnement_complet)
-        self._fusionner_avec_obstacles_en_contact()
+        #calcul du polygone recoupé aux bords
+        troncPolygon = self._recouper_aux_bords_table(rectangleObstacle, self.environnement_complet.cercles_conteneurs[-1], self.environnement_complet)
+        if troncPolygon is None:
+            #le polygone n'est pas dans la table : on le retire
+            del self.environnement_complet.polygones[-1]
+            del self.environnement_complet.cercles_conteneurs[-1]
+            del self.environnement_complet.cercles_astar[-1]
+        else:
+            #on enregistre le nouveau polygone tronqué
+            self.environnement_complet.polygones[-1] = troncPolygon
+            #le cercle du polygone initial optimise en général mieux le calcul que celui du polygone tronqué
+            #self.environnement_complet.cercles_conteneurs[-1] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
+            #on vérifie si ce polygone doit etre fusionné avec d'autres obstacles en cas de contact
+            self._fusionner_avec_obstacles_en_contact()
+    
+    def ajoute_obstacle_polygone(self, polygone):
+        """
+        Ajout un obstacle polygonal sur la table (liste de points). 
+        Il est considéré comme dynamique et peut etre retiré via retirer_obstacles_dynamiques()
+        """
+        #traduction du polygone en une structure de polygone compatible avec visilibity
+        polygoneVisilibity = vis.Polygon(list(map(lambda p: Point(p.x,p.y), polygone)))
+        #élargissement de l'obstacle pour un robot non ponctuel
+        polygoneObstacle = enlarge.elargit_polygone(polygoneVisilibity, self.rayonPropre, Environnement.cote_polygone)
+        #ajout à l'environnement (ce qui calcule le cercle contenant du rectangle)
+        self.environnement_complet.ajoute_polygone(polygoneObstacle)
+        #calcul du polygone recoupé aux bords
+        troncPolygon = self._recouper_aux_bords_table(polygoneObstacle, self.environnement_complet.cercles_conteneurs[-1], self.environnement_complet)
+        if troncPolygon is None:
+            #le polygone n'est pas dans la table : on le retire
+            del self.environnement_complet.polygones[-1]
+            del self.environnement_complet.cercles_conteneurs[-1]
+            del self.environnement_complet.cercles_astar[-1]
+        else:
+            #on enregistre le nouveau polygone tronqué
+            self.environnement_complet.polygones[-1] = troncPolygon
+            #le cercle du polygone initial optimise en général mieux le calcul que celui du polygone tronqué
+            #self.environnement_complet.cercles_conteneurs[-1] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
+            #on vérifie si ce polygone doit etre fusionné avec d'autres obstacles en cas de contact
+            self._fusionner_avec_obstacles_en_contact()
             
     def retirer_obstacles_dynamiques(self):
         """
@@ -536,12 +636,76 @@ class RechercheChemin:
         """
         #on retourne à l'environnement initial, en évitant de le modifier
         self.environnement_complet = self.environnement_initial.copy()
+        self.valide = True
         
-    def preparer_environnement(self):
+    def get_obstacles(self):
+        """
+        (pour affichage de debug) Renvoie la liste des polygones obstacles (initiaux et dynamiques)
+        """
+        return self.environnement_complet.polygones
+        
+    def get_cercles_conteneurs(self):
+        """
+        (pour affichage de debug) Renvoie la liste des cercles contenant les obstacles (initiaux et dynamiques), éventuellement fusionnés. 
+        Ils sont approximés par des polygones.
+        """
+        return self.environnement_complet.cercles_conteneurs
+    
+    def get_cercles_astar(self):
+        """
+        (pour affichage de debug) Renvoie la liste des obstacles circulaires considérés par A*. 
+        Ils peuvent se superposer sans être fusionnés. 
+        Ils sont approximés par des polygones.
+        """
+        return self.environnement_complet.cercles_astar
+    
+    def prepare_environnement_pour_a_star(self):
+        """
+        Prépare l'environnement nécessaire aux calculs effectués par l'algorithme de recherche de chemin A*. 
+        Cela permet d'effectuer plusieurs recherches de chemin d'affilée sans avoir à recharger les obstacles.
+        """
+        haut_gauche = int(-self.config["table_x"]/2), int(self.config["table_y"])
+        bas_droite = int(self.config["table_x"]/2), int(0)
+        self.graphe_table = aStar.AStar.creer_graphe(haut_gauche, bas_droite, self.environnement_complet.cercles_astar)
+        
+    def cherche_chemin_avec_a_star(self,depart,arrivee):
+        """
+        Renvoi un chemin aux arêtes non lissées utilisé pour un calcul rapide de distance (inexploitable pour les scripts). 
+        Prend en entrée deux Points depart et arrivee. 
+        La sortie est une liste de points à suivre (ne contient pas le point de départ). 
+        Une exception est levée si le point d'arrivée n'est pas accessible. 
+        """
+        
+        #test d'accessibilité du point d'arrivée
+        if arrivee.x < -self.config["table_x"]/2 or arrivee.y < 0 or arrivee.x > self.config["table_x"]/2 or arrivee.y > self.config["table_y"]:
+            self.log.critical("Le point d'arrivée "+str(arrivee)+" n'est pas dans la table !")
+            raise ExceptionArriveeHorsTable
+        for obstacle in self.environnement_complet.cercles_astar:
+            if obstacle.contient(arrivee):
+                self.log.critical("Le point d'arrivée "+str(arrivee)+" n'est pas accessible !")
+                raise ExceptionArriveeDansObstacle
+            
+        #recherche de chemin
+        if not hasattr(self, 'graphe_table'):
+            self.log.critical("Il faut appeler prepare_environnement_pour_a_star() avant cherche_chemin_avec_a_star() !")
+            raise ExceptionEnvironnementNonPrepare
+        
+        #return aStar.AStar.plus_court_chemin(depart, arrivee, self.graphe_table)
+        try:
+            return aStar.AStar.plus_court_chemin(depart, arrivee, self.graphe_table)
+        except aStar.ExceptionAucunCheminAstar as e:
+            raise ExceptionAucunChemin
+        
+    def prepare_environnement_pour_visilibity(self):
         """
         Sauvegarde l'environnement nécessaire aux calculs effectués par Visilibity. 
         Cela permet d'effectuer plusieurs recherches de chemin d'affilée sans avoir à recharger les obstacles.
         """
+        
+        if not self.valide:
+            # l'environnement n'est pas adapté à une recherche de chemin par visilibity
+            self.prepare_environnement_pour_a_star()
+            return None
         
         # Création de l'environnement, le polygone des bords en premier, ceux des obstacles après (fixes et mobiles)
         self.environnement_visilibity = vis.Environment([self.bords]+self.environnement_complet.polygones)
@@ -549,44 +713,47 @@ class RechercheChemin:
         # Vérification de la validité de l'environnement : polygones non croisés et définis dans le sens des aiguilles d'une montre.
         if not self.environnement_visilibity.is_valid(RechercheChemin.tolerance):
             self.log.critical("Des obstacles invalides ont été trouvés. Ils sont remplacés par leurs cercles contenant.")
+            
             for k in range(len(self.environnement_complet.polygones)):
                 #détection du/des polygones défectueux
                 if self.environnement_complet.polygones[k].area() >= 0 or not self.environnement_complet.polygones[k].is_simple(RechercheChemin.tolerance):
-                    self.log.warning("L'obstacle "+str(k)+" a été remplacé.")
                     #environnement de secours : on remplace le polygone par son cercle contenant
-                    self.environnement_complet.polygones[k] = Environnement._polygone_du_cercle(self.environnement_complet.cercles[k])
-                    self._recouper_aux_bords_table(k,self.environnement_complet)
+                    self.environnement_complet.polygones[k] = Environnement._polygone_du_cercle(self.environnement_complet.cercles_conteneurs[k])
+                    troncPolygon = self._recouper_aux_bords_table(self.environnement_complet.polygones[k], self.environnement_complet.cercles_conteneurs[k], self.environnement_complet)
+                    if troncPolygon is None:
+                        #le polygone n'est pas dans la table : on le retire
+                        del self.environnement_complet.polygones[k]
+                        del self.environnement_complet.cercles_conteneurs[k]
+                    else:
+                        #on enregistre le nouveau polygone tronqué
+                        self.environnement_complet.polygones[k] = troncPolygon
+                        
+                    self.log.warning("L'obstacle "+str(k)+" a été remplacé.")
+                    
+            #environnement de secours en cas d'obstacle invalide
             self.environnement_visilibity = vis.Environment([self.bords]+self.environnement_complet.polygones)
-        #environnement de secours en cas d'obstacle invalide
-        self.environnement_visilibity.is_valid(RechercheChemin.tolerance)
-        
-    def get_obstacles(self):
-        """
-        Renvoi la liste des polygones obstacles (initiaux et dynamiques)
-        """
-        return (self.environnement_complet.polygones)
-        
-    def get_cercles_obstacles(self):
-        """
-        Renvoi la liste des cercles contenant les obstacles (initiaux et dynamiques)
-        """
-        return list(map(lambda cercle: Environnement._polygone_du_cercle(cercle), self.environnement_complet.cercles))
-    
-    def get_chemin(self,depart,arrivee):
+            #validation du nouvel environnement
+            self.environnement_visilibity.is_valid(RechercheChemin.tolerance)
+      
+    def cherche_chemin_avec_visilibity(self,depart,arrivee):
         """
         Renvoi le chemin pour aller de depart à arrivee sous forme d'une liste. Le point de départ est exclu. 
         Une exception est levée si le point d'arrivée n'est pas accessible. 
         En cas de problème avec les obstacles (ex: erreur lors d'une fusion de polygones), des calculs plus grossiers sont effectués de facon à toujours renvoyer un chemin.
         """
         
+        if not self.valide:
+            # l'environnement n'est pas adapté à une recherche de chemin par visilibity
+            return self.cherche_chemin_avec_a_star(depart,arrivee)
+            
         #test d'accessibilité du point d'arrivée
         if arrivee.x < -self.config["table_x"]/2 or arrivee.y < 0 or arrivee.x > self.config["table_x"]/2 or arrivee.y > self.config["table_y"]:
-            self.log.critical("Le point d'arrivée n'est pas dans la table !")
-            raise Exception
+            self.log.critical("Le point d'arrivée "+str(arrivee)+" n'est pas dans la table !")
+            raise ExceptionArriveeHorsTable
         for obstacle in self.environnement_complet.polygones:
             if collisions.collisionPointPoly(arrivee,obstacle):
-                self.log.critical("Le point d'arrivée n'est pas accessible !")
-                raise Exception
+                self.log.critical("Le point d'arrivée "+str(arrivee)+" n'est pas accessible !")
+                raise ExceptionArriveeDansObstacle
             
         #conversion en type vis.PointVisibility
         departVis = vis.Point(depart.x,depart.y)
@@ -594,12 +761,44 @@ class RechercheChemin:
         
         #recherche de chemin
         if not hasattr(self, 'environnement_visilibity'):
-            self.log.critical("Il faut appeler preparer_environnement() avant get_chemin() !")
-            raise Exception
+            self.log.critical("Il faut appeler prepare_environnement_pour_visilibity() avant cherche_chemin_avec_visilibity() !")
+            raise ExceptionEnvironnementNonPrepare
         cheminVis = self.environnement_visilibity.shortest_path(departVis, arriveeVis, RechercheChemin.tolerance)
         
-        #conversion en type vis.Point
-        chemin = []
-        for i in range(1,cheminVis.size()):
-            chemin.append(vis.Point(cheminVis[i].x,cheminVis[i].y))
-        return chemin
+        #conversion en type point.Point, exclusion du point de départ cheminVis[0], et évacuation des points sur les bords.
+        chemin = [point.Point(cheminVis[i].x,cheminVis[i].y) for i in range(1,cheminVis.size()) if self._est_dans_table(cheminVis[i])]
+        if len(chemin) == cheminVis.size()-1:
+            return chemin
+        else:
+            #un des points était en fait sur le bord : le chemin est impossible.
+            self.log.critical("Aucun chemin ne convient pour aller de "+str(depart)+" à "+str(arrivee)+" !")
+            raise ExceptionAucunChemin
+          
+          
+class ExceptionArriveeHorsTable(Exception):
+    """
+    Exception levée lorsque le point d'arrivée n'est pas dans la table.
+    """
+    def __str__(self):
+        return "Le point d'arrivée n'est pas dans la table !"
+
+class ExceptionArriveeDansObstacle(Exception):
+    """
+    Exception levée lorsque le point d'arrivée se situe dans un obstacle.
+    """
+    def __str__(self):
+        return "Le point d'arrivée est dans un obstacle !"
+
+class ExceptionEnvironnementNonPrepare(Exception):
+    """
+    Exception levée lorsqu'une méthode de recherche de chemin est appellée avant de préparer l'environnement.
+    """
+    def __str__(self):
+        return "L'environnement de recherche de chemin n'a pas été chargé !"
+
+class ExceptionAucunChemin(Exception):
+    """
+    Exception levée lorsqu'aucun chemin ne peut relier le départ à l'arrivée.
+    """
+    def __str__(self):
+        return "Aucun chemin possible !"
