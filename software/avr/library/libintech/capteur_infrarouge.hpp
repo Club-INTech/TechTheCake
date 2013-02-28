@@ -48,7 +48,7 @@ private:
    CapteurInfrarouge() :
     derniereDistance(0)
     {  //Initialisation de pas mal de choses pour pouvoir utiliser un convertisseur analogique/numérique.
-       PinRegister::disable();
+       PinRegister::enable();
        PinRegister::prescaler(VAL_PRESCALER_INFRA); //le même pour tous les capteurs
     }
 
@@ -61,15 +61,12 @@ private:
 
   void refresh()
   {
-    PinRegister::enable();
-    _delay_us(200); //pour laisser le temps aux registres de s'adapter (valeur expérimentale)
-      uint8_t ind = indice_tab(ADCH);
+      uint8_t ind = indice_tab(PinRegister::read());
       ringBufferValeurs.append(regression_lin(val_ADCH(ind), val_ADCH(ind+1), val_mm(ind), val_mm(ind+1), ADCH));
-    PinRegister::disable();
-    derniereDistance=mediane(ringBufferValeurs);
+    derniereDistance = mediane(ringBufferValeurs);
   }  
   // Retourne la valeur brute (sans regression linéaire) (donc
-  // sans unité) de la distance. On l'appelle ADCH
+  // sans unité) de la distance. On appelle ADCH
   uint16_t value_brut()
   {
        return ADCH;
@@ -106,7 +103,7 @@ private:
     case 5 : return 500;
     case 6 : return 600;
     case 7 : return 900;
-    default: return 0; //cas impossible
+    default: return 1500; //cas impossible
     }
   }
 

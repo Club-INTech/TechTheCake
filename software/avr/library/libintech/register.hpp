@@ -121,23 +121,31 @@ template<uint16_t bit>
 struct AVR_ADC {
 
     static void enable() {
-        ADMUX |= (1 << REFS0); // Set ADC reference to AVCC 
+        DIDR0 = 0;
+        ADMUX = (1 << REFS0); // Set ADC reference to AVCC 
         ADMUX |= (1 << ADLAR); // Left adjust ADC result to allow easy 8 bit reading 
 
-        ADMUX |= bit;   //on choisit le ADC à utiliser
-
-        ADCSRA |= (1 << ADATE);  // Set ADC to Free-Running Mode 
+        ADCSRB = 0;       // Set ADC to Free-Running Mode 
+        ADCSRA |= (1 << ADATE); // Auto-triggered mode
         ADCSRA |= (1 << ADEN);  // Enable ADC 
-        ADCSRA |= (1 << ADSC);  // Start A2D Conversions  
-    }
+     }
 
     static void disable() {
         ADMUX &= ~(1 << REFS0);
         ADMUX &= ~(1 << ADLAR);
-        ADMUX &= ~bit;   //on choisit le ADC à utiliser
         ADCSRA &= ~(1 << ADATE);
         ADCSRA &= ~(1 << ADEN);
-        ADCSRA &= ~(1 << ADSC);
+    }
+
+    static uint16_t read() {
+        ADMUX &= 0xF0;  //on remet les bits de poids faibles de ADMUX à 0
+        ADMUX |= bit;   //on choisit le ADC à utiliser
+        ADCSRA |= (1 << ADSC);  // Start A2D Conversions
+
+//        while (!((ADCSRA & (1 << ADIF)) >> ADIF)); //on peut utiliser ADCS à la place de ADIF
+        _delay_us(200); //pour laisser le temps aux registres de s'adapter (valeur expérimentale, normalement c'est 13 cycles horloge de l'ADC)
+
+        return ADCH;
     }
 
     static void prescaler(uint16_t facteur) { //facteurs disponibles: 2, 4, 8, 16, 32, 64 et 128 

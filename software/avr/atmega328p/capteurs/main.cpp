@@ -170,7 +170,7 @@ ISR(TIMER2_OVF_vect) //overflow du timer 2, qui appelle le refresh d'un ou des c
     if(overflow==0)
     {
         capteur_srf05_t_1.refresh();
-//        capteur_srf05_t_2.refresh();
+        capteur_srf05_t_2.refresh();
         capteur_infrarouge_1.refresh();
     }
     overflow++;
@@ -182,6 +182,6 @@ ISR(TIMER1_OVF_vect)    //MÊME SI ELLE EST VIDE, IL EST OBLIGATOIRE DE DEFINIR 
 ISR(PCINT0_vect)
 {
    capteur_srf05_t_1.interruption();
-//   capteur_srf05_t_2.interruption();
+   capteur_srf05_t_2.interruption();
 }
 
