@@ -164,6 +164,8 @@ class RechercheChemin:
         
         # environnement dynamique : liste des obstacles mobiles qui sont mis à jour régulièrement
         self.environnement_complet = self.environnement_initial.copy()
+        #autorise la cherche de chemin avec visilibity
+        self.valide = True
         
     def _ajoute_obstacle_initial_cercle(self, centre, rayon):
         """
@@ -272,7 +274,7 @@ class RechercheChemin:
         #pour celà on avance sur le polygone avec cette fonction auxiliaire, 
         # qui sait faire revenir l'indice à 0 et tourne dans le sens opposé pour les bords de la table
         b1 = fus.avancerSurPolygoneBords(poly1,a1,self.bords)
-        #le watchdog lève une exception en cas de récursivité non terminale. Meuh non, ca n'arrive pas (plus)...
+        #le watchdog lève une exception en cas de récursivité non terminale. Meuh non, ca n'arrive pas...
         WATCHDOG = 0
         auMoinsUneCollision = False
         conditionBouclage = True
@@ -356,8 +358,10 @@ class RechercheChemin:
                 troncateObstacle,conditionBouclage = fus.ajouterObstacle(poly1[a1],troncateObstacle,conditionBouclage)
                 
         if WATCHDOG == 100:
-            self.log.critical("récursion non terminale pour le polygone tronqué !")
-            raise Exception
+            #self.log.critical("récursion non terminale pour le polygone tronqué !")
+            #raise Exception
+            self.valide = False
+            return vis.Polygon(troncateObstacle)
         
         #les obstacles tronqués doivent être éloignés de plus de 'tolérance' des bords pour que Visilibity accepte le calcul.
         for i in range(len(troncateObstacle)):
@@ -371,8 +375,7 @@ class RechercheChemin:
                 troncateObstacle[i].y = self.config["table_y"]-eps
             
         #remplacement du polygone par sa version tronquée
-        troncPolygon = vis.Polygon(troncateObstacle)
-        return troncPolygon
+        return vis.Polygon(troncateObstacle)
         
     def _fusionner_avec_obstacles_en_contact(self,sEstDejaRetrouveEnferme=False):
         #teste le dernier polygone ajouté avec tous les autres, en les parcourant par id décroissant
@@ -521,8 +524,10 @@ class RechercheChemin:
                     mergeObstacle,conditionBouclage = fus.ajouterObstacle(poly1[a1],mergeObstacle,conditionBouclage)
                     #self.log.debug("On passe à "+str(poly1[a1])+", on attend "+str(mergeObstacle[0]))#@
             if WATCHDOG == 100:
-                self.log.critical("récursion non terminale pour le polygone de fusion !")
-                raise Exception
+                #self.log.critical("récursion non terminale pour le polygone de fusion !")
+                #raise Exception
+                self.valide = False
+                return None
                 
             if auMoinsUneCollision:
                 #self.log.warning("cet obstacle rentre en collision avec l'obstacle "+str(i)+"à "+str(self.environnement_complet.cercles_conteneurs[i].centre)+". Ils ont été fusionnés.")
@@ -631,6 +636,7 @@ class RechercheChemin:
         """
         #on retourne à l'environnement initial, en évitant de le modifier
         self.environnement_complet = self.environnement_initial.copy()
+        self.valide = True
         
     def get_obstacles(self):
         """
@@ -643,7 +649,7 @@ class RechercheChemin:
         (pour affichage de debug) Renvoie la liste des cercles contenant les obstacles (initiaux et dynamiques), éventuellement fusionnés. 
         Ils sont approximés par des polygones.
         """
-        return list(map(lambda cercle: Environnement._polygone_du_cercle(cercle), self.environnement_complet.cercles_conteneurs))
+        return self.environnement_complet.cercles_conteneurs
     
     def get_cercles_astar(self):
         """
@@ -651,7 +657,7 @@ class RechercheChemin:
         Ils peuvent se superposer sans être fusionnés. 
         Ils sont approximés par des polygones.
         """
-        return list(map(lambda cercle: Environnement._polygone_du_cercle(cercle), self.environnement_complet.cercles_astar))
+        return self.environnement_complet.cercles_astar
     
     def prepare_environnement_pour_a_star(self):
         """
@@ -672,18 +678,23 @@ class RechercheChemin:
         
         #test d'accessibilité du point d'arrivée
         if arrivee.x < -self.config["table_x"]/2 or arrivee.y < 0 or arrivee.x > self.config["table_x"]/2 or arrivee.y > self.config["table_y"]:
-            self.log.critical("Le point d'arrivée n'est pas dans la table !")
-            raise Exception
+            self.log.critical("Le point d'arrivée "+str(arrivee)+" n'est pas dans la table !")
+            raise ExceptionArriveeHorsTable
         for obstacle in self.environnement_complet.cercles_astar:
             if obstacle.contient(arrivee):
-                self.log.critical("Le point d'arrivée n'est pas accessible !")
-                raise Exception
+                self.log.critical("Le point d'arrivée "+str(arrivee)+" n'est pas accessible !")
+                raise ExceptionArriveeDansObstacle
             
         #recherche de chemin
         if not hasattr(self, 'graphe_table'):
             self.log.critical("Il faut appeler prepare_environnement_pour_a_star() avant cherche_chemin_avec_a_star() !")
-            raise Exception
-        return aStar.AStar.plus_court_chemin(depart, arrivee, self.graphe_table)
+            raise ExceptionEnvironnementNonPrepare
+        
+        #return aStar.AStar.plus_court_chemin(depart, arrivee, self.graphe_table)
+        try:
+            return aStar.AStar.plus_court_chemin(depart, arrivee, self.graphe_table)
+        except aStar.ExceptionAucunCheminAstar as e:
+            raise ExceptionAucunChemin
         
     def prepare_environnement_pour_visilibity(self):
         """
@@ -691,16 +702,21 @@ class RechercheChemin:
         Cela permet d'effectuer plusieurs recherches de chemin d'affilée sans avoir à recharger les obstacles.
         """
         
+        if not self.valide:
+            # l'environnement n'est pas adapté à une recherche de chemin par visilibity
+            self.prepare_environnement_pour_a_star()
+            return None
+        
         # Création de l'environnement, le polygone des bords en premier, ceux des obstacles après (fixes et mobiles)
         self.environnement_visilibity = vis.Environment([self.bords]+self.environnement_complet.polygones)
         
         # Vérification de la validité de l'environnement : polygones non croisés et définis dans le sens des aiguilles d'une montre.
         if not self.environnement_visilibity.is_valid(RechercheChemin.tolerance):
             self.log.critical("Des obstacles invalides ont été trouvés. Ils sont remplacés par leurs cercles contenant.")
+            
             for k in range(len(self.environnement_complet.polygones)):
                 #détection du/des polygones défectueux
                 if self.environnement_complet.polygones[k].area() >= 0 or not self.environnement_complet.polygones[k].is_simple(RechercheChemin.tolerance):
-                    self.log.warning("L'obstacle "+str(k)+" a été remplacé.")
                     #environnement de secours : on remplace le polygone par son cercle contenant
                     self.environnement_complet.polygones[k] = Environnement._polygone_du_cercle(self.environnement_complet.cercles_conteneurs[k])
                     troncPolygon = self._recouper_aux_bords_table(self.environnement_complet.polygones[k], self.environnement_complet.cercles_conteneurs[k], self.environnement_complet)
@@ -711,8 +727,9 @@ class RechercheChemin:
                     else:
                         #on enregistre le nouveau polygone tronqué
                         self.environnement_complet.polygones[k] = troncPolygon
-                        self.environnement_complet.cercles_conteneurs[k] = Environnement._cercle_circonscrit_du_polygone(troncPolygon)
                         
+                    self.log.warning("L'obstacle "+str(k)+" a été remplacé.")
+                    
             #environnement de secours en cas d'obstacle invalide
             self.environnement_visilibity = vis.Environment([self.bords]+self.environnement_complet.polygones)
             #validation du nouvel environnement
@@ -725,14 +742,18 @@ class RechercheChemin:
         En cas de problème avec les obstacles (ex: erreur lors d'une fusion de polygones), des calculs plus grossiers sont effectués de facon à toujours renvoyer un chemin.
         """
         
+        if not self.valide:
+            # l'environnement n'est pas adapté à une recherche de chemin par visilibity
+            return self.cherche_chemin_avec_a_star(depart,arrivee)
+            
         #test d'accessibilité du point d'arrivée
         if arrivee.x < -self.config["table_x"]/2 or arrivee.y < 0 or arrivee.x > self.config["table_x"]/2 or arrivee.y > self.config["table_y"]:
-            self.log.critical("Le point d'arrivée n'est pas dans la table !")
-            raise Exception
+            self.log.critical("Le point d'arrivée "+str(arrivee)+" n'est pas dans la table !")
+            raise ExceptionArriveeHorsTable
         for obstacle in self.environnement_complet.polygones:
             if collisions.collisionPointPoly(arrivee,obstacle):
-                self.log.critical("Le point d'arrivée n'est pas accessible !")
-                raise Exception
+                self.log.critical("Le point d'arrivée "+str(arrivee)+" n'est pas accessible !")
+                raise ExceptionArriveeDansObstacle
             
         #conversion en type vis.PointVisibility
         departVis = vis.Point(depart.x,depart.y)
@@ -741,13 +762,43 @@ class RechercheChemin:
         #recherche de chemin
         if not hasattr(self, 'environnement_visilibity'):
             self.log.critical("Il faut appeler prepare_environnement_pour_visilibity() avant cherche_chemin_avec_visilibity() !")
-            raise Exception
+            raise ExceptionEnvironnementNonPrepare
         cheminVis = self.environnement_visilibity.shortest_path(departVis, arriveeVis, RechercheChemin.tolerance)
         
-        #conversion en type point.Point. Exclusion du point de départ cheminVis[0].
+        #conversion en type point.Point, exclusion du point de départ cheminVis[0], et évacuation des points sur les bords.
         chemin = [point.Point(cheminVis[i].x,cheminVis[i].y) for i in range(1,cheminVis.size()) if self._est_dans_table(cheminVis[i])]
         if len(chemin) == cheminVis.size()-1:
             return chemin
         else:
-            self.log.critical("Aucun chemin ne convient !")
-            raise Exception
+            #un des points était en fait sur le bord : le chemin est impossible.
+            self.log.critical("Aucun chemin ne convient pour aller de "+str(depart)+" à "+str(arrivee)+" !")
+            raise ExceptionAucunChemin
+          
+          
+class ExceptionArriveeHorsTable(Exception):
+    """
+    Exception levée lorsque le point d'arrivée n'est pas dans la table.
+    """
+    def __str__(self):
+        return "Le point d'arrivée n'est pas dans la table !"
+
+class ExceptionArriveeDansObstacle(Exception):
+    """
+    Exception levée lorsque le point d'arrivée se situe dans un obstacle.
+    """
+    def __str__(self):
+        return "Le point d'arrivée est dans un obstacle !"
+
+class ExceptionEnvironnementNonPrepare(Exception):
+    """
+    Exception levée lorsqu'une méthode de recherche de chemin est appellée avant de préparer l'environnement.
+    """
+    def __str__(self):
+        return "L'environnement de recherche de chemin n'a pas été chargé !"
+
+class ExceptionAucunChemin(Exception):
+    """
+    Exception levée lorsqu'aucun chemin ne peut relier le départ à l'arrivée.
+    """
+    def __str__(self):
+        return "Aucun chemin possible !"

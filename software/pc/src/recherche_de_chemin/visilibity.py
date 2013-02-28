@@ -222,8 +222,8 @@ FIOS_PRECISION = cvar.FIOS_PRECISION
 
 class Point(_object):
     #tolérance de précision pour la recherche de chemin de la bibliothèque Visilibity (doit être différent de 0.0)
-    #tolerance = 0.9
-    tolerance = 0.05
+    #tolerance = 0.05
+    tolerance = 0.001
     
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, Point, name, value)

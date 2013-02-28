@@ -10,12 +10,6 @@ import math
 import outils_maths.point as point #point.Point : format de sortie de la recherche de chemin
 from recherche_de_chemin.visilibity import Point #pas de namespace : permet de changer facilement le type Point
 
-#debug #@
-#import builtins#@
-
-#def drawLigne(x1,y1,x2,y2):#@
-    #builtins.simulateur.drawVector(x1,y1,x2,y2,"green",True)#@
-    
 class AStar:
     
     pas_x = 300
@@ -129,17 +123,23 @@ class AStar:
                         a_explorer += [n for n in G.neighbors(noeud) if not n in a_explorer]
                         G.remove_node(noeud)
                     a_explorer.remove(noeud)
-                    
-        #for ((x1,y1),(x2,y2)) in G.edges():#@
-            #drawLigne(x1,y1,x2,y2)#@
         return G
         
     def plus_court_chemin(depart, arrivee, G):
         Ndepart = AStar._noeud_plus_proche(depart, G)
         Narrivee = AStar._noeud_plus_proche(arrivee, G)
         
-        Nchemin = nx.astar_path(G, Ndepart, Narrivee, heuristic=AStar._distance_euclidienne, weight='weight')
+        try:
+            Nchemin = nx.astar_path(G, Ndepart, Narrivee, heuristic=AStar._distance_euclidienne, weight='weight')
+        except nx.NetworkXNoPath :
+            raise ExceptionAucunCheminAstar
         
         chemin = list(map(lambda noeud: point.Point(noeud[0],noeud[1]),Nchemin))
         chemin.append(arrivee)
         return chemin
+        
+class ExceptionAucunCheminAstar(Exception):
+    """
+    Exception levée lorsqu'aucun chemin ne peut relier le départ à l'arrivée via l'algorithme A*.
+    """
+    pass
