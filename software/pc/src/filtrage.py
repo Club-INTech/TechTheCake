@@ -44,8 +44,9 @@ class FiltrageLaser:
         R = numpy.matrix([[900,0.],[0.,900]]) # incertitude sur la mesure
         #Q = numpy.matrix([[self.dt**3/3., self.dt**2/2., 0, 0],[self.dt**2/2.,self.dt, 0, 0],[0,0,self.dt**3/3.,self.dt**2/2],[0,0,self.dt**2/2,self.dt]])
         #Q *= 20;
-        Q = numpy.matrix([[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 4, 0],[0, 0, 0, 4]])
-        Q *= 12
+        Q = numpy.matrix([[self.dt**3/3., 0, self.dt**2/2., 0],[0, self.dt**3/3., 0, self.dt**2/2],[self.dt**2/2., 0, 4*self.dt, 0],[0, self.dt**2/2, 0, 4*self.dt]])
+        #Q = numpy.matrix([[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 4, 0],[0, 0, 0, 4]])
+        Q *= 30
         self.filtre_kalman = Kalman(x, P, F, H, R, Q)
         self.historique = collections.deque(maxlen=3)
         self.valeurs_rejetees = 0
@@ -72,6 +73,8 @@ class FiltrageLaser:
             self.filtre_kalman.prediction()
             self.filtre_kalman.measurement(numpy.array([x,y])[:, numpy.newaxis])
             self.historique.append(self.position())
+        else:
+            self.filtre_kalman.prediction()
         
     def _filtrage_acceleration(self, pointm0):
         """
