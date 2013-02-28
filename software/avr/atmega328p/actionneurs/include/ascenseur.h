@@ -4,7 +4,7 @@
 #include <libintech/moteur.hpp>
 #include <libintech/asservissement.hpp>
 
-#define COMPTEUR_BLOCAGE_MAX 30 // ~ 1 sec (à vérifier)
+#define COMPTEUR_BLOCAGE_MAX 10 // ~ 1 sec (à vérifier)
 
 enum AscenseurPosition {ASCENSEUR_HAUT = 55000, ASCENSEUR_BAS = -75000};
 

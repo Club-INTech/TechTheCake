@@ -32,6 +32,8 @@ class Capteurs():
         else:
             capteur_values = capteur_values + self.serie.communiquer("capteurs_actionneurs",["I"], self.nb_capteurs_infrarouge_avant)
 
+        capteur_values = [int(i) for i in capteur_values]
+        
         return sorted(capteur_values, reverse=True)[0]
 
     def lire_couleur(self):

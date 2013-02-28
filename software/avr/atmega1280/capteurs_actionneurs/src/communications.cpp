@@ -76,7 +76,6 @@ void Communications::execute(char ordre[])
         else if(strcmp(ordre, "bas") == 0)
         {
           uint16_t angle;
-
           serie_robot::read(angle);
           actionneurs.bougies_bas.goTo(angle); //Angle d'entrée commandé
         }
@@ -92,7 +91,8 @@ void Communications::execute(char ordre[])
         // JUMPER DE DÉBUT DE MATCH        
         else if (strcmp(ordre, "j") == 0)
         {
-            serie_robot::print(jumper_t_::value());
+//            serie_robot::print(jumper_t_::value() ? 1 : 0);
+            serie_robot::print(1);
         }
 
 }

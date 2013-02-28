@@ -147,7 +147,7 @@ string Processing::getResults()
                 break;
             }
 
-            string_result[ball->getId()-1] = letter;
+            string_result[ball->getId()] = letter;
         }
     }
 

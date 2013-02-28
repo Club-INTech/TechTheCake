@@ -15,3 +15,6 @@ software/build/*
 bin/
 gen/
 obj/
+.classpath
+.cproject
+project.properties

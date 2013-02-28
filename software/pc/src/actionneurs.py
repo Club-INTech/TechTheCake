@@ -1,3 +1,5 @@
+from time import sleep
+
 class Actionneurs :
 
     def __init__(self,serie,config,log):
@@ -7,10 +9,10 @@ class Actionneurs :
         self.log = log
 
     def ouvrir_cadeau(self) :
-        self.serie.communiquer("cadeaux",["g",240],0)
+        self.serie.communiquer("capteurs_actionneurs",["g",170],0)
     
     def fermer_cadeau(self) :
-        self.serie.communiquer("cadeaux",["g",150],0)
+        self.serie.communiquer("capteurs_actionneurs",["g",230],0)
 
     def gonfler_ballon(self) :
         self.log.debug("Gonflage du ballon")
@@ -18,23 +20,27 @@ class Actionneurs :
     def initialiser_bras_bougie(self, enHaut) : 
         if enHaut:
             self.log.debug("Relève l'actionneur bougie du haut")
-            self.serie.communiquer("actionneur_bougies",["haut",67],0)
+            self.serie.communiquer("capteurs_actionneurs",["haut",67],0)
         else:
             self.log.debug("Relève l'actionneur bougie du bas")
-            self.serie.communiquer("actionneur_bougies",["bas",80],0)
+            self.serie.communiquer("capteurs_actionneurs",["bas",80],0)
 
     def enfoncer_bougie(self, enHaut) :
         if enHaut:
             self.log.debug("Enfonce une bougie avec l'actionneur du haut")
-            self.serie.communiquer("actionneur_bougies",["haut",85],0)
+            self.serie.communiquer("capteurs_actionneurs",["haut",160],0)
+            sleep(.1)
+            self.serie.communiquer("capteurs_actionneurs",["haut",140],0)
         else:
             self.log.debug("Enfonce une bougie avec l'actionneur du bas")
-            self.serie.communiquer("actionneur_bougies",["bas",160],0)
+            self.serie.communiquer("capteurs_actionneurs",["bas",180],0)
+            sleep(.1)
+            self.serie.communiquer("capteurs_actionneurs",["bas",150],0)
 
     def rentrer_bras_bougie(self) : 
         self.log.debug("Rentre les 2 actionneurs pour bougies")
-        self.serie.communiquer("actionneur_bougies",["haut",170],0)
-        self.serie.communiquer("actionneur_bougies",["bas",240],0)
+        self.serie.communiquer("capteurs_actionneurs",["haut",170],0)
+        self.serie.communiquer("capteurs_actionneurs",["bas",240],0)
 
     def ascenseur_aller_en_haut(self):
         self.serie.communiquer("ascenseur", "haut", 0)
