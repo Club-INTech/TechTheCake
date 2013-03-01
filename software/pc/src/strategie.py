@@ -74,7 +74,7 @@ class Strategie:
                     self.log.warning('Abandon du script "{0}"'.format(script_a_faire))
                     
                 except Exception as e:
-                    self.log.warning('Abandon du script "{0}", erreur: {1}'.format(e))
+                    self.log.warning('Abandon du script "{0}", erreur: {1}'.format(script_a_faire, e))
 
         self.log.debug("Arrêt de la stratégie")
 
