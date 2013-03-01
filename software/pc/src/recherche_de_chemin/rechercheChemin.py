@@ -660,8 +660,13 @@ class RechercheChemin:
         return self.environnement_complet.cercles_astar
     
     def charge_obstacles(self):
-        #TODO
-        pass
+        #ajout des obstacles vus par les capteurs et la balise
+        for obstacle in self.table.obstacles():
+            self.ajoute_obstacle_cercle(obstacle.position, obstacle.rayon)
+            
+        #ajout des verres encore présents sur la table
+        for verre in self.table.verres_restants():
+            self.ajoute_obstacle_cercle(verre["position"], self.config["rayon_verre"])
     
     def prepare_environnement_pour_a_star(self):
         """

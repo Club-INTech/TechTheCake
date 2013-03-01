@@ -291,9 +291,10 @@ class ThreadCouleurBougies(AbstractThread):
         # Ouverture de la socket
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
+            client_socket.settimeout(config["timeout_android"])
             client_socket.connect((config["ip_android"], 8080))
             client_socket.send(bytes(config["couleur"][0]+"\n", 'UTF-8'))
-            rcv = str(client_socket.recv(14),"utf-8").replace("\n","")
+            rcv = str(client_socket.recv(11),"utf-8").replace("\n","")
             table.definir_couleurs_bougies(rcv)
         except:
             table.definir_couleurs_bougies("rrbrrbbbrr")
