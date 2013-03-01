@@ -76,7 +76,7 @@ class ProtocoleVirtuelDeplacements:
 ################################################################################
 #####  PROTOCOLE VIRTUEL POUR SIMULATION DE LA SERIE SUR LES CAPTEURS      #####
 ################################################################################
-class ProtocoleVirtuelCapteurs:
+class ProtocoleVirtuelCapteursActionneurs:
    
     def __init__(self,simulateur, log):
         self.simulateur = simulateur
@@ -226,7 +226,7 @@ class SerieSimulation:
         
         self.deplacements = ProtocoleVirtuelDeplacements(simulateur, log)
         self.actionneurs = ProtocoleVirtuelActionneurs(simulateur, log)
-        self.capteurs = ProtocoleVirtuelCapteurs(simulateur, log)
+        self.capteurs_actionneurs = ProtocoleVirtuelCapteursActionneurs(simulateur, log)
         self.laser = ProtocoleVirtuelLaser(simulateur, log)
         
     def definir_peripheriques(self, dico_infos_peripheriques):

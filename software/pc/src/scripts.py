@@ -261,8 +261,7 @@ class ScriptCadeaux(Script):
         
         # Déplacement vers le point d'entrée
         self.robot.marche_arriere = False
-        #self.robot.recherche_de_chemin(self.info_versions[version]["point_entree"], recharger_table=False)
-        self.robot.va_au_point(self.info_versions[version]["point_entree"])
+        self.robot.recherche_de_chemin(self.info_versions[version]["point_entree"], recharger_table=False)
 
         # Orientation du robot
         self.robot.marche_arriere = self.info_versions[version]["marche_arriere"]

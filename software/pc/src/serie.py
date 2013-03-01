@@ -14,13 +14,11 @@ class Serie:
         #contient des tuples (données pour la série réelle, données pour la simulation)
         self.dico_infos_peripheriques = {
             "asservissement": ((0,9600),"deplacements"),
-            "capteurs_actionneurs" : ((3,9600),"capteurs"),
+            "capteurs_actionneurs" : ((3,9600),"capteurs_actionneurs"),
             "laser" : ((4,9600),"laser"),
-            "capteur_couleur" : ((1,9600),"capteurs"),
             "cadeaux" : ((6,9600),"actionneurs"),
             "ascenseur": ((2,9600),"actionneurs"),
             "pince_verre": ((8,9600),"actionneurs"),
-            "actionneur_bougies": ((7,9600),"actionneurs")
         }
         
         if not self.serieReelle is None:
