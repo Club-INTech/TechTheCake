@@ -512,7 +512,7 @@ class Robot(RobotInterface):
         Cette méthode parcourt un chemin déjà calculé. Elle appelle va_au_point() sur chaque point de la liste chemin.
         """
         for position in chemin:
-            self.va_au_point(position.x, position.y, hooks)
+            self.va_au_point(position, hooks)
             
     def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=3):
         """

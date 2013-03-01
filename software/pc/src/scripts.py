@@ -27,12 +27,11 @@ class Script(metaclass=abc.ABCMeta):
         self.table = table
         self.simulateur = simulateur
         
-    def va_au_point(self, position):
+    def recherche_de_chemin(self, position):
         """
         Méthode pour atteindre un point de la carte après avoir effectué une recherche de chemin.
         Le chemin n'est pas recalculé s'il a été exploré récemment.
         """
-        
         if self.robot is self.robotChrono:
             #instance virtuelle de robot pour mesurer le script : recherche de chemin rapide A*
             chemin = self.rechercheChemin.cherche_chemin_avec_a_star(Point(self.robot.x,self.robot.y),position)
@@ -40,7 +39,7 @@ class Script(metaclass=abc.ABCMeta):
             #instance véritable du robot pour effectuer le script : recherche de chemin précise visibility
             self.rechercheChemin.prepare_environnement_pour_visilibity()
             chemin = self.rechercheChemin.cherche_chemin_avec_visilibity(Point(self.robot.x,self.robot.y),position)
-        self.robot.suit_chemin(self.chemin)
+        self.robot.suit_chemin(chemin)
 
     def agit(self, version):
         """
@@ -215,6 +214,7 @@ class ScriptBougies(Script):
                 print(str(id))
         print("...enfin j'crois...")
         """
+        
     def _correspondance_point_angle(self, angle):
         """
         Retourne le point sur la table correspondant à un angle de bougie
@@ -276,7 +276,7 @@ class ScriptCadeaux(Script):
         
         # Déplacement vers le point d'entrée
         self.robot.marche_arriere = False
-        self.robot.va_au_point(self.info_versions[version]["point_entree"])
+        self.recherche_de_chemin(self.info_versions[version]["point_entree"])
 
         # Orientation du robot
         self.robot.marche_arriere = self.info_versions[version]["marche_arriere"]
