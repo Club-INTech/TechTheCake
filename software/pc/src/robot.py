@@ -439,7 +439,7 @@ class Robot(RobotInterface):
         self.blocage = True
         self.deplacements.stopper()
 
-    def avancer(self, distance, hooks=[], pas_reessayer=False):
+    def avancer(self, distance, hooks=[]):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.
         Elle permet d'effectuer une translation en visant un point consigne devant le robot,
@@ -449,59 +449,33 @@ class Robot(RobotInterface):
         
         self.log.debug("avancer de "+str(distance))
 
-        mem_x=self.x
-        mem_y=self.y
-        
-        mem_marche_arriere = self.marche_arriere
         self.marche_arriere = (distance < 0)
+        self.effectuer_symetrie = False
         
-        retour = self._avancer(distance, hooks)
-        self.marche_arriere = mem_marche_arriere
-
-        if retour == 1:
-            print("translation terminée !")
-        elif retour == 2:
-            self.stopper()
-            print("translation arrêtée car blocage !")
-        elif retour == 3:
-            if pas_reessayer:
-                self.stopper()
-            else:
-                delta_x=self.x-mem_x
-                delta_y=self.y-mem.y
-                self._avancer(distance-round(sqrt(delta_x**2 + delta_y**2),2), hooks, True)
-            print("capteurs !")
+        x = self.x + distance * cos(self._consigne_orientation)
+        y = self.y + distance * sin(self._consigne_orientation)
         
-    def tourner(self, angle_consigne, forcer=False, hooks=[]):
+        self.va_au_point(Point(x, y), hooks)
+        
+    def tourner(self, angle, hooks=[]):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.
         Elle effectue une rotation en place. La symétrie est prise en compte.
         Les hooks sont executés, et différentes relances sont implémentées en cas de retour particulier.
         """
-        angle = angle_consigne
-        
         if self.effectuer_symetrie:
             if self.config["couleur"] == "bleu":
-                #symétrie de la consigne d'orientation
                 angle = pi - angle
             self.log.debug("tourner à "+str(angle)+" (symétrie appliquée)")
         else:
-            self.log.debug("tourner sans symétrie à "+str(angle))
+            self.log.debug("tourner à "+str(angle)+" (sans symétrie)")
                 
         try:
             self._tourner(angle, hooks)
             
         #blocage durant la rotation
         except ExceptionBlocage:
-            if forcer:
-                self.log.warning("rotation arrêtée car blocage, tentative en vitesse supérieure")
-                mem_vitesse = self.vitesse_translation
-                self.set_vitesse_rotation(2)
-                self.tourner(angle_consigne, False, hooks)
-                self.set_vitesse_rotation(mem_vitesse)
-            else:
-                self.stopper()
-                raise ExceptionMouvementImpossible
+            raise ExceptionMouvementImpossible
                 
         #détection d'un robot adverse
         except ExceptionCollision:
@@ -529,7 +503,7 @@ class Robot(RobotInterface):
         chemin = self.rechercheChemin.cherche_chemin_avec_visilibity(Point(self.x,self.y),position)
         self.suit_chemin(chemin)
     
-    def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=3):
+    def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=3, symetrie_effectuee=False):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.
         Elle permet de parcourir un segment : le robot se rend en (x,y) en corrigeant dynamiquement ses consignes en rotation et translation.
@@ -538,8 +512,8 @@ class Robot(RobotInterface):
         Les hooks sont executés, et différentes relances sont implémentées en cas de retour particulier.
         """
         
-        #application de la symétrie si demandée et si première tentative
-        if self.effectuer_symetrie and nombre_tentatives == 3:
+        #application de la symétrie si demandée et si pas déjà faite
+        if self.effectuer_symetrie and not symetrie_effectuee:
             if self.config["couleur"] == "bleu":
                 point.x *= -1
             self.log.debug("va au point ({0}) (symétrie vérifiée pour le {1}), virage initial: {2}".format(point, self.config["couleur"], trajectoire_courbe))
@@ -559,7 +533,7 @@ class Robot(RobotInterface):
             if nombre_tentatives > 0:
                 self.log.warning("attente avant nouvelle tentative... reste {0} tentative(s)".format(nombre_tentatives))
                 sleep(1)
-                self.va_au_point(point, hooks, trajectoire_courbe, nombre_tentatives - 1)
+                self.va_au_point(point, hooks, trajectoire_courbe, nombre_tentatives-1, True)
             else:
                 raise ExceptionMouvementImpossible
             
@@ -726,17 +700,13 @@ class RobotSimulation(Robot):
         super().__init__(capteurs, actionneurs, deplacements, rechercheChemin, table, config, log)
         self.simulateur = simulateur
         
-    def avancer(self, distance, hooks=[], pas_reessayer=False):
+    def tourner(self, angle_consigne, hooks=[]):
         self._afficher_hooks(hooks)
-        super().avancer(distance, hooks, pas_reessayer)
+        super().tourner(angle_consigne, hooks)
         
-    def tourner(self, angle_consigne, forcer=False, hooks=[]):
+    def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=3, symetrie_effectuee=False):
         self._afficher_hooks(hooks)
-        super().tourner(angle_consigne, forcer, hooks)
-        
-    def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=3):
-        self._afficher_hooks(hooks)
-        super().va_au_point(point, hooks, trajectoire_courbe, nombre_tentatives)
+        super().va_au_point(point, hooks, trajectoire_courbe, nombre_tentatives, symetrie_effectuee)
         
     def arc_de_cercle(self, point, hooks=[]):
         self._afficher_hooks(hooks)
@@ -763,6 +733,6 @@ class ExceptionCollision(Exception):
         
 class ExceptionMouvementImpossible(Exception):
     """
-    Exception levée lorsque le robot ne peut pas acomplir le mouvement
+    Exception levée lorsque le robot ne peut pas accomplir le mouvement
     """
     pass

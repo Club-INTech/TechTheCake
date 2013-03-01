@@ -76,7 +76,7 @@ class ProtocoleVirtuelDeplacements:
 ################################################################################
 #####  PROTOCOLE VIRTUEL POUR SIMULATION DE LA SERIE SUR LES CAPTEURS      #####
 ################################################################################
-class ProtocoleVirtuelCapteurs:
+class ProtocoleVirtuelCapteursActionneurs:
    
     def __init__(self,simulateur, log):
         self.simulateur = simulateur
@@ -98,21 +98,21 @@ class ProtocoleVirtuelCapteurs:
         #nombre de capteurs infrarouges à l'avant
         return [1]
     
-    def s(self):
+    def us_arr(self):
         #capteurs ultrasons de l'arrière
-        return [self._valeur_capteur(3)]
-        
-    def S(self):
-        #capteurs ultrasons de l'avant
         return [self._valeur_capteur(2)]
         
-    def i(self):
-        #capteurs infrarouges de l'arrière
-        return [self._valeur_capteur(1)]
+    def us_av(self):
+        #capteurs ultrasons de l'avant
+        return [self._valeur_capteur(3)]
         
-    def I(self):
-        #capteurs infrarouges de l'avant
+    def ir_arr(self):
+        #capteurs infrarouges de l'arrière
         return [self._valeur_capteur(0)]
+        
+    def ir_av(self):
+        #capteurs infrarouges de l'avant
+        return [self._valeur_capteur(1)]
 
     def j(self):
         #jumper
@@ -226,7 +226,7 @@ class SerieSimulation:
         
         self.deplacements = ProtocoleVirtuelDeplacements(simulateur, log)
         self.actionneurs = ProtocoleVirtuelActionneurs(simulateur, log)
-        self.capteurs = ProtocoleVirtuelCapteurs(simulateur, log)
+        self.capteurs_actionneurs = ProtocoleVirtuelCapteursActionneurs(simulateur, log)
         self.laser = ProtocoleVirtuelLaser(simulateur, log)
         
     def definir_peripheriques(self, dico_infos_peripheriques):

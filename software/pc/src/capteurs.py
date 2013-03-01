@@ -23,14 +23,14 @@ class Capteurs():
     def mesurer(self, marche_arriere=False):
 
         if marche_arriere:
-            capteur_values = self.serie.communiquer("capteurs_actionneurs",["s"], self.nb_capteurs_ultrason_arriere)
+            capteur_values = self.serie.communiquer("capteurs_actionneurs",["us_arr"], self.nb_capteurs_ultrason_arriere)
         else:
-            capteur_values = self.serie.communiquer("capteurs_actionneurs",["S"], self.nb_capteurs_ultrason_avant)
+            capteur_values = self.serie.communiquer("capteurs_actionneurs",["us_av"], self.nb_capteurs_ultrason_avant)
 
         if marche_arriere:
-            capteur_values = capteur_values + self.serie.communiquer("capteurs_actionneurs",["i"], self.nb_capteurs_infrarouge_arriere)
+            capteur_values = capteur_values + self.serie.communiquer("capteurs_actionneurs",["ir_arr"], self.nb_capteurs_infrarouge_arriere)
         else:
-            capteur_values = capteur_values + self.serie.communiquer("capteurs_actionneurs",["I"], self.nb_capteurs_infrarouge_avant)
+            capteur_values = capteur_values + self.serie.communiquer("capteurs_actionneurs",["ir_av"], self.nb_capteurs_infrarouge_avant)
 
         capteur_values = [int(i) for i in capteur_values]
         
