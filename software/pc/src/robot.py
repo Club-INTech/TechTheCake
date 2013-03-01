@@ -700,9 +700,9 @@ class RobotSimulation(Robot):
         super().__init__(capteurs, actionneurs, deplacements, rechercheChemin, table, config, log)
         self.simulateur = simulateur
         
-    def tourner(self, angle_consigne, forcer=False, hooks=[]):
+    def tourner(self, angle_consigne, hooks=[]):
         self._afficher_hooks(hooks)
-        super().tourner(angle_consigne, forcer, hooks)
+        super().tourner(angle_consigne, hooks)
         
     def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=3, symetrie_effectuee=False):
         self._afficher_hooks(hooks)

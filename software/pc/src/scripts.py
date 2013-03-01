@@ -105,6 +105,10 @@ class ScriptBougies(Script):
         self.robot.marche_arriere = False
         self.robot.effectuer_symetrie = False
         
+        # Déplacement vers le point d'entrée avec recherche de chemin
+        entree = self.info_versions[version]["point_entree_recherche_chemin"]
+        self.robot.recherche_de_chemin(entree, False)
+        
         # Déplacement vers le point d'entrée
         entree = self.info_versions[version]["point_entree"]
         sortie = self.info_versions[1-version]["point_entree"]
@@ -120,7 +124,7 @@ class ScriptBougies(Script):
         for bougie in self.table.bougies_restantes(self.couleur_a_traiter):
             
             # Baisser le bras
-            point_baisser_bras = self._correspondance_point_angle(bougie["position"] + delta_angle_baisser_bras)
+            point_baisser_bras = self._correspondance_point_angle(bougie["position"] + delta_angle_baisser_bras, self.config["distance_au_gateau"])
             hook_baisser_bras = self.hookGenerator.hook_position(point_baisser_bras)
             hook_baisser_bras += self.hookGenerator.callback(self.robot.traiter_bougie, (bougie["enHaut"],))
             hook_baisser_bras += self.hookGenerator.callback(self.table.bougie_recupere, (bougie,))
@@ -206,11 +210,11 @@ class ScriptBougies(Script):
         print("...enfin j'crois...")
         """
         
-    def _correspondance_point_angle(self, angle):
+    def _correspondance_point_angle(self, angle, distance_gateau):
         """
         Retourne le point sur la table correspondant à un angle de bougie
         """
-        rayon = 500 + self.config["distance_au_gateau"] + self.config["longueur_robot"] / 2
+        rayon = 500 + distance_gateau + self.config["longueur_robot"] / 2
         return Point(0, 2000) + Point(rayon * math.cos(angle), rayon * math.sin(angle))
 
     def _termine(self):
@@ -235,13 +239,15 @@ class ScriptBougies(Script):
         self.info_versions = [
             {
                 "angle_entree": bougies[0]["position"] - delta_angle,
-                "point_entree": self._correspondance_point_angle(bougies[0]["position"] - delta_angle),
+                "point_entree": self._correspondance_point_angle(bougies[0]["position"] - delta_angle, self.config["distance_au_gateau"]),
+                "point_entree_recherche_chemin": self._correspondance_point_angle(bougies[0]["position"] - delta_angle, self.config["distance_au_gateau"] + 100),
                 "marche_arriere": False,
                 "sens": 1
             },               
             {
                 "angle_entree": bougies[1]["position"] + delta_angle,
-                "point_entree": self._correspondance_point_angle(bougies[1]["position"] + delta_angle),
+                "point_entree": self._correspondance_point_angle(bougies[1]["position"] + delta_angle, self.config["distance_au_gateau"]),
+                "point_entree_recherche_chemin": self._correspondance_point_angle(bougies[1]["position"] + delta_angle, self.config["distance_au_gateau"] + 100),
                 "marche_arriere": True,
                 "sens": -1
             }
@@ -299,8 +305,8 @@ class ScriptCadeaux(Script):
         pass
         
     def versions(self):
-        self.decalage_gauche = Point(-100,250)
-        self.decalage_droit = Point(100,250)
+        self.decalage_gauche = Point(0,250)
+        self.decalage_droit = Point(0,250)
         
         cadeaux = self.table.cadeaux_entrees()
         marche_arriere = self.config["couleur"] == "rouge"
@@ -340,6 +346,7 @@ class ScriptRecupererVerres(Script):
         
         # Point d'entrée du script
         entree = self._point_recuperation_verre(self.info_versions[version]["point_entree"])
+        #self.robot.recherche_de_chemin(entree, False)
         
         # Récupération du premier verre, avec recherche de chemin
         self._recuperation_verre(self.info_versions[version]["verre_entree"])
