@@ -72,6 +72,9 @@ class Strategie:
                         self.echecs[(script_a_faire, version_a_faire)] = 1
                         
                     self.log.warning('Abandon du script "{0}"'.format(script_a_faire))
+                    
+                except Exception as e:
+                    self.log.warning('Abandon du script "{0}", erreur: {1}'.format(e))
 
         self.log.debug("Arrêt de la stratégie")
 
@@ -79,7 +82,10 @@ class Strategie:
         """
         Note un script (en fonction du nombre de points qu'il peut rapporter, de la position de l'ennemi et de sa durée)
         """
-        duree_script = self.scripts[script].calcule(version)
+        try:
+            duree_script = self.scripts[script].calcule(version)
+        except Exception:
+            return 0
 
         # Erreur dans la durée script, script ignoré
         if duree_script <= 0:
