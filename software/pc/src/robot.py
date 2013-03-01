@@ -733,6 +733,6 @@ class ExceptionCollision(Exception):
         
 class ExceptionMouvementImpossible(Exception):
     """
-    Exception levée lorsque le robot ne peut pas acomplir le mouvement
+    Exception levée lorsque le robot ne peut pas accomplir le mouvement
     """
     pass
