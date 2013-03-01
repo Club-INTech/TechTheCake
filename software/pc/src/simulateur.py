@@ -31,6 +31,12 @@ class Simulateur:
             {"float":[config["longueur_robot"]/2,-config["largeur_robot"]/2]}
             ]},couleur)
             
+        # Definition des zones des capteurs
+        client.service.addSensor(0,{"list":[{"int":[0,-config["largeur_robot"]/2]},{"int":[-135.,-1100.]},{"int":[135,-1100]}]}) # infrarouge arrière
+        client.service.addSensor(1,{"list":[{"int":[0,config["largeur_robot"]/2]},{"int":[-135.,1100.]},{"int":[135,1100]}]})    # infrarouge avant
+        client.service.addSensor(2,{"list":[{"int":[0,-config["largeur_robot"]/2]},{"int":[-600.,-1600.]},{"int":[600,-1600]}]}) # ultra son arrière
+        client.service.addSensor(3,{"list":[{"int":[0,config["largeur_robot"]/2]},{"int":[-600.,1600.]},{"int":[600,1600]}]})    # ultra son avant
+            
         # Initialisation de la position du robot sur le simulateur
         if config["couleur"] == "bleu":
             client.service.setRobotAngle(0)
@@ -42,12 +48,6 @@ class Simulateur:
         # Déclaration d'un robot adverse
         if config["activer_ennemi_principal"]:
             client.service.addEnemy(0, 80, ennemi)
-                
-        # Definition des zones des capteurs
-        client.service.addSensor(0,{"list":[{"int":[0,-config["largeur_robot"]/2]},{"int":[-135.,-1100.]},{"int":[135,-1100]}]}) # infrarouge arrière
-        client.service.addSensor(1,{"list":[{"int":[0,config["largeur_robot"]/2]},{"int":[-135.,1100.]},{"int":[135,1100]}]})    # infrarouge avant
-        client.service.addSensor(2,{"list":[{"int":[0,-config["largeur_robot"]/2]},{"int":[-600.,-1600.]},{"int":[600,-1600]}]}) # ultra son arrière
-        client.service.addSensor(3,{"list":[{"int":[0,config["largeur_robot"]/2]},{"int":[-600.,1600.]},{"int":[600,1600]}]})    # ultra son avant
         
         # Enregistrement du service SOAP
         self.soap = client.service
