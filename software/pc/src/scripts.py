@@ -46,9 +46,15 @@ class Script(metaclass=abc.ABCMeta):
         self.robot.reset_compteur()
         self.robot.maj_x_y_o(self.robotVrai.x, self.robotVrai.y, self.robotVrai.orientation)
         self.robot.maj_capacite_verres(self.robotVrai.nb_verres_avant, self.robotVrai.nb_verres_arriere)
-        self.table.sauvegarder()
-        self._execute(version)
-        self.table.restaurer()
+        
+        try:
+            self.table.sauvegarder()
+            self._execute(version)
+        except Exception as e:
+            raise e
+        finally:
+            self.table.restaurer()
+        
         return self.robot.get_compteur()
 
     @abc.abstractmethod
@@ -359,8 +365,7 @@ class ScriptRecupererVerres(Script):
         avant = self._choix_ascenceur()
         self.robot.marche_arriere = not avant
         self.robot.va_au_point(verre["position"])
-        if verre["present"]:
-            self.robot.recuperer_verre(avant)
+        self.robot.recuperer_verre(avant)
         self.table.verre_recupere(verre)
         
     def _choix_ascenceur(self):
