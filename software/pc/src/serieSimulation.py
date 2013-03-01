@@ -121,6 +121,21 @@ class ProtocoleVirtuelCapteurs:
     def c(self):
         #TODO
         return ["rouge"]
+        
+    def g(self,*useless) :
+        return []
+    
+    def gonfler_ballon(self) :
+        return []
+
+    def haut(self,*useless) :
+        return []
+    
+    def bas(self,*useless) :
+        return []
+    
+    def changerConstantes(self, *useless):
+        return []
 
     def demarrage_match(self):
         return [True]
@@ -137,21 +152,6 @@ class ProtocoleVirtuelActionneurs:
     def __init__(self,simulateur, log):
         self.simulateur = simulateur
         self.log = log
-        
-    def g(self,*useless) :
-        return []
-    
-    def gonfler_ballon(self) :
-        return []
-
-    def haut(self,*useless) :
-        return []
-    
-    def bas(self,*useless) :
-        return []
-    
-    def changerConstantes(self, *useless):
-        return []
         
 ################################################################################
 #####  PROTOCOLE VIRTUEL POUR SIMULATION DE LA SERIE SUR LA BALISE LASER   #####
