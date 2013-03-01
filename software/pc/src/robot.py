@@ -11,16 +11,17 @@ class Robot(RobotInterface):
     """
     classe implémentant le robot.
     """
-    def __init__(self,capteurs,actionneurs,deplacements,config,log,table):
+    def __init__(self,capteurs,actionneurs,deplacements,rechercheChemin,table,config,log):
         self.mutex = Mutex()
         
         #instances des dépendances
-        self.deplacements = deplacements
-        self.actionneurs = actionneurs
         self.capteurs = capteurs
+        self.actionneurs = actionneurs
+        self.deplacements = deplacements
+        self.rechercheChemin = rechercheChemin
+        self.table = table
         self.config = config
         self.log = log
-        self.table = table
         
         
         ###############################################
@@ -513,7 +514,21 @@ class Robot(RobotInterface):
         """
         for position in chemin:
             self.va_au_point(position, hooks)
+    
+    def recherche_de_chemin(self, position, recharger_table=True):
+        """
+        Méthode pour atteindre un point de la carte après avoir effectué une recherche de chemin.
+        """
+        
+        if recharger_table:
+            self.rechercheChemin.retirer_obstacles_dynamiques()
+            self.rechercheChemin.charge_obstacles()
             
+        self.rechercheChemin.prepare_environnement_pour_visilibity()
+            
+        chemin = self.rechercheChemin.cherche_chemin_avec_visilibity(Point(self.x,self.y),position)
+        self.suit_chemin(chemin)
+    
     def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=3):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.
@@ -707,9 +722,8 @@ class Robot(RobotInterface):
         self.actionneurs.gonfler_ballon()
         
 class RobotSimulation(Robot):
-    
-    def __init__(self, simulateur, capteurs, actionneurs, deplacements, config, log, table):
-        super().__init__(capteurs, actionneurs, deplacements, config, log, table)
+    def __init__(self, simulateur, capteurs, actionneurs, deplacements, rechercheChemin, table, config, log):
+        super().__init__(capteurs, actionneurs, deplacements, rechercheChemin, table, config, log)
         self.simulateur = simulateur
         
     def avancer(self, distance, hooks=[], pas_reessayer=False):

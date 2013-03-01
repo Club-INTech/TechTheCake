@@ -114,7 +114,7 @@ class Container:
             
             #visualisation sur le simulateur pour la table et le robot
             self.assembler.register("table", table.TableSimulation, requires=["simulateur","config","log"])
-            self.assembler.register("robot", robot.RobotSimulation, requires=["simulateur","capteurs","actionneurs","deplacements","config","log","table"])
+            self.assembler.register("robot", robot.RobotSimulation, requires=["simulateur","capteurs","actionneurs","deplacements","rechercheChemin","table","config","log"])
             
             #série virtuelle, qui redirige vers le simulateur
             self.assembler.register("serieSimulation", serieSimulation.SerieSimulation, requires=["simulateur", "log"])
@@ -122,7 +122,7 @@ class Container:
             
             #pas de visualisation sur le simulateur pour la table et le robot
             self.assembler.register("table", table.Table, requires=["config","log"])
-            self.assembler.register("robot", robot.Robot, requires=["capteurs","actionneurs","deplacements","config","log","table"])
+            self.assembler.register("robot", robot.Robot, requires=["capteurs","actionneurs","deplacements","rechercheChemin","table","config","log"])
             
             def make_none():
                 return None
@@ -150,7 +150,7 @@ class Container:
         self.assembler.register("filtrage", filtrage.FiltrageLaser, requires=["config"])
         
         #enregistrement du service robotChrono
-        self.assembler.register("robotChrono", robotChrono.RobotChrono, requires=["log"])
+        self.assembler.register("robotChrono", robotChrono.RobotChrono, requires=["rechercheChemin", "log"])
         
         #enregistrement du service hookGenerator
         self.assembler.register("hookGenerator", hooks.HookGenerator, requires=["config","log"])
@@ -169,10 +169,11 @@ class Container:
         def make_scripts(*dependencies):
             scriptManager = scripts.ScriptManager(*dependencies)
             return scriptManager.scripts
-        self.assembler.register("scripts", scripts.ScriptManager, requires=["config", "log", "robot", "robotChrono", "hookGenerator", "rechercheChemin", "table", "simulateur"], factory=make_scripts)
+            
+        self.assembler.register("scripts", scripts.ScriptManager, requires=["simulateur", "robot", "robotChrono", "hookGenerator", "table", "config", "log"], factory=make_scripts)
         
         #enregistrement du service de stratégie
-        self.assembler.register("strategie", strategie.Strategie, requires=["robot", "scripts", "rechercheChemin", "table", "threads.timer", "config", "log"])
+        self.assembler.register("strategie", strategie.Strategie, requires=["scripts", "rechercheChemin", "table", "threads.timer", "config", "log"])
         
     def start_threads(self):
         """

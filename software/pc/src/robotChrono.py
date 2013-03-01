@@ -1,4 +1,5 @@
-from math import sqrt,atan2, cos, sin
+import math
+from outils_maths.point import Point
 import abc
 import copy
 
@@ -91,9 +92,12 @@ class RobotChrono(RobotInterface):
     """
     Vive sopal'INT!
     """
-    def __init__(self, log):
+    def __init__(self, rechercheChemin, log):
         
+        #services nécessaires
         self.log = log
+        self.rechercheChemin = rechercheChemin
+        
         self.duree = 0
         
         #tableau des 3 vitesses de translation 1,2,3 , en mm/sec
@@ -135,12 +139,12 @@ class RobotChrono(RobotInterface):
         Fonction analogue à celle de robot. Avance. Si, si.
         """
         self.duree += abs (distance / self.vitesses_translation[self.vitesse_translation-1])
-        self.x += distance*cos(self.orientation)
-        self.y += distance*sin(self.orientation)
+        self.x += distance*math.cos(self.orientation)
+        self.y += distance*math.sin(self.orientation)
         
     def tourner(self, angle, forcer = False,hooks=[]):
         """
-        Fonction analogue à celle de robot. Bah... ça tourne quoi. Il vous faut un dessin?
+        Fonction analogue à celle de robot. Bah... ça tourne quoi. Il vous faut un desmath.sin?
         """
         self.duree += abs(angle / self.vitesses_rotation[self.vitesse_rotation-1])
         self.orientation = angle
@@ -153,11 +157,23 @@ class RobotChrono(RobotInterface):
         for position in chemin:
             self.va_au_point(position.x, position.y)
             
+    def recherche_de_chemin(self, position, recharger_table=False):
+        """
+        Méthode pour calculer rapidement (algorithme A*) le temps mis pour atteindre un point de la carte après avoir effectué une recherche de chemin.
+        """
+        if recharger_table:
+            self.rechercheChemin.retirer_obstacles_dynamiques()
+            self.rechercheChemin.charge_obstacles()
+            self.rechercheChemin.prepare_environnement_pour_a_star()
+        
+        chemin = self.rechercheChemin.cherche_chemin_avec_a_star(Point(self.x,self.y),position)
+        self.suit_chemin(chemin)
+        
     def va_au_point(self, point_consigne, hooks=[], virage_initial=False):
         delta_x = point_consigne.x-self.x
         delta_y = point_consigne.y-self.y
-        distance = round(sqrt(delta_x**2 + delta_y**2),2)
-        angle = round(atan2(delta_y,delta_x),4)
+        distance = round(math.sqrt(delta_x**2 + delta_y**2),2)
+        angle = round(math.atan2(delta_y,delta_x),4)
         self.tourner(angle)
         self.avancer(distance)
     

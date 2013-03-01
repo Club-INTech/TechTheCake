@@ -14,32 +14,17 @@ class Script(metaclass=abc.ABCMeta):
     classe mère des scripts
     se charge des dépendances
     """
-    def dependances(self, config, log, robot, robotChrono, hookGenerator, rechercheChemin, table, simulateur):
+    def dependances(self, simulateur, robot, robotChrono, hookGenerator, table, config, log):
         """
         Gère les services nécessaires aux scripts. On n'utilise pas de constructeur.
         """
+        self.simulateur = simulateur
         self.robotVrai = robot
         self.robotChrono = robotChrono
         self.hookGenerator = hookGenerator
-        self.rechercheChemin = rechercheChemin
+        self.table = table
         self.config = config
         self.log = log
-        self.table = table
-        self.simulateur = simulateur
-        
-    def recherche_de_chemin(self, position):
-        """
-        Méthode pour atteindre un point de la carte après avoir effectué une recherche de chemin.
-        Le chemin n'est pas recalculé s'il a été exploré récemment.
-        """
-        if self.robot is self.robotChrono:
-            #instance virtuelle de robot pour mesurer le script : recherche de chemin rapide A*
-            chemin = self.rechercheChemin.cherche_chemin_avec_a_star(Point(self.robot.x,self.robot.y),position)
-        elif self.robot is self.robotVrai:
-            #instance véritable du robot pour effectuer le script : recherche de chemin précise visibility
-            self.rechercheChemin.prepare_environnement_pour_visilibity()
-            chemin = self.rechercheChemin.cherche_chemin_avec_visilibity(Point(self.robot.x,self.robot.y),position)
-        self.robot.suit_chemin(chemin)
 
     def agit(self, version):
         """
@@ -93,7 +78,7 @@ class Script(metaclass=abc.ABCMeta):
              
 class ScriptManager:
     
-    def __init__(self, config, log, robot, robotChrono, hookGenerator, rechercheChemin, table, simulateur):
+    def __init__(self, simulateur, robot, robotChrono, hookGenerator, table, config, log):
         self.log = log
         self.scripts = {}
         
@@ -103,7 +88,7 @@ class ScriptManager:
             heritage = list(inspect.getmro(obj))
             if not inspect.isabstract(obj) and Script in heritage:
                 self.scripts[nom] = obj()
-                self.scripts[nom].dependances(config, log, robot, robotChrono, hookGenerator, rechercheChemin, table, simulateur)
+                self.scripts[nom].dependances(simulateur, robot, robotChrono, hookGenerator, table, config, log)
 
 
 class ScriptBougies(Script):
@@ -276,7 +261,8 @@ class ScriptCadeaux(Script):
         
         # Déplacement vers le point d'entrée
         self.robot.marche_arriere = False
-        self.recherche_de_chemin(self.info_versions[version]["point_entree"])
+        #self.robot.recherche_de_chemin(self.info_versions[version]["point_entree"], recharger_table=False)
+        self.robot.va_au_point(self.info_versions[version]["point_entree"])
 
         # Orientation du robot
         self.robot.marche_arriere = self.info_versions[version]["marche_arriere"]

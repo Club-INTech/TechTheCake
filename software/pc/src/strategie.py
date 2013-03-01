@@ -8,15 +8,15 @@ class Strategie:
     Son rôle est de noter différents scripts (selon leur durée, la distance d'un ennemi, ...) et de choisir le plus avantageux. 
     C'est également cette classe qui fait les appels d'ajout d'obstacle à la recherche de chemin.
     """
-    def __init__(self, robot, scripts, rechercheChemin, table, timer, config, log): #retirer robot
+    def __init__(self, scripts, rechercheChemin, table, timer, config, log):
 
-        self.robot = robot
+        self.scripts = scripts
         self.rechercheChemin = rechercheChemin
         self.table = table
         self.timer = timer
         self.config = config
         self.log = log
-        self.scripts = scripts
+        
         self.echecs = {}
 
         if self.config["ennemi_fait_toutes_bougies"]: #à décommenter une fois que le script bougies sera fini
@@ -36,7 +36,9 @@ class Strategie:
 
             notes = {}
 
-#            self.rechercheChemin.retirer_obstacles_dynamique();
+            #initialisation de la recherche de chemin pour le calcul de temps
+            self.rechercheChemin.retirer_obstacles_dynamiques()
+            self.rechercheChemin.charge_obstacles()
             self.rechercheChemin.prepare_environnement_pour_a_star()
 
             # Notation des scripts

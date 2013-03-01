@@ -659,6 +659,10 @@ class RechercheChemin:
         """
         return self.environnement_complet.cercles_astar
     
+    def charge_obstacles(self):
+        #TODO
+        pass
+    
     def prepare_environnement_pour_a_star(self):
         """
         Prépare l'environnement nécessaire aux calculs effectués par l'algorithme de recherche de chemin A*. 
@@ -668,14 +672,14 @@ class RechercheChemin:
         bas_droite = int(self.config["table_x"]/2), int(0)
         self.graphe_table = aStar.AStar.creer_graphe(haut_gauche, bas_droite, self.environnement_complet.cercles_astar)
         
-    def cherche_chemin_avec_a_star(self,depart,arrivee):
+    def cherche_chemin_avec_a_star(self, depart, arrivee):
         """
         Renvoi un chemin aux arêtes non lissées utilisé pour un calcul rapide de distance (inexploitable pour les scripts). 
         Prend en entrée deux Points depart et arrivee. 
         La sortie est une liste de points à suivre (ne contient pas le point de départ). 
         Une exception est levée si le point d'arrivée n'est pas accessible. 
         """
-        
+            
         #test d'accessibilité du point d'arrivée
         if arrivee.x < -self.config["table_x"]/2 or arrivee.y < 0 or arrivee.x > self.config["table_x"]/2 or arrivee.y > self.config["table_y"]:
             self.log.critical("Le point d'arrivée "+str(arrivee)+" n'est pas dans la table !")
@@ -735,7 +739,7 @@ class RechercheChemin:
             #validation du nouvel environnement
             self.environnement_visilibity.is_valid(RechercheChemin.tolerance)
       
-    def cherche_chemin_avec_visilibity(self,depart,arrivee):
+    def cherche_chemin_avec_visilibity(self, depart, arrivee):
         """
         Renvoi le chemin pour aller de depart à arrivee sous forme d'une liste. Le point de départ est exclu. 
         Une exception est levée si le point d'arrivée n'est pas accessible. 
