@@ -112,17 +112,19 @@ class Container:
                 return simulateurInstance.soap
             self.assembler.register("simulateur", simulateur.Simulateur, requires=["config"], factory=make_simulateur)
             
-            #visualisation sur le simulateur pour la table et le robot
+            #visualisation sur le simulateur pour la table, le robot et la recherche de chemin
             self.assembler.register("table", table.TableSimulation, requires=["simulateur","config","log"])
             self.assembler.register("robot", robot.RobotSimulation, requires=["simulateur","capteurs","actionneurs","deplacements","rechercheChemin","table","config","log"])
-            
+            self.assembler.register("rechercheChemin", rechercheChemin.RechercheCheminSimulation, requires=["simulateur", "table","config","log"])
+        
             #série virtuelle, qui redirige vers le simulateur
             self.assembler.register("serieSimulation", serieSimulation.SerieSimulation, requires=["simulateur", "log"])
         else:
             
-            #pas de visualisation sur le simulateur pour la table et le robot
+            #pas de visualisation sur le simulateur pour la table, le robot et la recherche de chemin
             self.assembler.register("table", table.Table, requires=["config","log"])
             self.assembler.register("robot", robot.Robot, requires=["capteurs","actionneurs","deplacements","rechercheChemin","table","config","log"])
+            self.assembler.register("rechercheChemin", rechercheChemin.RechercheChemin, requires=["table","config","log"])
             
             def make_none():
                 return None
@@ -150,7 +152,7 @@ class Container:
         self.assembler.register("filtrage", filtrage.FiltrageLaser, requires=["config"])
         
         #enregistrement du service robotChrono
-        self.assembler.register("robotChrono", robotChrono.RobotChrono, requires=["rechercheChemin", "log"])
+        self.assembler.register("robotChrono", robotChrono.RobotChrono, requires=["rechercheChemin", "config", "log"])
         
         #enregistrement du service hookGenerator
         self.assembler.register("hookGenerator", hooks.HookGenerator, requires=["config","log"])
@@ -162,8 +164,6 @@ class Container:
         self.assembler.register("threads.laser", threads.ThreadLaser, requires=["container"])
         self.assembler.register("threads.bougies", threads.ThreadCouleurBougies, requires=["container"])
 
-        #enregistrement du service de recherche de chemin
-        self.assembler.register("rechercheChemin", rechercheChemin.RechercheChemin, requires=["table","config","log"])
         
         #enregistrement du service d'instanciation des scripts
         def make_scripts(*dependencies):
