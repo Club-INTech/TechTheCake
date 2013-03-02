@@ -555,6 +555,16 @@ class RechercheChemin:
                 pass
                 #self.log.warning("cet obstacle ne rentre pas en collision avec l'obstacle "+str(i)+"à "+str(self.environnement_complet.cercles_conteneurs[i].centre)+".")
                 
+    def _lisser_chemin(self, chemin):
+        """
+        Supprime des noeuds inutiles sur un chemin renvoyé par A*. 
+        """
+        k = 1
+        while k < len(chemin)-1:
+            if fus.get_angle(chemin[k-1],chemin[k],chemin[k+1]) == math.pi: chemin.pop(k)
+            else: k+=1
+        return chemin
+        
     def ajoute_obstacle_cercle(self, centre, rayon):
         """
         Ajout un obstacle circulaire sur la table.
@@ -701,7 +711,9 @@ class RechercheChemin:
         
         #return aStar.AStar.plus_court_chemin(depart, arrivee, self.graphe_table)
         try:
-            return aStar.AStar.plus_court_chemin(depart, arrivee, self.graphe_table)
+            cheminAstar = aStar.AStar.plus_court_chemin(depart, arrivee, self.graphe_table)
+            #lissage et suppression du point de départ
+            return self._lisser_chemin(cheminAstar)[1:]
         except aStar.ExceptionAucunCheminAstar as e:
             raise ExceptionAucunChemin
         
@@ -821,9 +833,31 @@ class RechercheCheminSimulation(RechercheChemin):
     def prepare_environnement_pour_visilibity(self):
         RechercheChemin.prepare_environnement_pour_visilibity(self)
         
-        self.simulateur.clearEntity("rc_obst_42")
+        self.simulateur.clearEntity("rc_obst")
             
         for obstacle in RechercheChemin.get_obstacles(self):
             for i in range(1,obstacle.n()):
-                self.simulateur.drawLine(obstacle[i-1].x,obstacle[i-1].y,obstacle[i].x,obstacle[i].y,"green","rc_obst_42")
-            self.simulateur.drawLine(obstacle[obstacle.n()-1].x,obstacle[obstacle.n()-1].y,obstacle[0].x,obstacle[0].y,"green","rc_obst_42")
+                self.simulateur.drawLine(obstacle[i-1].x,obstacle[i-1].y,obstacle[i].x,obstacle[i].y,"green","rc_obst")
+            self.simulateur.drawLine(obstacle[obstacle.n()-1].x,obstacle[obstacle.n()-1].y,obstacle[0].x,obstacle[0].y,"green","rc_obst")
+            
+    def cherche_chemin_avec_a_star(self, depart, arrivee):
+        chemin = RechercheChemin.cherche_chemin_avec_a_star(self, depart, arrivee)
+        
+        self.simulateur.clearEntity("rc_chemin")
+        for p1,p2 in zip([depart]+chemin[:-1],chemin):
+            self.simulateur.drawPoint(p1.x,p1.y,"red","rc_chemin")
+            self.simulateur.drawLine(p1.x,p1.y,p2.x,p2.y,"red","rc_chemin")
+        self.simulateur.drawPoint(chemin[-1].x,chemin[-1].y,"red","rc_chemin")
+            
+        return chemin
+    
+    def cherche_chemin_avec_visilibity(self, depart, arrivee):
+        chemin = RechercheChemin.cherche_chemin_avec_visilibity(self, depart, arrivee)
+        
+        self.simulateur.clearEntity("rc_chemin")
+        for p1,p2 in zip([depart]+chemin[:-1],chemin):
+            self.simulateur.drawPoint(p1.x,p1.y,"red","rc_chemin")
+            self.simulateur.drawLine(p1.x,p1.y,p2.x,p2.y,"red","rc_chemin")
+        self.simulateur.drawPoint(chemin[-1].x,chemin[-1].y,"red","rc_chemin")
+            
+        return chemin

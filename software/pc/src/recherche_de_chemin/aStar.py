@@ -12,8 +12,10 @@ from recherche_de_chemin.visilibity import Point #pas de namespace : permet de c
 
 class AStar:
     
-    pas_x = 300
-    pas_y = 200
+    #pas_x = 300
+    #pas_y = 200
+    pas_x = 150
+    pas_y = 100
     
     def _creer_graphe_initial(haut_gauche, bas_droite):
         AStar.minX = haut_gauche[0]
@@ -135,6 +137,7 @@ class AStar:
             raise ExceptionAucunCheminAstar
         
         chemin = list(map(lambda noeud: point.Point(noeud[0],noeud[1]),Nchemin))
+        chemin.insert(0,depart)
         chemin.append(arrivee)
         return chemin
         
