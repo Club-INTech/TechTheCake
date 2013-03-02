@@ -35,8 +35,9 @@ class Script(metaclass=abc.ABCMeta):
         try:
             self._execute(version)
         except robot.ExceptionMouvementImpossible:
-            self._termine()
             raise robot.ExceptionMouvementImpossible
+        finally:
+            self._termine()
         
     def calcule(self, version):
         """
@@ -273,6 +274,7 @@ class ScriptCadeaux(Script):
         # Déplacement vers le point d'entrée
         self.robot.marche_arriere = False
         self.robot.recherche_de_chemin(self.info_versions[version]["point_entree_recherche_chemin"], recharger_table=False)
+        self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(self.info_versions[version]["point_entree"], 0)
         self.robot.va_au_point(self.info_versions[version]["point_entree"])
 
         # Orientation du robot
@@ -297,19 +299,24 @@ class ScriptCadeaux(Script):
         # Déplacement le long de la table (peut être un peu trop loin ?)
         self.robot.va_au_point(self.info_versions[1-version]["point_entree"], hooks)
         
-        # Fermeture du bras (le dernier hook n'étant pas atteint)
-        self.robot.tourner(math.pi / 2)
-        self.robot.fermer_cadeau()
-
+ 
     def _termine(self):
-        pass
-        
+        # Fermeture du bras (le dernier hook n'étant pas atteint)
+        if self.robot.actionneur_cadeaux_sorti():
+            #il faut définir une stratégie de sortie pour éviter d'endommager l'actionneur
+            self.effectuer_symetrie = False
+            if self.robot.x > 0:
+                self.robot.tourner(math.pi/4)
+            else:
+                self.robot.tourner(-math.pi/4)
+            self.robot.fermer_cadeau()
+
     def versions(self):
         self.decalage_x_ouvre = -50
         self.decalage_x_ferme = 200
         marge_au_bord = 50
         self.decalage_y_bord = self.config["rayon_robot"] + marge_au_bord
-        self.decalage_y_pour_reglette_blanche = self.decalage_y_bord + 100 + 100
+        self.decalage_x_pour_reglette_blanche = -100
         
         cadeaux = self.table.cadeaux_entrees()
         marche_arriere = self.config["couleur"] == "rouge"
@@ -320,11 +327,10 @@ class ScriptCadeaux(Script):
         point_entree_recherche_chemin = {}
         for cadeau in cadeaux:
             point_entree_recherche_chemin[cadeau["id"]] = cadeau["position"].copy()
+            point_entree_recherche_chemin[cadeau["id"]].y += self.decalage_y_bord
             if cadeau["id"] == 0:
                 #cadeau de notre côté : il faut se décaler vers le haut pour éviter la reglette
-                point_entree_recherche_chemin[cadeau["id"]].y += self.decalage_y_pour_reglette_blanche
-            else:
-                point_entree_recherche_chemin[cadeau["id"]].y += self.decalage_y_bord
+                point_entree_recherche_chemin[cadeau["id"]].x += self.decalage_x_pour_reglette_blanche
             
             ##DEBUG
             if self.config["couleur"] == "bleu":

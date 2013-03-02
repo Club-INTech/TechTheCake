@@ -152,7 +152,7 @@ class Container:
         self.assembler.register("filtrage", filtrage.FiltrageLaser, requires=["config"])
         
         #enregistrement du service robotChrono
-        self.assembler.register("robotChrono", robotChrono.RobotChrono, requires=["rechercheChemin", "config", "log"])
+        self.assembler.register("robotChrono", robotChrono.RobotChrono, requires=["rechercheChemin", "actionneurs", "config", "log"])
         
         #enregistrement du service hookGenerator
         self.assembler.register("hookGenerator", hooks.HookGenerator, requires=["config","log"])

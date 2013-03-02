@@ -83,7 +83,26 @@ class RobotInterface(metaclass=abc.ABCMeta):
             self.nb_verres_avant += 1
         else:
             self.nb_verres_arriere += 1
-
+            
+    def marche_arriere_est_plus_rapide(self, point_consigne, orientation_finale_voulue=None):
+        """
+        Retourne un booléen indiquant si la marche arrière fait gagner du temps pour atteindre le point consigne. 
+        On évite ainsi d'implémenter une marche arrière automatique et on laisse la main aux scripts.
+        """
+        if orientation_finale_voulue is None:
+            orientation_finale_voulue = self.robot.orientation
+            
+        delta_x = point_consigne.x - self.x
+        delta_y = point_consigne.y - self.y
+        ecart_relatif = math.atan2(delta_y,delta_x) - orientation_finale_voulue
+        if ecart_relatif > math.pi: ecart_relatif -= 2*math.pi
+        elif ecart_relatif <= -math.pi: ecart_relatif += 2*math.pi
+        
+        return (ecart_relatif > math.pi/2 or ecart_relatif < -math.pi/2)
+    
+    def actionneur_cadeaux_sorti(self):
+        return self.actionneurs.actionneur_cadeaux_actif
+        
 ###################################################################################################################
 #####  CLASSE ROBOTCHRONO, permet de mesurer le temps d'une succession d'actions (utilisé dans Script.calcule() ###
 ###################################################################################################################
@@ -92,12 +111,13 @@ class RobotChrono(RobotInterface):
     """
     Vive sopal'INT!
     """
-    def __init__(self, rechercheChemin, config, log):
+    def __init__(self, rechercheChemin, actionneurs, config, log):
         
         #services nécessaires
+        self.rechercheChemin = rechercheChemin
+        self.actionneurs = actionneurs
         self.config = config
         self.log = log
-        self.rechercheChemin = rechercheChemin
         
         self.duree = 0
         

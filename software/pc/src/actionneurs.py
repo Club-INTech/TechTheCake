@@ -7,12 +7,17 @@ class Actionneurs :
         self.serie = serie
         self.config = config
         self.log = log
+        
+        #état des actionneurs
+        self.actionneur_cadeaux_actif = False
 
     def ouvrir_cadeau(self) :
         self.serie.communiquer("capteurs_actionneurs",["g",170],0)
+        self.actionneur_cadeaux_actif = True
     
     def fermer_cadeau(self) :
         self.serie.communiquer("capteurs_actionneurs",["g",230],0)
+        self.actionneur_cadeaux_actif = False
 
     def gonfler_ballon(self) :
         self.log.debug("Gonflage du ballon")
