@@ -1,6 +1,8 @@
 from time import sleep,time
 from scripts import *
 import robot
+from outils_maths.point import Point
+import recherche_de_chemin.rechercheChemin as libRechercheChemin
 
 class Strategie:
     """
@@ -22,6 +24,7 @@ class Strategie:
         if self.config["ennemi_fait_toutes_bougies"]: #à décommenter une fois que le script bougies sera fini
             self.log.warning("Comme l'ennemi fait toutes les bougies, on ne les fera pas.")
             del self.scripts["ScriptBougies"]
+            
 
     def boucle_strategie(self):
 
@@ -84,9 +87,15 @@ class Strategie:
         """
         try:
             duree_script = self.scripts[script].calcule(version)
-        except Exception:
+            
+        #chemin impossible
+        except libRechercheChemin.ExceptionAucunChemin:
             return 0
-
+        except libRechercheChemin.ExceptionArriveeDansObstacle:
+            return 0
+        except libRechercheChemin.ExceptionArriveeHorsTable:
+            return 0
+            
         # Erreur dans la durée script, script ignoré
         if duree_script <= 0:
             self.log.critical("{0} a un temps d'exécution négatif ou nul!".format((script,version)))
@@ -131,9 +140,13 @@ class Strategie:
         On prend la distance euclidienne, à vol d'oiseau.
         Attention, on prend le min: cette valeur est sensible aux mesures aberrantes
         """
-
         if self.table.obstacles() == []:
             return 0
             
-        return min([point_entree.distance(obstacle.position) for obstacle in self.table.obstacles()])
+        if self.config["couleur"] == "bleu":
+            point_entree = point_entree.copy()
+            point_entree.x *= -1
+            return min([point_entree.distance(obstacle.position) for obstacle in self.table.obstacles()])
+        else:
+            return min([point_entree.distance(obstacle.position) for obstacle in self.table.obstacles()])
 
