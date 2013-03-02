@@ -191,8 +191,8 @@ class Robot(RobotInterface):
         #récupération de la dernière consigne d'orientation, et placement d'un point consigne au devant du robot
         consigne_x = self.x + distance*cos(self._consigne_orientation)
         consigne_y = self.y + distance*sin(self._consigne_orientation)
-        
-        return self._va_au_point(consigne_x,consigne_y,hooks,False)
+
+        return self._va_au_point(consigne_x,consigne_y,hooks=hooks,trajectoire_courbe=False)
         
         
     def _tourner(self, angle, hooks=[]):
@@ -530,7 +530,7 @@ class Robot(RobotInterface):
             self.log.debug("va au point ({0}) (sans symétrie pour la couleur), virage initial: {1}".format(point, trajectoire_courbe))
                 
         try:
-            self._va_au_point(point.x, point.y, hooks, trajectoire_courbe)
+            self._va_au_point(point.x, point.y, hooks=hooks, trajectoire_courbe=trajectoire_courbe)
         #blocage durant le mouvement
         except ExceptionBlocage:
             raise ExceptionMouvementImpossible
