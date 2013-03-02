@@ -16,7 +16,7 @@ class Simulateur:
         client.service.setTableDimension(config["table_x"], config["table_y"])
         client.service.defineCoordinateSystem(1, 0 , 0, -1, config["table_x"] / 2, config["table_y"])
         
-        # Déclaration du robot
+        # Couleur du robot
         if config["couleur"] == "bleu":
             couleur = "blue"
             ennemi = "red"
@@ -24,6 +24,7 @@ class Simulateur:
             couleur = "red"
             ennemi = "blue"
             
+        # Définition du robot
         client.service.defineRobot({"list":[
             {"float":[-config["longueur_robot"]/2,-config["largeur_robot"]/2]},
             {"float":[-config["longueur_robot"]/2,config["largeur_robot"]/2]},
@@ -37,6 +38,13 @@ class Simulateur:
         client.service.addSensor(2,{"list":[{"int":[0,-config["largeur_robot"]/2]},{"int":[-600.,-1600.]},{"int":[600,-1600]}]}) # ultra son arrière
         client.service.addSensor(3,{"list":[{"int":[0,config["largeur_robot"]/2]},{"int":[-600.,1600.]},{"int":[600,1600]}]})    # ultra son avant
             
+        # Définitions des obstacles
+        #client.service.addRectangleObstacle(-1500, 100, 400, 100, "white")
+        #client.service.addRectangleObstacle(-1500, 2000, 400, 100, "white")
+        #client.service.addRectangleObstacle(1100, 100, 400, 100, "white")
+        #client.service.addRectangleObstacle(1100, 2000, 400, 100, "white")
+        client.service.addCircleObstacle(0, 2000, 500, "rose")
+        
         # Initialisation de la position du robot sur le simulateur
         if config["couleur"] == "bleu":
             client.service.setRobotAngle(0)
