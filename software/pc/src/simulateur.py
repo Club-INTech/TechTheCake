@@ -39,11 +39,11 @@ class Simulateur:
         client.service.addSensor(3,{"list":[{"int":[0,config["largeur_robot"]/2]},{"int":[-600.,1600.]},{"int":[600,1600]}]})    # ultra son avant
             
         # Définitions des obstacles
-        #client.service.addRectangleObstacle(-1500, 100, 400, 100, "white")
-        #client.service.addRectangleObstacle(-1500, 2000, 400, 100, "white")
-        #client.service.addRectangleObstacle(1100, 100, 400, 100, "white")
-        #client.service.addRectangleObstacle(1100, 2000, 400, 100, "white")
-        client.service.addCircleObstacle(0, 2000, 500, "rose")
+        client.service.addRectangleObstacle(-1500, 100, 400, 100, "white", False)
+        client.service.addRectangleObstacle(-1500, 2000, 400, 100, "white", False)
+        client.service.addRectangleObstacle(1100, 100, 400, 100, "white", False)
+        client.service.addRectangleObstacle(1100, 2000, 400, 100, "white", False)
+        client.service.addCircleObstacle(0, 2000, 500, "rose", True)
         
         # Initialisation de la position du robot sur le simulateur
         if config["couleur"] == "bleu":
