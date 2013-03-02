@@ -445,7 +445,7 @@ class Robot(RobotInterface):
 
     def avancer(self, distance, hooks=[]):
         """
-        Cette méthode est une surcouche intelligente sur les déplacements.
+        Cette méthode est une surcouche intelligente sur les déplacements. ATTENTION, elle modifie la marche arrière ! 
         Elle permet d'effectuer une translation en visant un point consigne devant le robot,
         au lieu d'avancer "en aveugle" : l'orientation est corrigée en cas de déviation.
         Les hooks sont executés, et différentes relances sont implémentées en cas de retour particulier.
@@ -506,7 +506,7 @@ class Robot(RobotInterface):
         
         depart = Point(self.x,self.y)
         arrivee = position.copy()
-        if self.config["couleur"] == "bleu":
+        if self.effectuer_symetrie and self.config["couleur"] == "bleu":
             arrivee.x *= -1
         chemin = self.rechercheChemin.cherche_chemin_avec_visilibity(depart, arrivee)
         

@@ -167,16 +167,20 @@ class RobotChrono(RobotInterface):
         """
         Fonction analogue à celle de robot. Bah... ça tourne quoi. Il vous faut un desmath.sin?
         """
+        if self.effectuer_symetrie:
+            if self.config["couleur"] == "bleu":
+                angle = pi - angle
+                
         self.duree += abs(angle / self.vitesses_rotation[self.vitesse_rotation-1])
         self.orientation = angle
         
         
-    def suit_chemin(self, chemin, **useless):
+    def suit_chemin(self, chemin, hooks=[], symetrie_effectuee=False):
         """
         Fonction analogue à celle de robot. Cette méthode parcourt un chemin déjà calculé. Elle appelle va_au_point() sur chaque point de la liste chemin.
         """
         for position in chemin:
-            self.va_au_point(position)
+            self.va_au_point(position, symetrie_effectuee=symetrie_effectuee)
             
     def recherche_de_chemin(self, position, recharger_table=False):
         """
@@ -189,12 +193,17 @@ class RobotChrono(RobotInterface):
         
         depart = Point(self.x,self.y)
         arrivee = position.copy()
-        if self.config["couleur"] == "bleu":
+        if self.effectuer_symetrie and self.config["couleur"] == "bleu":
             arrivee.x *= -1
         chemin = self.rechercheChemin.cherche_chemin_avec_a_star(depart, arrivee)
-        self.suit_chemin(chemin)
+        self.suit_chemin(chemin, symetrie_effectuee=True)
         
-    def va_au_point(self, point_consigne, hooks=[], virage_initial=False):
+    def va_au_point(self, point_consigne, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, symetrie_effectuee=False):
+        
+        if self.effectuer_symetrie and not symetrie_effectuee:
+            if self.config["couleur"] == "bleu":
+                point_consigne.x *= -1
+                
         delta_x = point_consigne.x-self.x
         delta_y = point_consigne.y-self.y
         distance = round(math.sqrt(delta_x**2 + delta_y**2),2)

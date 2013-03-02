@@ -303,13 +303,15 @@ class ScriptCadeaux(Script):
     def _termine(self):
         # Fermeture du bras (le dernier hook n'étant pas atteint)
         if self.robot.actionneur_cadeaux_sorti():
-            #il faut définir une stratégie de sortie pour éviter d'endommager l'actionneur
+            self.log.debug("Fin du script cadeau : repli de l'actionneur cadeaux.")
             self.effectuer_symetrie = False
             if self.robot.x > 0:
                 self.robot.tourner(math.pi/4)
             else:
                 self.robot.tourner(-math.pi/4)
             self.robot.fermer_cadeau()
+        else:
+            self.log.debug("Fin du script cadeau : l'actionneur cadeaux est déjà rentré.")
 
     def versions(self):
         self.decalage_x_ouvre = -50
@@ -331,13 +333,6 @@ class ScriptCadeaux(Script):
             if cadeau["id"] == 0:
                 #cadeau de notre côté : il faut se décaler vers le haut pour éviter la reglette
                 point_entree_recherche_chemin[cadeau["id"]].x += self.decalage_x_pour_reglette_blanche
-            
-            ##DEBUG
-            if self.config["couleur"] == "bleu":
-                self.simulateur.drawPoint(-point_entree_recherche_chemin[cadeau["id"]].x,point_entree_recherche_chemin[cadeau["id"]].y, "blue")
-            else:
-                self.simulateur.drawPoint(point_entree_recherche_chemin[cadeau["id"]].x,point_entree_recherche_chemin[cadeau["id"]].y, "red")
-            ##
             
         # S'il n'y a plus qu'un seul cadeau, cadeaux contient quand même deux éléments
         if cadeaux[0]["position"].x < cadeaux[1]["position"].x:
