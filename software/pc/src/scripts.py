@@ -270,27 +270,27 @@ class ScriptCadeaux(Script):
         
         # Effectue une symétrie sur tous les déplacements
         self.robot.effectuer_symetrie = True
-        
         # Déplacement vers le point d'entrée
         self.robot.marche_arriere = False
-        self.robot.recherche_de_chemin(self.info_versions[version]["point_entree"], recharger_table=False)
+        self.robot.recherche_de_chemin(self.info_versions[version]["point_entree_recherche_chemin"], recharger_table=False)
+        self.robot.va_au_point(self.info_versions[version]["point_entree"])
 
         # Orientation du robot
-        self.robot.marche_arriere = self.info_versions[version]["marche_arriere"]
         sens = self.info_versions[version]["sens"]
+        self.robot.marche_arriere = self.info_versions[version]["marche_arriere"]
         
         # Création des hooks pour tous les cadeaux à activer
         hooks = []
         for cadeau in self.table.cadeaux_restants():
             
             # Ouverture du bras
-            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * -50, 250), effectuer_symetrie=(self.config["couleur"] == "bleu"))
+            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * self.decalage_x_ouvre, self.decalage_y_bord ), effectuer_symetrie=(self.config["couleur"] == "bleu"))
             hook_ouverture += self.hookGenerator.callback(self.robot.ouvrir_cadeau)
             hook_ouverture += self.hookGenerator.callback(self.table.cadeau_recupere, (cadeau,))
             hooks.append(hook_ouverture)
             
             # Fermeture du bras
-            hook_fermeture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * 300, 250), effectuer_symetrie=(self.config["couleur"] == "bleu"))
+            hook_fermeture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * self.decalage_x_ferme, self.decalage_y_bord ), effectuer_symetrie=(self.config["couleur"] == "bleu"))
             hook_fermeture += self.hookGenerator.callback(self.robot.fermer_cadeau)
             hooks.append(hook_fermeture)
 
@@ -305,25 +305,44 @@ class ScriptCadeaux(Script):
         pass
         
     def versions(self):
-        self.decalage_gauche = Point(0,250)
-        self.decalage_droit = Point(0,250)
+        self.decalage_x_ouvre = -50
+        self.decalage_x_ferme = 200
+        marge_au_bord = 50
+        self.decalage_y_bord = self.config["rayon_robot"] + marge_au_bord
+        self.decalage_y_pour_reglette_blanche = self.decalage_y_bord + 100 + 100
         
         cadeaux = self.table.cadeaux_entrees()
         marche_arriere = self.config["couleur"] == "rouge"
         
         if cadeaux == []:
             return []
-
+            
+        point_entree_recherche_chemin = {}
+        for cadeau in cadeaux:
+            point_entree_recherche_chemin[cadeau["id"]] = cadeau["position"].copy()
+            if cadeau["id"] == 0:
+                #cadeau de notre côté : il faut se décaler vers le haut pour éviter la reglette
+                point_entree_recherche_chemin[cadeau["id"]].y += self.decalage_y_pour_reglette_blanche
+            else:
+                point_entree_recherche_chemin[cadeau["id"]].y += self.decalage_y_bord
+            
+            ##DEBUG
+            if self.config["couleur"] == "bleu":
+                self.simulateur.drawPoint(-point_entree_recherche_chemin[cadeau["id"]].x,point_entree_recherche_chemin[cadeau["id"]].y, "blue")
+            else:
+                self.simulateur.drawPoint(point_entree_recherche_chemin[cadeau["id"]].x,point_entree_recherche_chemin[cadeau["id"]].y, "red")
+            ##
+            
         # S'il n'y a plus qu'un seul cadeau, cadeaux contient quand même deux éléments
-        elif cadeaux[0]["position"].x < cadeaux[1]["position"].x:
+        if cadeaux[0]["position"].x < cadeaux[1]["position"].x:
             self.info_versions = [
-                {"point_entree": cadeaux[0]["position"]+self.decalage_gauche, "sens": 1, "marche_arriere": not marche_arriere},               
-                {"point_entree": cadeaux[1]["position"]+self.decalage_droit, "sens": -1, "marche_arriere": marche_arriere}
+                {"point_entree_recherche_chemin": point_entree_recherche_chemin[cadeaux[0]["id"]], "point_entree": cadeaux[0]["position"]+Point(1 * self.decalage_x_ouvre,self.decalage_y_bord), "sens": 1, "marche_arriere": not marche_arriere},               
+                {"point_entree_recherche_chemin": point_entree_recherche_chemin[cadeaux[1]["id"]], "point_entree": cadeaux[1]["position"]+Point(-1 * self.decalage_x_ouvre,self.decalage_y_bord), "sens": -1, "marche_arriere": marche_arriere}
             ]
         else:
             self.info_versions = [
-                {"point_entree": cadeaux[0]["position"]+self.decalage_droit, "sens": -1, "marche_arriere": marche_arriere},
-                {"point_entree": cadeaux[1]["position"]+self.decalage_gauche, "sens": 1, "marche_arriere": not marche_arriere}
+                {"point_entree_recherche_chemin": point_entree_recherche_chemin[cadeaux[0]["id"]], "point_entree": cadeaux[0]["position"]+Point(-1 * self.decalage_x_ouvre,self.decalage_y_bord), "sens": -1, "marche_arriere": marche_arriere},
+                {"point_entree_recherche_chemin": point_entree_recherche_chemin[cadeaux[1]["id"]], "point_entree": cadeaux[1]["position"]+Point(1 * self.decalage_x_ouvre,self.decalage_y_bord), "sens": 1, "marche_arriere": not marche_arriere}
             ]
 
         return [0, 1]
