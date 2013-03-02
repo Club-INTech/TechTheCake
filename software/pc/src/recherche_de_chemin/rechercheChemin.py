@@ -752,7 +752,7 @@ class RechercheChemin:
         """
         
         if not self.valide:
-            # l'environnement n'est pas adapté à une recherche de chemin par visilibity
+            self.log.critical("L'environnement n'est pas adapté à visilibity : recherche de chemin avec A*")
             return self.cherche_chemin_avec_a_star(depart,arrivee)
             
         #test d'accessibilité du point d'arrivée
@@ -811,3 +811,45 @@ class ExceptionAucunChemin(Exception):
     """
     def __str__(self):
         return "Aucun chemin possible !"
+        
+        
+class RechercheCheminSimulation(RechercheChemin):
+
+    def __init__(self, simulateur, table, config, log):
+        self.simulateur = simulateur
+        super().__init__(table, config, log)
+        self.desactiver_dessin = False
+        
+        self.nbSegmentsObstacles = 0
+            
+    def prepare_environnement_pour_visilibity(self):
+        RechercheChemin.prepare_environnement_pour_visilibity(self)
+        
+        if not self.desactiver_dessin:
+            ###############################################################
+            #en mode dégueu parce que le bloc suivant ne marche pas ?!
+            self.simulateur.clearEntities()
+            for i, cadeau in enumerate(self.table.cadeaux):
+                position = cadeau["position"]
+                if self.config["couleur"] == "bleu":
+                    couleur = "blue"
+                    x = -position.x
+                else:
+                    couleur = "red"
+                    x = position.x
+                self.simulateur.drawRectangle(x, position.y + 20, 150, 40, True, couleur, "cadeau_" + str(i))
+            
+            #for i in range(self.nbSegmentsObstacles):
+                #self.simulateur.clearEntity("rc_obst_" + str(i))
+            ###############################################################
+            
+            k=0
+            obstacles = RechercheChemin.get_obstacles(self)
+            for obstacle in obstacles:
+                for i in range(1,obstacle.n()):
+                    self.simulateur.drawVector(obstacle[i-1].x,obstacle[i-1].y,obstacle[i].x,obstacle[i].y,"green",True,"rc_obst_" + str(k))
+                    k+=1
+                self.simulateur.drawVector(obstacle[obstacle.n()-1].x,obstacle[obstacle.n()-1].y,obstacle[0].x,obstacle[0].y,"green",True,"rc_obst_" + str(k))
+                k+=1
+                
+            self.nbSegmentsObstacles = k
