@@ -223,7 +223,7 @@ class Robot(RobotInterface):
         Si le paramètre trajectoire_courbe=False, le robot évite d'effectuer un virage, et donc tourne sur lui meme avant la translation.
         Les hooks sont évalués, et une boucle d'acquittement générique est utilisée.
         """
-
+            
         #comme à toute consigne initiale de mouvement, le robot est débloqué
         self.blocage = False
         
@@ -245,11 +245,13 @@ class Robot(RobotInterface):
         if not trajectoire_courbe:
             #sans virage : la première rotation est blocante
             self._tourner(angle)
+            self._detecter_collisions() #on n'avance pas si un obstacle est devant
             self.deplacements.avancer(distance)
         else:
             #l'attribut self._consigne_orientation doit etre mis à jour à chaque deplacements.tourner() pour le fonctionnement de self._avancer()
             self._consigne_orientation = angle
             self.deplacements.tourner(angle)
+            self._detecter_collisions() #on n'avance pas si un obstacle est devant
             self.deplacements.avancer(distance)
             
         while not self._acquittement():
@@ -285,7 +287,14 @@ class Robot(RobotInterface):
             #ce sleep est nécessaire au simulateur : les sleeps séparant rotation->translation et translation->rotation doivent etre les memes...
             sleep(self.sleep_fin_boucle_acquittement)
             self.deplacements.avancer(distance)
-            
+          
+    def _detecter_collisions(self):
+        signe = -1 if self.marche_arriere else 1
+        centre_detection = Point(self.x, self.y) + Point(signe * 200 * cos(self.orientation), signe * 200 * sin(self.orientation))
+        for obstacle in self.table.obstacles():
+            if obstacle.position.distance(centre_detection) < 200:
+                self.log.warning("ennemi détecté")
+                raise ExceptionCollision
     
     def _acquittement(self, detection_collision=True):
         """
@@ -300,15 +309,10 @@ class Robot(RobotInterface):
         if self.blocage or self.deplacements.gestion_blocage(**infos):
             self.blocage = True
             raise ExceptionBlocage
-            
+        
         #ennemi détecté devant le robot ?
         if detection_collision:
-            signe = -1 if self.marche_arriere else 1
-            centre_detection = Point(self.x, self.y) + Point(signe * 200 * cos(self.orientation), signe * 200 * sin(self.orientation))
-            for obstacle in self.table.obstacles():
-                if obstacle.position.distance(centre_detection) < 200:
-                    self.log.warning("ennemi détecté")
-                    raise ExceptionCollision
+            self._detecter_collisions()
         
         #robot arrivé ?
         if not self.deplacements.update_enMouvement(**infos):
@@ -482,12 +486,12 @@ class Robot(RobotInterface):
             self.stopper()
             raise ExceptionMouvementImpossible
             
-    def suit_chemin(self, chemin, hooks=[]):
+    def suit_chemin(self, chemin, hooks=[], symetrie_effectuee=False):
         """
         Cette méthode parcourt un chemin déjà calculé. Elle appelle va_au_point() sur chaque point de la liste chemin.
         """
         for position in chemin:
-            self.va_au_point(position, hooks)
+            self.va_au_point(position, hooks, symetrie_effectuee=symetrie_effectuee)
     
     def recherche_de_chemin(self, position, recharger_table=True):
         """
@@ -499,11 +503,16 @@ class Robot(RobotInterface):
             self.rechercheChemin.charge_obstacles()
             
         self.rechercheChemin.prepare_environnement_pour_visilibity()
-            
-        chemin = self.rechercheChemin.cherche_chemin_avec_visilibity(Point(self.x,self.y),position)
-        self.suit_chemin(chemin)
+        
+        depart = Point(self.x,self.y)
+        arrivee = position.copy()
+        if self.config["couleur"] == "bleu":
+            arrivee.x *= -1
+        chemin = self.rechercheChemin.cherche_chemin_avec_visilibity(depart, arrivee)
+        
+        self.suit_chemin(chemin, symetrie_effectuee=True)
     
-    def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=3, symetrie_effectuee=False):
+    def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, symetrie_effectuee=False):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.
         Elle permet de parcourir un segment : le robot se rend en (x,y) en corrigeant dynamiquement ses consignes en rotation et translation.
@@ -522,7 +531,6 @@ class Robot(RobotInterface):
                 
         try:
             self._va_au_point(point.x, point.y, hooks, trajectoire_courbe)
-            
         #blocage durant le mouvement
         except ExceptionBlocage:
             raise ExceptionMouvementImpossible
@@ -532,7 +540,7 @@ class Robot(RobotInterface):
             self.stopper()
             if nombre_tentatives > 0:
                 self.log.warning("attente avant nouvelle tentative... reste {0} tentative(s)".format(nombre_tentatives))
-                sleep(1)
+                sleep(0.5)
                 self.va_au_point(point, hooks, trajectoire_courbe, nombre_tentatives-1, True)
             else:
                 raise ExceptionMouvementImpossible

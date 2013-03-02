@@ -92,9 +92,10 @@ class RobotChrono(RobotInterface):
     """
     Vive sopal'INT!
     """
-    def __init__(self, rechercheChemin, log):
+    def __init__(self, rechercheChemin, config, log):
         
         #services nécessaires
+        self.config = config
         self.log = log
         self.rechercheChemin = rechercheChemin
         
@@ -155,7 +156,7 @@ class RobotChrono(RobotInterface):
         Fonction analogue à celle de robot. Cette méthode parcourt un chemin déjà calculé. Elle appelle va_au_point() sur chaque point de la liste chemin.
         """
         for position in chemin:
-            self.va_au_point(position.x, position.y)
+            self.va_au_point(position)
             
     def recherche_de_chemin(self, position, recharger_table=False):
         """
@@ -166,7 +167,11 @@ class RobotChrono(RobotInterface):
             self.rechercheChemin.charge_obstacles()
             self.rechercheChemin.prepare_environnement_pour_a_star()
         
-        chemin = self.rechercheChemin.cherche_chemin_avec_a_star(Point(self.x,self.y),position)
+        depart = Point(self.x,self.y)
+        arrivee = position.copy()
+        if self.config["couleur"] == "bleu":
+            arrivee.x *= -1
+        chemin = self.rechercheChemin.cherche_chemin_avec_a_star(depart, arrivee)
         self.suit_chemin(chemin)
         
     def va_au_point(self, point_consigne, hooks=[], virage_initial=False):
