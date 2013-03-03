@@ -98,17 +98,23 @@ class ThreadCapteurs(AbstractThread):
             
             distance = capteurs.mesurer(robot.marche_arriere)
             if distance >= 0:
+                #distance : entre le capteur situé à l'extrémité du robot et la facade du robot adverse
+                distance_inter_robots = distance + config["rayon_robot_adverse"] + config["largeur_robot"]/2
                 if robot.marche_arriere:
-                    x = robot.x - (distance + config["rayon_robot_adverse"]/2 + config["largeur_robot"]/2) * cos(robot.orientation)
-                    y = robot.y - (distance + config["rayon_robot_adverse"]/2 + config["largeur_robot"]/2) * sin(robot.orientation)
+                    x = robot.x - distance_inter_robots * cos(robot.orientation)
+                    y = robot.y - distance_inter_robots * sin(robot.orientation)
                 else:
-                    x = robot.x + (distance + config["rayon_robot_adverse"]/2 + config["largeur_robot"]/2) * cos(robot.orientation)
-                    y = robot.y + (distance + config["rayon_robot_adverse"]/2 + config["largeur_robot"]/2) * sin(robot.orientation)
+                    x = robot.x + distance_inter_robots * cos(robot.orientation)
+                    y = robot.y + distance_inter_robots * sin(robot.orientation)
                  
-                # Vérifie si l'obstacle est sur la table et qu'il n'a pas déjà été ajouté récemment
-                if x > (-config["table_x"]/2) and y > 0 and x < config["table_x"]/2 and y < config["table_y"] and time() - dernier_ajout > tempo:
-                    table.creer_obstacle(Point(x,y))
-                    dernier_ajout = time()   
+                # Vérifie que l'obstacle n'a pas déjà été ajouté récemment
+                if time() - dernier_ajout > tempo:
+                    # Vérifie si l'obstacle est sur la table 
+                    if x > (-config["table_x"]/2) and y > 0 and x < config["table_x"]/2 and y < config["table_y"]:
+                        # Vérifie que l'obstacle perçu n'est pas le gateau
+                        if not ((x-0)**2 + (y-2000)**2) < 500**2:
+                            table.creer_obstacle(Point(x,y))
+                            dernier_ajout = time()   
                     
             sleep(1./config["capteurs_frequence"])
             
