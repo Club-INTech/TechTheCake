@@ -106,13 +106,14 @@ class ScriptBougies(Script):
         self.robot.marche_arriere = False
         self.robot.effectuer_symetrie = False
         
-        # Déplacement vers le point d'entrée avec recherche de chemin
-        entree = self.info_versions[version]["point_entree_recherche_chemin"]
-        self.robot.recherche_de_chemin(entree, False)
+        # Déplacement proche du point d'entrée avec recherche de chemin
+        proche_entree = self.info_versions[version]["point_entree_recherche_chemin"]
+        self.robot.recherche_de_chemin(proche_entree, recharger_table=False)
         
-        # Déplacement vers le point d'entrée
+        # Déplacement au point d'entrée
         entree = self.info_versions[version]["point_entree"]
         sortie = self.info_versions[1-version]["point_entree"]
+        self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne=entree)
         self.robot.va_au_point(entree)
         
         # Hooks sur chaque bougie à enfoncer
@@ -271,11 +272,15 @@ class ScriptCadeaux(Script):
         
         # Effectue une symétrie sur tous les déplacements
         self.robot.effectuer_symetrie = True
-        # Déplacement vers le point d'entrée
+        
+        # Déplacement proche du point d'entrée avec recherche de chemin
         self.robot.marche_arriere = False
         self.robot.recherche_de_chemin(self.info_versions[version]["point_entree_recherche_chemin"], recharger_table=False)
-        self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(self.info_versions[version]["point_entree"], 0)
-        self.robot.va_au_point(self.info_versions[version]["point_entree"])
+        
+        # Déplacement au point d'entrée
+        point_entree = self.info_versions[version]["point_entree"]
+        self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne=point_entree, orientation_finale_voulue=0)
+        self.robot.va_au_point(point_entree)
 
         # Orientation du robot
         sens = self.info_versions[version]["sens"]
