@@ -11,6 +11,7 @@ Balise::Balise():
     // UART0
     serial_pc::init();
     serial_pc::change_baudrate(ROBOT_BAUDRATE);
+    serial_pc::activer_acquittement(true);
     
     // UART1 (Xbee)
     xbee::init();
@@ -91,7 +92,6 @@ void Balise::execute(char *order)
     // Ping
     if (strcmp(order, "?") == 0)
     {
-        serial_pc::ack();
         serial_pc::print(PING_ID);
     }
     
@@ -130,12 +130,10 @@ void Balise::execute(char *order)
     // Ping d'une balise
     else if (strcmp(order, "ping") == 0)
     {
-        serial_pc::ack();
         serial_pc::print("ID ?");
         
         uint8_t id;
         serial_pc::read(id);
-        serial_pc::ack();
         
         xbee::send(balise_address[id], "?");
         uint8_t ping;
@@ -167,8 +165,6 @@ void Balise::execute(char *order)
     // Ping de toutes les balises
     else if (strcmp(order, "ping_all") == 0)
     {
-        serial_pc::ack();
-        
         for (uint8_t id = 0; id < BALISE_NUMBER; id++)
         {
 			xbee::send(balise_address[id], "?");
@@ -201,8 +197,6 @@ void Balise::execute(char *order)
     // Calcul du latence de transmission
     else if (strcmp(order, "latence") == 0)
     {
-        serial_pc::ack();
-        
         if (last_period() == 0)
         {
             serial_pc::print("Le moteur doit être allumé pour le calcul de latence");
@@ -246,12 +240,10 @@ void Balise::execute(char *order)
     // Valeur des balises
     else if (strcmp(order, "value") == 0)
     {
-        serial_pc::ack();
         serial_pc::print("ID ?");
         
         uint8_t id;
         serial_pc::read(id);
-        serial_pc::ack();
         
         uint16_t offset_;
         uint8_t distance_;
@@ -313,7 +305,6 @@ void Balise::execute(char *order)
     // Allumer les lasers
     else if (strcmp(order, "laser_on") == 0)
     {
-        serial_pc::ack();
 		laser_on();
 		/*
         if (last_period() > 0)
@@ -329,21 +320,18 @@ void Balise::execute(char *order)
     // Eteindre les lasers
     else if (strcmp(order, "laser_off") == 0)
     {
-        serial_pc::ack();
         laser_off();
     }
     
     // Allumer le moteur
     else if (strcmp(order, "motor_on") == 0)
     {
-        serial_pc::ack();
         motor_on();
     }
     
     // Arreter le moteur
     else if (strcmp(order, "motor_off") == 0)
     {
-        serial_pc::ack();
         motor_off();
         
         // Force l'extinction des lasers pour éviter une surchauffe
@@ -353,14 +341,12 @@ void Balise::execute(char *order)
     // Vitesse actuelle du moteur
     else if(strcmp(order, "speed") == 0)
     {
-        serial_pc::ack();
         serial_pc::print(last_period());
     }
     
     // Fréquence du moteur
     else if(strcmp(order, "freq") == 0)
     {
-        serial_pc::ack();
 		float freq = (last_period() == 0) ? 0. : (float)F_CPU / ((float)last_period() * 64.);
         serial_pc::print(freq, 1);
     }
@@ -368,7 +354,6 @@ void Balise::execute(char *order)
     // Valeur de la codeuse du moteur
     else if(strcmp(order, "codeuse") == 0)
     {
-        serial_pc::ack();
 		serial_pc::print(encoder);
     }
 }
