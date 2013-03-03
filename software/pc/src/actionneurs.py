@@ -10,6 +10,7 @@ class Actionneurs :
         
         #état des actionneurs
         self.actionneur_cadeaux_actif = False
+        self.actionneur_bougies_actif = False
 
     def ouvrir_cadeau(self) :
         self.serie.communiquer("capteurs_actionneurs",["g",170],0)
@@ -29,6 +30,7 @@ class Actionneurs :
         else:
             self.log.debug("Relève l'actionneur bougie du bas")
             self.serie.communiquer("capteurs_actionneurs",["bas",80],0)
+        self.actionneur_bougies_actif = True
 
     def enfoncer_bougie(self, enHaut) :
         if enHaut:
@@ -41,11 +43,13 @@ class Actionneurs :
             self.serie.communiquer("capteurs_actionneurs",["bas",180],0)
             sleep(.1)
             self.serie.communiquer("capteurs_actionneurs",["bas",150],0)
+        self.actionneur_bougies_actif = True
 
     def rentrer_bras_bougie(self) : 
         self.log.debug("Rentre les 2 actionneurs pour bougies")
         self.serie.communiquer("capteurs_actionneurs",["haut",170],0)
         self.serie.communiquer("capteurs_actionneurs",["bas",240],0)
+        self.actionneur_bougies_actif = False
 
     def ascenseur_aller_en_haut(self):
         self.serie.communiquer("ascenseur", "haut", 0)

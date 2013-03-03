@@ -152,7 +152,32 @@ class ScriptBougies(Script):
         return Point(0, 2000) + Point(rayon * math.cos(angle), rayon * math.sin(angle))
 
     def _termine(self):
-        pass
+        # Fermeture des actionneurs bougies : il faut enchainer ces actions pour se dégager du gateau.
+        #TODO : trouver autre chose que les finally embriqués...
+        
+        orientation_normale = math.atan2(self.robot.y - 2000, self.robot.x - 0)
+        distance_degagement = 2*self.config["rayon_robot"]
+        
+        if self.robot.actionneur_bougies_sorti():
+            self.log.debug("Fin du script bougies : repli des actionneurs bougies.")
+            self.effectuer_symetrie = False
+            try:
+                self.robot.tourner(orientation_normale + math.pi/2)
+            finally:
+                try:
+                    #déplacement tangent au gateau : dégagement de l'obstacle vers le centre de la table
+                    self.robot.avancer(-math.copysign(distance_degagement, self.robot.x))
+                except robot.ExceptionMouvementImpossible:
+                    # On ne peut pas : dégament vers les bords
+                    self.robot.avancer(math.copysign(distance_degagement, self.robot.x))
+                finally:
+                    try:
+                        # Une rotation est plus sure pour ne pas endommager les actionneurs
+                        self.robot.tourner(orientation_normale)
+                    finally:
+                        self.robot.rentrer_bras_bougie()
+        else:
+            self.log.debug("Fin du script bougies : les actionneurs bougies sont déjà rentrés.")
         
     def versions(self):
         """

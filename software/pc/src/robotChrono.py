@@ -103,6 +103,9 @@ class RobotInterface(metaclass=abc.ABCMeta):
     def actionneur_cadeaux_sorti(self):
         return self.actionneurs.actionneur_cadeaux_actif
         
+    def actionneur_bougies_sorti(self):
+        return self.actionneurs.actionneur_bougies_actif
+        
 ###################################################################################################################
 #####  CLASSE ROBOTCHRONO, permet de mesurer le temps d'une succession d'actions (utilisé dans Script.calcule() ###
 ###################################################################################################################
