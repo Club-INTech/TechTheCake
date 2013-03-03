@@ -93,6 +93,14 @@ public:
      * 
      */
     static inline void send_char(unsigned char byte);
+    
+    /**
+     * Active ou non l'acquittement à chaque read sur la série
+     * 
+     */
+    static inline void activer_acquittement(bool activation) {
+        acquittement = activation;        
+    }
 
     /**
      * Récupère un octet sur RX (pas de conversion ASCII)
@@ -105,9 +113,10 @@ public:
     static inline uint8_t read_char(unsigned char &byte, uint16_t timeout = 0) {
         uint16_t i = 0;
         uint8_t j = 0;
-
+        
         // Ajuste le timeout pour faire correspondre approximativement à des ms
         // Valable pour 20MHz
+        // Si quelqu'un veut améliorer ça...
         if (timeout > 0) timeout *= 3.1;
 
         // Attente jusqu'à réception d'un caractère
@@ -309,8 +318,6 @@ public:
         uint8_t status = read(buffer, timeout);
         val = atol(buffer);
 
-        if (acquittement) ack();
-
         return status;
     }
 
@@ -322,8 +329,6 @@ public:
         static char buffer[20];
         uint8_t status = read(buffer, timeout);
         val = atof(buffer);
-
-        if (acquittement) ack();
 
         return status;
     }
@@ -343,6 +348,7 @@ public:
 
             // Uniquement \r (= entrée), renvoie le message précédent
             if (i == 0 && buffer == '\r') {
+                if (acquittement) ack();
                 return READ_SUCCESS;
             }
 
@@ -354,7 +360,7 @@ public:
 
             string[i] = static_cast<char> (buffer);
             i++;
-        }        while (string[i - 1] != '\r');
+        } while (string[i - 1] != '\r');
 
         // Remplace le délimiteur par une fin de chaine
         string[i - 1] = '\0';
@@ -363,11 +369,6 @@ public:
 
         return READ_SUCCESS;
     }
-
-    static inline void activer_acquittement(bool activation) {
-        acquittement = activation;        
-    }
-
 
 };
 
