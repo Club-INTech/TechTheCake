@@ -113,7 +113,9 @@ class ScriptBougies(Script):
         # Déplacement au point d'entrée
         entree = self.info_versions[version]["point_entree"]
         sortie = self.info_versions[1-version]["point_entree"]
-        self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne=entree)
+        
+        orientation_tangente = self.info_versions[version]["angle_entree"] + math.pi/2
+        self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne=entree, orientation_finale_voulue=orientation_tangente)
         self.robot.va_au_point(entree)
         
         # Hooks sur chaque bougie à enfoncer
@@ -126,14 +128,14 @@ class ScriptBougies(Script):
         for bougie in self.table.bougies_restantes(self.couleur_a_traiter):
             
             # Baisser le bras
-            point_baisser_bras = self._correspondance_point_angle(bougie["position"] + delta_angle_baisser_bras, self.config["distance_au_gateau"])
+            point_baisser_bras = self._point_polaire(bougie["position"] + delta_angle_baisser_bras, self.config["distance_au_gateau"] + self.config["longueur_robot"]/2)
             hook_baisser_bras = self.hookGenerator.hook_position(point_baisser_bras)
             hook_baisser_bras += self.hookGenerator.callback(self.robot.traiter_bougie, (bougie["enHaut"],))
             hook_baisser_bras += self.hookGenerator.callback(self.table.bougie_recupere, (bougie,))
             hooks.append(hook_baisser_bras)
             
             # Lever le bras
-            #~ point_lever_bras = self._correspondance_point_angle(bougie["position"] + delta_angle_lever_bras)
+            #~ point_lever_bras = self._point_polaire(bougie["position"] + delta_angle_lever_bras)
             #~ hook_lever_bras = self.hookGenerator.hook_position(point_lever_bras)
             #~ hook_lever_bras += self.hookGenerator.callback(self.robot.initialiser_bras_bougie(bougie["enHaut"]))
             #~ hooks.append(hook_lever_bras)
@@ -142,12 +144,11 @@ class ScriptBougies(Script):
         self.robot.marche_arriere = self.info_versions[version]["marche_arriere"]
         self.robot.arc_de_cercle(sortie, hooks)
         
-        
-    def _correspondance_point_angle(self, angle, distance_gateau):
+    def _point_polaire(self, angle, distance_gateau):
         """
         Retourne le point sur la table correspondant à un angle de bougie
         """
-        rayon = 500 + distance_gateau + self.config["longueur_robot"] / 2
+        rayon = 500 + distance_gateau
         return Point(0, 2000) + Point(rayon * math.cos(angle), rayon * math.sin(angle))
 
     def _termine(self):
@@ -166,21 +167,26 @@ class ScriptBougies(Script):
         # Cas où toutes les bougies sont déjà validées
         if bougies == []:
             return []
-            
+        
         # Cas où il reste au moins une bougie
+        distance_entree =    self.config["distance_au_gateau"] + self.config["longueur_robot"]/2
+        distance_entree_rc = self.config["distance_au_gateau"] + self.config["rayon_robot"]
+        
         delta_angle = 20 / float(500 + self.config["distance_au_gateau"])
+        delta_angle_rc = math.acos((500+distance_entree)/(500+distance_entree_rc))
+        
         self.info_versions = [
             {
                 "angle_entree": bougies[0]["position"] - delta_angle,
-                "point_entree": self._correspondance_point_angle(bougies[0]["position"] - delta_angle, self.config["distance_au_gateau"]),
-                "point_entree_recherche_chemin": self._correspondance_point_angle(bougies[0]["position"] - delta_angle, self.config["distance_au_gateau"] + 100),
+                "point_entree": self._point_polaire(bougies[0]["position"] - delta_angle, distance_entree),
+                "point_entree_recherche_chemin": self._point_polaire(bougies[0]["position"] - delta_angle + math.copysign(delta_angle_rc,-(bougies[0]["position"]+math.pi/2)), distance_entree_rc),
                 "marche_arriere": False,
                 "sens": 1
             },               
             {
                 "angle_entree": bougies[1]["position"] + delta_angle,
-                "point_entree": self._correspondance_point_angle(bougies[1]["position"] + delta_angle, self.config["distance_au_gateau"]),
-                "point_entree_recherche_chemin": self._correspondance_point_angle(bougies[1]["position"] + delta_angle, self.config["distance_au_gateau"] + 100),
+                "point_entree": self._point_polaire(bougies[1]["position"] + delta_angle, distance_entree),
+                "point_entree_recherche_chemin": self._point_polaire(bougies[1]["position"] + delta_angle + math.copysign(delta_angle_rc,-(bougies[1]["position"]+math.pi/2)), distance_entree_rc),
                 "marche_arriere": True,
                 "sens": -1
             }
