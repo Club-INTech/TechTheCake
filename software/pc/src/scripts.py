@@ -202,7 +202,7 @@ class ScriptCadeaux(Script):
     def _execute(self, version):
         
         # Effectue une symétrie sur tous les déplacements
-        self.robot.effectuer_symetrie = True
+        self.robot.effectuer_symetrie = False
         
         # Déplacement proche du point d'entrée avec recherche de chemin
         self.robot.marche_arriere = False
@@ -222,13 +222,13 @@ class ScriptCadeaux(Script):
         for cadeau in self.table.cadeaux_restants():
             
             # Ouverture du bras
-            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * self.decalage_x_ouvre, self.decalage_y_bord ), effectuer_symetrie=(self.config["couleur"] == "bleu"))
+            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * self.decalage_x_ouvre, self.decalage_y_bord ), effectuer_symetrie=False)
             hook_ouverture += self.hookGenerator.callback(self.robot.ouvrir_cadeau)
             hook_ouverture += self.hookGenerator.callback(self.table.cadeau_recupere, (cadeau,))
             hooks.append(hook_ouverture)
             
             # Fermeture du bras
-            hook_fermeture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * self.decalage_x_ferme, self.decalage_y_bord ), effectuer_symetrie=(self.config["couleur"] == "bleu"))
+            hook_fermeture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * self.decalage_x_ferme, self.decalage_y_bord ), effectuer_symetrie=False)
             hook_fermeture += self.hookGenerator.callback(self.robot.fermer_cadeau)
             hooks.append(hook_fermeture)
 
@@ -241,23 +241,23 @@ class ScriptCadeaux(Script):
         if self.robot.actionneur_cadeaux_sorti():
             self.log.debug("Fin du script cadeau : repli de l'actionneur cadeaux.")
             self.effectuer_symetrie = False
-            if self.robot.x > 0:
-                self.robot.tourner(math.pi/4)
-            else:
-                self.robot.tourner(-math.pi/4)
-            self.robot.fermer_cadeau()
+            try:
+                if self.robot.x > 0:
+                    self.robot.tourner(math.pi/4)
+                else:
+                    self.robot.tourner(-math.pi/4)
+            finally:
+                self.robot.fermer_cadeau()
         else:
             self.log.debug("Fin du script cadeau : l'actionneur cadeaux est déjà rentré.")
 
     def versions(self):
         self.decalage_x_ouvre = -50
         self.decalage_x_ferme = 200
-        marge_au_bord = 50
-        self.decalage_y_bord = self.config["rayon_robot"] + marge_au_bord
-        self.decalage_x_pour_reglette_blanche = -100
+        self.decalage_y_bord = self.config["rayon_robot"] + 50
+        self.decalage_x_pour_reglette_blanche = 100
         
         cadeaux = self.table.cadeaux_entrees()
-        marche_arriere = self.config["couleur"] == "rouge"
         
         if cadeaux == []:
             return []
@@ -266,22 +266,24 @@ class ScriptCadeaux(Script):
         for cadeau in cadeaux:
             point_entree_recherche_chemin[cadeau["id"]] = cadeau["position"].copy()
             point_entree_recherche_chemin[cadeau["id"]].y += self.decalage_y_bord
+            #cadeau de notre côté : il faut se décaler vers le haut pour éviter la reglette
             if cadeau["id"] == 0:
-                #cadeau de notre côté : il faut se décaler vers le haut pour éviter la reglette
                 point_entree_recherche_chemin[cadeau["id"]].x += self.decalage_x_pour_reglette_blanche
+            elif cadeau["id"] == 7:
+                point_entree_recherche_chemin[cadeau["id"]].x -= self.decalage_x_pour_reglette_blanche
             
         # S'il n'y a plus qu'un seul cadeau, cadeaux contient quand même deux éléments
-        if cadeaux[0]["position"].x < cadeaux[1]["position"].x:
-            self.info_versions = [
-                {"point_entree_recherche_chemin": point_entree_recherche_chemin[cadeaux[0]["id"]], "point_entree": cadeaux[0]["position"]+Point(1 * self.decalage_x_ouvre,self.decalage_y_bord), "sens": 1, "marche_arriere": not marche_arriere},               
-                {"point_entree_recherche_chemin": point_entree_recherche_chemin[cadeaux[1]["id"]], "point_entree": cadeaux[1]["position"]+Point(-1 * self.decalage_x_ouvre,self.decalage_y_bord), "sens": -1, "marche_arriere": marche_arriere}
-            ]
-        else:
-            self.info_versions = [
-                {"point_entree_recherche_chemin": point_entree_recherche_chemin[cadeaux[0]["id"]], "point_entree": cadeaux[0]["position"]+Point(-1 * self.decalage_x_ouvre,self.decalage_y_bord), "sens": -1, "marche_arriere": marche_arriere},
-                {"point_entree_recherche_chemin": point_entree_recherche_chemin[cadeaux[1]["id"]], "point_entree": cadeaux[1]["position"]+Point(1 * self.decalage_x_ouvre,self.decalage_y_bord), "sens": 1, "marche_arriere": not marche_arriere}
-            ]
-
+        self.info_versions = [
+            {   "point_entree_recherche_chemin": point_entree_recherche_chemin[cadeaux[0]["id"]], 
+                "point_entree": cadeaux[0]["position"] + Point(1 * self.decalage_x_ouvre,self.decalage_y_bord), 
+                "sens": 1, 
+                "marche_arriere": False
+            },               
+            {   "point_entree_recherche_chemin": point_entree_recherche_chemin[cadeaux[1]["id"]], 
+                "point_entree": cadeaux[1]["position"] + Point(-1 * self.decalage_x_ouvre,self.decalage_y_bord), 
+                "sens": -1, 
+                "marche_arriere": True
+            }]
         return [0, 1]
         
     def point_entree(self, id_version):

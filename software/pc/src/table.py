@@ -51,19 +51,24 @@ class Table:
         self.robots_adverses = [RobotAdverseBalise(config["rayon_robot_adverse"]), RobotAdverseBalise(3*config["rayon_robot_adverse"]/4)]
         self.obstacles_capteurs = []
         
-        # Liste des cadeaux (rouge)
-        # La symétrie est gérée dans les scripts
+        # Liste des cadeaux
         self.cadeaux = [	
-            {"id": 0, "position": Point(990,0), "ouvert": False},
-            {"id": 1, "position": Point(390,0), "ouvert": False},
-            {"id": 2, "position": Point(-210,0), "ouvert": False},
-            {"id": 3, "position": Point(-810,0), "ouvert": False}
+            {"id": 0, "position": Point(-990,0), "couleur": "bleu", "ouvert": False},
+            {"id": 1, "position": Point(-810,0), "couleur": "rouge", "ouvert": False},
+            {"id": 2, "position": Point(-390,0), "couleur": "bleu", "ouvert": False},
+            {"id": 3, "position": Point(-210,0), "couleur": "rouge", "ouvert": False},
+            {"id": 4, "position": Point(210,0), "couleur": "bleu", "ouvert": False},
+            {"id": 5, "position": Point(390,0), "couleur": "rouge", "ouvert": False},
+            {"id": 6, "position": Point(810,0), "couleur": "bleu", "ouvert": False},
+            {"id": 7, "position": Point(990,0), "couleur": "rouge", "ouvert": False}
         ]
             
         # Indique les points d'entrée sur les cadeaux
         # Contient les 2 indices des cadeaux aux extrémités de la table (Xmax, Xmin), même si plus qu'un cadeau
         # Vide si plus aucun cadeau à valider
-        self.points_entree_cadeaux = [0,3]
+        self.points_entree_cadeaux = []
+        #initialisation
+        self._rafraichir_entree_cadeaux()
         
         
         # La position des bougies est codée en pôlaire depuis le centre du gâteau
@@ -163,7 +168,7 @@ class Table:
         """
         Récupère la liste des cadeaux restants à valider
         """
-        return [c for c in self.cadeaux if not c["ouvert"]]
+        return [c for c in self.cadeaux if (not c["ouvert"] and c["couleur"]==self.config["couleur"])]
         
     def cadeau_recupere(self, c):
         """
@@ -177,7 +182,7 @@ class Table:
         """
         Met à jour la liste des points d'entrée pour les cadeaux
         """
-        cadeaux_restants = [i for i,c in enumerate(self.cadeaux) if not c["ouvert"]]
+        cadeaux_restants = [i for i,c in enumerate(self.cadeaux) if (not c["ouvert"] and c["couleur"]==self.config["couleur"])]
         if len(cadeaux_restants) > 0:
             self.points_entree_cadeaux = [cadeaux_restants[0], cadeaux_restants[-1]]
         else:
@@ -379,15 +384,13 @@ class TableSimulation(Table):
             
     def _afficher_table(self):
         # Affichage des cadeaux
+        if self.config["couleur"] == "bleu":
+            couleur = "blue"
+        else:
+            couleur = "red"
         for i, cadeau in enumerate(self.cadeaux):
-            position = cadeau["position"]
-            if self.config["couleur"] == "bleu":
-                couleur = "blue"
-                x = -position.x
-            else:
-                couleur = "red"
-                x = position.x
-            self.simulateur.drawRectangle(x, position.y + 20, 150, 40, True, couleur, "cadeau_" + str(i))
+            if cadeau["couleur"] == self.config["couleur"]:
+                self.simulateur.drawRectangle(cadeau["position"].x, cadeau["position"].y + 20, 150, 40, True, couleur, "cadeau_" + str(i))
             
         # Affichage des bougies
         self._dessiner_bougies()
