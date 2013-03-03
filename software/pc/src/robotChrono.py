@@ -169,7 +169,7 @@ class RobotChrono(RobotInterface):
         """
         if self.effectuer_symetrie:
             if self.config["couleur"] == "bleu":
-                angle = pi - angle
+                angle = math.pi - angle
                 
         self.duree += abs(angle / self.vitesses_rotation[self.vitesse_rotation-1])
         self.orientation = angle

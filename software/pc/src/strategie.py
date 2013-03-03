@@ -24,7 +24,6 @@ class Strategie:
         if self.config["ennemi_fait_toutes_bougies"]: #à décommenter une fois que le script bougies sera fini
             self.log.warning("Comme l'ennemi fait toutes les bougies, on ne les fera pas.")
             del self.scripts["ScriptBougies"]
-            
 
     def boucle_strategie(self):
 
@@ -57,7 +56,7 @@ class Strategie:
 
             # Choix du script avec la meilleure note
             (script_a_faire, version_a_faire) = max(notes, key=notes.get)
-            self.log.debug("Stratégie ordonne: ({0}, version n°{1})".format(script_a_faire, version_a_faire))
+            self.log.debug("Stratégie ordonne: ({0}, version n°{1}, entrée en {2})".format(script_a_faire, version_a_faire, self.scripts[script_a_faire].point_entree(version_a_faire)))
 
             # Lancement du script si le match n'est pas terminé
             if not self.timer.get_fin_match():
@@ -90,11 +89,11 @@ class Strategie:
             
         #chemin impossible
         except libRechercheChemin.ExceptionAucunChemin:
-            return 0
+            return -999
         except libRechercheChemin.ExceptionArriveeDansObstacle:
-            return 0
+            return -999
         except libRechercheChemin.ExceptionArriveeHorsTable:
-            return 0
+            return -999
             
         # Erreur dans la durée script, script ignoré
         if duree_script <= 0:
@@ -123,7 +122,7 @@ class Strategie:
 
         note = [
             # Densité de points
-            1*score/duree_script,
+            5*score/duree_script,
 
             # On évite l'ennemi s'il est proche de l'objectif
             distance_ennemi/400,
@@ -143,10 +142,4 @@ class Strategie:
         if self.table.obstacles() == []:
             return 0
             
-        if self.config["couleur"] == "bleu":
-            point_entree = point_entree.copy()
-            point_entree.x *= -1
-            return min([point_entree.distance(obstacle.position) for obstacle in self.table.obstacles()])
-        else:
-            return min([point_entree.distance(obstacle.position) for obstacle in self.table.obstacles()])
-
+        return min([point_entree.distance(obstacle.position) for obstacle in self.table.obstacles()])
