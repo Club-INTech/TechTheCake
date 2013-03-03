@@ -1,4 +1,4 @@
-from math import pi,sqrt,atan2,atan,cos,sin
+import math
 from time import time,sleep
 from mutex import Mutex
 from outils_maths.point import Point
@@ -51,7 +51,7 @@ class Robot(RobotInterface):
         if self.config["couleur"] == "bleu":
             self._consigne_orientation = 0
         else:
-            self._consigne_orientation = pi
+            self._consigne_orientation = math.pi
         
         #sauvegarde des vitesses courantes du robot
         self.vitesse_translation = 2
@@ -189,8 +189,8 @@ class Robot(RobotInterface):
         """
         
         #récupération de la dernière consigne d'orientation, et placement d'un point consigne au devant du robot
-        consigne_x = self.x + distance*cos(self._consigne_orientation)
-        consigne_y = self.y + distance*sin(self._consigne_orientation)
+        consigne_x = self.x + distance*math.cos(self._consigne_orientation)
+        consigne_y = self.y + distance*math.sin(self._consigne_orientation)
 
         return self._va_au_point(consigne_x,consigne_y,hooks=hooks,trajectoire_courbe=False)
         
@@ -234,13 +234,13 @@ class Robot(RobotInterface):
         #au moins un déplacement, avant la boucle (équivalent à do...while)
         delta_x = self.consigne_x-self.x
         delta_y = self.consigne_y-self.y
-        distance = round(sqrt(delta_x**2 + delta_y**2),2)
-        angle = round(atan2(delta_y,delta_x),4)
+        distance = round(math.sqrt(delta_x**2 + delta_y**2),2)
+        angle = round(math.atan2(delta_y,delta_x),4)
         
         #mode marche_arriere
         if self.marche_arriere:
             distance *= -1
-            angle += pi 
+            angle += math.pi 
             
         if not trajectoire_courbe:
             #sans virage : la première rotation est blocante
@@ -272,14 +272,14 @@ class Robot(RobotInterface):
         """
         delta_x = self.consigne_x-self.x
         delta_y = self.consigne_y-self.y
-        distance = round(sqrt(delta_x**2 + delta_y**2),2)
+        distance = round(math.sqrt(delta_x**2 + delta_y**2),2)
         #mise à jour des consignes en translation et rotation en dehors d'un disque de tolérance
         if distance > self.config["disque_tolerance"]:
-            angle = round(atan2(delta_y,delta_x),4)
+            angle = round(math.atan2(delta_y,delta_x),4)
             #mode marche_arriere
             if self.marche_arriere:
                 distance *= -1
-                angle += pi 
+                angle += math.pi 
                 
             #l'attribut self._consigne_orientation doit etre mis à jour à chaque deplacements.tourner() pour le fonctionnement de self._avancer()
             self._consigne_orientation = angle
@@ -290,7 +290,7 @@ class Robot(RobotInterface):
           
     def _detecter_collisions(self):
         signe = -1 if self.marche_arriere else 1
-        centre_detection = Point(self.x, self.y) + Point(signe * 200 * cos(self.orientation), signe * 200 * sin(self.orientation))
+        centre_detection = Point(self.x, self.y) + Point(signe * 200 * math.cos(self.orientation), signe * 200 * math.sin(self.orientation))
         for obstacle in self.table.obstacles():
             if obstacle.position.distance(centre_detection) < 200:
                 self.log.warning("ennemi détecté")
@@ -353,16 +353,16 @@ class Robot(RobotInterface):
         #~ yO = 0
         
         #rayon du cercle
-        r = float(sqrt((self.x-xO)**2+(self.y-yO)**2))
+        r = float(math.sqrt((self.x-xO)**2+(self.y-yO)**2))
         #on ramène M sur le cercle : point B
-        s = float(sqrt((xM-xO)**2+(yM-yO)**2))
+        s = float(math.sqrt((xM-xO)**2+(yM-yO)**2))
         xB = xO + (r/s)*(xM-xO)
         yB = yO + (r/s)*(yM-yO)
-        tB = atan2(yB-yO,xB-xO)
+        tB = math.atan2(yB-yO,xB-xO)
         
         #s'aligner sur la tangente au cercle :
         #calcul de l'angle de A (point de départ)
-        tA = atan2(self.y-yO,self.x-xO)
+        tA = math.atan2(self.y-yO,self.x-xO)
         
         #vitesse de rotation pour atteindre la tangente
         self.set_vitesse_rotation(1)
@@ -370,9 +370,9 @@ class Robot(RobotInterface):
         #ou exclusif entre le sens de parcours de l'abscisse curviligne (ie le sens de pas) et le mode marche arrière
         #afin de s'orienter perpendiculairement au rayon du cercle, dans la bonne direction
         if (pas < 0) != self.marche_arriere:
-            self._tourner(tA-pi/2)
+            self._tourner(tA-math.pi/2)
         else:
-            self._tourner(tA+pi/2)
+            self._tourner(tA+math.pi/2)
         
         #vitesses pour le parcours de l'arc de cercle
         #TODO : passer ca dans déplacements ?
@@ -385,7 +385,7 @@ class Robot(RobotInterface):
             
         while 1:
             #calcul de l'angle de A (point de départ)
-            tA = atan2(self.y-yO,self.x-xO)
+            tA = math.atan2(self.y-yO,self.x-xO)
             
             #il reste au moins le pas à parcourir
             if (pas > 0 and r*tA+pas < r*tB) or (pas < 0 and r*tA+pas > r*tB):
@@ -393,8 +393,8 @@ class Robot(RobotInterface):
                 #angle absolu pour C
                 tC = tA + pas/r
                 #coordonnées de C, prochain point consigne
-                self.consigne_x = xO + r*cos(tC)
-                self.consigne_y = yO + r*sin(tC)
+                self.consigne_x = xO + r*math.cos(tC)
+                self.consigne_y = yO + r*math.sin(tC)
                 
                 #vérification des hooks
                 infosRobot={"robotX" : self.x,"robotY" : self.y,"robotOrientation" : self.orientation}
@@ -456,8 +456,8 @@ class Robot(RobotInterface):
         self.marche_arriere = (distance < 0)
         self.effectuer_symetrie = False
         
-        x = self.x + distance * cos(self._consigne_orientation)
-        y = self.y + distance * sin(self._consigne_orientation)
+        x = self.x + distance * math.cos(self._consigne_orientation)
+        y = self.y + distance * math.sin(self._consigne_orientation)
         
         self.va_au_point(Point(x, y), hooks)
         
@@ -469,7 +469,7 @@ class Robot(RobotInterface):
         """
         if self.effectuer_symetrie:
             if self.config["couleur"] == "bleu":
-                angle = pi - angle
+                angle = math.pi - angle
             self.log.debug("tourner à "+str(angle)+" (symétrie appliquée)")
         else:
             self.log.debug("tourner à "+str(angle)+" (sans symétrie)")
@@ -479,7 +479,10 @@ class Robot(RobotInterface):
             
         #blocage durant la rotation
         except ExceptionBlocage:
-            raise ExceptionMouvementImpossible
+            try:
+                self.tourner(self.orientation + math.copysign(self.config["angle_degagement_robot"], -angle))
+            finally:
+                raise ExceptionMouvementImpossible
                 
         #détection d'un robot adverse
         except ExceptionCollision:
@@ -533,7 +536,14 @@ class Robot(RobotInterface):
             self._va_au_point(point.x, point.y, hooks=hooks, trajectoire_courbe=trajectoire_courbe)
         #blocage durant le mouvement
         except ExceptionBlocage:
-            raise ExceptionMouvementImpossible
+            try:
+                #TODO On tente de reculer. Mais l'exception est peut etre levée lors d'un virage...
+                if self.marche_arriere:
+                    self.avancer(self.config["distance_degagement_robot"])
+                else:
+                    self.avancer(-self.config["distance_degagement_robot"])
+            finally:
+                raise ExceptionMouvementImpossible
         
         #détection d'un robot adverse
         except ExceptionCollision:
@@ -591,7 +601,7 @@ class Robot(RobotInterface):
             self.orientation = 0.0
         else:
             self.x = self.config["table_x"]/2. - self.config["largeur_robot"]/2.
-            self.orientation = pi
+            self.orientation = math.pi
         
         #on avance doucement, en réactivant l'asservissement en rotation
         self.marche_arriere = False
@@ -600,7 +610,7 @@ class Robot(RobotInterface):
         self.avancer(200)
         
         #on se tourne pour le deuxième recalage
-        self.tourner(pi/2)
+        self.tourner(math.pi/2)
         
         #on recule lentement jusqu'à bloquer sur le bord
         self.marche_arriere = True
@@ -613,7 +623,7 @@ class Robot(RobotInterface):
         
         #initialisation de la coordonnée y et de l'orientation
         self.y = self.config["largeur_robot"]/2.
-        self.orientation = pi/2.
+        self.orientation = math.pi/2.
         
         #on avance doucement, en réactivant l'asservissement en rotation
         self.marche_arriere = False
@@ -622,7 +632,7 @@ class Robot(RobotInterface):
         self.avancer(150)
         
         #on prend l'orientation initiale pour le match (la symétrie est automatique pour les déplacements)
-        self.tourner(pi)
+        self.tourner(math.pi)
         
         #vitesse initiales pour le match
         self.set_vitesse_translation(2)
@@ -723,7 +733,7 @@ class RobotSimulation(Robot):
     def _afficher_hooks(self, hooks):
         self.simulateur.clearEntity("hook")
         for hook in hooks:
-            if isinstance(hook, hooks_module.HookPosition):
+            if imath.sinstance(hook, hooks_module.HookPosition):
                 self.simulateur.drawPoint(hook.position_hook.x, hook.position_hook.y, "black", "hook")
                 self.simulateur.drawCircle(hook.position_hook.x, hook.position_hook.y, hook.tolerance_mm, False, "black", "hook")
         
