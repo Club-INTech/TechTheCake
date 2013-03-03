@@ -259,7 +259,7 @@ class ScriptCadeaux(Script):
 
     def versions(self):
         self.decalage_x_ouvre = -50
-        self.decalage_x_ferme = 200
+        self.decalage_x_ferme = 350
         self.decalage_y_bord = self.config["rayon_robot"] + 50
         self.decalage_x_pour_reglette_blanche = 100
         
