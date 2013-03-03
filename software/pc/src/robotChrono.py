@@ -90,7 +90,7 @@ class RobotInterface(metaclass=abc.ABCMeta):
         On évite ainsi d'implémenter une marche arrière automatique et on laisse la main aux scripts.
         """
         if orientation_finale_voulue is None:
-            orientation_finale_voulue = self.robot.orientation
+            orientation_finale_voulue = self.orientation
             
         delta_x = point_consigne.x - self.x
         delta_y = point_consigne.y - self.y
