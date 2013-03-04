@@ -10,7 +10,7 @@ template<>
 inline void Serial<0>::init() {
     Serial < 0 > ::PLEASE_INCLUDE_SERIAL_INTERRUPT();
     static bool is_init = false;
-    acquittement = true;
+    acquittement = false;
     sei();
     if (is_init == false) {
         uint16_t UBRR = (F_CPU / 8 / INIT_BAUDRATE_0 - 1) / 2;

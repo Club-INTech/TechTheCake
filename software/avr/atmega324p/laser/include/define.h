@@ -2,17 +2,17 @@
 #define DEFINE_H
 
 #define BALISE_BAUDRATE   		115200
-#define ROBOT_BAUDRATE    		9600
+#define ROBOT_BAUDRATE    		38400
 #define PING_ID           		4
 #define DEFAULT_SPEED_ORDER		15
 #define TIMEOUT			  		100
 #define PI                      3.14159265359
 #define ANGLE_ORIGIN_OFFSET     1.35
 
-#define BALISE_NUMBER     		2
+#define BALISE_NUMBER     		1
 
 #define OFFSET_FACTOR 	  		0.5
 
-static uint16_t balise_address[BALISE_NUMBER] = {0x1234, 0x1235};
+static uint16_t balise_address[BALISE_NUMBER] = {0x1234};
 
 #endif

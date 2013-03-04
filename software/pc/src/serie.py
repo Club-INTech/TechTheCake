@@ -15,7 +15,7 @@ class Serie:
         self.dico_infos_peripheriques = {
             "asservissement": ((0,9600),"deplacements"),
             "capteurs_actionneurs" : ((3,9600),"capteurs_actionneurs"),
-            "laser" : ((4,9600),"laser"),
+            "laser" : ((4,38400),"laser"),
             "cadeaux" : ((6,9600),"actionneurs"),
             "ascenseur": ((2,9600),"actionneurs"),
             "pince_verre": ((8,9600),"actionneurs"),
