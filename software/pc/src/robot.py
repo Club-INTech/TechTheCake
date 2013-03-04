@@ -733,7 +733,7 @@ class RobotSimulation(Robot):
     def _afficher_hooks(self, hooks):
         self.simulateur.clearEntity("hook")
         for hook in hooks:
-            if imath.sinstance(hook, hooks_module.HookPosition):
+            if isinstance(hook, hooks_module.HookPosition):
                 self.simulateur.drawPoint(hook.position_hook.x, hook.position_hook.y, "black", "hook")
                 self.simulateur.drawCircle(hook.position_hook.x, hook.position_hook.y, hook.tolerance_mm, False, "black", "hook")
         
