@@ -736,6 +736,17 @@ class RobotSimulation(Robot):
             if isinstance(hook, hooks_module.HookPosition):
                 self.simulateur.drawPoint(hook.position_hook.x, hook.position_hook.y, "black", "hook")
                 self.simulateur.drawCircle(hook.position_hook.x, hook.position_hook.y, hook.tolerance_mm, False, "black", "hook")
+            
+            elif isinstance(hook, hooks_module.HookAngleGateau):
+                if hook._callbacks[0].arguments[0]:
+                    #bougie du haut
+                    rayon_centre = 350
+                else:
+                    rayon_centre = 450
+                    
+                pt_centre = Point(0 + rayon_centre*math.cos(hook.angle_hook), 2000 + rayon_centre*math.sin(hook.angle_hook))
+                pt_ext    = Point(0 + 800*math.cos(hook.angle_hook), 2000 + 800*math.sin(hook.angle_hook))
+                self.simulateur.drawLine(pt_centre.x, pt_centre.y, pt_ext.x, pt_ext.y, "black", "hook")
         
 class ExceptionBlocage(Exception):
     """

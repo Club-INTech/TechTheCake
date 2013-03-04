@@ -230,7 +230,7 @@ class RobotChrono(RobotInterface):
         """
         self.vitesse_rotation = int(valeur)
         
-    def traiter_bougie(self,id,enHaut):
+    def traiter_bougie(self,enHaut):
         pass
             
     def initialiser_bras_bougie(self,enHaut) : 

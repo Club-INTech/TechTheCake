@@ -1,8 +1,5 @@
-from math import pi
-from time import time
+import math
 from outils_maths.point import Point
-
-_tolerance_angle_radians = 0.2
 
 class Hook:
     """
@@ -52,23 +49,22 @@ class HookPosition(Hook):
         if (Point(robotX, robotY).distance(self.position_hook) <= self.tolerance_mm):
             self.declencher()
         
-class HookOrientation(Hook):
+class HookAngleGateau(Hook):
     """
-    Classe des Hooks ayant pour condition une orientation absolue du robot sur la table.
-    La méthode evaluate() effectue l'action (callback) si l'orientation du robot est dans un arc de tolérance autour de orientation.
+    Classe des Hooks ayant pour condition le passage d'un angle de référence autour du gateau. 
+    La méthode evaluate() effectue l'action (callback) si 
+    le robot dépasse la ligne dirigée par `angle` 
+    dans le sens `vers_x_croissant` (booléen)
     """
-    def __init__(self, config, log, orientation, unique, callback,*args):
+    def __init__(self, config, log, angle, vers_x_croissant):
         Hook.__init__(self, config, log)
-        self.orientation_hook = orientation
+        self.angle_hook = angle
+        self.vers_x_croissant = vers_x_croissant
         
-    def evaluate(self,robotOrientation,**useless):
-        if not self.unique or not self.done:
-            delta_angle = abs(robotOrientation - self.orientation_hook)%(2*pi)
-            if (delta_angle > pi): delta_angle = (2*pi)-delta_angle
-            if (delta_angle <= _tolerance_angle_radians):
-                if self.unique:
-                    self.done = True
-                self.callback(*self.args)
+    def evaluate(self, robotX, robotY, **useless):
+        erreur = math.atan2(robotY - 2000, robotX - 0) - self.angle_hook
+        if (self.vers_x_croissant and erreur > 0) or (not self.vers_x_croissant and erreur < 0):
+            self.declencher()
             
 class HookGenerator():
     """
@@ -78,18 +74,6 @@ class HookGenerator():
     def __init__(self, config, log):
         self.config = config
         self.log = log
-        self.test = 20
-        self.types = {"position": HookPosition, "orientation": HookOrientation}
-        
-    def get_hook(self, type, condition, callback,*args,unique=True):
-        """
-        Cette méthode retourne une instance de hook :
-        - du type "position" ou "orientation" demandé
-        - qui à la condition donnée (respectivement un point ou un angle)
-        - execute la fonction ou méthode de callback
-        - en lui passant les paramètres contenus dans args
-        """
-        return self.types[type](condition, unique, callback,*args)
         
     def hook_position(self, position, tolerance_mm=None, effectuer_symetrie=False):
         """
@@ -99,6 +83,12 @@ class HookGenerator():
             tolerance_mm = self.config["hooks_tolerance_mm"]
             
         return HookPosition(self.config, self.log, position, tolerance_mm, effectuer_symetrie)
+        
+    def hook_angle_gateau(self, angle, vers_x_croissant):
+        """
+        Création d'un hook de dépassement d'une droite autour du gateau
+        """
+        return HookAngleGateau(self.config, self.log, angle, vers_x_croissant)
         
     def callback(self, fonction, arguments=(), unique=True):
         return Callback(fonction, arguments, unique)

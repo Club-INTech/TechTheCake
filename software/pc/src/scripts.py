@@ -106,39 +106,44 @@ class ScriptBougies(Script):
         self.robot.marche_arriere = False
         self.robot.effectuer_symetrie = False
         
+        # Définition du parcours
+        entree = self.info_versions[version]["point_entree"]
+        sortie = self.info_versions[1-version]["point_entree"]
+        vers_x_croissant = sortie.x > entree.x
+        
         # Déplacement proche du point d'entrée avec recherche de chemin
         proche_entree = self.info_versions[version]["point_entree_recherche_chemin"]
         self.robot.recherche_de_chemin(proche_entree, recharger_table=False)
         
         # Déplacement au point d'entrée
-        entree = self.info_versions[version]["point_entree"]
-        sortie = self.info_versions[1-version]["point_entree"]
-        
         orientation_tangente = self.info_versions[version]["angle_entree"] + math.pi/2
         self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne=entree, orientation_finale_voulue=orientation_tangente)
         self.robot.va_au_point(entree)
         
         # Hooks sur chaque bougie à enfoncer
         rayon_bras = float(500 + self.config["distance_au_gateau"])
-        delta_angle_baisser_bras = -15 / rayon_bras
-        delta_angle_lever_bras = 30 / rayon_bras
+        delta_angle_baisser_bras = -15 / rayon_bras #un peu avant
+        delta_angle_lever_bras = 20 / rayon_bras #un peu après
         hooks = []
+        
+        # Inversion du sens de parcours
+        if not vers_x_croissant:
+            delta_angle_baisser_bras *= -1
+            delta_angle_lever_bras *= -1
         
         # Récupération des bougies restantes dans notre couleur
         for bougie in self.table.bougies_restantes(self.couleur_a_traiter):
-            
+                
             # Baisser le bras
-            point_baisser_bras = self._point_polaire(bougie["position"] + delta_angle_baisser_bras, self.config["distance_au_gateau"] + self.config["longueur_robot"]/2)
-            hook_baisser_bras = self.hookGenerator.hook_position(point_baisser_bras)
+            hook_baisser_bras = self.hookGenerator.hook_angle_gateau(bougie["position"] + delta_angle_baisser_bras, vers_x_croissant)
             hook_baisser_bras += self.hookGenerator.callback(self.robot.traiter_bougie, (bougie["enHaut"],))
             hook_baisser_bras += self.hookGenerator.callback(self.table.bougie_recupere, (bougie,))
             hooks.append(hook_baisser_bras)
             
             # Lever le bras
-            #~ point_lever_bras = self._point_polaire(bougie["position"] + delta_angle_lever_bras)
-            #~ hook_lever_bras = self.hookGenerator.hook_position(point_lever_bras)
-            #~ hook_lever_bras += self.hookGenerator.callback(self.robot.initialiser_bras_bougie(bougie["enHaut"]))
-            #~ hooks.append(hook_lever_bras)
+            hook_baisser_bras = self.hookGenerator.hook_angle_gateau(bougie["position"] + delta_angle_lever_bras, vers_x_croissant)
+            hook_baisser_bras += self.hookGenerator.callback(self.robot.initialiser_bras_bougie, (bougie["enHaut"],))
+            hooks.append(hook_baisser_bras)
         
         # Lancement de l'arc de cercle
         self.robot.marche_arriere = self.info_versions[version]["marche_arriere"]
@@ -168,7 +173,7 @@ class ScriptBougies(Script):
                     #déplacement tangent au gateau : dégagement de l'obstacle vers le centre de la table
                     self.robot.avancer(-math.copysign(distance_degagement, self.robot.x))
                 except robot.ExceptionMouvementImpossible:
-                    # On ne peut pas : dégament vers les bords
+                    # On ne peut pas : dégagement vers les bords
                     self.robot.avancer(math.copysign(distance_degagement, self.robot.x))
                 finally:
                     try:
