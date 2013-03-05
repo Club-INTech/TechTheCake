@@ -443,7 +443,7 @@ class Robot(RobotInterface):
         self.blocage = True
         self.deplacements.stopper()
 
-    def avancer(self, distance, hooks=[]):
+    def avancer(self, distance, hooks=[], nombre_tentatives=2):
         """
         Cette méthode est une surcouche intelligente sur les déplacements. ATTENTION, elle modifie la marche arrière ! 
         Elle permet d'effectuer une translation en visant un point consigne devant le robot,
@@ -459,7 +459,7 @@ class Robot(RobotInterface):
         x = self.x + distance * math.cos(self._consigne_orientation)
         y = self.y + distance * math.sin(self._consigne_orientation)
         
-        self.va_au_point(Point(x, y), hooks)
+        self.va_au_point(Point(x, y), hooks, nombre_tentatives=nombre_tentatives)
         
     def tourner(self, angle, hooks=[]):
         """
@@ -537,11 +537,14 @@ class Robot(RobotInterface):
         #blocage durant le mouvement
         except ExceptionBlocage:
             try:
+                self.stopper()
                 #TODO On tente de reculer. Mais l'exception est peut etre levée lors d'un virage...
-                if self.marche_arriere:
-                    self.avancer(self.config["distance_degagement_robot"])
-                else:
-                    self.avancer(-self.config["distance_degagement_robot"])
+                if nombre_tentatives > 0:
+                    self.log.warning("Blocage en déplacement ! On recule... reste {0} tentative(s)".format(nombre_tentatives))
+                    if self.marche_arriere:
+                        self.avancer(self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
+                    else:
+                        self.avancer(-self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
             finally:
                 raise ExceptionMouvementImpossible
         
