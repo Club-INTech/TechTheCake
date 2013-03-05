@@ -101,28 +101,35 @@ class ScriptManager:
 class ScriptBougies(Script):
    
     def _constructeur(self):
+        """
+        Permet de factoriser et de rendre visibles les différentes constantes et étalonnages du script.
+        Les valeurs entières spécifiées ici sont en mm et sont à tester en pratique ! Les signes sont déjà implémentés. 
+        """
         self.couleur_a_traiter = self.table.COULEUR_BOUGIE_ROUGE if self.config["couleur"] == "rouge" else self.table.COULEUR_BOUGIE_BLEU
         
         # pour calculer simplement les delta_angle
-        self.rayon_bras = float(500 + self.config["distance_au_gateau"])
+        rayon_bras = float(500 + self.config["distance_au_gateau"])
         
         # Prise en compte actionneur bas / haut
-        self.delta_angle_actionneur_haut = -80 / self.rayon_bras # Actionneur haut à l'avant du robot
-        self.delta_angle_actionneur_bas =   80 / self.rayon_bras # Actionneur bas à l'arrière du robot
+        self.delta_angle_actionneur_haut = -80 / rayon_bras # Actionneur haut à l'avant du robot
+        self.delta_angle_actionneur_bas =   80 / rayon_bras # Actionneur bas à l'arrière du robot
         
-        #constantes d'écart à la bougie
-        self.delta_abs_angle_baisser_bras = 15 / self.rayon_bras
-        self.delta_abs_angle_lever_bras = 20 / self.rayon_bras
+        #constantes d'écart à la bougie (valeurs absolues)
+        self.delta_abs_angle_baisser_bras = 15 / rayon_bras
+        self.delta_abs_angle_lever_bras = 20 / rayon_bras
         
         # Ecart angulaire entre le point d'entrée et la bougie : tient compte du décalage des actionneurs.
         delta_actionneurs = max(abs(self.delta_angle_actionneur_haut), abs(self.delta_angle_actionneur_bas))
-        self.delta_angle_entree = (self.delta_abs_angle_baisser_bras + delta_actionneurs + 20) / self.rayon_bras #TODO attention aux bords de la table ! @@@
+        self.delta_angle_entree = self.delta_abs_angle_baisser_bras + delta_actionneurs + 20/rayon_bras
         
         # Trouve l'angle du point_entree_recherche_chemin à partir des distances de sécurité choisies
         self.distance_entree    = self.config["distance_au_gateau"] + self.config["longueur_robot"]/2
         self.distance_entree_rc = self.config["distance_au_gateau"] + self.config["rayon_robot"]
         self.delta_angle_entree_rc = math.acos((500+self.distance_entree)/(500+self.distance_entree_rc))
-       
+        
+        #angle maximal du point d'entrée pour ne pas toucher les bords de table
+        self.angle_max = math.asin(self.config["rayon_robot"] / (500 + self.config["distance_au_gateau"] + self.config["longueur_robot"]/2))
+        
     def _point_polaire(self, angle, distance_gateau):
         """
         Retourne le point sur la table correspondant à un angle de bougie
@@ -144,19 +151,30 @@ class ScriptBougies(Script):
         if bougies == []:
             return []
         
+        #position angulaire du point d'entrée
+        angles_entree = [bougies[0]["position"] - self.delta_angle_entree, 
+                         bougies[1]["position"] + self.delta_angle_entree ]
+                         
+        #on bride pour ne pas toucher les bords de table
+        angles_entree = [max(min(-self.angle_max, angle), -math.pi+self.angle_max) for angle in angles_entree]
+        
+        #décalage angulaire pour les point_entree_recherche_chemin (le signe se dirige vers le centre de la table)
+        deltas_angle_rc = [math.copysign(self.delta_angle_entree_rc,-(bougies[0]["position"]+math.pi/2)),
+                           math.copysign(self.delta_angle_entree_rc,-(bougies[1]["position"]+math.pi/2)) ]
+        
         # Cas où il reste au moins une bougie
         self.info_versions = [
             {
-                "angle_entree": bougies[0]["position"] - self.delta_angle_entree,
-                "point_entree": self._point_polaire(bougies[0]["position"] - self.delta_angle_entree, self.distance_entree),
-                "point_entree_recherche_chemin": self._point_polaire(bougies[0]["position"] - self.delta_angle_entree + math.copysign(self.delta_angle_entree_rc,-(bougies[0]["position"]+math.pi/2)), self.distance_entree_rc),
+                "angle_entree": angles_entree[0],
+                "point_entree": self._point_polaire(angles_entree[0], self.distance_entree),
+                "point_entree_recherche_chemin": self._point_polaire(angles_entree[0] + deltas_angle_rc[0], self.distance_entree_rc),
                 "marche_arriere": False,
                 "sens": 1
             },               
             {
-                "angle_entree": bougies[1]["position"] + self.delta_angle_entree,
-                "point_entree": self._point_polaire(bougies[1]["position"] + self.delta_angle_entree, self.distance_entree),
-                "point_entree_recherche_chemin": self._point_polaire(bougies[1]["position"] + self.delta_angle_entree + math.copysign(self.delta_angle_entree_rc,-(bougies[1]["position"]+math.pi/2)), self.distance_entree_rc),
+                "angle_entree": angles_entree[1],
+                "point_entree": self._point_polaire(angles_entree[1], self.distance_entree),
+                "point_entree_recherche_chemin": self._point_polaire(angles_entree[1] + deltas_angle_rc[1], self.distance_entree_rc),
                 "marche_arriere": True,
                 "sens": -1
             }
@@ -245,6 +263,7 @@ class ScriptBougies(Script):
                 finally:
                     try:
                         # Une rotation est plus sure pour ne pas endommager les actionneurs
+                        orientation_normale = math.atan2(self.robot.y - 2000, self.robot.x - 0)
                         self.robot.tourner(orientation_normale)
                     finally:
                         self.robot.rentrer_bras_bougie()
