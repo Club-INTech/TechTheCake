@@ -131,17 +131,30 @@ class ScriptBougies(Script):
             delta_angle_baisser_bras *= -1
             delta_angle_lever_bras *= -1
         
+        # Prise en compte actionneur bas / haut
+        delta_angle_actionneur_haut = -80 / rayon_bras #actionneur haut à l'avant du robot
+        delta_angle_actionneur_bas =   80 / rayon_bras  #actionneur bas à l'arrière du robot
+        
         # Récupération des bougies restantes dans notre couleur
         for bougie in self.table.bougies_restantes(self.couleur_a_traiter):
+            angle_baisser_bras = bougie["position"] + delta_angle_baisser_bras
+            angle_lever_bras = bougie["position"] + delta_angle_lever_bras
+            
+            if bougie["enHaut"]:
+                angle_baisser_bras += delta_angle_actionneur_haut
+                angle_lever_bras += delta_angle_actionneur_haut
+            else:
+                angle_baisser_bras += delta_angle_actionneur_bas
+                angle_lever_bras += delta_angle_actionneur_bas
                 
             # Baisser le bras
-            hook_baisser_bras = self.hookGenerator.hook_angle_gateau(bougie["position"] + delta_angle_baisser_bras, vers_x_croissant)
+            hook_baisser_bras = self.hookGenerator.hook_angle_gateau(angle_baisser_bras, vers_x_croissant)
             hook_baisser_bras += self.hookGenerator.callback(self.robot.traiter_bougie, (bougie["enHaut"],))
             hook_baisser_bras += self.hookGenerator.callback(self.table.bougie_recupere, (bougie,))
             hooks.append(hook_baisser_bras)
             
             # Lever le bras
-            hook_baisser_bras = self.hookGenerator.hook_angle_gateau(bougie["position"] + delta_angle_lever_bras, vers_x_croissant)
+            hook_baisser_bras = self.hookGenerator.hook_angle_gateau(angle_lever_bras, vers_x_croissant)
             hook_baisser_bras += self.hookGenerator.callback(self.robot.initialiser_bras_bougie, (bougie["enHaut"],))
             hooks.append(hook_baisser_bras)
         
@@ -149,13 +162,6 @@ class ScriptBougies(Script):
         self.robot.marche_arriere = self.info_versions[version]["marche_arriere"]
         self.robot.arc_de_cercle(sortie, hooks)
         
-    def _point_polaire(self, angle, distance_gateau):
-        """
-        Retourne le point sur la table correspondant à un angle de bougie
-        """
-        rayon = 500 + distance_gateau
-        return Point(0, 2000) + Point(rayon * math.cos(angle), rayon * math.sin(angle))
-
     def _termine(self):
         # Fermeture des actionneurs bougies : il faut enchainer ces actions pour se dégager du gateau.
         #TODO : trouver autre chose que les finally embriqués...
@@ -183,6 +189,13 @@ class ScriptBougies(Script):
                         self.robot.rentrer_bras_bougie()
         else:
             self.log.debug("Fin du script bougies : les actionneurs bougies sont déjà rentrés.")
+        
+    def _point_polaire(self, angle, distance_gateau):
+        """
+        Retourne le point sur la table correspondant à un angle de bougie
+        """
+        rayon = 500 + distance_gateau
+        return Point(0, 2000) + Point(rayon * math.cos(angle), rayon * math.sin(angle))
         
     def versions(self):
         """
