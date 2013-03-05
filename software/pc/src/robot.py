@@ -461,7 +461,7 @@ class Robot(RobotInterface):
         
         self.va_au_point(Point(x, y), hooks, nombre_tentatives=nombre_tentatives)
         
-    def tourner(self, angle, hooks=[]):
+    def tourner(self, angle, hooks=[], nombre_tentatives=2):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.
         Elle effectue une rotation en place. La symétrie est prise en compte.
@@ -480,7 +480,9 @@ class Robot(RobotInterface):
         #blocage durant la rotation
         except ExceptionBlocage:
             try:
-                self.tourner(self.orientation + math.copysign(self.config["angle_degagement_robot"], -angle))
+                if nombre_tentatives > 0:
+                    self.log.warning("Blocage en rotation ! On tourne dans l'autre sens... reste {0} tentative(s)".format(nombre_tentatives))
+                    self.tourner(self.orientation + math.copysign(self.config["angle_degagement_robot"], -angle), nombre_tentatives=nombre_tentatives-1)
             finally:
                 raise ExceptionMouvementImpossible
                 
