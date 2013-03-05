@@ -14,11 +14,10 @@ class Script(metaclass=abc.ABCMeta):
     classe mère des scripts
     se charge des dépendances
     """
-    def dependances(self, simulateur, robot, robotChrono, hookGenerator, table, config, log):
+    def dependances(self, robot, robotChrono, hookGenerator, table, config, log):
         """
         Gère les services nécessaires aux scripts. On n'utilise pas de constructeur.
         """
-        self.simulateur = simulateur
         self.robotVrai = robot
         self.robotChrono = robotChrono
         self.hookGenerator = hookGenerator
@@ -85,7 +84,7 @@ class Script(metaclass=abc.ABCMeta):
              
 class ScriptManager:
     
-    def __init__(self, simulateur, robot, robotChrono, hookGenerator, table, config, log):
+    def __init__(self, robot, robotChrono, hookGenerator, table, config, log):
         self.log = log
         self.scripts = {}
         
@@ -95,7 +94,7 @@ class ScriptManager:
             heritage = list(inspect.getmro(obj))
             if not inspect.isabstract(obj) and Script in heritage:
                 self.scripts[nom] = obj()
-                self.scripts[nom].dependances(simulateur, robot, robotChrono, hookGenerator, table, config, log)
+                self.scripts[nom].dependances(robot, robotChrono, hookGenerator, table, config, log)
                 if hasattr(self.scripts[nom], '_constructeur'): self.scripts[nom]._constructeur()
 
 class ScriptBougies(Script):
