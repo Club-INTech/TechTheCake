@@ -756,7 +756,7 @@ class RechercheChemin:
             #validation du nouvel environnement
             self.environnement_visilibity.is_valid(RechercheChemin.tolerance)
       
-    def cherche_chemin_avec_visilibity(self, depart, arrivee, relanceProblemeArrivee=False):
+    def cherche_chemin_avec_visilibity(self, depart, arrivee, relanceProblemeDepart=False, relanceProblemeArrivee=False):
         """
         Renvoi le chemin pour aller de depart à arrivee sous forme d'une liste. Le point de départ est exclu. 
         Une exception est levée si le point d'arrivée n'est pas accessible. 
@@ -772,6 +772,22 @@ class RechercheChemin:
             self.log.critical("Le point d'arrivée "+str(arrivee)+" n'est pas dans la table !")
             raise ExceptionArriveeHorsTable
         for obstacle in self.environnement_complet.polygones:
+            # Le point de départ est dans un obstacle
+            if collisions.collisionPointPoly(depart,obstacle):
+                if not relanceProblemeDepart:
+                    self.log.warning("Le point de départ "+str(depart)+" est dans un obstacle !")
+                    for nouveauDepart in [point.Point(depart.x + self.config["disque_tolerance_consigne"]*math.cos(2*math.pi*i/6), depart.y + self.config["disque_tolerance_consigne"]*math.sin(2*math.pi*i/6)) for i in range(6)]:
+                        try:
+                            autreChemin = self.cherche_chemin_avec_visilibity(nouveauDepart, arrivee, relanceProblemeDepart=True)
+                            self.log.warning("Un point de départ de substitution a été trouvé : "+str(nouveauDepart)+".")
+                            return autreChemin
+                        except ExceptionDepartDansObstacle:
+                            pass
+                else:
+                    raise ExceptionDepartDansObstacle
+                # Aucun point de départ de substitution n'a pu être trouvé. On tente quand même...
+            
+            # Le point d'arrivée est dans un obstacle
             if collisions.collisionPointPoly(arrivee,obstacle):
                 if not relanceProblemeArrivee:
                     self.log.critical("Le point d'arrivée "+str(arrivee)+" n'est pas accessible !")
@@ -782,6 +798,7 @@ class RechercheChemin:
                             return autreChemin
                         except ExceptionArriveeDansObstacle:
                             pass
+                # Aucun point d'arrivé de substitution n'a pu être trouvé : le chemin est impossible.
                 raise ExceptionArriveeDansObstacle
             
         #conversion en type vis.PointVisibility
@@ -817,6 +834,13 @@ class ExceptionArriveeDansObstacle(Exception):
     """
     def __str__(self):
         return "Le point d'arrivée est dans un obstacle !"
+        
+class ExceptionDepartDansObstacle(Exception):
+    """
+    Exception levée lorsque le point de départ se situe dans un obstacle.
+    """
+    def __str__(self):
+        return "Le point de départ est dans un obstacle !"
 
 class ExceptionEnvironnementNonPrepare(Exception):
     """
@@ -859,8 +883,8 @@ class RechercheCheminSimulation(RechercheChemin):
             
         return chemin
     
-    def cherche_chemin_avec_visilibity(self, depart, arrivee, relanceProblemeArrivee=False):
-        chemin = RechercheChemin.cherche_chemin_avec_visilibity(self, depart, arrivee, relanceProblemeArrivee)
+    def cherche_chemin_avec_visilibity(self, depart, arrivee, relanceProblemeDepart=False, relanceProblemeArrivee=False):
+        chemin = RechercheChemin.cherche_chemin_avec_visilibity(self, depart, arrivee, relanceProblemeDepart, relanceProblemeArrivee)
         
         self.simulateur.clearEntity("rc_chemin")
         for p1,p2 in zip([depart]+chemin[:-1],chemin):
