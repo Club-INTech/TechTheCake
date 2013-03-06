@@ -274,7 +274,7 @@ class Robot(RobotInterface):
         delta_y = self.consigne_y-self.y
         distance = round(math.sqrt(delta_x**2 + delta_y**2),2)
         #mise à jour des consignes en translation et rotation en dehors d'un disque de tolérance
-        if distance > self.config["disque_tolerance"]:
+        if distance > self.config["disque_tolerance_maj"]:
             angle = round(math.atan2(delta_y,delta_x),4)
             #mode marche_arriere
             if self.marche_arriere:

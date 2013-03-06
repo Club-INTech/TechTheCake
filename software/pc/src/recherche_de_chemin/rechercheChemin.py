@@ -756,7 +756,7 @@ class RechercheChemin:
             #validation du nouvel environnement
             self.environnement_visilibity.is_valid(RechercheChemin.tolerance)
       
-    def cherche_chemin_avec_visilibity(self, depart, arrivee):
+    def cherche_chemin_avec_visilibity(self, depart, arrivee, relanceProblemeArrivee=False):
         """
         Renvoi le chemin pour aller de depart à arrivee sous forme d'une liste. Le point de départ est exclu. 
         Une exception est levée si le point d'arrivée n'est pas accessible. 
@@ -773,7 +773,15 @@ class RechercheChemin:
             raise ExceptionArriveeHorsTable
         for obstacle in self.environnement_complet.polygones:
             if collisions.collisionPointPoly(arrivee,obstacle):
-                self.log.critical("Le point d'arrivée "+str(arrivee)+" n'est pas accessible !")
+                if not relanceProblemeArrivee:
+                    self.log.critical("Le point d'arrivée "+str(arrivee)+" n'est pas accessible !")
+                    for nouvelleArrivee in [point.Point(arrivee.x + self.config["disque_tolerance_consigne"]*math.cos(2*math.pi*i/6), arrivee.y + self.config["disque_tolerance_consigne"]*math.sin(2*math.pi*i/6)) for i in range(6)]:
+                        try:
+                            autreChemin = self.cherche_chemin_avec_visilibity(depart, nouvelleArrivee, relanceProblemeArrivee=True)
+                            self.log.warning("Un point d'arrivée de substitution a été trouvé : "+str(nouvelleArrivee)+".")
+                            return autreChemin
+                        except ExceptionArriveeDansObstacle:
+                            pass
                 raise ExceptionArriveeDansObstacle
             
         #conversion en type vis.PointVisibility
@@ -851,8 +859,8 @@ class RechercheCheminSimulation(RechercheChemin):
             
         return chemin
     
-    def cherche_chemin_avec_visilibity(self, depart, arrivee):
-        chemin = RechercheChemin.cherche_chemin_avec_visilibity(self, depart, arrivee)
+    def cherche_chemin_avec_visilibity(self, depart, arrivee, relanceProblemeArrivee=False):
+        chemin = RechercheChemin.cherche_chemin_avec_visilibity(self, depart, arrivee, relanceProblemeArrivee)
         
         self.simulateur.clearEntity("rc_chemin")
         for p1,p2 in zip([depart]+chemin[:-1],chemin):
