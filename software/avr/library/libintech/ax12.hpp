@@ -78,7 +78,7 @@ template<class Serial_AX12>
 class AX
 {
 private:
-	uint8_t id_;
+    uint8_t id_;
 
     enum {
         READ_TIMEOUT = 0, READ_SUCCESS = 1
@@ -88,7 +88,6 @@ private:
     void sendPacket(uint8_t datalength, uint8_t instruction, uint8_t *data)
     {
         uint8_t checksum = 0;
-        // Serial_AX12::disable_rx();             //désactiver la série
         Serial_AX12::send_char(0xFF);
         Serial_AX12::send_char(0xFF);
         Serial_AX12::send_char(id_);
@@ -103,13 +102,11 @@ private:
         }
         
         Serial_AX12::send_char(~checksum);
-        // Serial_AX12::enable_rx();                //réactiver la série
     }
 
     void static sendPacketB(uint8_t datalength, uint8_t instruction, uint8_t *data)
     {
         uint8_t checksum = 0;
-        Serial_AX12::disable_rx();             //désactiver la série
         Serial_AX12::send_char(0xFF);
         Serial_AX12::send_char(0xFF);
         Serial_AX12::send_char(0xFE);
@@ -124,7 +121,6 @@ private:
         }
         
         Serial_AX12::send_char(~checksum);
-        Serial_AX12::enable_rx();                //réactiver la série
     }
     
     /// Ecriture d'une séquence de bits 
@@ -144,25 +140,61 @@ private:
         sendPacketB(reglength+1, AX_WRITE_DATA, data);
     }
     
+    void readData(uint8_t regstart, uint8_t reglength, unsigned char *answer){
+        uint8_t data[2];
+        data[0] = regstart;
+        data[1] = reglength;
+        sendPacket(2, AX_READ_DATA, data);
+        
+        Serial_AX12::disable_tx();                   //désactiver la série sortante
+        Serial_AX12::enable_rx();                   //activer la série entrante
+        answer[0] = 0;
+        while (answer[0] != 255) 
+        {
+            Serial_AX12::read_char(answer[0], 100); //attente du séparateur de trame 0xFF
+        }
+            while (answer[0] == 255) 
+        {
+            Serial_AX12::read_char(answer[0], 100); //évacuation du séparateur et de l'id
+        }
+        Serial_AX12::read_char(answer[0], 100);     //taille des données restantes à lire (nbDonnéesDemandées + 2 : avec toss_error et checksum)
+        uint8_t length = answer[0] - 2;             //taille des données utiles            
+        Serial_AX12::read_char(answer[0], 100);     //évacuation du toss_error
+        for (uint8_t f=0; f<length; f++) {
+            Serial_AX12::read_char(answer[f], 100); //lecture des données
+        }    
+        Serial_AX12::read_char(answer[0], 100);     //évacuation du checksum
+        Serial_AX12::disable_rx();                  //désactiver la série entrante
+        Serial_AX12::enable_tx();                   //réactiver la série sortante
+    }
+    
+    
 public:
-
-	AX(uint8_t id, uint16_t AX_angle_CW, uint16_t AX_angle_CCW)  // Constructeur de la classe
-	{
-		id_ = id;
+    
+    AX(uint8_t id, uint16_t AX_angle_CW, uint16_t AX_angle_CCW)  // Constructeur de la classe
+    {
+        Serial_AX12::disable_rx();
+        id_ = id;
         // Active l'asservissement du servo
         writeData (AX_TORQUE_ENABLE, 1, 1);
         // Définit les angles mini et maxi
         writeData (AX_CW_ANGLE_LIMIT_L, 2, AX_angle_CW);
         writeData (AX_CCW_ANGLE_LIMIT_L, 2, AX_angle_CCW);
+        //baudrate
         writeData (AX_BAUD_RATE, 1, 0xCF);
-	}
+    }
 
     AX(uint8_t id)  // Constructeur de la classe pour faire tourner l'AX12 en continu
     {
+        Serial_AX12::disable_rx();
         id_ = id;
         // Active l'asservissement du servo
         writeData (AX_TORQUE_ENABLE, 1, 1);
-        writeData (AX_BAUD_RATE, 1, 0xCF);
+        // Pas de limitation d'angles
+        writeData (AX_CW_ANGLE_LIMIT_L, 2, (uint16_t)0);
+        writeData (AX_CCW_ANGLE_LIMIT_L, 2, (uint16_t)1023);
+        //baudrate
+        writeData (AX_BAUD_RATE, 1, 0xC88F);
     }
     
     /// Reset de l'AX12
@@ -202,12 +234,12 @@ public:
     /// Goto - Envoyer un angle en DEGRES entre angleMin et angleMax
     void goTo(uint16_t angle)
     {
-        writeData(AX_GOAL_POSITION_L, 2, (uint16_t)(1023.*angle/300.));
+        writeData(AX_GOAL_POSITION_L, 2, (uint16_t)(((uint32_t)1023*angle)/300));
     }
 
     void static goToB(uint16_t angle)
     {
-        writeDataB(AX_GOAL_POSITION_L, 2, (uint16_t)(1023.*angle/300.));
+        writeDataB(AX_GOAL_POSITION_L, 2, (uint16_t)(((uint32_t)1023*angle)/300));
     }
     
 
@@ -246,7 +278,6 @@ public:
         writeDataB(AX_GOAL_SPEED_L, 2, vitesse);
     }
 
-
     /// Désasservissement d'un AX12 branché.
     void unasserv()
     {
@@ -258,7 +289,6 @@ public:
         writeDataB(AX_TORQUE_ENABLE, 1, 0);
     }
 
-
     // Changement de la limite de température
     void changeT(uint8_t temperature)
     {
@@ -269,7 +299,6 @@ public:
     {
         writeDataB(AX_LIMIT_TEMPERATURE, 1, temperature);
     }
-
 
     // Changement du voltage maximal
     void changeVMax(uint8_t volt)
@@ -305,6 +334,31 @@ public:
     {
         writeDataB(AX_ALARM_LED, 1, type);
     }
+    
+    // Lecture de la position courante, avec la notation de l'AX-12
+    uint16_t getPosition_0_1023()
+    {
+        uint8_t pos[2];
+        readData(AX_PRESENT_POSITION_L, 2, pos);    // 2 octet lus : le bit de poids fort aussi
+        return (uint16_t)(((uint16_t)pos[1]<<8) | (uint8_t)(~pos[0]));
+    }
+    
+    // Lecture de la position courante, en degrés
+    uint16_t getPositionDegres()
+    {
+        return ((uint32_t)300*getPosition_0_1023())/1023;
+    }
+    
+    // Retourne si l'AX-12 est en déplacement vers sa consigne
+    bool isMoving()
+    {
+        uint8_t mov;
+        readData(AX_MOVING, 1, mov);
+        if (mov==0)
+            return false;
+        else
+            return true;
+    }
 
     // Pour envoyer un message comme un grand !
     void message(uint8_t adresse, uint8_t n, uint16_t val)
@@ -315,6 +369,11 @@ public:
     void static messageB(uint8_t adresse, uint8_t n, uint16_t val)
     {
         writeDataB(adresse, n, val);
+    }
+    
+    void lire(uint8_t regstart, uint8_t reglength, unsigned char *answer)
+    {
+        readData(regstart, reglength, answer);
     }
 };
 
