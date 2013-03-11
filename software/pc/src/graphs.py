@@ -71,14 +71,14 @@ class GraduationV(QtGui.QWidget) :
         
     def drawGraduations(self, qp) :
         hauteur = self.parent().size().height()
-        nombreGraduationsMax = hauteur//100
+        nombreGraduationsMax = hauteur//50
         deltaCoord = self.fenetrePrincipale.canvas.maxCoordY - self.fenetrePrincipale.canvas.minCoordY
         pas = float(deltaCoord)/nombreGraduationsMax
         
         base = _simplify(self.fenetrePrincipale.canvas.minCoordY)
         
         for id_ in range(nombreGraduationsMax) :
-            qp.drawText(15, self.fenetrePrincipale.canvas.coordsToPixels(0,_simplify(base+pas*id_))[1] , "%.1e"%(base+pas*id_))
+            qp.drawText(15, self.fenetrePrincipale.canvas.coordsToPixels(0,_simplify(base+pas*id_))[1] , _intToSc(base+pas*id_))
         
 class GraduationH(QtGui.QWidget) :
     def __init__(self, fenetrePrincipale) :
@@ -99,11 +99,9 @@ class GraduationH(QtGui.QWidget) :
         nombreGraduationsMax = largeur//100
         deltaCoord = self.fenetrePrincipale.canvas.maxCoordX - self.fenetrePrincipale.canvas.minCoordX
         pas = float(deltaCoord)/nombreGraduationsMax
-        
         base = _simplify(self.fenetrePrincipale.canvas.minCoordX)
-        
         for id_ in range(nombreGraduationsMax) :
-            qp.drawText(self.fenetrePrincipale.canvas.coordsToPixels(_simplify(base+pas*id_),0)[0], 14, "%.1e"%(base+pas*id_))
+            qp.drawText(self.fenetrePrincipale.canvas.coordsToPixels(_simplify(base+pas*id_),0)[0], 14, _intToSc(base+pas*id_))
             
         
 class Boutons(QtGui.QWidget) :
@@ -316,15 +314,29 @@ class Courbe :
         self.valeurs_x.append(x)
         self.valeurs_y.append(y)
         
+# Retourne un int
 def _scToInt(string) :
     i = string.find("e")
     m = float(string[:i])
     e = int(string[i+1:])
     return (m*10**e)
+    
+# Retourne un str
+def _intToSc(int_) :
+    if abs(int_) >= 0.1:
+        return "%.1f"%int_
+    else :
+        return "%.1e"%int_
         
 def _simplify(int_) :
     return _scToInt('%.1e'%int_)
     
+def _getPuissanceDe10LaPlusProche(float_) :
+    if float_ != 0 :
+        return round(math.log(abs(float_)))
+    else :
+        return 0
+        
 def createCourbe(points) :
     c = Courbe()
     for pt in points :
@@ -340,10 +352,9 @@ def createDeltaCourbe(delta, ordonnees) :
         
         
 if __name__ == "__main__" :
-    
     c1 = Courbe([1,3,6], [2,-1,5])
     c2 = createCourbe([[1,2], [3,5], [4, 6], [7, -1]])
-    c3 = createDeltaCourbe(0.5, [1,1.1,1.3,1.5,1.58,1.62,1.63,1.64,1.56,1.40,1.3,1.2,1.15,1.1])
+    c3 = createDeltaCourbe(0.5, [1,1.1,1.3,1.5,1.58,1.62,1.63,1.64,1.56,1.40,1.3,1.2,1.15,1.1, 1.08])
     app = QtGui.QApplication(sys.argv)
     
     canvas = Canvas([c3])
