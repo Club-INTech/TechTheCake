@@ -89,11 +89,11 @@ class Strategie:
             
         #chemin impossible
         except libRechercheChemin.ExceptionAucunChemin:
-            return -999
+            return 0
         except libRechercheChemin.ExceptionArriveeDansObstacle:
-            return -999
+            return 0
         except libRechercheChemin.ExceptionArriveeHorsTable:
-            return -999
+            return 0
             
         # Erreur dans la durée script, script ignoré
         if duree_script <= 0:

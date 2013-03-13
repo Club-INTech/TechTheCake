@@ -284,6 +284,7 @@ class ThreadCouleurBougies(AbstractThread):
         config = self.container.get_service("config")
         table = self.container.get_service("table")
         timer = self.container.get_service("threads.timer")
+        scripts = self.container.get_service("scripts")
 
         log.debug("Lancement du thread de détection des couleurs des bougies")
 
@@ -303,7 +304,14 @@ class ThreadCouleurBougies(AbstractThread):
             rcv = str(client_socket.recv(11),"utf-8").replace("\n","")
             table.definir_couleurs_bougies(rcv)
         except:
-            table.definir_couleurs_bougies("rrbrrbbbrr")
+            # Si on n'a pas d'information de l'appli android, le mieux est de faire toutes les bougies (ce qui permet de gagner le plus de points possible). Pour cela, on contourne la complétion antisymétrique effectuée dans définir_couleur_bougies
+            scripts["ScriptBougies"].en_aveugle = True
+            if config["couleur"]=="bleu":
+                for i in range (20):
+                    table.bougies[i]["couleur"] = table.COULEUR_BOUGIE_BLEU
+            else:
+                for i in range (20):
+                    table.bougies[i]["couleur"] = table.COULEUR_BOUGIE_ROUGE       
         finally:
             client_socket.close()
            

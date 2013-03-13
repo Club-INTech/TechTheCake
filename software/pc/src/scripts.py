@@ -104,6 +104,10 @@ class ScriptBougies(Script):
         Permet de factoriser et de rendre visibles les différentes constantes et étalonnages du script.
         Les valeurs entières spécifiées ici sont en mm et sont à tester en pratique ! Les signes sont déjà implémentés. 
         """
+        
+        # Vrai si on n'a reçu aucune information de l'application android (sert au calcul des points)
+        self.en_aveugle = False
+
         self.couleur_a_traiter = self.table.COULEUR_BOUGIE_ROUGE if self.config["couleur"] == "rouge" else self.table.COULEUR_BOUGIE_BLEU
         
         # pour calculer simplement les delta_angle
@@ -273,7 +277,10 @@ class ScriptBougies(Script):
         return self.info_versions[id_version]["point_entree"]
         
     def score(self):
-        return 4 * len([element for element in self.table.bougies_restantes(self.couleur_a_traiter)])
+        if self.en_aveugle:
+            return 2 * len([element for element in self.table.bougies_restantes(self.couleur_a_traiter)])
+        else:
+            return 4 * len([element for element in self.table.bougies_restantes(self.couleur_a_traiter)])
     
     def poids(self):
         return 1
