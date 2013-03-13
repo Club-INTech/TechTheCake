@@ -8,7 +8,7 @@
 
 template<class Moteur,class Codeuse>
 Ascenseur<Moteur, Codeuse>::Ascenseur():
-	_asservissement(0.01,0.00,0.001),
+	_asservissement(0.01,0.0001,0.00),
 	_compteur_blocage(0),
 	_est_asservi(true)
 {
@@ -18,9 +18,10 @@ Ascenseur<Moteur, Codeuse>::Ascenseur():
 template<class Moteur,class Codeuse>
 void Ascenseur<Moteur, Codeuse>::asservir()
 {
-	codeuse(libcodeuse.compteur());
-	int32_t pwm = _asservissement.pwm(_codeuse, 10);
-	int32_t derivee_erreur = _asservissement.erreur();
+	int32_t pwm = _asservissement.pwm(libcodeuse.compteur());
+	int32_t derivee_erreur;
+	bool bouge_pas;
+	bool moteur_force;
 	if (_est_asservi)
 	{
 		_moteur.envoyerPwm(pwm);
@@ -32,8 +33,9 @@ void Ascenseur<Moteur, Codeuse>::asservir()
 	
 	// Si blocage moteur
 	
-	bool bouge_pas = !((derivee_erreur <= 30) && (derivee_erreur >= -30));
-	bool moteur_force = (pwm >= 75) || (pwm <= -75);
+	derivee_erreur = _asservissement.erreur_d();
+	bouge_pas = (derivee_erreur <= 30) && (derivee_erreur >= -30);
+	moteur_force = (pwm >= 75) || (pwm <= -75);
 	if (bouge_pas && moteur_force)
 	{
 		++_compteur_blocage;
