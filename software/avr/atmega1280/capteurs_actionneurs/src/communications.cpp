@@ -11,6 +11,7 @@ Communications::Communications()
 void Communications::execute(char ordre[])
 {
 
+        // CAPTEURS
         if (strcmp(ordre, "nbI")==0)   //pour l'initialisation en python du nombre de capteurs
         {
             serie_robot::print(NB_INFRAROUGE_AVANT);
@@ -55,14 +56,14 @@ void Communications::execute(char ordre[])
         }
 
         // ACTIONNEURS CADEAUX        
-        else if(strcmp(ordre, "g") == 0)
+        else if(strcmp(ordre, "cadeau") == 0)
         {
             uint16_t angle;
             
             serie_robot::read(angle);
             actionneurs.cadeaux.goTo(angle); //Angle d'entrée commandé
         }
-        
+/*        
         // Changement de vitesse
         else if(strcmp(ordre, "ch_vit") == 0)
         {	
@@ -71,7 +72,7 @@ void Communications::execute(char ordre[])
             serie_robot::read(speed);
             actionneurs.cadeaux.changeSpeed(speed);
         }
-
+*/
         // ACTIONNEURS BOUGIES
         else if(strcmp(ordre, "bas") == 0)
         {
