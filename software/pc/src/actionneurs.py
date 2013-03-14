@@ -13,11 +13,11 @@ class Actionneurs :
         self.actionneur_bougies_actif = False
 
     def ouvrir_cadeau(self) :
-        self.serie.communiquer("capteurs_actionneurs",["g",170],0)
+        self.serie.communiquer("capteurs_actionneurs",["cadeau",170],0)
         self.actionneur_cadeaux_actif = True
     
     def fermer_cadeau(self) :
-        self.serie.communiquer("capteurs_actionneurs",["g",230],0)
+        self.serie.communiquer("capteurs_actionneurs",["cadeau",230],0)
         self.actionneur_cadeaux_actif = False
 
     def gonfler_ballon(self) :
@@ -26,10 +26,10 @@ class Actionneurs :
     def initialiser_bras_bougie(self, enHaut) : 
         if enHaut:
             self.log.debug("Relève l'actionneur bougie du haut")
-            self.serie.communiquer("capteurs_actionneurs",["haut",67],0)
+            self.serie.communiquer("capteurs_actionneurs",["haut",140],0) # Attention, il ne faut pas les monter trop haut sinon on dépasse la hauteur réglementaire
         else:
             self.log.debug("Relève l'actionneur bougie du bas")
-            self.serie.communiquer("capteurs_actionneurs",["bas",80],0)
+            self.serie.communiquer("capteurs_actionneurs",["bas",150],0)
         self.actionneur_bougies_actif = True
 
     def enfoncer_bougie(self, enHaut) :
@@ -47,7 +47,7 @@ class Actionneurs :
 
     def rentrer_bras_bougie(self) : 
         self.log.debug("Rentre les 2 actionneurs pour bougies")
-        self.serie.communiquer("capteurs_actionneurs",["haut",170],0)
+        self.serie.communiquer("capteurs_actionneurs",["haut",240],0)
         self.serie.communiquer("capteurs_actionneurs",["bas",240],0)
         self.actionneur_bougies_actif = False
 

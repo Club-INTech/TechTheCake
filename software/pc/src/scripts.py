@@ -237,7 +237,9 @@ class ScriptBougies(Script):
             
             # Lever le bras
             hook_baisser_bras = self.hookGenerator.hook_angle_gateau(angle_lever_bras, vers_x_croissant)
-            hook_baisser_bras += self.hookGenerator.callback(self.robot.initialiser_bras_bougie, (bougie["enHaut"],))
+#            hook_baisser_bras += self.hookGenerator.callback(self.robot.initialiser_bras_bougie, (bougie["enHaut"],)) #Pourquoi n'en lever qu'un?!
+            hook_baisser_bras += self.hookGenerator.callback(self.robot.initialiser_bras_bougie, (True,)) #Pourquoi n'en lever qu'un?!
+            hook_baisser_bras += self.hookGenerator.callback(self.robot.initialiser_bras_bougie, (False,)) #Pourquoi n'en lever qu'un?!
             hooks.append(hook_baisser_bras)
         
         # Lancement de l'arc de cercle
