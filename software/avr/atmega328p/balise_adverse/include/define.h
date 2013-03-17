@@ -9,6 +9,10 @@
 
 #define BAUDRATE 115200
 
-#define SERVER_ADDRESS 0x5001
+// Adresse de la carte laser (Xbee)
+//#define SERVER_ADDRESS 0x5001
+
+// Adresse de la carte laser (Xbee S8)
+#define SERVER_ADDRESS 0x0013A2004096049E
 
 #endif

@@ -5,7 +5,7 @@
 #include <libintech/singleton.hpp>
 #include <libintech/moteur.hpp>
 #include <libintech/asservissement.hpp>
-#include <libintech/xbee.hpp>
+#include <libintech/xbees8.hpp>
 #include <libintech/timer.hpp>
 #include <util/delay.h>
 #include "define.h"
@@ -13,7 +13,7 @@
 class Balise : public Singleton<Balise>
 {
     public:
-        typedef Xbee< Serial<0> > xbee;
+        typedef XbeeS8< Serial<0> > xbee;
         
         /**
          * Timer utilisé pour calculer l'écart de temps entre les 2 lasers
