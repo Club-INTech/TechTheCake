@@ -155,21 +155,21 @@ public:
 
         // Délimiteur de trame
         do{
-            status = Serial::read_char(buffer, timeout);
+            status = read_with_escape(buffer, timeout);
             if (status == READ_TIMEOUT) return status;
         } while (status != READ_TIMEOUT && buffer != 0x7E);
         
         // Taille de la réponse
-        status = Serial::read_char(buffer, 100);
+        status = read_with_escape(buffer, 100);
         if (status == READ_TIMEOUT) return status;
         length = buffer << 8;
         
-        status = Serial::read_char(buffer, 100);
+        status = read_with_escape(buffer, 100);
         if (status == READ_TIMEOUT) return status;
         length += buffer;
 
         // Type de réponse
-        Serial::read_char(buffer, 100);
+        read_with_escape(buffer, 100);
         if (buffer != 0x90) return READ_TIMEOUT;
 
         // Adresse de l'emetteur
@@ -187,7 +187,7 @@ public:
         Serial::read_char(buffer, 100);
         
         // Receive options
-        Serial::read_char(buffer, 100);
+        read_with_escape(buffer, 100);
 
         for (uint8_t i = 0; i < length - 12; i++) {
             read_with_escape(buffer, 100);
@@ -198,7 +198,7 @@ public:
         message[length - 12] = '\0';
 
         // Checksum (ignoré pour le moment)
-        Serial::read_char(checksum, 100);
+        read_with_escape(checksum, 100);
         
         return READ_SUCCESS;
     }
