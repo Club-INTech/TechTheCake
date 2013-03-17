@@ -173,14 +173,14 @@ public:
         if (buffer != 0x90) return READ_TIMEOUT;
 
         // Adresse de l'emetteur
-        Serial::read_char(buffer, 100);
-        Serial::read_char(buffer, 100);
-        Serial::read_char(buffer, 100);
-        Serial::read_char(buffer, 100);
-        Serial::read_char(buffer, 100);
-        Serial::read_char(buffer, 100);
-        Serial::read_char(buffer, 100);
-        Serial::read_char(buffer, 100);
+        read_with_escape(buffer, 100);
+        read_with_escape(buffer, 100);
+        read_with_escape(buffer, 100);
+        read_with_escape(buffer, 100);
+        read_with_escape(buffer, 100);
+        read_with_escape(buffer, 100);
+        read_with_escape(buffer, 100);
+        read_with_escape(buffer, 100);
 
         // Reserved
         Serial::read_char(buffer, 100);
@@ -190,7 +190,7 @@ public:
         Serial::read_char(buffer, 100);
 
         for (uint8_t i = 0; i < length - 12; i++) {
-            Serial::read_char(buffer, 100);
+            read_with_escape(buffer, 100);
             message[i] = buffer;
         }
         
@@ -262,6 +262,15 @@ private:
 		else {
 			Serial::send_char(byte);
 		}
+	}
+    
+    static inline uint8_t read_with_escape(uint8_t &byte, uint16_t timeout) {
+        uint8_t status = Serial::read_char(byte, timeout);
+		if (byte == 0x7D && status == READ_SUCCESS) {
+            status = Serial::read_char(byte, timeout);
+            byte ^= 0x20;
+		}
+		return status;
 	}
 
 };

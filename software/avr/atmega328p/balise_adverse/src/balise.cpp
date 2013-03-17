@@ -62,7 +62,7 @@ void Balise::execute(char *order) {
 	
     // Ping
     if (strcmp(order,"?") == 0) {
-        xbee::send(SERVER_ADDRESS, 1);
+        xbee::send(SERVER_ADDRESS, "?");
         diode_blink(10, 100);
     }
     

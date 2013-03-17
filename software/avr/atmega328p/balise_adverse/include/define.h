@@ -1,6 +1,8 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
+#define MODE_XBEE_S8            0
+
 /**
  * Défini l'intervalle de temps minimum à prendre en considération pour une double impulsion
  * @def TIME_THRESHOLD_MIN
@@ -9,10 +11,10 @@
 
 #define BAUDRATE 115200
 
-// Adresse de la carte laser (Xbee)
-//#define SERVER_ADDRESS 0x5001
-
-// Adresse de la carte laser (Xbee S8)
+#if MODE_XBEE_S8 == 1
 #define SERVER_ADDRESS 0x0013A2004096049E
+#else
+#define SERVER_ADDRESS 0x5001
+#endif
 
 #endif
