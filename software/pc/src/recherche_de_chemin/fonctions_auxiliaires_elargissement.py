@@ -15,25 +15,7 @@ def elargit_cercle(cercle, distance):
     """
     return Cercle(cercle.centre, cercle.rayon + distance)
     
-def elargit_rectangle(polygone, distance):
-    """
-    Renvoit le rectangle élargit du rectangle donné,
-    afin d'adapter la recherche de chemin pour un objet non ponctuel de rayon `distance`.
-    """
-    pointsNormauxA,pointsNormauxB = _etablit_points_normaux(polygone, distance)
-    polygoneEtendu = []
-    for k in range(len(pointsNormauxA)):
-        #le point recherché est le quatrième du losange qui passe par polygone[i],pointsNormauxA[i] et pointsNormauxB[i-1]
-        
-        #barycentre de pointsNormauxA[i],pointsNormauxB[i-1] :
-        bar = Point((pointsNormauxA[k].x + pointsNormauxB[k-1].x)/2., (pointsNormauxA[k].y + pointsNormauxB[k-1].y)/2.)
-        #DEBUG# builtins.simulateur.drawPoint(bar.x,bar.y,"green",True)#@
-        #point recherché :
-        polygoneEtendu.append(Point(2*bar.x-polygone[k].x, 2*bar.y-polygone[k].y))
-        #DEBUG# builtins.simulateur.drawPoint(2*bar.x-polygone[k].x,2*bar.y-polygone[k].y,"red",True)#@
-        
-    #on obtient le polygone étendu recherché
-    return Polygone(polygoneEtendu)
+    
     
 def elargit_polygone(polygone, distance, cote_polygone):
     """
@@ -51,6 +33,7 @@ def elargit_polygone(polygone, distance, cote_polygone):
     """
     
     ecart_angulaire = 0.5*cote_polygone/distance
+    
     
     pointsNormauxA,pointsNormauxB = _etablit_points_normaux(polygone, distance)
     polygoneEtendu = []

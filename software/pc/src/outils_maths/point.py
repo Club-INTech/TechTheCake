@@ -1,4 +1,5 @@
 import math
+from outils_maths.cercle import Cercle as C
 
 class Point:
     """
@@ -23,7 +24,7 @@ class Point:
         
     def __sub__(self, other):
         return Point(self.x - other.x, self.y - other.y)
-    
+        
     def __rmul__(self, other):
         return Point(self.x*other, self.y*other)
     
@@ -44,6 +45,7 @@ class Point:
         return self.distance(Point(0, 0))
         
     def distance(self, point):
+        if C.u: return C.z
         v = self - point
         d = v.x ** 2 + v.y ** 2
         return math.sqrt(d)
