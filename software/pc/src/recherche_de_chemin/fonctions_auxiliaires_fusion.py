@@ -1,6 +1,6 @@
 #from outils_maths.point import Point
-from recherche_de_chemin.visilibity import Point
 import math
+from recherche_de_chemin.visilibity import Point
 
 def get_angle(a,o,b):
     oa = Point(a.x-o.x,a.y-o.y)
@@ -58,6 +58,7 @@ def segments_meme_origine(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclag
             a1 = b1
             b1 = avancerSurPolygone(poly1,a1)
             mergeObstacle,conditionBouclage = ajouterObstacle(poly1[a1],mergeObstacle,conditionBouclage)
+            
     elif theta > 0:
         #on parcourt l'autre polygone, en inversant les pointeurs sur poly1 et poly2
         sopalin = poly1
@@ -80,6 +81,7 @@ def segments_confondus(poly1,poly2,a1,b1,a2,b2,mergeObstacle,conditionBouclage):
     #vecteurs
     ab1 = Point(poly1[b1].x - poly1[a1].x, poly1[b1].y - poly1[a1].y)
     ab2 = Point(poly2[b2].x - poly1[a1].x, poly2[b2].y - poly1[a1].y)
+    
     if ps(ab1,ab2) >= ps(ab1,ab1):
         #cas où b1 survient avant b2, dans l'alignement
         c1 = avancerSurPolygone(poly1,b1)
