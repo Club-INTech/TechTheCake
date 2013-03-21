@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include <avr/io.h>
-#include <util/delay.h>
 
 // Librairie INTech permettant de récupérer la médiane d'un ring_buffer
 #include <libintech/algorithm.hpp>
