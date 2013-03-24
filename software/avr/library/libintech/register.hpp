@@ -146,6 +146,21 @@ struct AVR_ADC {
 //        while (!((ADCSRA & (1 << ADIF)) >> ADIF)); //on peut utiliser ADCS à la place de ADIF
         _delay_us(200); //pour laisser le temps aux registres de s'adapter (valeur expérimentale, normalement c'est 13 cycles horloge de l'ADC)
 
+// A normal conversion takes 13 ADC clock cycles. 
+        __asm__ ("nop");
+        __asm__ ("nop");
+        __asm__ ("nop");
+        __asm__ ("nop");
+        __asm__ ("nop");
+        __asm__ ("nop");
+        __asm__ ("nop");
+        __asm__ ("nop");
+        __asm__ ("nop");
+        __asm__ ("nop");
+        __asm__ ("nop");
+        __asm__ ("nop");
+        __asm__ ("nop");
+
         return ADCH;
     }
 

@@ -194,7 +194,7 @@ class RechercheChemin:
         #traduction du rectangle en une structure de polygone compatible avec visilibity
         polygoneVisilibity = vis.Polygon(list(map(lambda p: Point(p.x,p.y), rectangle)))
         #élargissement de l'obstacle pour un robot non ponctuel
-        rectangleObstacle = enlarge.elargit_rectangle(polygoneVisilibity, self.rayonPropre)
+        rectangleObstacle = enlarge.elargit_polygone(polygoneVisilibity, self.rayonPropre, Environnement.cote_polygone)
         #ajout à l'environnement (ce qui calcule le cercle contenant du rectangle)
         self.environnement_initial.ajoute_rectangle(rectangleObstacle)
         #calcul du polygone recoupé aux bords
@@ -275,12 +275,10 @@ class RechercheChemin:
         # qui sait faire revenir l'indice à 0 et tourne dans le sens opposé pour les bords de la table
         b1 = fus.avancerSurPolygoneBords(poly1,a1,self.bords)
         #le watchdog lève une exception en cas de récursivité non terminale. Meuh non, ca n'arrive pas...
-        WATCHDOG = 0
         auMoinsUneCollision = False
         conditionBouclage = True
         troncateObstacle,conditionBouclage = fus.ajouterObstacle(poly1[a1],troncateObstacle,conditionBouclage)
-        while conditionBouclage and WATCHDOG < 100:
-            WATCHDOG += 1
+        while conditionBouclage:
             #print(poly1[a1],poly1[b1])#@
             #input("parcourir ce segment !")#@
             
@@ -357,12 +355,6 @@ class RechercheChemin:
                 b1 = fus.avancerSurPolygoneBords(poly1,a1,self.bords)
                 troncateObstacle,conditionBouclage = fus.ajouterObstacle(poly1[a1],troncateObstacle,conditionBouclage)
                 
-        if WATCHDOG == 100:
-            #self.log.critical("récursion non terminale pour le polygone tronqué !")
-            #raise Exception
-            self.valide = False
-            return vis.Polygon(troncateObstacle)
-        
         #les obstacles tronqués doivent être éloignés de plus de 'tolérance' des bords pour que Visilibity accepte le calcul.
         for i in range(len(troncateObstacle)):
             if troncateObstacle[i].x < -self.config["table_x"]/2+eps:
@@ -596,7 +588,7 @@ class RechercheChemin:
         #traduction du rectangle en une structure de polygone compatible avec visilibity
         polygoneVisilibity = vis.Polygon(list(map(lambda p: Point(p.x,p.y), rectangle)))
         #élargissement de l'obstacle pour un robot non ponctuel
-        rectangleObstacle = enlarge.elargit_rectangle(polygoneVisilibity, self.rayonPropre)
+        rectangleObstacle = enlarge.elargit_polygone(polygoneVisilibity, self.rayonPropre, Environnement.cote_polygone)
         #ajout à l'environnement (ce qui calcule le cercle contenant du rectangle)
         self.environnement_complet.ajoute_rectangle(rectangleObstacle)
         #calcul du polygone recoupé aux bords
@@ -668,10 +660,13 @@ class RechercheChemin:
         Ils sont approximés par des polygones.
         """
         return self.environnement_complet.cercles_astar
-    
+        
     def charge_obstacles(self):
-        #ajout des obstacles vus par les capteurs et la balise
-        for obstacle in self.table.obstacles():
+        ##ajout des obstacles vus par les capteurs et la balise
+        #for obstacle in self.table.obstacles():
+            #self.ajoute_obstacle_cercle(obstacle.position, obstacle.rayon)
+            
+        for obstacle in self.table.obstacles_capteurs:
             self.ajoute_obstacle_cercle(obstacle.position, obstacle.rayon)
             
         #ajout des verres encore présents sur la table
