@@ -80,7 +80,7 @@ class SerieReelle:
                     except:
                         pass
                 except Exception as e:
-                    log.warning("exception durant la détection des périphériques série: {0}".format(e))
+                    self.log.warning("exception durant la détection des périphériques série: {0}".format(e))
                     
         #attribue les instances de série pour les périphériques ayant le bon ping
         for destinataire in (self.peripheriques):
