@@ -36,13 +36,9 @@ class Actionneurs :
         if enHaut:
             self.log.debug("Enfonce une bougie avec l'actionneur du haut")
             self.serie.communiquer("capteurs_actionneurs",["haut",160],0)
-            sleep(.1)
-            self.serie.communiquer("capteurs_actionneurs",["haut",140],0)
         else:
             self.log.debug("Enfonce une bougie avec l'actionneur du bas")
             self.serie.communiquer("capteurs_actionneurs",["bas",180],0)
-            sleep(.1)
-            self.serie.communiquer("capteurs_actionneurs",["bas",150],0)
         self.actionneur_bougies_actif = True
 
     def rentrer_bras_bougie(self) : 
