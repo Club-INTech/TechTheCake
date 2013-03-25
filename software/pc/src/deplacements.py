@@ -118,16 +118,20 @@ class Deplacements():
         3 : vitesse pour forcer
         """
         
-        #definition des constantes d'asservissement en fonction de la vitesse
-        kp_translation = [0.75,0.75,0.5]
-        kd_translation = [2.0,2.5,4.0]
-        #vb_translation = [60,100,200]
-        vb_translation = [40,100,200]
-        
         envoi = ["ctv"]
-        envoi.append(float(kp_translation[valeur-1]))
-        envoi.append(float(kd_translation[valeur-1]))
-        envoi.append(int(vb_translation[valeur-1]))
+        if valeur < 5:
+            #definition des constantes d'asservissement en fonction de la vitesse
+            kp_translation = [0.75,0.75,0.5]
+            kd_translation = [2.0,2.5,4.0]
+            vb_translation = [40,100,200]
+            
+            envoi.append(float(kp_translation[valeur-1]))
+            envoi.append(float(kd_translation[valeur-1]))
+            envoi.append(int(vb_translation[valeur-1]))
+        else:
+            envoi.append(0.25)
+            envoi.append(9.0)
+            envoi.append(int(valeur))
         self.serie.communiquer("asservissement",envoi, 0)
         
     def set_vitesse_rotation(self, valeur):
@@ -139,16 +143,20 @@ class Deplacements():
         3 : vitesse pour forcer
         """
         
-        #definition des constantes d'asservissement en fonction de la vitesse
-        kp_rotation = [1.5,1.2,0.9]
-        kd_rotation = [2.0,3.5,3.5]
-        #vb_rotation = [80,100,200]
-        vb_rotation = [60,100,200]
-        
         envoi = ["crv"]
-        envoi.append(float(kp_rotation[valeur-1]))
-        envoi.append(float(kd_rotation[valeur-1]))
-        envoi.append(int(vb_rotation[valeur-1]))
+        if valeur < 5:
+            #definition des constantes d'asservissement en fonction de la vitesse
+            kp_rotation = [0.25,1.2,0.9]
+            kd_rotation = [2.0,3.5,3.5]
+            vb_rotation = [60,100,200]
+        
+            envoi.append(float(kp_rotation[valeur-1]))
+            envoi.append(float(kd_rotation[valeur-1]))
+            envoi.append(int(vb_rotation[valeur-1]))
+        else:
+            envoi.append(0.8)
+            envoi.append(15.0)
+            envoi.append(int(valeur))
         self.serie.communiquer("asservissement",envoi, 0)
         
     def get_infos_stoppage_enMouvement(self):
