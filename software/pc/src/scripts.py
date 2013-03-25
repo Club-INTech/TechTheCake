@@ -187,6 +187,10 @@ class ScriptBougies(Script):
         
     def _execute(self, version):
 
+    
+        
+        self.robot.set_vitesse_translation(1)
+        self.robot.set_vitesse_rotation(1)
         # Il n'y a aucune symétrie sur la couleur dans les déplacements
         self.robot.marche_arriere = False
         self.robot.effectuer_symetrie = False
@@ -291,6 +295,9 @@ class ScriptCadeaux(Script):
         
     def _execute(self, version):
         
+        self.robot.set_vitesse_translation(1)
+        self.robot.set_vitesse_rotation(1)
+        
         # Effectue une symétrie sur tous les déplacements
         self.robot.effectuer_symetrie = False
         
@@ -309,16 +316,16 @@ class ScriptCadeaux(Script):
         
         # Création des hooks pour tous les cadeaux à activer
         hooks = []
+        # Ouverture du bras en face du cadeau
         for cadeau in self.table.cadeaux_restants():
-            
-            # Ouverture du bras
-            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * self.decalage_x_ouvre, self.decalage_y_bord ), effectuer_symetrie=False)
+            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * self.decalage_x_ouvre, self.decalage_y_bord ), tolerance_mm=35, effectuer_symetrie=False)
             hook_ouverture += self.hookGenerator.callback(self.robot.ouvrir_cadeau)
             hook_ouverture += self.hookGenerator.callback(self.table.cadeau_recupere, (cadeau,))
             hooks.append(hook_ouverture)
             
-            # Fermeture du bras
-            hook_fermeture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * self.decalage_x_ferme, self.decalage_y_bord ), effectuer_symetrie=False)
+        # Fermeture du bras pendant les "trous" entre cadeaux
+        for trou in self.table.trous_cadeaux:
+            hook_fermeture = self.hookGenerator.hook_position(trou + Point(sens * self.decalage_x_ferme, self.decalage_y_bord ), tolerance_mm=35, effectuer_symetrie=False)
             hook_fermeture += self.hookGenerator.callback(self.robot.fermer_cadeau)
             hooks.append(hook_fermeture)
 
@@ -332,10 +339,11 @@ class ScriptCadeaux(Script):
             self.log.debug("Fin du script cadeau : repli de l'actionneur cadeaux.")
             self.effectuer_symetrie = False
             try:
+                angle_repli = math.pi/3
                 if self.robot.x > 0:
-                    self.robot.tourner(math.pi/4)
+                    self.robot.tourner(angle_repli)
                 else:
-                    self.robot.tourner(-math.pi/4)
+                    self.robot.tourner(-angle_repli)
             finally:
                 self.robot.fermer_cadeau()
         else:
@@ -343,8 +351,8 @@ class ScriptCadeaux(Script):
 
     def versions(self):
         self.decalage_x_ouvre = -50
-        self.decalage_x_ferme = 350
-        self.decalage_y_bord = self.config["rayon_robot"] + 50
+        self.decalage_x_ferme = -60#350
+        self.decalage_y_bord = self.config["rayon_robot"] + 100
         self.decalage_x_pour_reglette_blanche = 100
         
         cadeaux = self.table.cadeaux_entrees()

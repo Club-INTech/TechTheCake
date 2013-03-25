@@ -62,6 +62,12 @@ class Table:
             {"id": 6, "position": Point(810,0), "couleur": "bleu", "ouvert": False},
             {"id": 7, "position": Point(990,0), "couleur": "rouge", "ouvert": False}
         ]
+        
+        self.trous_cadeaux = [
+            Point(-600,0),
+            Point(0,0),
+            Point(600,0)
+        ]
             
         # Indique les points d'entrée sur les cadeaux
         # Contient les 2 indices des cadeaux aux extrémités de la table (Xmax, Xmin), même si plus qu'un cadeau
