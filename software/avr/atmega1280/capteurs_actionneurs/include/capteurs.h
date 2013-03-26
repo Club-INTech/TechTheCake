@@ -20,9 +20,9 @@ class Capteurs
         typedef Timer<1, 64> timer_capteur_us;
         typedef Timer<2, 1024> timer_refresh;
         
-        typedef CapteurSRF< timer_capteur_us, AVR_PORTC<PORTC1>, AVR_PORTC<PORTC2> > capteur_us1_type;
+        typedef CapteurSRFMono< timer_capteur_us, AVR_PORTC<PORTC1> > capteur_us1_type;
         capteur_us1_type us1;
-        typedef CapteurSRF< timer_capteur_us, AVR_PORTC<PORTC3>, AVR_PORTC<PORTC4> > capteur_us2_type;
+        typedef CapteurSRFMono< timer_capteur_us, AVR_PORTC<PORTC3> > capteur_us2_type;
         capteur_us2_type us2;
 
         typedef CapteurInfrarouge< AVR_ADC<0> > capteur_infra1_type;
