@@ -139,7 +139,7 @@ class Strategie:
         On prend la distance euclidienne, à vol d'oiseau.
         Attention, on prend le min: cette valeur est sensible aux mesures aberrantes
         """
-        if self.table.obstacles() == []:
+        if [obstacle for obstacle in self.table.obstacles() if hasattr(obstacle, "vitesse")] == []:
             return 0
             
-        return min([point_entree.distance(obstacle.position) for obstacle in self.table.obstacles()])
+        return min([point_entree.distance(obstacle.position)+2*obstacle.vitesse for obstacle in self.table.obstacles() if hasattr(obstacle, "vitesse")])
