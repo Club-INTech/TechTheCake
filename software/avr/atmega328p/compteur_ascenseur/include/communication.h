@@ -16,7 +16,7 @@ class Communication : public Singleton<Communication>
 {
 	public:
 		typedef Codeuse<AVR_PORTD <PORTD2>,AVR_PORTD <PORTD3> > codeuseAvant;
-		typedef Codeuse<AVR_PORTD <PORTD4>,AVR_PORTD <PORTD5> > codeuseArriere;
+		typedef Codeuse<AVR_PORTC <PORTC0>,AVR_PORTD <PORTC1> > codeuseArriere;
 		codeuseAvant codeuseMoteurAvant;
 		codeuseArriere codeuseMoteurArriere;
 
