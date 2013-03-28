@@ -251,18 +251,24 @@ class Table:
     ### GESTION DES VERRES
     ###############################################
     
-    def verres_entrees(self, zone=ZONE_VERRE_ROUGE|ZONE_VERRE_BLEU):
+    def verres_entrees(self, zone_demandee=ZONE_VERRE_ROUGE|ZONE_VERRE_BLEU):
         """
         Récupère la liste des verres possibles comme point d'entrée sur une des deux zones de la table
         """
-        restants_zone_demandee = [v["id"] for v in self.verres_restants(zone)]
+        zones = [Table.ZONE_VERRE_ROUGE, Table.ZONE_VERRE_BLEU]
+        verres_en_entrees = []
+        
+        for zone in [z for z in zones if z & zone_demandee]:
+            restants_dans_zone = [v["id"] for v in self.verres_restants(zone)]
 
-        if len(restants_zone_demandee) == 0:
-            return []
-        elif len(restants_zone_demandee) == 1:
-            return [self.verres[restants_zone_demandee[0]]]
-        else:
-            return [self.verres[min(restants_zone_demandee)], self.verres[max(restants_zone_demandee)]]
+            if len(restants_dans_zone) == 0:
+                pass
+            elif len(restants_dans_zone) == 1:
+                verres_en_entrees += [self.verres[restants_dans_zone[0]]]
+            else:
+                verres_en_entrees += [self.verres[min(restants_dans_zone)], self.verres[max(restants_dans_zone)]]
+                
+        return verres_en_entrees
         
     def verres_restants(self, zone=ZONE_VERRE_ROUGE|ZONE_VERRE_BLEU):
         """
