@@ -178,14 +178,16 @@ class RobotChrono(RobotInterface):
         self.orientation = angle
         
         
-    def suit_chemin(self, chemin, hooks=[], symetrie_effectuee=False):
+    def suit_chemin(self, chemin, hooks=[], marche_arriere_auto=True, symetrie_effectuee=False):
         """
         Fonction analogue à celle de robot. Cette méthode parcourt un chemin déjà calculé. Elle appelle va_au_point() sur chaque point de la liste chemin.
         """
         for position in chemin:
-            self.va_au_point(position, symetrie_effectuee=symetrie_effectuee)
+            if marche_arriere_auto:
+                self.marche_arriere = self.marche_arriere_est_plus_rapide(position)
+            self.va_au_point(position, hooks, symetrie_effectuee=symetrie_effectuee)
             
-    def recherche_de_chemin(self, position, recharger_table=False):
+    def recherche_de_chemin(self, position, recharger_table=False, renvoie_juste_chemin=False):
         """
         Méthode pour calculer rapidement (algorithme A*) le temps mis pour atteindre un point de la carte après avoir effectué une recherche de chemin.
         """
@@ -199,6 +201,10 @@ class RobotChrono(RobotInterface):
         if self.effectuer_symetrie and self.config["couleur"] == "bleu":
             arrivee.x *= -1
         chemin = self.rechercheChemin.cherche_chemin_avec_a_star(depart, arrivee)
+        
+        if renvoie_juste_chemin:
+            return chemin
+            
         self.suit_chemin(chemin, symetrie_effectuee=True)
         
     def va_au_point(self, point_consigne, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, symetrie_effectuee=False):

@@ -493,14 +493,16 @@ class Robot(RobotInterface):
             self.stopper()
             raise ExceptionMouvementImpossible(self)
             
-    def suit_chemin(self, chemin, hooks=[], symetrie_effectuee=False):
+    def suit_chemin(self, chemin, hooks=[], marche_arriere_auto=True, symetrie_effectuee=False):
         """
         Cette méthode parcourt un chemin déjà calculé. Elle appelle va_au_point() sur chaque point de la liste chemin.
         """
         for position in chemin:
+            if marche_arriere_auto:
+                self.marche_arriere = self.marche_arriere_est_plus_rapide(position)
             self.va_au_point(position, hooks, symetrie_effectuee=symetrie_effectuee)
     
-    def recherche_de_chemin(self, position, recharger_table=True):
+    def recherche_de_chemin(self, position, recharger_table=True, renvoie_juste_chemin=False):
         """
         Méthode pour atteindre un point de la carte après avoir effectué une recherche de chemin.
         """
@@ -517,6 +519,9 @@ class Robot(RobotInterface):
             arrivee.x *= -1
         chemin = self.rechercheChemin.cherche_chemin_avec_visilibity(depart, arrivee)
         
+        if renvoie_juste_chemin:
+            return chemin
+            
         self.suit_chemin(chemin, symetrie_effectuee=True)
     
     def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, symetrie_effectuee=False):
