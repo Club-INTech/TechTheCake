@@ -673,12 +673,15 @@ class RechercheChemin:
         #for obstacle in self.table.obstacles():
             #self.ajoute_obstacle_cercle(obstacle.position, obstacle.rayon)
             
+        #ajout des obstacles vus par les capteurs (seulement)
         for obstacle in self.table.obstacles_capteurs:
             self.ajoute_obstacle_cercle(obstacle.position, obstacle.rayon)
             
         #ajout des verres encore présents sur la table
+        verres_en_entree = self.table.verres_entrees()
         for verre in self.table.verres_restants():
-            self.ajoute_obstacle_cercle(verre["position"], self.config["rayon_verre"])
+            if not verre in verres_en_entree:
+                self.ajoute_obstacle_cercle(verre["position"], self.config["rayon_verre"])
     
     def prepare_environnement_pour_a_star(self):
         """

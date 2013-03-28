@@ -34,7 +34,7 @@ class Script(metaclass=abc.ABCMeta):
         try:
             self._execute(version)
         except robot.ExceptionMouvementImpossible:
-            raise robot.ExceptionMouvementImpossible
+            raise robot.ExceptionMouvementImpossible(self.robot)
         finally:
             self._termine()
         
@@ -395,22 +395,28 @@ class ScriptCadeaux(Script):
 
 class ScriptRecupererVerres(Script):
         
+    def _constructeur(self):
+        self.marge_recuperation = 100
+        
     def _execute(self, version):
         
         # Désactivation de la symétrie
         self.robot.effectuer_symetrie = False
         
         # Point d'entrée du script par recherche de chemin
-        premier_verre = self._point_recuperation_verre(self.info_versions[version]["point_entree"])
+        premier_verre = self.info_versions[version]["point_entree"]
         chemin_vers_entree = self.robot.recherche_de_chemin(premier_verre, recharger_table=False, renvoie_juste_chemin=True)
         
         #suppression du point d'arrivé (le verre) qui est remplacé par un point suffisament éloigné, sur le dernier segment du chemin
+        if len(chemin_vers_entree) > 2 and chemin_vers_entree[-1].distance(chemin_vers_entree[-2]) < self.marge_recuperation:
+            #cette optimisation fonctionnerait mal sur les segments plus courts que la marge de récupération
+            del chemin_vers_entree[-1]
         del chemin_vers_entree[-1]
         chemin_avec_depart = [Point(self.robot.x,self.robot.y)]+chemin_vers_entree
         nouvelle_destination = self._point_recuperation_verre(premier_verre, chemin_avec_depart[-1])
         chemin_vers_entree.append(nouvelle_destination)
         
-        self.robot.suit_chemin(chemin_vers_entree, symetrie_effectuee=True)#bouger dernier point
+        self.robot.suit_chemin(chemin_vers_entree, symetrie_effectuee=True)
         
         # Récupération du premier verre
         self._recuperation_verre(self.info_versions[version]["verre_entree"])
@@ -450,7 +456,6 @@ class ScriptRecupererVerres(Script):
         Récupère le point de destination pour récupérer un verre
         S'appuie sur la position actuelle du robot
         """
-        
         #on peut indiquer en paramètre la position du robot à la fin d'un trajet
         if pos_robot is None:
             pos_robot = Point(self.robot.x, self.robot.y)
@@ -459,7 +464,7 @@ class ScriptRecupererVerres(Script):
         direction = (pos_robot - pos_verre).unitaire()
         
         # Point de récupération (à déterminer)
-        recuperation = pos_verre + 100 * direction
+        recuperation = pos_verre + self.marge_recuperation * direction
         
         return recuperation
          
