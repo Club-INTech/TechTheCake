@@ -273,14 +273,15 @@ class Robot(RobotInterface):
         delta_x = self.consigne_x-self.x
         delta_y = self.consigne_y-self.y
         distance = round(math.sqrt(delta_x**2 + delta_y**2),2)
-        #mise à jour des consignes en translation et rotation en dehors d'un disque de tolérance
+        
         if distance > self.config["disque_tolerance_maj"]:
+            #mise à jour des consignes en translation et rotation en dehors d'un disque de tolérance
             angle = round(math.atan2(delta_y,delta_x),4)
-            #mode marche_arriere
+            #prise en compte du mode marche_arriere
             if self.marche_arriere:
                 distance *= -1
                 angle += math.pi 
-                
+            
             #l'attribut self._consigne_orientation doit etre mis à jour à chaque deplacements.tourner() pour le fonctionnement de self._avancer()
             self._consigne_orientation = angle
             self.deplacements.tourner(angle)
@@ -308,7 +309,7 @@ class Robot(RobotInterface):
         #self.deplacements.gestion_blocage() n'indique qu'un NOUVEAU blocage : garder le ou logique avant l'ancienne valeur (attention aux threads !)
         if self.blocage or self.deplacements.gestion_blocage(**infos):
             self.blocage = True
-            raise ExceptionBlocage
+            raise ExceptionBlocage(self)
         
         #ennemi détecté devant le robot ?
         if detection_collision:
@@ -456,6 +457,7 @@ class Robot(RobotInterface):
         self.marche_arriere = (distance < 0)
         self.effectuer_symetrie = False
         
+        
         x = self.x + distance * math.cos(self._consigne_orientation)
         y = self.y + distance * math.sin(self._consigne_orientation)
         
@@ -484,12 +486,12 @@ class Robot(RobotInterface):
                     self.log.warning("Blocage en rotation ! On tourne dans l'autre sens... reste {0} tentative(s)".format(nombre_tentatives))
                     self.tourner(self.orientation + math.copysign(self.config["angle_degagement_robot"], -angle), nombre_tentatives=nombre_tentatives-1)
             finally:
-                raise ExceptionMouvementImpossible
+                raise ExceptionMouvementImpossible(self)
                 
         #détection d'un robot adverse
         except ExceptionCollision:
             self.stopper()
-            raise ExceptionMouvementImpossible
+            raise ExceptionMouvementImpossible(self)
             
     def suit_chemin(self, chemin, hooks=[], symetrie_effectuee=False):
         """
@@ -548,7 +550,7 @@ class Robot(RobotInterface):
                     else:
                         self.avancer(-self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
             finally:
-                raise ExceptionMouvementImpossible
+                raise ExceptionMouvementImpossible(self)
         
         #détection d'un robot adverse
         except ExceptionCollision:
@@ -558,7 +560,7 @@ class Robot(RobotInterface):
                 sleep(0.5)
                 self.va_au_point(point, hooks, trajectoire_courbe, nombre_tentatives-1, True)
             else:
-                raise ExceptionMouvementImpossible
+                raise ExceptionMouvementImpossible(self)
             
             
     def arc_de_cercle(self, point_destination, hooks=[]):
@@ -575,12 +577,12 @@ class Robot(RobotInterface):
         
         #blocage durant le mouvement
         except ExceptionBlocage:
-            raise ExceptionMouvementImpossible
+            raise ExceptionMouvementImpossible(self)
         
         #détection d'un robot adverse
         except ExceptionCollision:
             self.stopper()
-            raise ExceptionMouvementImpossible
+            raise ExceptionMouvementImpossible(self)
         
     def recaler(self):
         """
@@ -701,7 +703,7 @@ class Robot(RobotInterface):
                 self.log.critical("le robot ne peut pas porter plus de verres à l'avant")
             else:
                 self.log.critical("le robot ne peut pas porter plus de verres à l'arrière")
-            raise ExceptionMouvementImpossible
+            raise ExceptionMouvementImpossible(self)
         
         # Vérification de la présence du verre
         
@@ -757,7 +759,8 @@ class ExceptionBlocage(Exception):
     """
     Exception levée lorsque le robot est physiquement bloqué par un obstacle
     """
-    pass
+    def __init__(self, robot):
+        robot._consigne_orientation = robot.orientation
     
 class ExceptionCollision(Exception):
     """
@@ -769,4 +772,5 @@ class ExceptionMouvementImpossible(Exception):
     """
     Exception levée lorsque le robot ne peut pas accomplir le mouvement
     """
-    pass
+    def __init__(self, robot):
+        robot._consigne_orientation = robot.orientation
