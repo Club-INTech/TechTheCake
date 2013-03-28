@@ -295,14 +295,13 @@ class ScriptCadeaux(Script):
         
     def _execute(self, version):
         
-        self.robot.set_vitesse_translation(1)
-        self.robot.set_vitesse_rotation(1)
-        
         # Effectue une symétrie sur tous les déplacements
         self.robot.effectuer_symetrie = False
         
         # Déplacement proche du point d'entrée avec recherche de chemin
         self.robot.marche_arriere = False
+        self.robot.set_vitesse_translation(140)
+        self.robot.set_vitesse_rotation(150)
         self.robot.recherche_de_chemin(self.info_versions[version]["point_entree_recherche_chemin"], recharger_table=False)
         
         # Déplacement au point d'entrée
@@ -330,6 +329,7 @@ class ScriptCadeaux(Script):
             hooks.append(hook_fermeture)
 
         # Déplacement le long de la table (peut être un peu trop loin ?)
+        self.robot.set_vitesse_translation(100)
         self.robot.va_au_point(self.info_versions[1-version]["point_entree"], hooks)
         
  
@@ -408,6 +408,7 @@ class ScriptRecupererVerres(Script):
         self._recuperation_verre(self.info_versions[version]["verre_entree"])
 
         # Tant qu'il y a de la place dans le robot
+        #TODO : dangereux si bouclage entre 2 verres inaccesibles. Prévoir un timeout ?
         while self.robot.places_disponibles(True) != 0 or self.robot.places_disponibles(False) != 0:
             
             # Indentification du verre le plus proche dans la zone
@@ -425,10 +426,15 @@ class ScriptRecupererVerres(Script):
         """
         Procédure de récupération d'un verre
         """
-        avant = self._choix_ascenceur()
-        self.robot.marche_arriere = not avant
-        self.robot.va_au_point(verre["position"])
-        self.robot.recuperer_verre(avant)
+        destination = self._point_recuperation_verre(verre["position"])
+        mieux_en_arriere = self.robot.marche_arriere_est_plus_rapide(destination)
+        if self.robot.places_disponibles(not mieux_en_arriere):
+            self.robot.marche_arriere = mieux_en_arriere
+        else:
+            self.robot.marche_arriere = not mieux_en_arriere
+        
+        self.robot.va_au_point(destination)
+        self.robot.recuperer_verre(not self.robot.marche_arriere)
         self.table.verre_recupere(verre)
         
     def _choix_ascenceur(self):
