@@ -400,11 +400,19 @@ class ScriptRecupererVerres(Script):
         # Désactivation de la symétrie
         self.robot.effectuer_symetrie = False
         
-        # Point d'entrée du script
-        entree = self._point_recuperation_verre(self.info_versions[version]["point_entree"])
-        #self.robot.recherche_de_chemin(entree, False)
+        # Point d'entrée du script par recherche de chemin
+        premier_verre = self._point_recuperation_verre(self.info_versions[version]["point_entree"])
+        chemin_vers_entree = self.robot.recherche_de_chemin(premier_verre, recharger_table=False, renvoie_juste_chemin=True)
         
-        # Récupération du premier verre, avec recherche de chemin
+        #suppression du point d'arrivé (le verre) qui est remplacé par un point suffisament éloigné, sur le dernier segment du chemin
+        del chemin_vers_entree[-1]
+        chemin_avec_depart = [Point(self.robot.x,self.robot.y)]+chemin_vers_entree
+        nouvelle_destination = self._point_recuperation_verre(premier_verre, chemin_avec_depart[-1])
+        chemin_vers_entree.append(nouvelle_destination)
+        
+        self.robot.suit_chemin(chemin_vers_entree, symetrie_effectuee=True)#bouger dernier point
+        
+        # Récupération du premier verre
         self._recuperation_verre(self.info_versions[version]["verre_entree"])
 
         # Tant qu'il y a de la place dans le robot
@@ -437,23 +445,21 @@ class ScriptRecupererVerres(Script):
         self.robot.recuperer_verre(not self.robot.marche_arriere)
         self.table.verre_recupere(verre)
         
-    def _choix_ascenceur(self):
-        """
-        Effectue le choix de l'ascenceur avant ou arrière
-        """
-        # Prend par l'avant par défaut, l'arrière s'il n'y a plus de places
-        return self.robot.places_disponibles(True) != 0
-            
-    def _point_recuperation_verre(self, point):
+    def _point_recuperation_verre(self, pos_verre, pos_robot=None):
         """
         Récupère le point de destination pour récupérer un verre
         S'appuie sur la position actuelle du robot
         """
+        
+        #on peut indiquer en paramètre la position du robot à la fin d'un trajet
+        if pos_robot is None:
+            pos_robot = Point(self.robot.x, self.robot.y)
+            
         # Vecteur de direction du verre vers le robot
-        direction = (Point(self.robot.x, self.robot.y) - point).unitaire()
+        direction = (pos_robot - pos_verre).unitaire()
         
         # Point de récupération (à déterminer)
-        recuperation = point + 100 * direction
+        recuperation = pos_verre + 100 * direction
         
         return recuperation
          
