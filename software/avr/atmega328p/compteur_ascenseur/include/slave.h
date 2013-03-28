@@ -1,14 +1,12 @@
-#ifndef TWI_SLAVE_H
-#define TWI_SLAVE_H
+#ifndef SLAVE_H
+#define SLAVE_H
 
 #define TWI_BUFFER_SIZE 9
                                
 #define MASTER_CMD_RESET    0X10
 #define MASTER_CMD_ALL    0X20
 
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <libintech/codeuse.hpp>
+#include "communication.h"
 
 extern unsigned char messageBuf[];
 

@@ -18,8 +18,8 @@ class Actionneurs : public Singleton<Actionneurs>
 {
 	public:
 		typedef Serial<0> serie;
-		typedef Moteur< PWM<0,ModeFastPwm,1,'A'>, AVR_PORTB <PORTB5> > moteur_avant_t;
-		typedef Moteur< PWM<0,ModeFastPwm,1,'B'>, AVR_PORTB <PORTB4> > moteur_arriere_t;
+		typedef Moteur< PWM<0,ModeFastPwm,1,'B'>, AVR_PORTD <PORTD4> > moteur_avant_t;
+		typedef Moteur< PWM<0,ModeFastPwm,1,'A'>, AVR_PORTB <PORTB0> > moteur_arriere_t;
 		typedef Timer<1,64> timer_asserv;
 		/**
 		 * Ascenceur avant, dépend d'un moteur
