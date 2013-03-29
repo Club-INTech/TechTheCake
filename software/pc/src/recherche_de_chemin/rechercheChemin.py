@@ -572,11 +572,13 @@ class RechercheChemin:
                 
     def _lisser_chemin(self, chemin):
         """
-        Supprime des noeuds inutiles sur un chemin renvoyé par A*. 
+        Supprime des noeuds inutiles sur un chemin (formant un angle plat).
         """
         k = 1
         while k < len(chemin)-1:
-            if fus.get_angle(chemin[k-1],chemin[k],chemin[k+1]) == math.pi: chemin.pop(k)
+            angle = fus.get_angle(chemin[k-1],chemin[k],chemin[k+1])
+            if angle <= -math.pi+self.config["tolerance_lissage"] or angle >= math.pi-self.config["tolerance_lissage"]:
+                chemin.pop(k)
             else: k+=1
         return chemin
         
@@ -820,7 +822,7 @@ class RechercheChemin:
         #conversion en type point.Point, exclusion du point de départ cheminVis[0], et évacuation des points sur les bords.
         chemin = [point.Point(cheminVis[i].x,cheminVis[i].y) for i in range(1,cheminVis.size()) if self._est_dans_table(cheminVis[i])]
         if len(chemin) == cheminVis.size()-1:
-            return chemin
+            return self._lisser_chemin([depart]+chemin)[1:]
         else:
             #un des points était en fait sur le bord : le chemin est impossible.
             self.log.critical("Aucun chemin ne convient pour aller de "+str(depart)+" à "+str(arrivee)+" !")
