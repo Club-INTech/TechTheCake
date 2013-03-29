@@ -1,11 +1,11 @@
 #include "communications.h"
 #include "capteurs.h"
+#include "libintech/utils.h"
 
 Communications::Communications()
 {
     serie_robot::init();
     serie_robot::change_baudrate(9600);
-    jumper_t_::init();
 }
 
 void Communications::execute(char ordre[])
@@ -89,12 +89,23 @@ void Communications::execute(char ordre[])
           actionneurs.bougies_haut.goTo(angle); //Angle d'entrée commandé
         }
 
-        // JUMPER DE DÉBUT DE MATCH        
+        // JUMPER DE DÉBUT DE MATCH
         else if (strcmp(ordre, "j") == 0)
         {
-//            serie_robot::print(jumper_t_::value() ? 1 : 0);
-            serie_robot::print(1);
+            serie_robot::print(rbi(PINC,PINC2));
         }
+
+	// CAPTEURS ASCENSEURS
+        else if (strcmp(ordre, "asc_av") == 0)
+        {
+            serie_robot::print(rbi(PINC,PINC0));
+        }
+
+        else if (strcmp(ordre, "asc_ar") == 0)
+        {
+            serie_robot::print(rbi(PINC,PINC1));
+        }
+
 
 }
 

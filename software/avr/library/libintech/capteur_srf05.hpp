@@ -148,6 +148,7 @@ class CapteurSRFMono
 
     void refresh()
     {
+        PinRegister::clear_interrupt();
             // On met la pin en output
         PinRegister::set_output();
             // On met un zéro sur la pin pour 2 µs
