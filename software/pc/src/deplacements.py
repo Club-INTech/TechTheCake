@@ -20,7 +20,9 @@ class Deplacements():
             "erreur_rotation" : 0,
             "erreur_translation" : 0,
             "derivee_erreur_rotation" : 0,
-            "derivee_erreur_translation" : 0
+            "derivee_erreur_translation" : 0,
+            "derivee2_erreur_rotation" : 0,
+            "derivee2_erreur_translation" : 0
             }   
 
     def gestion_blocage(self,PWMmoteurGauche,PWMmoteurDroit,derivee_erreur_rotation,derivee_erreur_translation, **useless):
@@ -48,18 +50,17 @@ class Deplacements():
             self._enCoursDeBlocage = False
         return blocage
         
-    def update_enMouvement(self, erreur_rotation, erreur_translation, derivee_erreur_rotation, derivee_erreur_translation, **useless):
+    def update_enMouvement(self, derivee_erreur_rotation, derivee_erreur_translation, derivee2_erreur_rotation, derivee2_erreur_translation, **useless):
         """
         UTILISÉ UNIQUEMENT PAR LE THREAD DE MISE À JOUR
         cette méthode récupère l'erreur en position du robot
         et détermine si le robot est arrivé à sa position de consigne
         retourne la valeur du booléen enMouvement (attribut de robot)
         """
-        rotation_stoppe = abs(erreur_rotation) < 105
-        translation_stoppe = abs(erreur_translation) < 100
         bouge_pas = derivee_erreur_rotation == 0 and derivee_erreur_translation == 0
+        bouge_pas_du_tout = derivee2_erreur_rotation == 0 and derivee2_erreur_translation == 0
         
-        return not(rotation_stoppe and translation_stoppe and bouge_pas)
+        return not(bouge_pas and bouge_pas_du_tout)
         
     def avancer(self, distance):
         """
@@ -166,13 +167,18 @@ class Deplacements():
         deriv_erreur_rot = infos_int[2] - self.infos_stoppage_enMouvement["erreur_rotation"]
         deriv_erreur_tra = infos_int[3] - self.infos_stoppage_enMouvement["erreur_translation"]
         
+        deriv2_erreur_rot = deriv_erreur_rot - self.infos_stoppage_enMouvement["derivee_erreur_rotation"] 
+        deriv2_erreur_tra = deriv_erreur_tra - self.infos_stoppage_enMouvement["derivee_erreur_translation"]
+        
         self.infos_stoppage_enMouvement={
             "PWMmoteurGauche" : infos_int[0],
             "PWMmoteurDroit" : infos_int[1],
             "erreur_rotation" : infos_int[2],
             "erreur_translation" : infos_int[3],
             "derivee_erreur_rotation" : deriv_erreur_rot,
-            "derivee_erreur_translation" : deriv_erreur_tra
+            "derivee_erreur_translation" : deriv_erreur_tra,
+            "derivee2_erreur_rotation" : deriv2_erreur_rot,
+            "derivee2_erreur_translation" : deriv2_erreur_tra
             }
             
         return self.infos_stoppage_enMouvement

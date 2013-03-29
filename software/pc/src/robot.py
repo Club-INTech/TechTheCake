@@ -237,6 +237,10 @@ class Robot(RobotInterface):
         distance = round(math.sqrt(delta_x**2 + delta_y**2),2)
         angle = round(math.atan2(delta_y,delta_x),4)
         
+        #initialisation de la marche dans mise_a_jour_consignes
+        self.maj_marche_arriere = self.marche_arriere
+        self.maj_ancien_angle = angle
+        
         #mode marche_arriere
         if self.marche_arriere:
             distance *= -1
@@ -263,6 +267,7 @@ class Robot(RobotInterface):
             #mise à jour des consignes en translation et rotation
             if self.config["correction_trajectoire"]:
                 self._mise_a_jour_consignes()
+            #self._mise_a_jour_consignes()#@
             
             sleep(self.sleep_milieu_boucle_acquittement)
     
@@ -274,11 +279,29 @@ class Robot(RobotInterface):
         delta_y = self.consigne_y-self.y
         distance = round(math.sqrt(delta_x**2 + delta_y**2),2)
         
+        
+        #gestion de la marche arrière du déplacement (peut aller à l'encontre de self.marche_arriere)
+        angle = round(math.atan2(delta_y,delta_x),4)
+        delta_angle = angle - self.maj_ancien_angle
+        if delta_angle > math.pi: delta_angle -= 2*math.pi
+        elif delta_angle <= -math.pi: delta_angle += 2*math.pi
+        self.maj_ancien_angle = angle
+        
+        if abs(delta_angle) > math.pi/2: self.maj_marche_arriere = not self.maj_marche_arriere
+        
+        #print("###")#@
+        #print(distance)#@
+        #print(round(math.atan2(delta_y,delta_x),4))#@
+        #print("marche arrière : "+str(self.maj_marche_arriere))#@
+        
+        #if not self.config["correction_trajectoire"]:#@
+            #return#@
+        
         if distance > self.config["disque_tolerance_maj"]:
             #mise à jour des consignes en translation et rotation en dehors d'un disque de tolérance
-            angle = round(math.atan2(delta_y,delta_x),4)
+                    
             #prise en compte du mode marche_arriere
-            if self.marche_arriere:
+            if self.maj_marche_arriere:
                 distance *= -1
                 angle += math.pi 
             
@@ -730,6 +753,10 @@ class Robot(RobotInterface):
         # Mise à jour du total de verres portés
         super().recuperer_verre(avant)
             
+        if avant:
+            self.log.debug("saisit d'un verre à l'avant")
+        else:
+            self.log.debug("saisit d'un verre à l'arrière")
         self.log.debug("le robot a {0} verre(s) à l'avant, {1} à l'arrière".format(self.nb_verres_avant, self.nb_verres_arriere))
         
     def deposer_pile(self, avant):
