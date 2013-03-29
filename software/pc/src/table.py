@@ -123,12 +123,12 @@ class Table:
         ]
         
         # Positions des centres des cases de départ des robots (ids spécifiés dans la config). Pour le robot rouge (symétrie dans les scripts)
-        self.centres_cases_depart = [
-            Point(1300,200),
-            Point(1300,600),
-            Point(1300,1000),
-            Point(1300,1400),
-            Point(1300,1800)
+        self.cases_depart = [
+            {"centre" : Point(1300,200),  "nb_depots" : 0},
+            {"centre" : Point(1300,600),  "nb_depots" : 0},
+            {"centre" : Point(1300,1000), "nb_depots" : 0},
+            {"centre" : Point(1300,1400), "nb_depots" : 0},
+            {"centre" : Point(1300,1800), "nb_depots" : 0}
         ]
         
     def sauvegarder(self):
@@ -136,7 +136,8 @@ class Table:
         Sauvegarde de l'état de la table, utilisé par les scripts chrono qui peuvent modifier l'état de la table
         """
         self.sauvegarde = {
-            "verres": copy.deepcopy(self.verres)
+            "verres": copy.deepcopy(self.verres),
+            "cases": copy.deepcopy(self.cases_depart)
         }
         
     def restaurer(self):
@@ -144,6 +145,7 @@ class Table:
         Rétablissement de l'état de la table à la dernière sauvegarde
         """
         self.verres = self.sauvegarde["verres"]
+        self.cases_depart = self.sauvegarde["cases"]
         
     ###############################################
     ### GESTION DES CADEAUX
