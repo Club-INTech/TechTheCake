@@ -1,0 +1,7 @@
+le code avr démarre en mode controle par le port série.
+Il est préférable d'utiliser le code python pour le guidage.
+Pour l'essayer, il suffit de le copier dans le dossier pc et
+de l'executer.
+Pour passer en mode suiveur de ligne, il faut envoyer
+"asservir" sur la série.
+

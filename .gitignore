@@ -18,3 +18,5 @@ obj/
 .classpath
 .cproject
 project.properties
+hardware/*/*.b\#*
+hardware/*/*.s\#*
