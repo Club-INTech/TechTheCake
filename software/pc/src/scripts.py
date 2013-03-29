@@ -394,7 +394,7 @@ class ScriptCadeaux(Script):
 class ScriptRecupererVerres(Script):
         
     def _constructeur(self):
-        self.marge_recuperation = 100
+        self.marge_recuperation = 120
         
     def _execute(self, version):
         
@@ -545,24 +545,6 @@ class ScriptRecupererVerresZoneBleu(ScriptRecupererVerres):
         return super().versions()
         
         
-"""        
-class ScriptCasserTour(Script):
-
-    def versions(self):
-        return []
-        
-    def point_entree(self, id_version):
-        pass
-        
-    def score(self):
-        pass
-
-    def _execute(self, id_version):
-        return (time()-self.timer.get_date_debut())    #à revoir
-
-    def poids(self):
-        return 1
-        
 class ScriptDeposerVerres(Script): #contenu pipeau
     
     def _execute(self):
@@ -573,11 +555,12 @@ class ScriptDeposerVerres(Script): #contenu pipeau
         return []
         
     def point_entree(self, id_version):
-        pass
+        return self.info_versions[id_version]["point_entree"]
 
     def score(self):
-        return 4*(self.robotVrai.nb_verres_avant*(self.robotVrai.nb_verres_avant+1)/2+self.robotVrai.nb_verres_arriere*(self.robotVrai.nb_verres_arriere+1)/2)
+        #return 4*(self.robotVrai.nb_verres_avant*(self.robotVrai.nb_verres_avant+1)/2+self.robotVrai.nb_verres_arriere*(self.robotVrai.nb_verres_arriere+1)/2)
+        #on considère qu'on dépose une pile pour l'avant, une pile pour l'arrière
+        return 4 * ( sum(range(1,self.robotVrai.nb_verres_avant+1)) + sum(range(1,self.robotVrai.nb_verres_arriere+1)) )
 
     def poids(self):
         return 1
-"""
