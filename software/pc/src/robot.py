@@ -380,7 +380,7 @@ class Robot(RobotInterface):
         self.set_vitesse_translation(1)
         if "asservissement" in self.config["cartes_serie"]:
             #ATTENTION : cette vitesse est ajustée pour un rayon donné ! (celui utilisé pour enfoncer les bougies)
-            self.deplacements.serie.communiquer("asservissement",["crv",1.5,2.0,self.config["vitesse_rot_arc_cercle"]], 0)
+            self.set_vitesse_rotation(int(self.config["vitesse_rot_arc_cercle"]))
         else:
             self.set_vitesse_translation(2)
             
