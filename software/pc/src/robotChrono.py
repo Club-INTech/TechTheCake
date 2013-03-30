@@ -15,7 +15,7 @@ class RobotInterface(metaclass=abc.ABCMeta):
         pass
     
     @abc.abstractmethod
-    def avancer(self, distance):
+    def avancer(self, distance, **useless):
         pass
         
     @abc.abstractmethod
@@ -175,23 +175,30 @@ class RobotChrono(RobotInterface):
     def stopper(self):
         pass
     
-    def avancer(self, distance, hooks=[], pas_reessayer=False):
+    def avancer(self, distance, **useless):
         """
         Fonction analogue à celle de robot. Avance. Si, si.
         """
-        self.duree += abs (distance / self.vitesses_translation[self.vitesse_translation-1])
+        if self.vitesse_translation < 5:
+            self.duree += abs (distance / self.vitesses_translation[self.vitesse_translation-1])
+        else:
+            self.duree += abs (distance / self.vitesse_translation*(self.vitesses_translation[1]/100))
         self.x += distance*math.cos(self.orientation)
         self.y += distance*math.sin(self.orientation)
         
-    def tourner(self, angle, forcer = False,hooks=[]):
+    def tourner(self, angle, **useless):
         """
-        Fonction analogue à celle de robot. Bah... ça tourne quoi. Il vous faut un desmath.sin?
+        Fonction analogue à celle de robot. Bah... ça tourne quoi. Il vous faut un desmath.sin? # J'ai pas compris lol.
         """
         if self.effectuer_symetrie:
             if self.config["couleur"] == "bleu":
                 angle = math.pi - angle
                 
-        self.duree += abs(angle / self.vitesses_rotation[self.vitesse_rotation-1])
+        if self.vitesse_rotation < 5:
+            self.duree += abs(angle / self.vitesses_rotation[self.vitesse_rotation-1])
+        else:
+            self.duree += abs(angle / self.vitesse_rotation*(self.vitesses_rotation[1]/100))
+        
         self.orientation = angle
         
         
