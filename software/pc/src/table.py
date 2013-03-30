@@ -122,6 +122,15 @@ class Table:
             {"id": 11, "position": Point(-300,550), "present":True}
         ]
         
+        # Positions des centres des cases de départ des robots (ids spécifiés dans la config). Pour le robot rouge (symétrie dans les scripts)
+        self.centres_cases_depart = [
+            Point(1300,200),
+            Point(1300,600),
+            Point(1300,1000),
+            Point(1300,1400),
+            Point(1300,1800)
+        ]
+        
     def sauvegarder(self):
         """
         Sauvegarde de l'état de la table, utilisé par les scripts chrono qui peuvent modifier l'état de la table

@@ -8,7 +8,6 @@ from outils_maths.point import Point
 import table
 import robot
 
-
 class Script(metaclass=abc.ABCMeta):
     """
     classe mère des scripts
@@ -545,14 +544,122 @@ class ScriptRecupererVerresZoneBleu(ScriptRecupererVerres):
         return super().versions()
         
         
-class ScriptDeposerVerres(Script): #contenu pipeau
+class ScriptDeposerVerres(Script):
     
-    def _execute(self):
-        self.va_au_point(Point(1300,200))
-        self.va_au_point(Point(1300,1800))
-
     def versions(self):
-        return []
+        """
+        L'idée, c'est que les assiettes nous obligent à déposer les piles de verres là où nos robots ont démarré. 
+        Les cases au extrémités (1 et 5) permettent de déposer les verres sur une reglette en bois.
+        """
+        
+        #position relative du point_entree_recherche_chemin par rapport au point_entree
+        decalage_recherche_chemin = Point(-400,0)
+        
+        #décalage dû aux reglettes
+        decalages_reglettes = [Point(0,0), Point(0,0)]
+        configs = [self.config["case_depart_principal"], self.config["case_depart_secondaire"]]
+        for i in range(len(configs)):
+            if configs[i] == 1:
+                decalages_reglettes[i].y += 130
+                decalages_reglettes[i].x -= 100
+            elif configs[i] == 5:
+                decalages_reglettes[i].y -= 130
+                decalages_reglettes[i].x -= 100
+                
+        if self.config["case_depart_secondaire"] and not self.config["case_depart_secondaire"] == self.config["case_depart_principal"]:
+            # Le robot secondaire a démarré sur une autre case que le robot principal : 2 emplacements possibles
+            
+            self.info_versions = [
+                {   "point_entree_recherche_chemin": self.table.centres_cases_depart[self.config["case_depart_principal"]-1] + decalage_recherche_chemin,
+                    "point_entree": self.table.centres_cases_depart[self.config["case_depart_principal"]-1] + decalages_reglettes[0], 
+                    "id_case": self.config["case_depart_principal"]
+                },      
+                {   "point_entree_recherche_chemin": self.table.centres_cases_depart[self.config["case_depart_secondaire"]-1] + decalage_recherche_chemin,
+                    "point_entree": self.table.centres_cases_depart[self.config["case_depart_secondaire"]-1] + decalages_reglettes[1], 
+                    "id_case": self.config["case_depart_secondaire"]
+                }
+            ]
+            return [0,1]
+            
+        else:
+            # Un seul robot : un seul emplacement sans assiette
+            
+            self.info_versions = [
+                {   "point_entree_recherche_chemin": self.table.centres_cases_depart[self.config["case_depart_principal"]-1] + decalage_recherche_chemin,
+                    "point_entree": self.table.centres_cases_depart[self.config["case_depart_principal"]-1] + decalages_reglettes[0], 
+                    "id_case": self.config["case_depart_principal"]
+                }
+            ]
+            return [0]
+            
+    def _execute(self, version):
+        
+        #TODO : gérer les vitesses !
+        
+        # Activation de la symétrie
+        self.robot.effectuer_symetrie = True
+        
+        # Point d'entrée du script par recherche de chemin
+        point_proche_case = self.info_versions[version]["point_entree_recherche_chemin"]
+        self.robot.recherche_de_chemin(point_proche_case, recharger_table=False)
+        
+        # Déplacement au centre de la case, qui n'a normalement pas d'assiette
+        centre_case = self.info_versions[version]["point_entree"]
+        self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne=centre_case)
+        self.robot.va_au_point(centre_case)
+        
+        if self.info_versions[version]["id_case"] == 1:
+            # Case 1 : on dépose les verres sur la réglette du bas
+            vers_depot = -math.pi/2
+        elif self.info_versions[version]["id_case"] == 5:
+            # Case 5 : on dépose les verres sur la réglette du haut
+            vers_depot = math.pi/2
+        else:
+            # Une des cases du milieu : on doit poser les verres contre le bord (x extremal) de la table
+            vers_depot = 0
+            
+        def deposer_avant():
+            if self.robot.nb_verres_avant:
+                #on dépose l'ascenseur avant d'un coté
+                self.robot.tourner(vers_depot + math.pi/6)
+                try:
+                    #attention, on va taper le bord de la table !
+                    self.robot.avancer(150, retenter_si_blocage=False)
+                except robot.ExceptionMouvementImpossible:
+                    pass
+                self.robot.deposer_pile(avant=True)
+                self.robot.avancer(-150)
+        
+        def deposer_arriere():
+            if self.robot.nb_verres_arriere:
+                #on dépose l'ascenseur arrière de l'autre coté
+                self.robot.tourner(math.pi + vers_depot - math.pi/6)
+                try:
+                    #attention, on va taper le bord de la table !
+                    self.robot.avancer(-150, retenter_si_blocage=False)
+                except robot.ExceptionMouvementImpossible:
+                    pass
+                self.robot.deposer_pile(avant=False)
+                self.robot.avancer(150)
+        
+        #tenir compte de l'orientation d'arrivée pour commencer à l'avant ou à l'arrière
+        point_de_depot = centre_case + Point(150*math.cos(vers_depot),150*math.sin(vers_depot))
+        if self.robot.marche_arriere_est_plus_rapide(point_consigne=point_de_depot):
+            deposer_arriere()
+            deposer_avant()
+        else:
+            deposer_avant()
+            deposer_arriere()
+            
+        #on se dégage
+        self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne=point_proche_case)
+        self.robot.va_au_point(point_proche_case)
+        
+        #TODO : retenir qu'on est déjà passé, et éviter de tout péter en revenant au même endroit...
+        
+    def _termine(self):
+        pass
+        
         
     def point_entree(self, id_version):
         return self.info_versions[id_version]["point_entree"]
