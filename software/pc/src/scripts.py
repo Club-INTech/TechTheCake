@@ -394,6 +394,7 @@ class ScriptRecupererVerres(Script):
         
     def _constructeur(self):
         self.marge_recuperation = 120
+        self.marge_apres_chemin = self.marge_recuperation + 150
         
     def _execute(self, version):
         
@@ -410,7 +411,7 @@ class ScriptRecupererVerres(Script):
             del chemin_vers_entree[-1]
         del chemin_vers_entree[-1]
         chemin_avec_depart = [Point(self.robot.x,self.robot.y)]+chemin_vers_entree
-        nouvelle_destination = self._point_recuperation_verre(premier_verre, chemin_avec_depart[-1])
+        nouvelle_destination = self._point_devant_verre(premier_verre, self.marge_apres_chemin, chemin_avec_depart[-1])
         chemin_vers_entree.append(nouvelle_destination)
         
         self.robot.suit_chemin(chemin_vers_entree, symetrie_effectuee=True)
@@ -437,7 +438,7 @@ class ScriptRecupererVerres(Script):
         """
         Procédure de récupération d'un verre
         """
-        destination = self._point_recuperation_verre(verre["position"])
+        destination = self._point_devant_verre(verre["position"], self.marge_recuperation)
         mieux_en_arriere = self.robot.marche_arriere_est_plus_rapide(destination)
         if self.robot.places_disponibles(not mieux_en_arriere):
             self.robot.marche_arriere = mieux_en_arriere
@@ -448,7 +449,7 @@ class ScriptRecupererVerres(Script):
         self.robot.recuperer_verre(not self.robot.marche_arriere)
         self.table.verre_recupere(verre)
         
-    def _point_recuperation_verre(self, pos_verre, pos_robot=None):
+    def _point_devant_verre(self, pos_verre, marge, pos_robot=None):
         """
         Récupère le point de destination pour récupérer un verre
         S'appuie sur la position actuelle du robot
@@ -461,7 +462,7 @@ class ScriptRecupererVerres(Script):
         direction = (pos_robot - pos_verre).unitaire()
         
         # Point de récupération (à déterminer)
-        recuperation = pos_verre + self.marge_recuperation * direction
+        recuperation = pos_verre + marge * direction
         
         return recuperation
          
