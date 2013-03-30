@@ -444,16 +444,19 @@ class Robot(RobotInterface):
         self.blocage = True
         self.deplacements.stopper()
 
-    def avancer(self, distance, hooks=[], nombre_tentatives=2):
+    def avancer(self, distance, hooks=[], nombre_tentatives=2, retenter_si_blocage=True):
         """
-        Cette méthode est une surcouche intelligente sur les déplacements. ATTENTION, elle modifie la marche arrière ! 
+        Cette méthode est une surcouche intelligente sur les déplacements.
         Elle permet d'effectuer une translation en visant un point consigne devant le robot,
         au lieu d'avancer "en aveugle" : l'orientation est corrigée en cas de déviation.
         Les hooks sont executés, et différentes relances sont implémentées en cas de retour particulier.
         """
         
         self.log.debug("avancer de "+str(distance))
-
+        
+        #sauvegarde des paramètres de trajectoire
+        mem_marche_arriere, mem_effectuer_symetrie = self.marche_arriere, self.effectuer_symetrie
+        
         self.marche_arriere = (distance < 0)
         self.effectuer_symetrie = False
         
@@ -461,7 +464,13 @@ class Robot(RobotInterface):
         x = self.x + distance * math.cos(self._consigne_orientation)
         y = self.y + distance * math.sin(self._consigne_orientation)
         
-        self.va_au_point(Point(x, y), hooks, nombre_tentatives=nombre_tentatives)
+        try:
+            self.va_au_point(Point(x, y), hooks, nombre_tentatives=nombre_tentatives, retenter_si_blocage=retenter_si_blocage)
+        except ExceptionMouvementImpossible:
+            raise ExceptionMouvementImpossible(self)
+        finally:
+            #rétablissement des paramètres de trajectoire
+            self.marche_arriere, self.effectuer_symetrie = mem_marche_arriere, mem_effectuer_symetrie
         
     def tourner(self, angle, hooks=[], nombre_tentatives=2):
         """
@@ -502,10 +511,12 @@ class Robot(RobotInterface):
                 self.marche_arriere = self.marche_arriere_est_plus_rapide(position)
             self.va_au_point(position, hooks, symetrie_effectuee=symetrie_effectuee)
     
-    def recherche_de_chemin(self, position, recharger_table=True, renvoie_juste_chemin=False):
+    def recherche_de_chemin(self, arrivee, recharger_table=True, renvoie_juste_chemin=False):
         """
         Méthode pour atteindre un point de la carte après avoir effectué une recherche de chemin.
         """
+        
+        arrivee = arrivee.copy() #appliquer la symétrie ne doit pas modifier ce point !
         
         if recharger_table:
             self.rechercheChemin.retirer_obstacles_dynamiques()
@@ -514,7 +525,6 @@ class Robot(RobotInterface):
         self.rechercheChemin.prepare_environnement_pour_visilibity()
         
         depart = Point(self.x,self.y)
-        arrivee = position.copy()
         if self.effectuer_symetrie and self.config["couleur"] == "bleu":
             arrivee.x *= -1
         chemin = self.rechercheChemin.cherche_chemin_avec_visilibity(depart, arrivee)
@@ -524,7 +534,7 @@ class Robot(RobotInterface):
             
         self.suit_chemin(chemin, symetrie_effectuee=True)
     
-    def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, symetrie_effectuee=False):
+    def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, retenter_si_blocage=True, symetrie_effectuee=False):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.
         Elle permet de parcourir un segment : le robot se rend en (x,y) en corrigeant dynamiquement ses consignes en rotation et translation.
@@ -532,6 +542,8 @@ class Robot(RobotInterface):
         Si le paramètre trajectoire_courbe=False, le robot évite d'effectuer un virage, et donc tourne sur lui meme avant la translation.
         Les hooks sont executés, et différentes relances sont implémentées en cas de retour particulier.
         """
+        
+        point = point.copy() #appliquer la symétrie ne doit pas modifier ce point !
         
         #application de la symétrie si demandée et si pas déjà faite
         if self.effectuer_symetrie and not symetrie_effectuee:
@@ -547,13 +559,14 @@ class Robot(RobotInterface):
         except ExceptionBlocage:
             try:
                 self.stopper()
-                #TODO On tente de reculer. Mais l'exception est peut etre levée lors d'un virage...
-                if nombre_tentatives > 0:
-                    self.log.warning("Blocage en déplacement ! On recule... reste {0} tentative(s)".format(nombre_tentatives))
-                    if self.marche_arriere:
-                        self.avancer(self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
-                    else:
-                        self.avancer(-self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
+                if retenter_si_blocage:
+                    #TODO On tente de reculer. Mais l'exception est peut etre levée lors d'un virage...
+                    if nombre_tentatives > 0:
+                        self.log.warning("Blocage en déplacement ! On recule... reste {0} tentative(s)".format(nombre_tentatives))
+                        if self.marche_arriere:
+                            self.avancer(self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
+                        else:
+                            self.avancer(-self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
             finally:
                 raise ExceptionMouvementImpossible(self)
         
@@ -719,6 +732,21 @@ class Robot(RobotInterface):
             
         self.log.debug("le robot a {0} verre(s) à l'avant, {1} à l'arrière".format(self.nb_verres_avant, self.nb_verres_arriere))
         
+    def deposer_pile(self, avant):
+        """
+        Dépose l'ensemble des verres d'un ascenseur.
+        """
+        
+        if avant:
+            self.log.debug("Dépot de la pile de verres à l'avant.")
+        else:
+            self.log.debug("Dépot de la pile de verres à l'arrière.")
+                
+        # Lancement des actionneurs
+        
+        # Mise à jour du total de verres portés
+        super().deposer_pile(avant)
+        
     def gonflage_ballon(self):
         """
         Gonfle le ballon en fin de match
@@ -734,9 +762,9 @@ class RobotSimulation(Robot):
         self._afficher_hooks(hooks)
         super().tourner(angle_consigne, hooks)
         
-    def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=3, symetrie_effectuee=False):
+    def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, retenter_si_blocage=True, symetrie_effectuee=False):
         self._afficher_hooks(hooks)
-        super().va_au_point(point, hooks, trajectoire_courbe, nombre_tentatives, symetrie_effectuee)
+        super().va_au_point(point, hooks, trajectoire_courbe=trajectoire_courbe, nombre_tentatives=nombre_tentatives, retenter_si_blocage=retenter_si_blocage, symetrie_effectuee=symetrie_effectuee)
         
     def arc_de_cercle(self, point, hooks=[]):
         self._afficher_hooks(hooks)
