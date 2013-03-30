@@ -565,31 +565,26 @@ class ScriptDeposerVerres(Script):
             elif configs[i] == 5:
                 decalages_reglettes[i].y -= 130
                 decalages_reglettes[i].x -= 100
+             
+        #case de départ du robot principal
+        self.info_versions = [{   
+                "point_entree_recherche_chemin": self.table.centres_cases_depart[self.config["case_depart_principal"]-1] + decalage_recherche_chemin,
+                "point_entree": self.table.centres_cases_depart[self.config["case_depart_principal"]-1] + decalages_reglettes[0], 
+                "id_case": self.config["case_depart_principal"]
+            }]
                 
         if self.config["case_depart_secondaire"] and not self.config["case_depart_secondaire"] == self.config["case_depart_principal"]:
-            # Le robot secondaire a démarré sur une autre case que le robot principal : 2 emplacements possibles
+            # Le robot secondaire a démarré sur une autre case que le robot principal : un deuxième emplacement est possible
             
-            self.info_versions = [
-                {   "point_entree_recherche_chemin": self.table.centres_cases_depart[self.config["case_depart_principal"]-1] + decalage_recherche_chemin,
-                    "point_entree": self.table.centres_cases_depart[self.config["case_depart_principal"]-1] + decalages_reglettes[0], 
-                    "id_case": self.config["case_depart_principal"]
-                },      
-                {   "point_entree_recherche_chemin": self.table.centres_cases_depart[self.config["case_depart_secondaire"]-1] + decalage_recherche_chemin,
-                    "point_entree": self.table.centres_cases_depart[self.config["case_depart_secondaire"]-1] + decalages_reglettes[1], 
-                    "id_case": self.config["case_depart_secondaire"]
-                }
-            ]
+            self.info_versions.append({   
+                "point_entree_recherche_chemin": self.table.centres_cases_depart[self.config["case_depart_secondaire"]-1] + decalage_recherche_chemin,
+                "point_entree": self.table.centres_cases_depart[self.config["case_depart_secondaire"]-1] + decalages_reglettes[1], 
+                "id_case": self.config["case_depart_secondaire"]
+            })
             return [0,1]
             
         else:
-            # Un seul robot : un seul emplacement sans assiette
-            
-            self.info_versions = [
-                {   "point_entree_recherche_chemin": self.table.centres_cases_depart[self.config["case_depart_principal"]-1] + decalage_recherche_chemin,
-                    "point_entree": self.table.centres_cases_depart[self.config["case_depart_principal"]-1] + decalages_reglettes[0], 
-                    "id_case": self.config["case_depart_principal"]
-                }
-            ]
+            # Un seul emplacement sans assiette
             return [0]
             
     def _execute(self, version):
