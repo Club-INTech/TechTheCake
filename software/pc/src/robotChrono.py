@@ -15,7 +15,7 @@ class RobotInterface(metaclass=abc.ABCMeta):
         pass
     
     @abc.abstractmethod
-    def avancer(self, distance):
+    def avancer(self, distance, **useless):
         pass
         
     @abc.abstractmethod
@@ -84,13 +84,30 @@ class RobotInterface(metaclass=abc.ABCMeta):
         else:
             self.nb_verres_arriere += 1
             
+    def deposer_pile(self, avant):
+        """
+        Indique au robot que l'un de ses ascenceurs est désormais vide
+        """
+        if avant:
+            self.nb_verres_avant = 0
+        else:
+            self.nb_verres_arriere = 0
+            
     def marche_arriere_est_plus_rapide(self, point_consigne, orientation_finale_voulue=None):
         """
         Retourne un booléen indiquant si la marche arrière fait gagner du temps pour atteindre le point consigne. 
         On évite ainsi d'implémenter une marche arrière automatique et on laisse la main aux scripts.
         """
+        
+        point_consigne = point_consigne.copy() #appliquer la symétrie ne doit pas modifier ce point !
+        
         if orientation_finale_voulue is None:
             orientation_finale_voulue = self.orientation
+        elif self.effectuer_symetrie and self.config["couleur"] == "bleu":
+            orientation_finale_voulue = math.pi - orientation_finale_voulue
+            
+        if self.effectuer_symetrie and self.config["couleur"] == "bleu":
+            point_consigne.x *= -1
             
         delta_x = point_consigne.x - self.x
         delta_y = point_consigne.y - self.y
@@ -158,50 +175,67 @@ class RobotChrono(RobotInterface):
     def stopper(self):
         pass
     
-    def avancer(self, distance, hooks=[], pas_reessayer=False):
+    def avancer(self, distance, **useless):
         """
         Fonction analogue à celle de robot. Avance. Si, si.
         """
-        self.duree += abs (distance / self.vitesses_translation[self.vitesse_translation-1])
+        if self.vitesse_translation < 5:
+            self.duree += abs (distance / self.vitesses_translation[self.vitesse_translation-1])
+        else:
+            self.duree += abs (distance / self.vitesse_translation*(self.vitesses_translation[1]/100))
         self.x += distance*math.cos(self.orientation)
         self.y += distance*math.sin(self.orientation)
         
-    def tourner(self, angle, forcer = False,hooks=[]):
+    def tourner(self, angle, **useless):
         """
-        Fonction analogue à celle de robot. Bah... ça tourne quoi. Il vous faut un desmath.sin?
+        Fonction analogue à celle de robot. Bah... ça tourne quoi. Il vous faut un desmath.sin? # J'ai pas compris lol.
         """
         if self.effectuer_symetrie:
             if self.config["couleur"] == "bleu":
                 angle = math.pi - angle
                 
-        self.duree += abs(angle / self.vitesses_rotation[self.vitesse_rotation-1])
+        if self.vitesse_rotation < 5:
+            self.duree += abs(angle / self.vitesses_rotation[self.vitesse_rotation-1])
+        else:
+            self.duree += abs(angle / self.vitesse_rotation*(self.vitesses_rotation[1]/100))
+        
         self.orientation = angle
         
         
-    def suit_chemin(self, chemin, hooks=[], symetrie_effectuee=False):
+    def suit_chemin(self, chemin, hooks=[], marche_arriere_auto=True, symetrie_effectuee=False):
         """
         Fonction analogue à celle de robot. Cette méthode parcourt un chemin déjà calculé. Elle appelle va_au_point() sur chaque point de la liste chemin.
         """
         for position in chemin:
-            self.va_au_point(position, symetrie_effectuee=symetrie_effectuee)
+            if marche_arriere_auto:
+                self.marche_arriere = self.marche_arriere_est_plus_rapide(position)
+            self.va_au_point(position, hooks, symetrie_effectuee=symetrie_effectuee)
             
-    def recherche_de_chemin(self, position, recharger_table=False):
+    def recherche_de_chemin(self, arrivee, recharger_table=False, renvoie_juste_chemin=False):
         """
         Méthode pour calculer rapidement (algorithme A*) le temps mis pour atteindre un point de la carte après avoir effectué une recherche de chemin.
         """
+        
+        arrivee = arrivee.copy() #appliquer la symétrie ne doit pas modifier ce point !
+        
         if recharger_table:
             self.rechercheChemin.retirer_obstacles_dynamiques()
             self.rechercheChemin.charge_obstacles()
             self.rechercheChemin.prepare_environnement_pour_a_star()
         
         depart = Point(self.x,self.y)
-        arrivee = position.copy()
         if self.effectuer_symetrie and self.config["couleur"] == "bleu":
             arrivee.x *= -1
         chemin = self.rechercheChemin.cherche_chemin_avec_a_star(depart, arrivee)
+        
+        if renvoie_juste_chemin:
+            return chemin
+            
         self.suit_chemin(chemin, symetrie_effectuee=True)
         
-    def va_au_point(self, point_consigne, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, symetrie_effectuee=False):
+    def va_au_point(self, point_consigne, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, retenter_si_blocage=True, symetrie_effectuee=False):
+        
+        point_consigne = point_consigne.copy() #appliquer la symétrie ne doit pas modifier ce point !
         
         if self.effectuer_symetrie and not symetrie_effectuee:
             if self.config["couleur"] == "bleu":
@@ -254,3 +288,5 @@ class RobotChrono(RobotInterface):
     def recuperer_verre(self, avant):
         pass
 
+    def deposer_pile(self, avant):
+        pass

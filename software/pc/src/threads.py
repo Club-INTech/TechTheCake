@@ -305,13 +305,11 @@ class ThreadCouleurBougies(AbstractThread):
             table.definir_couleurs_bougies(rcv)
         except:
             # Si on n'a pas d'information de l'appli android, le mieux est de faire toutes les bougies (ce qui permet de gagner le plus de points possible). Pour cela, on contourne la complétion antisymétrique effectuée dans définir_couleur_bougies
+            couleur_bougies = table.COULEUR_BOUGIE_BLEU if config["couleur"]=="bleu" else table.COULEUR_BOUGIE_ROUGE
+            for i in range (20):
+                table.bougies[i]["couleur"] = couleur_bougies
+            #le script tiendra compte de ce comportement dans le décompte des points
             scripts["ScriptBougies"].en_aveugle = True
-            if config["couleur"]=="bleu":
-                for i in range (20):
-                    table.bougies[i]["couleur"] = table.COULEUR_BOUGIE_BLEU
-            else:
-                for i in range (20):
-                    table.bougies[i]["couleur"] = table.COULEUR_BOUGIE_ROUGE       
         finally:
             client_socket.close()
            

@@ -8,7 +8,7 @@ using namespace cv;
 using namespace std;
 
 Ball::Ball(Point2f center, float radius, bool detected_firstime):
-    id(0),
+    id(-1),
     center(center),
     radius(radius),
     detected_firstime(detected_firstime)

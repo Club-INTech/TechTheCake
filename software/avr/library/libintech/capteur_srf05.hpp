@@ -126,5 +126,84 @@ class CapteurSRF
 
 };
 
+template< class Timer, class PinRegister >  //in et out sont par rapport à l'avr, ils sont donc inversés par rapport à la doc du srf!
+class CapteurSRFMono
+{
+    uint16_t origineTimer;			//origine du timer afin de détecter une durée (le timer est une horloge)
+    uint16_t derniereDistance;		//contient la dernière distance acquise, prête à être envoyée
+    ringBufferSRF ringBufferValeurs;
+
+   public:	//constructeur
+   CapteurSRFMono() :
+	derniereDistance(0)
+    {
+    }
+
+    uint16_t value()
+    {
+        uint16_t cache = derniereDistance;
+        derniereDistance = 0;
+        return cache;
+    }
+
+    void refresh()
+    {
+        PinRegister::clear_interrupt();
+            // On met la pin en output
+        PinRegister::set_output();
+            // On met un zéro sur la pin pour 2 µs
+        PinRegister::clear();
+        _delay_us(2);
+
+            // On met un "un" sur la pin pour 10 µs
+        PinRegister::set();
+        _delay_us(10);
+
+        PinRegister::clear();
+            // Le signal a été envoyé, maintenant on attend la réponse dans l'interruption
+        PinRegister::set_input();
+        PinRegister::set_interrupt();
+    }
+  
+    /** Fonction appellée par l'interruption. S'occupe d'envoyer la valeur de la longueur
+     *  de l'impulsion retournée par le capteur dans la série.
+     */
+
+    void interruption()
+    {
+        // Front montant si bit == 1, descendant sinon.
+        static uint8_t ancienBit=0;
+        uint8_t bit = PinRegister::read();
+
+        // Début de l'impulsion
+        if (bit && bit!=ancienBit)
+        {
+            origineTimer=Timer::value();  /*le timer est utilisée comme horloge (afin d'utiliser plusieurs capteurs)
+                                           On enregistre donc cette valeur et on fera la différence.*/
+            ancienBit=bit;
+        }
+
+        // Fin de l'impulsion
+        else if(!(bit) && bit!=ancienBit)
+        {
+            uint16_t temps_impulsion;
+            PinRegister::clear_interrupt();
+            ancienBit=bit;
+                //Enregistrement de la dernière distance calculée, mais sans l'envoyer (l'envoi se fait par la méthode value)
+
+            temps_impulsion = (Timer::value() + Timer::value_max() - origineTimer) & Timer::value_max();
+            
+
+            ringBufferValeurs.append( ( (Timer::value() + Timer::value_max() - origineTimer) & Timer::value_max() ) * (1700-0.0000325 * F_CPU) / 1800.);
+                         /*interpolation linéaire entre deux valeurs
+                         mesurées: 1050/1800 à 20MHz, 1180/1800 à 16MHz*/
+
+            derniereDistance=mediane(ringBufferValeurs);
+
+        }
+    }
+
+};
+
 
 #endif

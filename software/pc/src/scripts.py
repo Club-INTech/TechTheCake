@@ -8,7 +8,6 @@ from outils_maths.point import Point
 import table
 import robot
 
-
 class Script(metaclass=abc.ABCMeta):
     """
     classe mère des scripts
@@ -34,7 +33,7 @@ class Script(metaclass=abc.ABCMeta):
         try:
             self._execute(version)
         except robot.ExceptionMouvementImpossible:
-            raise robot.ExceptionMouvementImpossible
+            raise robot.ExceptionMouvementImpossible(self.robot)
         finally:
             self._termine()
         
@@ -131,7 +130,7 @@ class ScriptBougies(Script):
         self.delta_angle_entree_rc = math.acos((500+self.distance_entree)/(500+self.distance_entree_rc))
         
         #angle maximal du point d'entrée pour ne pas toucher les bords de table
-        self.angle_max = math.asin(self.config["rayon_robot"] / (500 + self.config["distance_au_gateau"] + self.config["longueur_robot"]/2))
+        self.angle_max = math.asin((self.config["rayon_robot"] + 10) / (500 + self.config["distance_au_gateau"] + self.config["longueur_robot"]/2))
         
     def _point_polaire(self, angle, distance_gateau):
         """
@@ -187,6 +186,10 @@ class ScriptBougies(Script):
         
     def _execute(self, version):
 
+    
+        
+        self.robot.set_vitesse_translation(1)
+        self.robot.set_vitesse_rotation(1)
         # Il n'y a aucune symétrie sur la couleur dans les déplacements
         self.robot.marche_arriere = False
         self.robot.effectuer_symetrie = False
@@ -235,7 +238,7 @@ class ScriptBougies(Script):
             hook_baisser_bras += self.hookGenerator.callback(self.table.bougie_recupere, (bougie,))
             hooks.append(hook_baisser_bras)
             
-            # Lever le bras
+            # Lever le bras (On relève seulement celui qui a été abaissé)
             hook_baisser_bras = self.hookGenerator.hook_angle_gateau(angle_lever_bras, vers_x_croissant)
             hook_baisser_bras += self.hookGenerator.callback(self.robot.initialiser_bras_bougie, (bougie["enHaut"],))
             hooks.append(hook_baisser_bras)
@@ -294,6 +297,8 @@ class ScriptCadeaux(Script):
         
         # Déplacement proche du point d'entrée avec recherche de chemin
         self.robot.marche_arriere = False
+        self.robot.set_vitesse_translation(140)
+        self.robot.set_vitesse_rotation(150)
         self.robot.recherche_de_chemin(self.info_versions[version]["point_entree_recherche_chemin"], recharger_table=False)
         
         # Déplacement au point d'entrée
@@ -307,20 +312,21 @@ class ScriptCadeaux(Script):
         
         # Création des hooks pour tous les cadeaux à activer
         hooks = []
+        # Ouverture du bras en face du cadeau
         for cadeau in self.table.cadeaux_restants():
-            
-            # Ouverture du bras
-            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * self.decalage_x_ouvre, self.decalage_y_bord ), effectuer_symetrie=False)
+            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * self.decalage_x_ouvre, self.decalage_y_bord ), tolerance_mm=35, effectuer_symetrie=False)
             hook_ouverture += self.hookGenerator.callback(self.robot.ouvrir_cadeau)
             hook_ouverture += self.hookGenerator.callback(self.table.cadeau_recupere, (cadeau,))
             hooks.append(hook_ouverture)
             
-            # Fermeture du bras
-            hook_fermeture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * self.decalage_x_ferme, self.decalage_y_bord ), effectuer_symetrie=False)
+        # Fermeture du bras pendant les "trous" entre cadeaux
+        for trou in self.table.trous_cadeaux:
+            hook_fermeture = self.hookGenerator.hook_position(trou + Point(sens * self.decalage_x_ferme, self.decalage_y_bord ), tolerance_mm=35, effectuer_symetrie=False)
             hook_fermeture += self.hookGenerator.callback(self.robot.fermer_cadeau)
             hooks.append(hook_fermeture)
 
         # Déplacement le long de la table (peut être un peu trop loin ?)
+        self.robot.set_vitesse_translation(100)
         self.robot.va_au_point(self.info_versions[1-version]["point_entree"], hooks)
         
  
@@ -330,10 +336,11 @@ class ScriptCadeaux(Script):
             self.log.debug("Fin du script cadeau : repli de l'actionneur cadeaux.")
             self.effectuer_symetrie = False
             try:
+                angle_repli = math.pi/3
                 if self.robot.x > 0:
-                    self.robot.tourner(math.pi/4)
+                    self.robot.tourner(angle_repli)
                 else:
-                    self.robot.tourner(-math.pi/4)
+                    self.robot.tourner(-angle_repli)
             finally:
                 self.robot.fermer_cadeau()
         else:
@@ -341,8 +348,8 @@ class ScriptCadeaux(Script):
 
     def versions(self):
         self.decalage_x_ouvre = -50
-        self.decalage_x_ferme = 350
-        self.decalage_y_bord = self.config["rayon_robot"] + 50
+        self.decalage_x_ferme = -60#350
+        self.decalage_y_bord = self.config["rayon_robot"] + 100
         self.decalage_x_pour_reglette_blanche = 100
         
         cadeaux = self.table.cadeaux_entrees()
@@ -385,19 +392,35 @@ class ScriptCadeaux(Script):
 
 class ScriptRecupererVerres(Script):
         
+    def _constructeur(self):
+        self.marge_recuperation = 120
+        self.marge_apres_chemin = self.marge_recuperation + 150
+        
     def _execute(self, version):
         
         # Désactivation de la symétrie
         self.robot.effectuer_symetrie = False
         
-        # Point d'entrée du script
-        entree = self._point_recuperation_verre(self.info_versions[version]["point_entree"])
-        #self.robot.recherche_de_chemin(entree, False)
+        # Point d'entrée du script par recherche de chemin
+        premier_verre = self.info_versions[version]["point_entree"]
+        chemin_vers_entree = self.robot.recherche_de_chemin(premier_verre, recharger_table=False, renvoie_juste_chemin=True)
         
-        # Récupération du premier verre, avec recherche de chemin
+        #suppression du point d'arrivé (le verre) qui est remplacé par un point suffisament éloigné, sur le dernier segment du chemin
+        if len(chemin_vers_entree) > 2 and chemin_vers_entree[-1].distance(chemin_vers_entree[-2]) < self.marge_recuperation:
+            #cette optimisation fonctionnerait mal sur les segments plus courts que la marge de récupération
+            del chemin_vers_entree[-1]
+        del chemin_vers_entree[-1]
+        chemin_avec_depart = [Point(self.robot.x,self.robot.y)]+chemin_vers_entree
+        nouvelle_destination = self._point_devant_verre(premier_verre, self.marge_apres_chemin, chemin_avec_depart[-1])
+        chemin_vers_entree.append(nouvelle_destination)
+        
+        self.robot.suit_chemin(chemin_vers_entree, symetrie_effectuee=True)
+        
+        # Récupération du premier verre
         self._recuperation_verre(self.info_versions[version]["verre_entree"])
 
         # Tant qu'il y a de la place dans le robot
+        #TODO : dangereux si bouclage entre 2 verres inaccesibles. Prévoir un timeout ?
         while self.robot.places_disponibles(True) != 0 or self.robot.places_disponibles(False) != 0:
             
             # Indentification du verre le plus proche dans la zone
@@ -415,29 +438,31 @@ class ScriptRecupererVerres(Script):
         """
         Procédure de récupération d'un verre
         """
-        avant = self._choix_ascenceur()
-        self.robot.marche_arriere = not avant
-        self.robot.va_au_point(verre["position"])
-        self.robot.recuperer_verre(avant)
+        destination = self._point_devant_verre(verre["position"], self.marge_recuperation)
+        mieux_en_arriere = self.robot.marche_arriere_est_plus_rapide(destination)
+        if self.robot.places_disponibles(not mieux_en_arriere):
+            self.robot.marche_arriere = mieux_en_arriere
+        else:
+            self.robot.marche_arriere = not mieux_en_arriere
+        
+        self.robot.va_au_point(destination)
+        self.robot.recuperer_verre(not self.robot.marche_arriere)
         self.table.verre_recupere(verre)
         
-    def _choix_ascenceur(self):
-        """
-        Effectue le choix de l'ascenceur avant ou arrière
-        """
-        # Prend par l'avant par défaut, l'arrière s'il n'y a plus de places
-        return self.robot.places_disponibles(True) != 0
-            
-    def _point_recuperation_verre(self, point):
+    def _point_devant_verre(self, pos_verre, marge, pos_robot=None):
         """
         Récupère le point de destination pour récupérer un verre
         S'appuie sur la position actuelle du robot
         """
+        #on peut indiquer en paramètre la position du robot à la fin d'un trajet
+        if pos_robot is None:
+            pos_robot = Point(self.robot.x, self.robot.y)
+            
         # Vecteur de direction du verre vers le robot
-        direction = (Point(self.robot.x, self.robot.y) - point).unitaire()
+        direction = (pos_robot - pos_verre).unitaire()
         
         # Point de récupération (à déterminer)
-        recuperation = point + 100 * direction
+        recuperation = pos_verre + marge * direction
         
         return recuperation
          
@@ -520,39 +545,125 @@ class ScriptRecupererVerresZoneBleu(ScriptRecupererVerres):
         return super().versions()
         
         
-"""        
-class ScriptCasserTour(Script):
-
-    def versions(self):
-        return []
-        
-    def point_entree(self, id_version):
-        pass
-        
-    def score(self):
-        pass
-
-    def _execute(self, id_version):
-        return (time()-self.timer.get_date_debut())    #à revoir
-
-    def poids(self):
-        return 1
-        
-class ScriptDeposerVerres(Script): #contenu pipeau
+class ScriptDeposerVerres(Script):
     
-    def _execute(self):
-        self.va_au_point(Point(1300,200))
-        self.va_au_point(Point(1300,1800))
-
     def versions(self):
-        return []
+        """
+        L'idée, c'est que les assiettes nous obligent à déposer les piles de verres là où nos robots ont démarré. 
+        Les cases au extrémités (1 et 5) permettent de déposer les verres sur une reglette en bois.
+        """
+        
+        #position relative du point_entree_recherche_chemin par rapport au point_entree
+        decalage_recherche_chemin = Point(-400,0)
+        
+        #décalage dû aux reglettes
+        decalages_reglettes = [Point(0,0), Point(0,0)]
+        configs = [self.config["case_depart_principal"], self.config["case_depart_secondaire"]]
+        for i in range(len(configs)):
+            if configs[i] == 1:
+                decalages_reglettes[i].y += 130
+                decalages_reglettes[i].x -= 100
+            elif configs[i] == 5:
+                decalages_reglettes[i].y -= 130
+                decalages_reglettes[i].x -= 100
+             
+        #case de départ du robot principal
+        self.info_versions = [{   
+                "point_entree_recherche_chemin": self.table.centres_cases_depart[self.config["case_depart_principal"]-1] + decalage_recherche_chemin,
+                "point_entree": self.table.centres_cases_depart[self.config["case_depart_principal"]-1] + decalages_reglettes[0], 
+                "id_case": self.config["case_depart_principal"]
+            }]
+                
+        if self.config["case_depart_secondaire"] and not self.config["case_depart_secondaire"] == self.config["case_depart_principal"]:
+            # Le robot secondaire a démarré sur une autre case que le robot principal : un deuxième emplacement est possible
+            
+            self.info_versions.append({   
+                "point_entree_recherche_chemin": self.table.centres_cases_depart[self.config["case_depart_secondaire"]-1] + decalage_recherche_chemin,
+                "point_entree": self.table.centres_cases_depart[self.config["case_depart_secondaire"]-1] + decalages_reglettes[1], 
+                "id_case": self.config["case_depart_secondaire"]
+            })
+            return [0,1]
+            
+        else:
+            # Un seul emplacement sans assiette
+            return [0]
+            
+    def _execute(self, version):
+        
+        #TODO : gérer les vitesses !
+        
+        # Activation de la symétrie
+        self.robot.effectuer_symetrie = True
+        
+        # Point d'entrée du script par recherche de chemin
+        point_proche_case = self.info_versions[version]["point_entree_recherche_chemin"]
+        self.robot.recherche_de_chemin(point_proche_case, recharger_table=False)
+        
+        # Déplacement au centre de la case, qui n'a normalement pas d'assiette
+        centre_case = self.info_versions[version]["point_entree"]
+        self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne=centre_case)
+        self.robot.va_au_point(centre_case)
+        
+        if self.info_versions[version]["id_case"] == 1:
+            # Case 1 : on dépose les verres sur la réglette du bas
+            vers_depot = -math.pi/2
+        elif self.info_versions[version]["id_case"] == 5:
+            # Case 5 : on dépose les verres sur la réglette du haut
+            vers_depot = math.pi/2
+        else:
+            # Une des cases du milieu : on doit poser les verres contre le bord (x extremal) de la table
+            vers_depot = 0
+            
+        def deposer_avant():
+            if self.robot.nb_verres_avant:
+                #on dépose l'ascenseur avant d'un coté
+                self.robot.tourner(vers_depot + math.pi/6)
+                try:
+                    #attention, on va taper le bord de la table !
+                    self.robot.avancer(150, retenter_si_blocage=False)
+                except robot.ExceptionMouvementImpossible:
+                    pass
+                self.robot.deposer_pile(avant=True)
+                self.robot.avancer(-150)
+        
+        def deposer_arriere():
+            if self.robot.nb_verres_arriere:
+                #on dépose l'ascenseur arrière de l'autre coté
+                self.robot.tourner(math.pi + vers_depot - math.pi/6)
+                try:
+                    #attention, on va taper le bord de la table !
+                    self.robot.avancer(-150, retenter_si_blocage=False)
+                except robot.ExceptionMouvementImpossible:
+                    pass
+                self.robot.deposer_pile(avant=False)
+                self.robot.avancer(150)
+        
+        #tenir compte de l'orientation d'arrivée pour commencer à l'avant ou à l'arrière
+        point_de_depot = centre_case + Point(150*math.cos(vers_depot),150*math.sin(vers_depot))
+        if self.robot.marche_arriere_est_plus_rapide(point_consigne=point_de_depot):
+            deposer_arriere()
+            deposer_avant()
+        else:
+            deposer_avant()
+            deposer_arriere()
+            
+        #on se dégage
+        self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne=point_proche_case)
+        self.robot.va_au_point(point_proche_case)
+        
+        #TODO : retenir qu'on est déjà passé, et éviter de tout péter en revenant au même endroit...
+        
+    def _termine(self):
+        pass
+        
         
     def point_entree(self, id_version):
-        pass
+        return self.info_versions[id_version]["point_entree"]
 
     def score(self):
-        return 4*(self.robotVrai.nb_verres_avant*(self.robotVrai.nb_verres_avant+1)/2+self.robotVrai.nb_verres_arriere*(self.robotVrai.nb_verres_arriere+1)/2)
+        #return 4*(self.robotVrai.nb_verres_avant*(self.robotVrai.nb_verres_avant+1)/2+self.robotVrai.nb_verres_arriere*(self.robotVrai.nb_verres_arriere+1)/2)
+        #on considère qu'on dépose une pile pour l'avant, une pile pour l'arrière
+        return 4 * ( sum(range(1,self.robotVrai.nb_verres_avant+1)) + sum(range(1,self.robotVrai.nb_verres_arriere+1)) )
 
     def poids(self):
         return 1
-"""

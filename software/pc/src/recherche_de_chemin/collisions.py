@@ -35,6 +35,17 @@ def collision_2_cercles(cercle1,cercle2):
     d = math.sqrt(dx**2 + dy**2)
     return d < cercle1.rayon + cercle2.rayon
     
+def collision_2_nuages_cercles(nuage1, nuage2):
+    """
+    Test de collision entre 2 nuages de cercles 
+    Pour dégrossir efficacement les calculs de collision entre obstacles.
+    """
+    for cercle1 in nuage1:
+        for cercle2 in nuage2:
+            if collision_2_cercles(cercle1,cercle2):
+                return True
+    return False
+    
 def collisionSegmentSegment(a,b,c,d):
     if a == c:
         return True,"departsIdentiques"
