@@ -21,9 +21,13 @@ class Strategie:
         
         self.echecs = {}
 
-        if self.config["ennemi_fait_toutes_bougies"]: #à décommenter une fois que le script bougies sera fini
+        if self.config["ennemi_fait_toutes_bougies"]:
             self.log.warning("Comme l'ennemi fait toutes les bougies, on ne les fera pas.")
             del self.scripts["ScriptBougies"]
+
+        # Pour la pré-coupe
+        del self.scripts["ScriptRecupererVerres"]
+        del self.scripts["ScriptDeposerVerres"]
 
     def boucle_strategie(self):
 
@@ -139,6 +143,8 @@ class Strategie:
         On prend la distance euclidienne, à vol d'oiseau.
         Attention, on prend le min: cette valeur est sensible aux mesures aberrantes
         """
-        if [obstacle for obstacle in self.table.obstacles() if hasattr(obstacle, "vitesse") and obstacle.vitesse is not None] == []:
+        positions = [point_entree.distance(obstacle.position)+2*obstacle.vitesse for obstacle in self.table.obstacles() if hasattr(obstacle, "vitesse") and obstacle.vitesse is not None]+[point_entree.distance(obstacle.position) for obstacle in self.table.obstacles() if not hasattr(obstacle, "vitesse")]
+
+        if positions == []:
             return 0
-        return min([point_entree.distance(obstacle.position)+2*obstacle.vitesse for obstacle in self.table.obstacles() if hasattr(obstacle, "vitesse") and obstacle.vitesse is not None])
+        return min(positions)
