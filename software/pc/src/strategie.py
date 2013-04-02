@@ -32,11 +32,9 @@ class Strategie:
         self.log.debug("Stratégie lancée")
 
         # On ne le fait que maintenant car la config peut changer avant le début du match
-        self.log.critical(str(self.scripts))
         if self.config["ennemi_fait_toutes_bougies"]:
             self.log.warning("Comme l'ennemi fait toutes les bougies, on ne les fera pas.")
             del self.scripts["ScriptBougies"]
-        self.log.critical(str(self.scripts))
     
         # Pour la pré-coupe
         del self.scripts["ScriptRecupererVerresZoneBleu"]
@@ -117,6 +115,7 @@ class Strategie:
         # Si on n'a pas le temps de faire le script avant la fin du match
         if not duree_script < (self.config["temps_match"] - time() + self.timer.get_date_debut()):
             self.log.warning("Plus le temps d'exécuter " + script)
+            self.log.warning("Son temps: " + str(duree_script)+". Temps restant: " + str(self.config["temps_match"] - time() + self.timer.get_date_debut()))
             malus = 50
         else:
             malus = 0
@@ -155,6 +154,7 @@ class Strategie:
         """
         positions = [point_entree.distance(obstacle.position)+2*obstacle.vitesse for obstacle in self.table.obstacles() if hasattr(obstacle, "vitesse") and obstacle.vitesse is not None]+[point_entree.distance(obstacle.position) for obstacle in self.table.obstacles() if not hasattr(obstacle, "vitesse")]
 
+        # S'il n'y a aucun ennemi, on considère qu'il est à l'infini
         if positions == []:
-            return 0
+            return 5000
         return min(positions)
