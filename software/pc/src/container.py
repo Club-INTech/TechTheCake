@@ -1,3 +1,6 @@
+#passage de la couleur
+import builtins
+
 import os,sys
 import time #pour l'attente du lancement des threads
 
@@ -73,6 +76,8 @@ class Container:
             conf.set_chemin(chemin+"/config")
             conf["cartes_serie"] = conf["cartes_serie"].split(",")
             conf["cartes_simulation"] = conf["cartes_simulation"].split(",")
+            if hasattr(builtins, "couleur_robot"):
+                conf["couleur"] = builtins.couleur_robot
             return conf
         self.assembler.register("config",read_ini.Config,factory=make_conf)
         
