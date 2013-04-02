@@ -116,13 +116,13 @@ class ProtocoleVirtuelCapteursActionneurs:
 
     def j(self):
         #jumper
-        return [1]
+        return [0]
 
-    def c(self):
-        #TODO
-        return ["rouge"]
+#    def cadeau(self):
+#        #TODO
+#        return ["rouge"]
         
-    def g(self,*useless) :
+    def cadeau(self,*useless) :
         return []
     
     def gonfler_ballon(self) :

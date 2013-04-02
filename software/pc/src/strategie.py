@@ -21,18 +21,27 @@ class Strategie:
         
         self.echecs = {}
 
-        if self.config["ennemi_fait_toutes_bougies"]: #à décommenter une fois que le script bougies sera fini
-            self.log.warning("Comme l'ennemi fait toutes les bougies, on ne les fera pas.")
-            del self.scripts["ScriptBougies"]
-
     def boucle_strategie(self):
-
-        while not self.timer.match_demarre:
-            sleep(.5)
         """
         Boucle qui gère la stratégie, en testant les différents scripts et en exécutant le plus avantageux
         """
+
+        while not self.timer.match_demarre:
+            sleep(.5)
+
         self.log.debug("Stratégie lancée")
+
+        # On ne le fait que maintenant car la config peut changer avant le début du match
+        self.log.critical(str(self.scripts))
+        if self.config["ennemi_fait_toutes_bougies"]:
+            self.log.warning("Comme l'ennemi fait toutes les bougies, on ne les fera pas.")
+            del self.scripts["ScriptBougies"]
+        self.log.critical(str(self.scripts))
+    
+        # Pour la pré-coupe
+        del self.scripts["ScriptRecupererVerresZoneBleu"]
+        del self.scripts["ScriptRecupererVerresZoneRouge"]
+        del self.scripts["ScriptDeposerVerres"]
 
         while not self.timer.get_fin_match():
 
@@ -108,7 +117,9 @@ class Strategie:
         # Si on n'a pas le temps de faire le script avant la fin du match
         if not duree_script < (self.config["temps_match"] - time() + self.timer.get_date_debut()):
             self.log.warning("Plus le temps d'exécuter " + script)
-            return 0
+            malus = 50
+        else:
+            malus = 0
 
         distance_ennemi = self._distance_ennemi(self.scripts[script].point_entree(version))
         score = self.scripts[script].score()
@@ -124,11 +135,14 @@ class Strategie:
             # Densité de points
             5*score/duree_script,
 
-            # On évite l'ennemi s'il est proche de l'objectif
-            distance_ennemi/400,
+            # On évite l'ennemi s'il est proche de l'objectif (gaussienne)
+            -10*math.exp(-distance_ennemi**2/1000000),
             
             # Echecs précédents
-            note_echecs
+            note_echecs,
+
+            # Les scripts qu'on aurait pas le temps de finir ont un malus de points
+            malus
         ]
 
         return sum(note)
@@ -139,6 +153,8 @@ class Strategie:
         On prend la distance euclidienne, à vol d'oiseau.
         Attention, on prend le min: cette valeur est sensible aux mesures aberrantes
         """
-        if [obstacle for obstacle in self.table.obstacles() if hasattr(obstacle, "vitesse") and obstacle.vitesse is not None] == []:
+        positions = [point_entree.distance(obstacle.position)+2*obstacle.vitesse for obstacle in self.table.obstacles() if hasattr(obstacle, "vitesse") and obstacle.vitesse is not None]+[point_entree.distance(obstacle.position) for obstacle in self.table.obstacles() if not hasattr(obstacle, "vitesse")]
+
+        if positions == []:
             return 0
-        return min([point_entree.distance(obstacle.position)+2*obstacle.vitesse for obstacle in self.table.obstacles() if hasattr(obstacle, "vitesse") and obstacle.vitesse is not None])
+        return min(positions)

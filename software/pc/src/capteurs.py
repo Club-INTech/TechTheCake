@@ -36,12 +36,6 @@ class Capteurs():
         
         return sorted(capteur_values, reverse=True)[0]
 
-    def lire_couleur(self):
-        result = self.serie.communiquer("capteur_couleur",["c"],1)[0]
-        if result == "indecis":
-            result = "bleu"
-        return result
-
     def demarrage_match(self):
         return int(self.serie.communiquer("capteurs_actionneurs",["j"], 1)[0])==1
         
