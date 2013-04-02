@@ -135,8 +135,8 @@ class Strategie:
             # Densité de points
             5*score/duree_script,
 
-            # On évite l'ennemi s'il est proche de l'objectif
-            distance_ennemi/400,
+            # On évite l'ennemi s'il est proche de l'objectif (gaussienne)
+            -10*math.exp(-distance_ennemi**2/1000000),
             
             # Echecs précédents
             note_echecs,
