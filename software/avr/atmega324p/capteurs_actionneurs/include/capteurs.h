@@ -25,9 +25,9 @@ class Capteurs
         typedef CapteurSRFMono< timer_capteur_us, AVR_PORTB<PORTB3> > capteur_us2_type;
         capteur_us2_type us2;
 
-        typedef CapteurInfrarouge< AVR_ADC<0> > capteur_infra1_type;
+        typedef CapteurInfrarouge< AVR_ADC<0> > capteur_infra2_type;
         capteur_infra1_type inf1;
-        typedef CapteurInfrarouge< AVR_ADC<1> > capteur_infra2_type;
+        typedef CapteurInfrarouge< AVR_ADC<1> > capteur_infra1_type;
         capteur_infra2_type inf2;    
 
 	public:

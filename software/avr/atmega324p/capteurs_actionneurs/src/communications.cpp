@@ -30,21 +30,21 @@ void Communications::execute(char ordre[])
         }
 
         // infrarouge
-        else if (strcmp(ordre, "i")==0) //minuscule: arrière. Majuscule: avant
-        {
-            serie_robot::print(capteurs.inf1.value());
-        }
-        else if (strcmp(ordre, "I")==0)
+        else if (strcmp(ordre, "ir_av")==0)
         {
             serie_robot::print(capteurs.inf2.value());
         }
+        else if (strcmp(ordre, "ir_arr")==0)
+        {
+            serie_robot::print(capteurs.inf1.value());
+        }
 
         // Ultrasons SRF05
-        else if (strcmp(ordre, "S")==0)
+        else if (strcmp(ordre, "us_av")==0)
         {
             serie_robot::print(capteurs.us1.value());
         }
-        else if (strcmp(ordre, "s")==0)
+        else if (strcmp(ordre, "us_arr")==0)
         {
             serie_robot::print(capteurs.us2.value());
         }
