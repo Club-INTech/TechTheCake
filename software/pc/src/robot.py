@@ -63,6 +63,8 @@ class Robot(RobotInterface):
         #gestion par défaut de la symétrie couleur
         self._effectuer_symetrie = True
         
+        #désactivation des exceptions de mouvement impossible durant le recalage
+        self._recalage = False
         
         #le nombre de verres dans l'ascenseur avant ou arrière
         self._nb_verres_avant = 0
@@ -240,7 +242,7 @@ class Robot(RobotInterface):
         #initialisation de la marche dans mise_a_jour_consignes
         self.maj_marche_arriere = self.marche_arriere
         self.maj_ancien_angle = angle
-        
+                    
         #mode marche_arriere
         if self.marche_arriere:
             distance *= -1
@@ -251,13 +253,14 @@ class Robot(RobotInterface):
             self._tourner(angle)
             self._detecter_collisions() #on n'avance pas si un obstacle est devant
             self.deplacements.avancer(distance)
+
         else:
             #l'attribut self._consigne_orientation doit etre mis à jour à chaque deplacements.tourner() pour le fonctionnement de self._avancer()
             self._consigne_orientation = angle
             self.deplacements.tourner(angle)
             self._detecter_collisions() #on n'avance pas si un obstacle est devant
             self.deplacements.avancer(distance)
-            
+
         while not self._acquittement():
             #vérification des hooks
             infosRobot = {"robotX": self.x, "robotY": self.y, "robotOrientation": self.orientation}
@@ -332,8 +335,9 @@ class Robot(RobotInterface):
         #self.deplacements.gestion_blocage() n'indique qu'un NOUVEAU blocage : garder le ou logique avant l'ancienne valeur (attention aux threads !)
         if self.blocage or self.deplacements.gestion_blocage(**infos):
             self.blocage = True
-            raise ExceptionBlocage(self)
-        
+            if not self._recalage:
+                raise ExceptionBlocage(self)
+            
         #ennemi détecté devant le robot ?
         if detection_collision:
             self._detecter_collisions()
@@ -513,12 +517,13 @@ class Robot(RobotInterface):
             
         #blocage durant la rotation
         except ExceptionBlocage:
-            try:
-                if nombre_tentatives > 0:
-                    self.log.warning("Blocage en rotation ! On tourne dans l'autre sens... reste {0} tentative(s)".format(nombre_tentatives))
-                    self.tourner(self.orientation + math.copysign(self.config["angle_degagement_robot"], -angle), nombre_tentatives=nombre_tentatives-1)
-            finally:
-                raise ExceptionMouvementImpossible(self)
+            if not self._recalage:
+                try:
+                    if nombre_tentatives > 0:
+                        self.log.warning("Blocage en rotation ! On tourne dans l'autre sens... reste {0} tentative(s)".format(nombre_tentatives))
+                        self.tourner(self.orientation + math.copysign(self.config["angle_degagement_robot"], -angle), nombre_tentatives=nombre_tentatives-1)
+                finally:
+                    raise ExceptionMouvementImpossible(self)
                 
         #détection d'un robot adverse
         except ExceptionCollision:
@@ -580,19 +585,19 @@ class Robot(RobotInterface):
             self._va_au_point(point.x, point.y, hooks=hooks, trajectoire_courbe=trajectoire_courbe)
         #blocage durant le mouvement
         except ExceptionBlocage:
-            try:
-                self.stopper()
-                if retenter_si_blocage:
-                    #TODO On tente de reculer. Mais l'exception est peut etre levée lors d'un virage...
-                    if nombre_tentatives > 0:
-                        self.log.warning("Blocage en déplacement ! On recule... reste {0} tentative(s)".format(nombre_tentatives))
-                        if self.marche_arriere:
-                            self.avancer(self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
-                        else:
-                            self.avancer(-self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
-            finally:
-                raise ExceptionMouvementImpossible(self)
-        
+                try:
+                    self.stopper()
+                    if retenter_si_blocage and not self._recalage:
+                        #TODO On tente de reculer. Mais l'exception est peut etre levée lors d'un virage...
+                        if nombre_tentatives > 0:
+                            self.log.warning("Blocage en déplacement ! On recule... reste {0} tentative(s)".format(nombre_tentatives))
+                            if self.marche_arriere:
+                                self.avancer(self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
+                            else:
+                                self.avancer(-self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
+                finally:
+                    raise ExceptionMouvementImpossible(self)
+
         #détection d'un robot adverse
         except ExceptionCollision:
             self.stopper()
@@ -631,6 +636,8 @@ class Robot(RobotInterface):
         """
         
         self.log.debug("début du recalage")
+        #durant le recalage, l'exception de blocage est gérée différemment
+        self._recalage = True
         
         #on recule lentement jusqu'à bloquer sur le bord
         self.set_vitesse_translation(1)
@@ -638,10 +645,12 @@ class Robot(RobotInterface):
         self.marche_arriere = True
         self.avancer(-1000)
         
+        sleep(1)
         #on désactive l'asservissement en rotation pour se mettre parallèle au bord
         self.deplacements.desactiver_asservissement_rotation()
         self.set_vitesse_translation(2)
         self.avancer(-300)
+        sleep(1)
         
         #initialisation de la coordonnée x et de l'orientation
         if self.config["couleur"] == "bleu":
@@ -650,27 +659,33 @@ class Robot(RobotInterface):
         else:
             self.x = self.config["table_x"]/2. - self.config["largeur_robot"]/2.
             self.orientation = math.pi
-        
         #on avance doucement, en réactivant l'asservissement en rotation
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
         self.set_vitesse_translation(1)
         self.avancer(200)
+
+        #un sleep pas beau qui évite que le robot ne tourne et n'avance en même temps
+        sleep(1)
         
         #on se tourne pour le deuxième recalage
         self.tourner(math.pi/2)
         
+        sleep(2)
         #on recule lentement jusqu'à bloquer sur le bord
         self.marche_arriere = True
         self.avancer(-1000)
         
+        sleep(1)
         #on désactive l'asservissement en rotation pour se mettre parallèle au bord
         self.deplacements.desactiver_asservissement_rotation()
         self.set_vitesse_translation(2)
         self.avancer(-300)
+        sleep(1)
         
         #initialisation de la coordonnée y et de l'orientation
-        self.y = self.config["largeur_robot"]/2.
+        #Le +100 en ordonnée correspond à la taille de l'estrade en bois (à mettre dans config?)
+        self.y = self.config["largeur_robot"]/2.+100
         self.orientation = math.pi/2.
         
         #on avance doucement, en réactivant l'asservissement en rotation
@@ -678,14 +693,18 @@ class Robot(RobotInterface):
         self.deplacements.activer_asservissement_rotation()
         self.set_vitesse_translation(1)
         self.avancer(150)
+        sleep(1)
         
         #on prend l'orientation initiale pour le match (la symétrie est automatique pour les déplacements)
         self.tourner(math.pi)
+        sleep(1)
         
         #vitesse initiales pour le match
         self.set_vitesse_translation(2)
         self.set_vitesse_rotation(2)
        
+        #on n'oublie pas de réactiver les exceptions de blocage une fois le recalage terminé
+        self._recalage = False
         self.log.debug("recalage terminé")
         
     def set_vitesse_translation(self, valeur):
