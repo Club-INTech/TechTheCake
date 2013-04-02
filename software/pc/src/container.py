@@ -220,9 +220,10 @@ class Container:
             timer.join()
             
         #attente de la fin du thread laser
-        laser = self.get_service("threads.laser")
-        if laser.is_alive():
-            laser.join()
+        if self.config["lasers_demarrer_thread"]:
+			laser = self.get_service("threads.laser")
+			if laser.is_alive():
+				laser.join()
             
         #attente de la fin du thread bougies
         bougies = self.get_service("threads.bougies")
