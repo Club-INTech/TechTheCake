@@ -516,7 +516,7 @@ class Robot(RobotInterface):
             try:
                 if nombre_tentatives > 0:
                     self.log.warning("Blocage en rotation ! On tourne dans l'autre sens... reste {0} tentative(s)".format(nombre_tentatives))
-                    self.tourner(self.orientation + math.copysign(self.config["angle_degagement_robot"], -angle), nombre_tentatives=nombre_tentatives-1)
+                    self.tourner(self.orientation + math.copysign(self.config["angle_degagement_robot"], -angle), [], nombre_tentatives=nombre_tentatives-1, sans_lever_exception=sans_lever_exception)
             finally:
                 if not sans_lever_exception:
                     raise ExceptionMouvementImpossible(self)

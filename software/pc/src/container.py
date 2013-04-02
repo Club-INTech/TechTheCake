@@ -1,3 +1,6 @@
+#passage de la couleur
+import builtins
+
 import os,sys
 import time #pour l'attente du lancement des threads
 
@@ -73,6 +76,8 @@ class Container:
             conf.set_chemin(chemin+"/config")
             conf["cartes_serie"] = conf["cartes_serie"].split(",")
             conf["cartes_simulation"] = conf["cartes_simulation"].split(",")
+            if hasattr(builtins, "couleur_robot"):
+                conf["couleur"] = builtins.couleur_robot
             return conf
         self.assembler.register("config",read_ini.Config,factory=make_conf)
         
@@ -220,9 +225,10 @@ class Container:
             timer.join()
             
         #attente de la fin du thread laser
-        laser = self.get_service("threads.laser")
-        if laser.is_alive():
-            laser.join()
+        if self.config["lasers_demarrer_thread"]:
+            laser = self.get_service("threads.laser")
+            if laser.is_alive():
+                laser.join()
             
         #attente de la fin du thread bougies
         bougies = self.get_service("threads.bougies")
