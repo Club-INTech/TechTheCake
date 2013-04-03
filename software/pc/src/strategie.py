@@ -58,7 +58,7 @@ class Strategie:
 
             # S'il n'y a plus de script à exécuter (ce qui ne devrait jamais arriver), on interrompt la stratégie
             if notes == {}:
-                self.log.critical("Plus de scripts à exécuter!")
+                self.log.critical("Plus de scripts à exécuter! Temps restant: "+str(self.config["temps_match"] - time() + self.timer.get_date_debut()))
                 break
 
             # Choix du script avec la meilleure note
@@ -84,6 +84,9 @@ class Strategie:
                     
                 except Exception as e:
                     self.log.warning('Abandon du script "{0}", erreur: {1}'.format(script_a_faire, e))
+
+            else:
+                self.log.warning("Ordre annulé: fin du match.")
 
         self.log.debug("Arrêt de la stratégie")
 
@@ -116,7 +119,7 @@ class Strategie:
         if not duree_script < (self.config["temps_match"] - time() + self.timer.get_date_debut()):
             self.log.warning("Plus le temps d'exécuter " + script)
             self.log.warning("Son temps: " + str(duree_script)+". Temps restant: " + str(self.config["temps_match"] - time() + self.timer.get_date_debut()))
-            malus = 50
+            malus = -50
         else:
             malus = 0
 
@@ -143,7 +146,8 @@ class Strategie:
             # Les scripts qu'on aurait pas le temps de finir ont un malus de points
             malus
         ]
-
+#        self.log.critical("Détail note "+str(script)+","+str(version)+": "+str(note))
+        
         return sum(note)
 
     def _distance_ennemi(self, point_entree):
