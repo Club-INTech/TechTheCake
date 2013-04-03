@@ -112,7 +112,7 @@ class ThreadCapteurs(AbstractThread):
                     # Vérifie si l'obstacle est sur la table 
                     if x > (-config["table_x"]/2) and y > 0 and x < config["table_x"]/2 and y < config["table_y"]:
                         # Vérifie que l'obstacle perçu n'est pas le gateau
-                        if not ((x-0)**2 + (y-2000)**2) < 500**2:
+                        if not ((x-0)**2 + (y-2000)**2) < 550**2:
                             table.creer_obstacle(Point(x,y))
                             dernier_ajout = time()   
                     
@@ -141,15 +141,15 @@ class ThreadTimer(AbstractThread):
         """
         Boucle qui attend le début du match et qui modifie alors la variable timer.match_demarre
         """
-        while not self.capteurs.demarrage_match():
+        while not self.capteurs.demarrage_match() and not self.match_demarre:
             if AbstractThread.stop_threads:
                 self.log.debug("Stoppage du thread timer")
                 return None
             sleep(.5)
         self.log.debug("Le match a commencé!")
         with self.mutex:
-            self.match_demarre = True
             self.date_debut = time()
+            self.match_demarre = True
             
     def run(self):
         """
@@ -286,7 +286,7 @@ class ThreadCouleurBougies(AbstractThread):
         timer = self.container.get_service("threads.timer")
         scripts = self.container.get_service("scripts")
 
-        log.debug("Lancement du thread de détection des couleurs des bougies")
+        log.debug("Lancement du thread de détection des couleurs des bougies (mais attente du jumper)")
 
         # Attente du démarrage du match
         while not timer.match_demarre:
@@ -309,7 +309,8 @@ class ThreadCouleurBougies(AbstractThread):
             for i in range (20):
                 table.bougies[i]["couleur"] = couleur_bougies
             #le script tiendra compte de ce comportement dans le décompte des points
-            scripts["ScriptBougies"].en_aveugle = True
+            if "ScriptBougies" in scripts:
+                scripts["ScriptBougies"].en_aveugle = True
         finally:
             client_socket.close()
            
