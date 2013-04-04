@@ -55,11 +55,11 @@ void Communications::execute(char ordre[])
         {
             sbi(PORTD, PORTD4);
         }
-        else if (strcmp(ordre, "dist_off")==0)
+/*        else if (strcmp(ordre, "dist_off")==0)
         {
             cbi(PORTD, PORTD4);
         }
-
+*/
         //serial de la carte (ping)
         else if (strcmp(ordre, "?")==0)
         {

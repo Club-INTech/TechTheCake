@@ -125,7 +125,7 @@ class ProtocoleVirtuelCapteursActionneurs:
     def cadeau(self,*useless) :
         return []
     
-    def gonfler_ballon(self) :
+    def dist_on(self) :
         return []
 
     def haut(self,*useless) :
