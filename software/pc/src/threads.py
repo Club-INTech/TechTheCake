@@ -294,25 +294,36 @@ class ThreadCouleurBougies(AbstractThread):
                 log.debug("Stoppage du thread de détection des couleurs des bougies")
                 return None
             sleep(0.1)
-            
-        # Ouverture de la socket
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            client_socket.settimeout(config["timeout_android"])
-            client_socket.connect((config["ip_android"], 8080))
-            client_socket.send(bytes(config["couleur"][0]+"\n", 'UTF-8'))
-            rcv = str(client_socket.recv(11),"utf-8").replace("\n","")
-            table.definir_couleurs_bougies(rcv)
-        except:
-            # Si on n'a pas d'information de l'appli android, le mieux est de faire toutes les bougies (ce qui permet de gagner le plus de points possible). Pour cela, on contourne la complétion antisymétrique effectuée dans définir_couleur_bougies
+
+        # Il y a un copier/coller, ce qui n'est pas beau du tout. Mais je ne m'y connais pas assez en try/except pour pouvoir factoriser... (PF)
+        if config["ennemi_fait_ses_bougies"] or config["ennemi_fait_toutes_bougies"]:
+            log.debug("Puisque l'ennemi fait les bougies, on n'a pas besoin de capteurs.")
             couleur_bougies = table.COULEUR_BOUGIE_BLEU if config["couleur"]=="bleu" else table.COULEUR_BOUGIE_ROUGE
             for i in range (20):
                 table.bougies[i]["couleur"] = couleur_bougies
             #le script tiendra compte de ce comportement dans le décompte des points
             if "ScriptBougies" in scripts:
                 scripts["ScriptBougies"].en_aveugle = True
-        finally:
-            client_socket.close()
+        else:
+            # Ouverture de la socket
+            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                client_socket.settimeout(config["timeout_android"])
+                client_socket.connect((config["ip_android"], 8080))
+                client_socket.send(bytes(config["couleur"][0]+"\n", 'UTF-8'))
+                rcv = str(client_socket.recv(11),"utf-8").replace("\n","")
+                table.definir_couleurs_bougies(rcv)
+            except:
+                # Si on n'a pas d'information de l'appli android, le mieux est de faire toutes les bougies (ce qui permet de gagner le plus de points possible). Pour cela, on contourne la complétion antisymétrique effectuée dans définir_couleur_bougies
+                log.warning("Aucune réponse de l'appli android. On fait toutes les bougies.")
+                couleur_bougies = table.COULEUR_BOUGIE_BLEU if config["couleur"]=="bleu" else table.COULEUR_BOUGIE_ROUGE
+                for i in range (20):
+                    table.bougies[i]["couleur"] = couleur_bougies
+                #le script tiendra compte de ce comportement dans le décompte des points
+                if "ScriptBougies" in scripts:
+                    scripts["ScriptBougies"].en_aveugle = True
+            finally:
+                client_socket.close()
            
         log.debug("Fin du thread de détection des couleurs des bougies")
         

@@ -80,7 +80,7 @@ class Strategie:
                     else:
                         self.echecs[(script_a_faire, version_a_faire)] = 1
                         
-                    self.log.warning('Abandon du script "{0}"'.format(script_a_faire))
+                    self.log.warning('Abandon du script "{0}". Echec enregistré'.format(script_a_faire))
                     
                 except Exception as e:
                     self.log.warning('Abandon du script "{0}", erreur: {1}'.format(script_a_faire, e))
@@ -99,16 +99,16 @@ class Strategie:
             
         #chemin impossible
         except libRechercheChemin.ExceptionAucunChemin:
-            return 0
+            return -1000
         except libRechercheChemin.ExceptionArriveeDansObstacle:
-            return 0
+            return -1000
         except libRechercheChemin.ExceptionArriveeHorsTable:
-            return 0
+            return -1000
             
         # Erreur dans la durée script, script ignoré
         if duree_script <= 0:
             self.log.critical("{0} a un temps d'exécution négatif ou nul!".format((script,version)))
-            return 0
+            return -1000
 
         #pour prendre les verres, on ajoute à durée script le temps de déposer les verres
 #        if script == "ScriptRecupererVerres" and duree_script + deposer_verre.calcule() > (self.config["temps_match"] - time() + self.timer.get_date_debut()):
@@ -119,7 +119,7 @@ class Strategie:
         if not duree_script < (self.config["temps_match"] - time() + self.timer.get_date_debut()):
             self.log.warning("Plus le temps d'exécuter " + script)
             self.log.warning("Son temps: " + str(duree_script)+". Temps restant: " + str(self.config["temps_match"] - time() + self.timer.get_date_debut()))
-            malus = -50
+            malus = -10
         else:
             malus = 0
 
@@ -142,11 +142,11 @@ class Strategie:
             
             # Echecs précédents
             note_echecs,
-
+    
             # Les scripts qu'on aurait pas le temps de finir ont un malus de points
             malus
         ]
-#        self.log.critical("Détail note "+str(script)+","+str(version)+": "+str(note))
+#        self.log.critical("Détail note "+str(script)+" en "+str(self.scripts[script].point_entree(version))+": "+str(note))
         
         return sum(note)
 
