@@ -79,6 +79,8 @@ class AX
 {
 private:
     uint8_t id_;
+    uint16_t angleMin_;
+    uint16_t angleMax_;
 
     enum {
         READ_TIMEOUT = 0, READ_SUCCESS = 1
@@ -113,7 +115,7 @@ private:
         Serial_AX12::send_char(datalength + 2);
         Serial_AX12::send_char(instruction);
         
-        checksum += 254 + datalength + 2 + instruction;
+        checksum += 0xFE + datalength + 2 + instruction;
         
         for (uint8_t f=0; f<datalength; f++) {
             checksum += data[f];
@@ -175,36 +177,42 @@ public:
     {
         Serial_AX12::disable_rx();
         id_ = id;
-        // Active l'asservissement du servo
-        writeData (AX_TORQUE_ENABLE, 1, 1);
-        // Définit les angles mini et maxi
-        writeData (AX_CW_ANGLE_LIMIT_L, 2, AX_angle_CW);
-        writeData (AX_CCW_ANGLE_LIMIT_L, 2, AX_angle_CCW);
-        //baudrate
-        writeData (AX_BAUD_RATE, 1, 0xCF);
+	angleMin_=AX_angle_CW;
+	angleMax_=AX_angle_CCW;
+	init(AX_angle_CW, AX_angle_CCW);
     }
 
     AX(uint8_t id)  // Constructeur de la classe pour faire tourner l'AX12 en continu
     {
         Serial_AX12::disable_rx();
         id_ = id;
+	angleMin_=0;
+	angleMax_=0;
+	init();
+    }
+    
+     void init(uint16_t AX_angle_CW=0, uint16_t AX_angle_CCW=0)
+    {
         // Active l'asservissement du servo
         writeData (AX_TORQUE_ENABLE, 1, 1);
         // Pas de limitation d'angles
-        writeData (AX_CW_ANGLE_LIMIT_L, 2, (uint16_t)0);
-        writeData (AX_CCW_ANGLE_LIMIT_L, 2, (uint16_t)1023);
+
+        writeData (AX_CW_ANGLE_LIMIT_L, 2, AX_angle_CW);
+        writeData (AX_CCW_ANGLE_LIMIT_L, 2, AX_angle_CCW);
         //baudrate
-        writeData (AX_BAUD_RATE, 1, 0xC88F);
+        writeData (AX_BAUD_RATE, 1, 0xCF);
     }
-    
     /// Reset de l'AX12
     void reset() {
-        uint8_t *data = 0;
-        sendPacket(0, AX_RESET, data);  
+        sendPacketB(0x00, AX_RESET,0 );  
     }
     
-    /// Tente de réanimer un AX12 mort.
-    void reanimationMode(uint8_t id = 0xFE)
+    /* 
+     * Tente de réanimer un AX12 mort.
+     * L'argument baud_rate à passer en argument est le baud rate normal
+     * de fonctionnement de la série (9600)
+     */
+    void reanimationMode(uint16_t baud_rate)
     {
         uint8_t debug_baudrate = 0;
         // On brute-force le baud rate des AX12, et on leur envoie pour chaque baud rate
@@ -212,25 +220,49 @@ public:
         while (debug_baudrate < 0xFF)
         {
             Serial_AX12::change_baudrate(2000000/(debug_baudrate + 1));
-            writeData(AX_BAUD_RATE, 1, 9600);
+            reset();
             debug_baudrate++;
         }
         
         // Une fois que le signal de reset a été reçu, l'AX12 écoute à 1.000.000 bps.
         // Donc à ce baud rate, on reflash le baud rate d'écoute de l'AX12.
-
-        //writeData(0xFE, AX_BAUD_RATE, 1, uint8_t(2000000/baud_rate - 1));
+        Serial_AX12::change_baudrate(1000000);
         
-        //Serial_AX12::change_baudrate(baud_rate);
+	for (int i=0; i<= 10; i++)
+		writeDataB(AX_BAUD_RATE, 1, uint8_t(2000000/baud_rate - 1));
+
+	Serial_AX12::change_baudrate(baud_rate);
+
+	
         // Si l'id est différente du broadcast, alors on la reflash.
+	uint8_t id_backup = id_;
+	id_ = 0;
+	initID(id_backup);
+	id_ = id_backup;
+
+	//init();
+	// Puis on le fait osciller lentement en boucle infinie
+	while (1)
+	{
+            goTo(90);
+	    _delay_ms(900);
+	    goTo(100);
+	    _delay_ms(900);
+	}
     }
     
+
     /// Réinitialisation de l'ID de l'AX12
     void initID(uint8_t nouvel_id)
     {
         writeData(AX_ID, 1, nouvel_id);
     }
     
+    void static initIDB(uint8_t nouvel_id)
+    {
+        writeDataB(AX_ID, 1, nouvel_id);
+    }
+
     /// Goto - Envoyer un angle en DEGRES entre angleMin et angleMax
     void goTo(uint16_t angle)
     {

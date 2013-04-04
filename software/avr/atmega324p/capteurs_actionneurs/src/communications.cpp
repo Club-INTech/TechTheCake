@@ -49,6 +49,17 @@ void Communications::execute(char ordre[])
             serie_robot::print(capteurs.us2.value());
         }
 
+
+        // Distributeur
+        else if (strcmp(ordre, "dist_on")==0)
+        {
+            sbi(PORTD, PORTD4);
+        }
+/*        else if (strcmp(ordre, "dist_off")==0)
+        {
+            cbi(PORTD, PORTD4);
+        }
+*/
         //serial de la carte (ping)
         else if (strcmp(ordre, "?")==0)
         {

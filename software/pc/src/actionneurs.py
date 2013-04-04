@@ -21,6 +21,7 @@ class Actionneurs :
         self.actionneur_cadeaux_actif = False
 
     def gonfler_ballon(self) :
+        self.serie.communiquer("capteurs_actionneurs",["dist_on"], 0)
         self.log.debug("Gonflage du ballon")
         
     def initialiser_bras_bougie(self, enHaut) : 

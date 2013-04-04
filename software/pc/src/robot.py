@@ -712,9 +712,9 @@ class Robot(RobotInterface):
         self.avancer(-300, retenter_si_blocage = False, sans_lever_exception = True)
         
         if self.config["couleur"] == "bleu":
-            self.orientation = 0.0-self.config["table_x"]
+            self.orientation = 0.0-self.config["epsilon_angle"]
         else:
-            self.orientation = math.pi+self.config["table_x"]
+            self.orientation = math.pi+self.config["epsilon_angle"]
 
         #on avance doucement, en réactivant l'asservissement en rotation
         self.marche_arriere = False
