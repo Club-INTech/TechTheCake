@@ -24,10 +24,6 @@ ISR (TIMER1_OVF_vect)
 
 }
 
-ISR (PCINT2_vect)
-{
-}
-
 ISR(TIMER0_OVF_vect)
 {
 }
@@ -48,7 +44,20 @@ ISR(TIMER2_OVF_vect) //overflow du timer 2, qui appelle le refresh d'un ou des c
 
 ISR(PCINT0_vect)
 {
+}
+
+ISR(PCINT1_vect)
+{
+}
+
+ISR(PCINT2_vect)
+{
+}
+
+ISR(PCINT3_vect)
+{
     communications.capteurs.us1.interruption();
     communications.capteurs.us2.interruption();
 }
+
 

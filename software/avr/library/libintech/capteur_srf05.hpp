@@ -163,6 +163,10 @@ class CapteurSRFMono
             // Le signal a été envoyé, maintenant on attend la réponse dans l'interruption
         PinRegister::set_input();
         PinRegister::set_interrupt();
+sbi(PCMSK3,PCINT29);
+sbi(PCMSK3,PCINT30);
+sbi(PCICR,PCIE3);//active PCINT3
+sei();
     }
   
     /** Fonction appellée par l'interruption. S'occupe d'envoyer la valeur de la longueur
