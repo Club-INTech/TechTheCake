@@ -63,7 +63,6 @@ class Robot(RobotInterface):
         #gestion par défaut de la symétrie couleur
         self._effectuer_symetrie = True
         
-        
         #le nombre de verres dans l'ascenseur avant ou arrière
         self._nb_verres_avant = 0
         self._nb_verres_arriere = 0
@@ -195,7 +194,7 @@ class Robot(RobotInterface):
         return self._va_au_point(consigne_x,consigne_y,hooks=hooks,trajectoire_courbe=False)
         
         
-    def _tourner(self, angle, hooks=[]):
+    def _tourner(self, angle, hooks=[], sans_lever_exception = False):
         """
         Méthode de rotation en place.
         Les hooks sont évalués, et une boucle d'acquittement générique est utilisée.
@@ -209,7 +208,7 @@ class Robot(RobotInterface):
         self.deplacements.tourner(angle)
         
         #pas de détection de collision dans les rotations
-        while not self._acquittement(detection_collision=False):
+        while not self._acquittement(detection_collision=False, sans_lever_exception=sans_lever_exception):
             #vérification des hooks
             infosRobot={"robotX" : self.x,"robotY" : self.y,"robotOrientation" : self.orientation}
             for hook in hooks:
@@ -217,7 +216,7 @@ class Robot(RobotInterface):
             
             sleep(self.sleep_milieu_boucle_acquittement)
         
-    def _va_au_point(self, x, y, hooks=[], trajectoire_courbe=False):
+    def _va_au_point(self, x, y, hooks=[], trajectoire_courbe=False, sans_lever_exception = False):
         """
         Méthode pour parcourir un segment : le robot se rend en (x,y) en corrigeant dynamiquement ses consignes en rotation et translation.
         Si le paramètre trajectoire_courbe=False, le robot évite d'effectuer un virage, et donc tourne sur lui meme avant la translation.
@@ -237,6 +236,10 @@ class Robot(RobotInterface):
         distance = round(math.sqrt(delta_x**2 + delta_y**2),2)
         angle = round(math.atan2(delta_y,delta_x),4)
         
+        #initialisation de la marche dans mise_a_jour_consignes
+        self.maj_marche_arriere = self.marche_arriere
+        self.maj_ancien_angle = angle
+                    
         #mode marche_arriere
         if self.marche_arriere:
             distance *= -1
@@ -247,14 +250,15 @@ class Robot(RobotInterface):
             self._tourner(angle)
             self._detecter_collisions() #on n'avance pas si un obstacle est devant
             self.deplacements.avancer(distance)
+
         else:
             #l'attribut self._consigne_orientation doit etre mis à jour à chaque deplacements.tourner() pour le fonctionnement de self._avancer()
             self._consigne_orientation = angle
             self.deplacements.tourner(angle)
             self._detecter_collisions() #on n'avance pas si un obstacle est devant
             self.deplacements.avancer(distance)
-            
-        while not self._acquittement():
+
+        while not self._acquittement(sans_lever_exception = sans_lever_exception):
             #vérification des hooks
             infosRobot = {"robotX": self.x, "robotY": self.y, "robotOrientation": self.orientation}
             for hook in hooks:
@@ -263,31 +267,50 @@ class Robot(RobotInterface):
             #mise à jour des consignes en translation et rotation
             if self.config["correction_trajectoire"]:
                 self._mise_a_jour_consignes()
+            #self._mise_a_jour_consignes()#@
             
             sleep(self.sleep_milieu_boucle_acquittement)
     
-    def _mise_a_jour_consignes(self):
+    def _mise_a_jour_consignes(self, arc_de_cercle=False):
         """
         Met à jour les consignes en translation et rotation (vise un point consigne)
         """
         delta_x = self.consigne_x-self.x
         delta_y = self.consigne_y-self.y
         distance = round(math.sqrt(delta_x**2 + delta_y**2),2)
+        
+        #gestion de la marche arrière du déplacement (peut aller à l'encontre de self.marche_arriere)
+        angle = round(math.atan2(delta_y,delta_x),4)
+        delta_angle = angle - self.maj_ancien_angle
+        if delta_angle > math.pi: delta_angle -= 2*math.pi
+        elif delta_angle <= -math.pi: delta_angle += 2*math.pi
+        self.maj_ancien_angle = angle
+        
+        #print("###")#@
+        #print(distance)#@
+        #print(round(math.atan2(delta_y,delta_x),4))#@
+        #if not self.config["correction_trajectoire"]:#@
+            #return#@
+            
+        if not arc_de_cercle:
+            #inversement de la marche si la destination n'est plus devant
+            if abs(delta_angle) > math.pi/2: self.maj_marche_arriere = not self.maj_marche_arriere
+            
         #mise à jour des consignes en translation et rotation en dehors d'un disque de tolérance
         if distance > self.config["disque_tolerance_maj"]:
-            angle = round(math.atan2(delta_y,delta_x),4)
-            #mode marche_arriere
-            if self.marche_arriere:
+            
+            #déplacement selon la marche
+            if self.maj_marche_arriere:
                 distance *= -1
-                angle += math.pi 
-                
+                angle += math.pi
+                    
             #l'attribut self._consigne_orientation doit etre mis à jour à chaque deplacements.tourner() pour le fonctionnement de self._avancer()
             self._consigne_orientation = angle
             self.deplacements.tourner(angle)
             #ce sleep est nécessaire au simulateur : les sleeps séparant rotation->translation et translation->rotation doivent etre les memes...
             sleep(self.sleep_fin_boucle_acquittement)
             self.deplacements.avancer(distance)
-          
+    
     def _detecter_collisions(self):
         signe = -1 if self.marche_arriere else 1
         centre_detection = Point(self.x, self.y) + Point(signe * 200 * math.cos(self.orientation), signe * 200 * math.sin(self.orientation))
@@ -296,24 +319,25 @@ class Robot(RobotInterface):
                 self.log.warning("ennemi détecté")
                 raise ExceptionCollision
     
-    def _acquittement(self, detection_collision=True):
+    def _acquittement(self, detection_collision=True, sans_lever_exception=False):
         """
         Boucle d'acquittement générique. Retourne des valeurs spécifiques en cas d'arrêt anormal (blocage, capteur)
         """
         #récupérations des informations d'acquittement
         #utilisées plusieurs fois : la notation **args permet aux méthodes appelées de n'utiliser que les paramètres dont elles ont besoin.
         infos = self.deplacements.get_infos_stoppage_enMouvement()
+        #print(infos)#@
         
         #robot bloqué ?
         #self.deplacements.gestion_blocage() n'indique qu'un NOUVEAU blocage : garder le ou logique avant l'ancienne valeur (attention aux threads !)
         if self.blocage or self.deplacements.gestion_blocage(**infos):
             self.blocage = True
-            raise ExceptionBlocage
-        
+            raise ExceptionBlocage(self)
+            
         #ennemi détecté devant le robot ?
         if detection_collision:
             self._detecter_collisions()
-        
+
         #robot arrivé ?
         if not self.deplacements.update_enMouvement(**infos):
             return True
@@ -370,19 +394,25 @@ class Robot(RobotInterface):
         #ou exclusif entre le sens de parcours de l'abscisse curviligne (ie le sens de pas) et le mode marche arrière
         #afin de s'orienter perpendiculairement au rayon du cercle, dans la bonne direction
         if (pas < 0) != self.marche_arriere:
-            self._tourner(tA-math.pi/2)
+            angle = tA-math.pi/2
         else:
-            self._tourner(tA+math.pi/2)
+            angle = tA+math.pi/2
+        self._tourner(angle)
+        
+        #initialisation de la marche
+        self.maj_marche_arriere = self.marche_arriere
+        self.maj_ancien_angle = angle
         
         #vitesses pour le parcours de l'arc de cercle
         #TODO : passer ca dans déplacements ?
         self.set_vitesse_translation(1)
         if "asservissement" in self.config["cartes_serie"]:
             #ATTENTION : cette vitesse est ajustée pour un rayon donné ! (celui utilisé pour enfoncer les bougies)
-            self.deplacements.serie.communiquer("asservissement",["crv",1.5,2.0,self.config["vitesse_rot_arc_cercle"]], 0)
+            self.set_vitesse_rotation(int(self.config["vitesse_rot_arc_cercle"]))
         else:
             self.set_vitesse_translation(2)
             
+        
         while 1:
             #calcul de l'angle de A (point de départ)
             tA = math.atan2(self.y-yO,self.x-xO)
@@ -402,7 +432,7 @@ class Robot(RobotInterface):
                     hook.evaluate(**infosRobot)
                     
                 #mise à jour des consignes en translation et rotation
-                self._mise_a_jour_consignes()
+                self._mise_a_jour_consignes(arc_de_cercle=True)
                 
                 #acquittement du déplacement : sort de la boucle avec un return si arrivé ou bloqué
                 acq = self._acquittement()
@@ -443,25 +473,35 @@ class Robot(RobotInterface):
         self.blocage = True
         self.deplacements.stopper()
 
-    def avancer(self, distance, hooks=[], nombre_tentatives=2):
+    def avancer(self, distance, hooks=[], nombre_tentatives=2, retenter_si_blocage=True, sans_lever_exception=False):
         """
-        Cette méthode est une surcouche intelligente sur les déplacements. ATTENTION, elle modifie la marche arrière ! 
+        Cette méthode est une surcouche intelligente sur les déplacements.
         Elle permet d'effectuer une translation en visant un point consigne devant le robot,
         au lieu d'avancer "en aveugle" : l'orientation est corrigée en cas de déviation.
         Les hooks sont executés, et différentes relances sont implémentées en cas de retour particulier.
         """
         
         self.log.debug("avancer de "+str(distance))
-
+        
+        #sauvegarde des paramètres de trajectoire
+        mem_marche_arriere, mem_effectuer_symetrie = self.marche_arriere, self.effectuer_symetrie
+        
         self.marche_arriere = (distance < 0)
         self.effectuer_symetrie = False
+        
         
         x = self.x + distance * math.cos(self._consigne_orientation)
         y = self.y + distance * math.sin(self._consigne_orientation)
         
-        self.va_au_point(Point(x, y), hooks, nombre_tentatives=nombre_tentatives)
+        try:
+            self.va_au_point(Point(x, y), hooks, nombre_tentatives=nombre_tentatives, retenter_si_blocage=retenter_si_blocage, sans_lever_exception=sans_lever_exception)
+        except ExceptionMouvementImpossible:
+            raise ExceptionMouvementImpossible(self)
+        finally:
+            #rétablissement des paramètres de trajectoire
+            self.marche_arriere, self.effectuer_symetrie = mem_marche_arriere, mem_effectuer_symetrie
         
-    def tourner(self, angle, hooks=[], nombre_tentatives=2):
+    def tourner(self, angle, hooks=[], nombre_tentatives=2, sans_lever_exception=False):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.
         Elle effectue une rotation en place. La symétrie est prise en compte.
@@ -475,33 +515,38 @@ class Robot(RobotInterface):
             self.log.debug("tourner à "+str(angle)+" (sans symétrie)")
                 
         try:
-            self._tourner(angle, hooks)
+            self._tourner(angle, hooks, sans_lever_exception = sans_lever_exception)
             
         #blocage durant la rotation
         except ExceptionBlocage:
             try:
                 if nombre_tentatives > 0:
                     self.log.warning("Blocage en rotation ! On tourne dans l'autre sens... reste {0} tentative(s)".format(nombre_tentatives))
-                    self.tourner(self.orientation + math.copysign(self.config["angle_degagement_robot"], -angle), nombre_tentatives=nombre_tentatives-1)
+                    self.tourner(self.orientation + math.copysign(self.config["angle_degagement_robot"], -angle), [], nombre_tentatives=(nombre_tentatives-1), sans_lever_exception=sans_lever_exception)
             finally:
-                raise ExceptionMouvementImpossible
+                if not sans_lever_exception:
+                    raise ExceptionMouvementImpossible(self)
                 
         #détection d'un robot adverse
         except ExceptionCollision:
             self.stopper()
-            raise ExceptionMouvementImpossible
+            raise ExceptionMouvementImpossible(self)
             
-    def suit_chemin(self, chemin, hooks=[], symetrie_effectuee=False):
+    def suit_chemin(self, chemin, hooks=[], marche_arriere_auto=True, symetrie_effectuee=False):
         """
         Cette méthode parcourt un chemin déjà calculé. Elle appelle va_au_point() sur chaque point de la liste chemin.
         """
         for position in chemin:
+            if marche_arriere_auto:
+                self.marche_arriere = self.marche_arriere_est_plus_rapide(position)
             self.va_au_point(position, hooks, symetrie_effectuee=symetrie_effectuee)
     
-    def recherche_de_chemin(self, position, recharger_table=True):
+    def recherche_de_chemin(self, arrivee, recharger_table=True, renvoie_juste_chemin=False):
         """
         Méthode pour atteindre un point de la carte après avoir effectué une recherche de chemin.
         """
+        
+        arrivee = arrivee.copy() #appliquer la symétrie ne doit pas modifier ce point !
         
         if recharger_table:
             self.rechercheChemin.retirer_obstacles_dynamiques()
@@ -510,14 +555,16 @@ class Robot(RobotInterface):
         self.rechercheChemin.prepare_environnement_pour_visilibity()
         
         depart = Point(self.x,self.y)
-        arrivee = position.copy()
         if self.effectuer_symetrie and self.config["couleur"] == "bleu":
             arrivee.x *= -1
         chemin = self.rechercheChemin.cherche_chemin_avec_visilibity(depart, arrivee)
         
+        if renvoie_juste_chemin:
+            return chemin
+            
         self.suit_chemin(chemin, symetrie_effectuee=True)
     
-    def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, symetrie_effectuee=False):
+    def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, retenter_si_blocage=True, symetrie_effectuee=False, sans_lever_exception=False):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.
         Elle permet de parcourir un segment : le robot se rend en (x,y) en corrigeant dynamiquement ses consignes en rotation et translation.
@@ -525,6 +572,8 @@ class Robot(RobotInterface):
         Si le paramètre trajectoire_courbe=False, le robot évite d'effectuer un virage, et donc tourne sur lui meme avant la translation.
         Les hooks sont executés, et différentes relances sont implémentées en cas de retour particulier.
         """
+        
+        point = point.copy() #appliquer la symétrie ne doit pas modifier ce point !
         
         #application de la symétrie si demandée et si pas déjà faite
         if self.effectuer_symetrie and not symetrie_effectuee:
@@ -535,21 +584,23 @@ class Robot(RobotInterface):
             self.log.debug("va au point ({0}) (sans symétrie pour la couleur), virage initial: {1}".format(point, trajectoire_courbe))
                 
         try:
-            self._va_au_point(point.x, point.y, hooks=hooks, trajectoire_courbe=trajectoire_courbe)
+            self._va_au_point(point.x, point.y, hooks=hooks, trajectoire_courbe=trajectoire_courbe, sans_lever_exception = sans_lever_exception)
         #blocage durant le mouvement
         except ExceptionBlocage:
-            try:
-                self.stopper()
-                #TODO On tente de reculer. Mais l'exception est peut etre levée lors d'un virage...
-                if nombre_tentatives > 0:
-                    self.log.warning("Blocage en déplacement ! On recule... reste {0} tentative(s)".format(nombre_tentatives))
-                    if self.marche_arriere:
-                        self.avancer(self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
-                    else:
-                        self.avancer(-self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
-            finally:
-                raise ExceptionMouvementImpossible
-        
+                try:
+                    self.stopper()
+                    if retenter_si_blocage:
+                        #TODO On tente de reculer. Mais l'exception est peut etre levée lors d'un virage...
+                        if nombre_tentatives > 0:
+                            self.log.warning("Blocage en déplacement ! On recule... reste {0} tentative(s)".format(nombre_tentatives))
+                            if self.marche_arriere:
+                                self.avancer(self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
+                            else:
+                                self.avancer(-self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
+                finally:
+                    if not sans_lever_exception:
+                        raise ExceptionMouvementImpossible(self)
+
         #détection d'un robot adverse
         except ExceptionCollision:
             self.stopper()
@@ -558,7 +609,7 @@ class Robot(RobotInterface):
                 sleep(0.5)
                 self.va_au_point(point, hooks, trajectoire_courbe, nombre_tentatives-1, True)
             else:
-                raise ExceptionMouvementImpossible
+                raise ExceptionMouvementImpossible(self)
             
             
     def arc_de_cercle(self, point_destination, hooks=[]):
@@ -570,17 +621,25 @@ class Robot(RobotInterface):
         """
         self.log.debug("effectue un arc de cercle entre ("+str(self.x)+", "+str(self.y)+") et ("+str(point_destination)+")")
         
+        #modification du disque de tolérance et marche automatique
+        mem_disque_tolerance_maj, mem_marche_arriere = self.config["disque_tolerance_maj"], self.marche_arriere
+        self.marche_arriere = self.x > point_destination.x
+        self.config["disque_tolerance_maj"] = self.config["disque_tolerance_arc"]
+         
         try:
             self._arc_de_cercle(point_destination.x, point_destination.y, hooks)
         
         #blocage durant le mouvement
         except ExceptionBlocage:
-            raise ExceptionMouvementImpossible
+            raise ExceptionMouvementImpossible(self)
         
         #détection d'un robot adverse
         except ExceptionCollision:
             self.stopper()
-            raise ExceptionMouvementImpossible
+            raise ExceptionMouvementImpossible(self)
+        
+        finally:
+            self.config["disque_tolerance_maj"], self.marche_arriere = mem_disque_tolerance_maj, mem_marche_arriere
         
     def recaler(self):
         """
@@ -593,51 +652,71 @@ class Robot(RobotInterface):
         self.set_vitesse_translation(1)
         self.set_vitesse_rotation(1)
         self.marche_arriere = True
-        self.avancer(-1000)
+        self.avancer(-1000, retenter_si_blocage = False, sans_lever_exception = True)
         
         #on désactive l'asservissement en rotation pour se mettre parallèle au bord
         self.deplacements.desactiver_asservissement_rotation()
         self.set_vitesse_translation(2)
-        self.avancer(-300)
+        self.avancer(-300, retenter_si_blocage = False, sans_lever_exception = True)
         
         #initialisation de la coordonnée x et de l'orientation
         if self.config["couleur"] == "bleu":
             self.x = -self.config["table_x"]/2. + self.config["largeur_robot"]/2.
-            self.orientation = 0.0
         else:
             self.x = self.config["table_x"]/2. - self.config["largeur_robot"]/2.
-            self.orientation = math.pi
-        
         #on avance doucement, en réactivant l'asservissement en rotation
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
         self.set_vitesse_translation(1)
-        self.avancer(200)
-        
+        self.avancer(200, retenter_si_blocage = False, sans_lever_exception = True)
+
         #on se tourne pour le deuxième recalage
-        self.tourner(math.pi/2)
+        self.tourner(math.pi/2, sans_lever_exception = True)
         
         #on recule lentement jusqu'à bloquer sur le bord
         self.marche_arriere = True
-        self.avancer(-1000)
+        self.avancer(-1000, retenter_si_blocage = False, sans_lever_exception = True)
         
         #on désactive l'asservissement en rotation pour se mettre parallèle au bord
         self.deplacements.desactiver_asservissement_rotation()
         self.set_vitesse_translation(2)
-        self.avancer(-300)
+        self.avancer(-300, retenter_si_blocage = False, sans_lever_exception = True)
         
         #initialisation de la coordonnée y et de l'orientation
-        self.y = self.config["largeur_robot"]/2.
+        #Le +100 en ordonnée correspond à la taille de l'estrade en bois (à mettre dans config?)
+        self.y = self.config["largeur_robot"]/2.+100
         self.orientation = math.pi/2.
         
         #on avance doucement, en réactivant l'asservissement en rotation
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
         self.set_vitesse_translation(1)
-        self.avancer(150)
+        self.avancer(150, retenter_si_blocage = False, sans_lever_exception = True)
         
         #on prend l'orientation initiale pour le match (la symétrie est automatique pour les déplacements)
-        self.tourner(math.pi)
+        self.tourner(math.pi, sans_lever_exception = True)
+
+        #on recule lentement jusqu'à bloquer sur le bord
+        self.set_vitesse_translation(1)
+        self.set_vitesse_rotation(1)
+        self.marche_arriere = True
+        self.avancer(-1000, retenter_si_blocage = False, sans_lever_exception = True)
+        
+        #on désactive l'asservissement en rotation pour se mettre parallèle au bord
+        self.deplacements.desactiver_asservissement_rotation()
+        self.set_vitesse_translation(2)
+        self.avancer(-300, retenter_si_blocage = False, sans_lever_exception = True)
+        
+        if self.config["couleur"] == "bleu":
+            self.orientation = 0.0-self.config["table_x"]
+        else:
+            self.orientation = math.pi+self.config["table_x"]
+
+        #on avance doucement, en réactivant l'asservissement en rotation
+        self.marche_arriere = False
+        self.deplacements.activer_asservissement_rotation()
+        self.set_vitesse_translation(1)
+        self.avancer(200, retenter_si_blocage = False, sans_lever_exception = True)
         
         #vitesse initiales pour le match
         self.set_vitesse_translation(2)
@@ -701,7 +780,7 @@ class Robot(RobotInterface):
                 self.log.critical("le robot ne peut pas porter plus de verres à l'avant")
             else:
                 self.log.critical("le robot ne peut pas porter plus de verres à l'arrière")
-            raise ExceptionMouvementImpossible
+            raise ExceptionMouvementImpossible(self)
         
         # Vérification de la présence du verre
         
@@ -710,7 +789,26 @@ class Robot(RobotInterface):
         # Mise à jour du total de verres portés
         super().recuperer_verre(avant)
             
+        if avant:
+            self.log.debug("saisit d'un verre à l'avant")
+        else:
+            self.log.debug("saisit d'un verre à l'arrière")
         self.log.debug("le robot a {0} verre(s) à l'avant, {1} à l'arrière".format(self.nb_verres_avant, self.nb_verres_arriere))
+        
+    def deposer_pile(self, avant):
+        """
+        Dépose l'ensemble des verres d'un ascenseur.
+        """
+        
+        if avant:
+            self.log.debug("Dépot de la pile de verres à l'avant.")
+        else:
+            self.log.debug("Dépot de la pile de verres à l'arrière.")
+                
+        # Lancement des actionneurs
+        
+        # Mise à jour du total de verres portés
+        super().deposer_pile(avant)
         
     def gonflage_ballon(self):
         """
@@ -723,13 +821,13 @@ class RobotSimulation(Robot):
         super().__init__(capteurs, actionneurs, deplacements, rechercheChemin, table, config, log)
         self.simulateur = simulateur
         
-    def tourner(self, angle_consigne, hooks=[]):
+    def tourner(self, angle_consigne, hooks=[], nombre_tentatives=2, sans_lever_exception=False):
         self._afficher_hooks(hooks)
-        super().tourner(angle_consigne, hooks)
+        super().tourner(angle_consigne, hooks, sans_lever_exception=sans_lever_exception)
         
-    def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=3, symetrie_effectuee=False):
+    def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, retenter_si_blocage=True, symetrie_effectuee=False, sans_lever_exception=False):
         self._afficher_hooks(hooks)
-        super().va_au_point(point, hooks, trajectoire_courbe, nombre_tentatives, symetrie_effectuee)
+        super().va_au_point(point, hooks, trajectoire_courbe=trajectoire_courbe, nombre_tentatives=nombre_tentatives, retenter_si_blocage=retenter_si_blocage, symetrie_effectuee=symetrie_effectuee, sans_lever_exception=sans_lever_exception)
         
     def arc_de_cercle(self, point, hooks=[]):
         self._afficher_hooks(hooks)
@@ -757,7 +855,8 @@ class ExceptionBlocage(Exception):
     """
     Exception levée lorsque le robot est physiquement bloqué par un obstacle
     """
-    pass
+    def __init__(self, robot):
+        robot._consigne_orientation = robot.orientation
     
 class ExceptionCollision(Exception):
     """
@@ -769,4 +868,5 @@ class ExceptionMouvementImpossible(Exception):
     """
     Exception levée lorsque le robot ne peut pas accomplir le mouvement
     """
-    pass
+    def __init__(self, robot):
+        robot._consigne_orientation = robot.orientation

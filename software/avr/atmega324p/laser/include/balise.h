@@ -10,10 +10,16 @@
 #include <libintech/register.hpp>
 #include <libintech/serial/serial_0.hpp>
 #include <libintech/serial/serial_1.hpp>
-#include <libintech/xbee.hpp>
 #include <libintech/ring_buffer.hpp>
 #include <util/delay.h>
+
 #include "define.h"
+
+#if MODE_XBEE_S8 == 1
+#include <libintech/xbees8.hpp>
+#else
+#include <libintech/xbee.hpp>
+#endif
 
 class Balise : public Singleton<Balise>
 {
@@ -27,7 +33,11 @@ class Balise : public Singleton<Balise>
         /**
          * Communication radio
          */
+        #if MODE_XBEE_S8 == 1
+        typedef XbeeS8< Serial<1> > xbee;
+        #else
         typedef Xbee< Serial<1> > xbee;
+        #endif
         
         /**
          * Timer utilisé pour calculer l'angle des lasers

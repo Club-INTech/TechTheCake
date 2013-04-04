@@ -80,7 +80,7 @@ class SerieReelle:
                     except:
                         pass
                 except Exception as e:
-                    log.warning("exception durant la détection des périphériques série: {0}".format(e))
+                    self.log.warning("exception durant la détection des périphériques série: {0}".format(e))
                     
         #attribue les instances de série pour les périphériques ayant le bon ping
         for destinataire in (self.peripheriques):
@@ -114,7 +114,7 @@ class SerieReelle:
             
             #parcourt la liste des messages envoyés
             for message in messages:
-                #print(str(message)+"<")
+                #print("message : >"+str(message)+"<")#DEBUG
                 try:
                     self.peripheriques[destinataire].serie.write(bytes(str(message) + '\r',"utf-8"))
                 except Exception as e:
@@ -127,7 +127,11 @@ class SerieReelle:
                     acquittement = ""
                     while acquittement != "_":
                         acquittement = self._clean_string(str(self.peripheriques[destinataire].serie.readline(),"utf-8"))
-                        #print("\t a>"+destinataire+acquittement)
+                        #print("\t acquittement de "+destinataire+" : >"+acquittement+"<")#DEBUG
+                        
+                        if acquittement == "":
+                            self.peripheriques[destinataire].serie.write(bytes(str(message) + '\r',"utf-8"))
+                            
                 except Exception as e:
                     self.log.warning(
                         "exception lors de la lecture de la réponse au message {0} à la carte {1}: {2}"

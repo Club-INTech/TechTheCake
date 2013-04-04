@@ -2,6 +2,7 @@
 from recherche_de_chemin.visilibity import Point
 
 class Cercle:
+   
     def __init__(self,centre,rayon):
         self.centre = centre
         self.rayon = rayon

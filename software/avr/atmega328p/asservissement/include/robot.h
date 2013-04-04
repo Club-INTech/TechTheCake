@@ -23,8 +23,8 @@
 #define LARGEUR_ROBOT 200.0
 #define LONGUEUR_TABLE 3000.0
 
-#define CONVERSION_TIC_MM 0.10360
-#define CONVERSION_TIC_RADIAN 0.0007117
+#define CONVERSION_TIC_MM 0.10332//0.10360
+#define CONVERSION_TIC_RADIAN 0.0007168//0.0007117
 
 #define EEPROM_KP_TRA   0
 #define EEPROM_KD_TRA   4
@@ -32,8 +32,6 @@
 #define EEPROM_KD_ROT   12
 #define EEPROM_BRID_TRA 16
 #define EEPROM_BRID_ROT 20
-
-#define AQUITTER serial_t_::print("_");
 
 class Robot : public Singleton<Robot>{
 // Par défaut les attributs sont publics dans une struct

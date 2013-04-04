@@ -137,7 +137,7 @@ void Balise::execute(char *order)
         
         xbee::send(balise_address[id], "?");
         uint8_t ping;
-        uint16_t source_address;
+        xbee_address source_address;
         uint8_t signal_strength;
         
         if (xbee::read(ping, source_address, signal_strength, TIMEOUT) == xbee::READ_SUCCESS)
@@ -169,7 +169,7 @@ void Balise::execute(char *order)
         {
 			xbee::send(balise_address[id], "?");
             uint8_t ping;
-            uint16_t source_address;
+            xbee_address source_address;
             uint8_t signal_strength;
             if (xbee::read(ping, source_address, signal_strength, TIMEOUT) == xbee::READ_SUCCESS)
             {

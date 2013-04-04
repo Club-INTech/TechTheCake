@@ -9,6 +9,7 @@
 
 int main() 
 {
+Communications::serie_robot::activer_acquittement(true);
     while(1)
     {
 		char buffer[20];
@@ -18,10 +19,6 @@ int main()
 	return 0;
 }
 
-/**
- * Placer ici les interruptions, minimiser le code (appels aux méthodes du singleton actionneurs)
- * 
- */
 ISR (TIMER1_OVF_vect)
 {
 
@@ -37,7 +34,7 @@ ISR(TIMER0_OVF_vect)
 
 ISR(TIMER2_OVF_vect) //overflow du timer 2, qui appelle le refresh d'un ou des capteur(s) SRF05 (autant de refresh que de capteurs)
 {
-    static uint8_t overflow=0;  //on appelle la fonction refresh qu'une fois sur 5 overflow
+    static uint8_t overflow=0;  //on appelle la fonction refresh qu'une fois sur 5 overflow (sinon les réponses des capteurs se superposent)
     if(overflow==0)
     {
         communications.capteurs.us1.refresh();

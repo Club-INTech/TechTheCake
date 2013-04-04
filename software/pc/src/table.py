@@ -62,6 +62,13 @@ class Table:
             {"id": 6, "position": Point(810,0), "couleur": "bleu", "ouvert": False},
             {"id": 7, "position": Point(990,0), "couleur": "rouge", "ouvert": False}
         ]
+        
+        # Positions des espaces entre les cadeaux, où on peut rentrer l'actionneur
+        self.trous_cadeaux = [
+            Point(-600,0),
+            Point(0,0),
+            Point(600,0)
+        ]
             
         # Indique les points d'entrée sur les cadeaux
         # Contient les 2 indices des cadeaux aux extrémités de la table (Xmax, Xmin), même si plus qu'un cadeau
@@ -96,31 +103,6 @@ class Table:
             {"id": 19, "position":-0.131, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False}
         ]
         
-        """
-        self.bougies = [
-            {"id": 0, "position":3.010, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 1, "position":2.945, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":True},
-            {"id": 2, "position":2.748, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 3, "position":2.552, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":True},
-            {"id": 4, "position":2.487, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 5, "position":2.225, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 6, "position":2.159, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":True},
-            {"id": 7, "position":1.963, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 8, "position":1.767, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":True},
-            {"id": 9, "position":1.701, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 10, "position":1.440, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 11, "position":1.374, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":True},
-            {"id": 12, "position":1.178, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 13, "position":0.982, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":True},
-            {"id": 14, "position":0.916, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 15, "position":0.654, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 16, "position":0.589, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":True},
-            {"id": 17, "position":0.393, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False},
-            {"id": 18, "position":0.196, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":True},
-            {"id": 19, "position":0.131, "traitee":False, "couleur": Table.COULEUR_BOUGIE_INCONNUE, "enHaut":False}
-        ]
-        """
-        
         # Bougies ignorées car impossible à atteindre
         self.bougies_ignorees = [0, 1, 18, 19]
         
@@ -140,12 +122,22 @@ class Table:
             {"id": 11, "position": Point(-300,550), "present":True}
         ]
         
+        # Positions des centres des cases de départ des robots (ids spécifiés dans la config). Pour le robot rouge (symétrie dans les scripts)
+        self.cases_depart = [
+            {"centre" : Point(1300,200),  "nb_depots" : 0},
+            {"centre" : Point(1300,600),  "nb_depots" : 0},
+            {"centre" : Point(1300,1000), "nb_depots" : 0},
+            {"centre" : Point(1300,1400), "nb_depots" : 0},
+            {"centre" : Point(1300,1800), "nb_depots" : 0}
+        ]
+        
     def sauvegarder(self):
         """
         Sauvegarde de l'état de la table, utilisé par les scripts chrono qui peuvent modifier l'état de la table
         """
         self.sauvegarde = {
-            "verres": copy.deepcopy(self.verres)
+            "verres": copy.deepcopy(self.verres),
+            "cases": copy.deepcopy(self.cases_depart)
         }
         
     def restaurer(self):
@@ -153,6 +145,7 @@ class Table:
         Rétablissement de l'état de la table à la dernière sauvegarde
         """
         self.verres = self.sauvegarde["verres"]
+        self.cases_depart = self.sauvegarde["cases"]
         
     ###############################################
     ### GESTION DES CADEAUX
@@ -245,18 +238,24 @@ class Table:
     ### GESTION DES VERRES
     ###############################################
     
-    def verres_entrees(self, zone=ZONE_VERRE_ROUGE|ZONE_VERRE_BLEU):
+    def verres_entrees(self, zone_demandee=ZONE_VERRE_ROUGE|ZONE_VERRE_BLEU):
         """
         Récupère la liste des verres possibles comme point d'entrée sur une des deux zones de la table
         """
-        restants_zone_demandee = [v["id"] for v in self.verres_restants(zone)]
+        zones = [Table.ZONE_VERRE_ROUGE, Table.ZONE_VERRE_BLEU]
+        verres_en_entrees = []
+        
+        for zone in [z for z in zones if z & zone_demandee]:
+            restants_dans_zone = [v["id"] for v in self.verres_restants(zone)]
 
-        if len(restants_zone_demandee) == 0:
-            return []
-        elif len(restants_zone_demandee) == 1:
-            return [self.verres[restants_zone_demandee[0]]]
-        else:
-            return [self.verres[min(restants_zone_demandee)], self.verres[max(restants_zone_demandee)]]
+            if len(restants_dans_zone) == 0:
+                pass
+            elif len(restants_dans_zone) == 1:
+                verres_en_entrees += [self.verres[restants_dans_zone[0]]]
+            else:
+                verres_en_entrees += [self.verres[min(restants_dans_zone)], self.verres[max(restants_dans_zone)]]
+                
+        return verres_en_entrees
         
     def verres_restants(self, zone=ZONE_VERRE_ROUGE|ZONE_VERRE_BLEU):
         """
