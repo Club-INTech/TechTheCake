@@ -57,6 +57,9 @@ class Robot(RobotInterface):
         self.vitesse_translation = 2
         self.vitesse_rotation = 2
         
+        #disque de tolérance pour la mise à jour du point consigne
+        self.disque_tolerance_consigne = self.config["disque_tolerance_maj"]
+        
         #mode marche arrière
         self._marche_arriere = False
         
@@ -297,7 +300,7 @@ class Robot(RobotInterface):
             if abs(delta_angle) > math.pi/2: self.maj_marche_arriere = not self.maj_marche_arriere
             
         #mise à jour des consignes en translation et rotation en dehors d'un disque de tolérance
-        if distance > self.config["disque_tolerance_maj"]:
+        if distance > self.disque_tolerance_consigne:
             
             #déplacement selon la marche
             if self.maj_marche_arriere:
@@ -389,7 +392,7 @@ class Robot(RobotInterface):
         tA = math.atan2(self.y-yO,self.x-xO)
         
         #vitesse de rotation pour atteindre la tangente
-        self.set_vitesse_rotation(1)
+        self.set_vitesse_rotation(2)
         
         #ou exclusif entre le sens de parcours de l'abscisse curviligne (ie le sens de pas) et le mode marche arrière
         #afin de s'orienter perpendiculairement au rayon du cercle, dans la bonne direction
@@ -405,7 +408,7 @@ class Robot(RobotInterface):
         
         #vitesses pour le parcours de l'arc de cercle
         #TODO : passer ca dans déplacements ?
-        self.set_vitesse_translation(1)
+        self.set_vitesse_translation(2)
         if "asservissement" in self.config["cartes_serie"]:
             #ATTENTION : cette vitesse est ajustée pour un rayon donné ! (celui utilisé pour enfoncer les bougies)
             self.set_vitesse_rotation(int(self.config["vitesse_rot_arc_cercle"]))
@@ -442,7 +445,7 @@ class Robot(RobotInterface):
                 #disque de tolérance atteint : on fixe la consigne au point d'arrivée
                 
                 #vitesse de rotation classique
-                self.set_vitesse_rotation(1)
+                self.set_vitesse_rotation(20)
                 
                 #dernière mise à jour du point virtuel 
                 self.consigne_x = xB
@@ -622,9 +625,9 @@ class Robot(RobotInterface):
         self.log.debug("effectue un arc de cercle entre ("+str(self.x)+", "+str(self.y)+") et ("+str(point_destination)+")")
         
         #modification du disque de tolérance et marche automatique
-        mem_disque_tolerance_maj, mem_marche_arriere = self.config["disque_tolerance_maj"], self.marche_arriere
+        mem_marche_arriere =  self.marche_arriere
         self.marche_arriere = self.x > point_destination.x
-        self.config["disque_tolerance_maj"] = self.config["disque_tolerance_arc"]
+        self.disque_tolerance_consigne = self.config["disque_tolerance_arc"]
          
         try:
             self._arc_de_cercle(point_destination.x, point_destination.y, hooks)
@@ -639,7 +642,8 @@ class Robot(RobotInterface):
             raise ExceptionMouvementImpossible(self)
         
         finally:
-            self.config["disque_tolerance_maj"], self.marche_arriere = mem_disque_tolerance_maj, mem_marche_arriere
+            self.disque_tolerance_consigne = self.config["disque_tolerance_maj"]
+            self.marche_arriere = mem_marche_arriere
         
     def recaler(self):
         """
