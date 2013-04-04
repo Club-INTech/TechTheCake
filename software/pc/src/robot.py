@@ -516,7 +516,7 @@ class Robot(RobotInterface):
             try:
                 if nombre_tentatives > 0:
                     self.log.warning("Blocage en rotation ! On tourne dans l'autre sens... reste {0} tentative(s)".format(nombre_tentatives))
-                    self.tourner(self.orientation + math.copysign(self.config["angle_degagement_robot"], -angle), [], nombre_tentatives=nombre_tentatives-1, sans_lever_exception=sans_lever_exception)
+                    self.tourner(self.orientation + math.copysign(self.config["angle_degagement_robot"], -angle), [], nombre_tentatives=(nombre_tentatives-1), sans_lever_exception=sans_lever_exception)
             finally:
                 if not sans_lever_exception:
                     raise ExceptionMouvementImpossible(self)
@@ -789,7 +789,7 @@ class RobotSimulation(Robot):
         
     def tourner(self, angle_consigne, hooks=[], sans_lever_exception=False):
         self._afficher_hooks(hooks)
-        super().tourner(angle_consigne, hooks)
+        super().tourner(angle_consigne, hooks, sans_lever_exception=sans_lever_exception)
         
     def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, retenter_si_blocage=True, symetrie_effectuee=False, sans_lever_exception=False):
         self._afficher_hooks(hooks)
