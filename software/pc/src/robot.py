@@ -279,7 +279,6 @@ class Robot(RobotInterface):
         delta_y = self.consigne_y-self.y
         distance = round(math.sqrt(delta_x**2 + delta_y**2),2)
         
-        
         #gestion de la marche arrière du déplacement (peut aller à l'encontre de self.marche_arriere)
         angle = round(math.atan2(delta_y,delta_x),4)
         delta_angle = angle - self.maj_ancien_angle
@@ -287,24 +286,23 @@ class Robot(RobotInterface):
         elif delta_angle <= -math.pi: delta_angle += 2*math.pi
         self.maj_ancien_angle = angle
         
-        if abs(delta_angle) > math.pi/2: self.maj_marche_arriere = not self.maj_marche_arriere
-        
         #print("###")#@
         #print(distance)#@
         #print(round(math.atan2(delta_y,delta_x),4))#@
-        #print("marche arrière : "+str(self.maj_marche_arriere))#@
-        
         #if not self.config["correction_trajectoire"]:#@
             #return#@
-        
+            
+        #inversement de la marche si la destination n'est plus devant
+        if abs(delta_angle) > math.pi/2: self.maj_marche_arriere = not self.maj_marche_arriere
+            
+        #mise à jour des consignes en translation et rotation en dehors d'un disque de tolérance
         if distance > self.config["disque_tolerance_maj"]:
-            #mise à jour des consignes en translation et rotation en dehors d'un disque de tolérance
-                    
-            #prise en compte du mode marche_arriere
+            
+            #déplacement selon la marche
             if self.maj_marche_arriere:
                 distance *= -1
-                angle += math.pi 
-            
+                angle += math.pi
+                    
             #l'attribut self._consigne_orientation doit etre mis à jour à chaque deplacements.tourner() pour le fonctionnement de self._avancer()
             self._consigne_orientation = angle
             self.deplacements.tourner(angle)
@@ -327,6 +325,7 @@ class Robot(RobotInterface):
         #récupérations des informations d'acquittement
         #utilisées plusieurs fois : la notation **args permet aux méthodes appelées de n'utiliser que les paramètres dont elles ont besoin.
         infos = self.deplacements.get_infos_stoppage_enMouvement()
+        #print(infos)#@
         
         #robot bloqué ?
         #self.deplacements.gestion_blocage() n'indique qu'un NOUVEAU blocage : garder le ou logique avant l'ancienne valeur (attention aux threads !)
