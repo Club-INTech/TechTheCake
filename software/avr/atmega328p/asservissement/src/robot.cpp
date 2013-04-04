@@ -17,6 +17,7 @@ Robot::Robot() :
 	serial_t_::init();
 	TimerCounter_t::init();
 	serial_t_::change_baudrate(9600);
+    serial_t_::activer_acquittement(true);
 	
 	translation.valeur_bridage(120);
 	rotation.valeur_bridage   (100);
@@ -87,181 +88,142 @@ void Robot::communiquer_pc(){
 	//ping
 	if(strcmp(buffer,"?") == 0)
 	{
-		AQUITTER;
 		serial_t_::print(0);
 	}
 	
 	//maj des constantes d'asservissement en rotation
 	else if(strcmp(buffer,"crp") == 0)
 	{
-		AQUITTER;
 		float valeur;
 		serial_t_::read(valeur);
-		AQUITTER;
 		rotation.kp(valeur);
 	}
 	else if(strcmp(buffer,"crd") == 0)
 	{
-		AQUITTER;
 		float valeur;
 		serial_t_::read(valeur);
-		AQUITTER;
 		rotation.kd(valeur);
 	}
 	else if(strcmp(buffer,"cri") == 0)
 	{
-		AQUITTER;
 		float valeur;
 		serial_t_::read(valeur);
-		AQUITTER;
 		rotation.ki(valeur);
 	}
 	else if(strcmp(buffer,"crm") == 0)
 	{
-		AQUITTER;
 		float valeur;
 		serial_t_::read(valeur);
-		AQUITTER;
 		rotation.valeur_bridage(valeur);
 	}
 
 	//maj des constantes d'asservissement en translation
 	else if(strcmp(buffer,"ctp") == 0)
 	{
-		AQUITTER;
 		float valeur;
 		serial_t_::read(valeur);
-		AQUITTER;
 		translation.kp(valeur);
 	}
 	else if(strcmp(buffer,"ctd") == 0)
 	{
-		AQUITTER;
 		float valeur;
 		serial_t_::read(valeur);
-		AQUITTER;
 		translation.kd(valeur);
 	}
 	else if(strcmp(buffer,"cti") == 0)
 	{
-		AQUITTER;
 		float valeur;
 		serial_t_::read(valeur);
-		AQUITTER;
 		translation.ki(valeur);
 	}
 	else if(strcmp(buffer,"ctm") == 0)
 	{
-		AQUITTER;
 		float valeur;
 		serial_t_::read(valeur);
-		AQUITTER;
 		translation.valeur_bridage(valeur);
 	}
 
 	//maj de la position absolue du robot
 	else if(strcmp(buffer,"cx") == 0)
 	{
-		AQUITTER;
 		serial_t_::read(x_);
-		AQUITTER;
 	}
 	else if(strcmp(buffer,"cy") == 0)
 	{
-		AQUITTER;
 		serial_t_::read(y_);
-		AQUITTER;
 	}
 	else if(strcmp(buffer,"co") == 0)
 	{
-		AQUITTER;
 		float valeur;
 		serial_t_::read(valeur);
-		AQUITTER;
 		changer_orientation(valeur);
 	}
 	
 	//renvoi de la position absolue du robot
 	else if(strcmp(buffer,"ex") == 0)
 	{
-		AQUITTER;
 		serial_t_::print((int32_t)x_);
 	}
 	else if(strcmp(buffer,"ey") == 0)
 	{
-		AQUITTER;
 		serial_t_::print((int32_t)y_);
 	}
 	else if(strcmp(buffer,"eo") == 0)
 	{
-		AQUITTER;
 		serial_t_::print((int32_t)(get_angle_radian() * 1000));
 	}
 
 	//ordre de translation
 	else if(strcmp(buffer,"d") == 0)
 	{
-		AQUITTER;
 		float valeur;
 		serial_t_::read(valeur);
-		AQUITTER;
 		translater(valeur);
 	}
 
 	//ordre de rotation
 	else if(strcmp(buffer,"t") == 0)
 	{
-		AQUITTER;
 		float valeur;
 		serial_t_::read(valeur);
-		AQUITTER;
 		tourner(valeur);
 	}
 
 	//ordre d'arret (asservissement aux angle et position courants)
 	else if(strcmp(buffer,"stop") == 0)
 	{
-		AQUITTER;
 		stopper();
 	}
 	
 	//stopper asservissement rotation/translation
 	else if(strcmp(buffer,"cr0") == 0)
 	{
-		AQUITTER;
 		etat_rot_ = false;
 	}
 	else if(strcmp(buffer,"ct0") == 0)
 	{
-		AQUITTER;
 		etat_tra_ = false;
 	}
 
 	//démarrer asservissement rotation/translation
 	else if(strcmp(buffer,"cr1") == 0)
 	{
-		AQUITTER;
 		etat_rot_ = true;
 	}
 	else if(strcmp(buffer,"ct1") == 0)
 	{
-		AQUITTER;
 		etat_tra_ = true;
 	}
 
 	// Changement de la vitesse de translation
 	else if(strcmp(buffer,"ctv") == 0)
 	{
-		AQUITTER;
 		float kp, kd;
 		uint32_t brid;
 		
 		serial_t_::read(kp);
-		AQUITTER;
 		serial_t_::read(kd);
-		AQUITTER;
 		serial_t_::read(brid);
-		AQUITTER;
 		
 		changerVitesseTra(kp, kd, brid);
 	}
@@ -269,16 +231,12 @@ void Robot::communiquer_pc(){
 	// Changement de la vitesse de rotation
 	else if(strcmp(buffer,"crv") == 0)
 	{
-		AQUITTER;
 		float kp, kd;
 		uint32_t brid;
 		
 		serial_t_::read(kp);
-		AQUITTER;
 		serial_t_::read(kd);
-		AQUITTER;
 		serial_t_::read(brid);
-		AQUITTER;
 		
 		changerVitesseRot(kp, kd, brid);
 	}
@@ -286,7 +244,6 @@ void Robot::communiquer_pc(){
 	//envoi des paramètres pour l'évaluation des conditions de blocage et d'arret
 	else if(strcmp(buffer,"?infos") == 0)
 	{
-		AQUITTER;
 		serial_t_::print((int16_t)moteurGauche.pwm());
 		serial_t_::print((int16_t)moteurDroit.pwm());
 		serial_t_::print((int16_t)rotation.erreur());
@@ -296,7 +253,6 @@ void Robot::communiquer_pc(){
 	//envoi des coordonnées du robot
 	else if(strcmp(buffer,"?xyo") == 0)
 	{
-		AQUITTER;
 		serial_t_::print((int32_t)x_);
 		serial_t_::print((int32_t)y_);
 		serial_t_::print((int32_t)(get_angle_radian() * 1000));

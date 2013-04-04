@@ -33,8 +33,6 @@
 #define EEPROM_BRID_TRA 16
 #define EEPROM_BRID_ROT 20
 
-#define AQUITTER serial_t_::print("_");
-
 class Robot : public Singleton<Robot>{
 // Par défaut les attributs sont publics dans une struct
 
