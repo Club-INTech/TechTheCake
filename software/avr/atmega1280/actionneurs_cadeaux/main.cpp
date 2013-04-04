@@ -77,7 +77,7 @@ int main(int argc, char const *argv[])
     // REANIMATION_MODE :
     //uint8_t debug_baudrate = 0x00;
 
-    AX12 AX4(4, AX_ANGLECW, AX_ANGLECCW);
+    AX12 AX4(0xFE, AX_ANGLECW, AX_ANGLECCW);
 
     AX12 Tableau_AX[] = {AX4};
 
