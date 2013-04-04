@@ -271,7 +271,7 @@ class Robot(RobotInterface):
             
             sleep(self.sleep_milieu_boucle_acquittement)
     
-    def _mise_a_jour_consignes(self):
+    def _mise_a_jour_consignes(self, arc_de_cercle=False):
         """
         Met à jour les consignes en translation et rotation (vise un point consigne)
         """
@@ -292,8 +292,9 @@ class Robot(RobotInterface):
         #if not self.config["correction_trajectoire"]:#@
             #return#@
             
-        #inversement de la marche si la destination n'est plus devant
-        if abs(delta_angle) > math.pi/2: self.maj_marche_arriere = not self.maj_marche_arriere
+        if not arc_de_cercle:
+            #inversement de la marche si la destination n'est plus devant
+            if abs(delta_angle) > math.pi/2: self.maj_marche_arriere = not self.maj_marche_arriere
             
         #mise à jour des consignes en translation et rotation en dehors d'un disque de tolérance
         if distance > self.config["disque_tolerance_maj"]:
@@ -309,7 +310,7 @@ class Robot(RobotInterface):
             #ce sleep est nécessaire au simulateur : les sleeps séparant rotation->translation et translation->rotation doivent etre les memes...
             sleep(self.sleep_fin_boucle_acquittement)
             self.deplacements.avancer(distance)
-          
+    
     def _detecter_collisions(self):
         signe = -1 if self.marche_arriere else 1
         centre_detection = Point(self.x, self.y) + Point(signe * 200 * math.cos(self.orientation), signe * 200 * math.sin(self.orientation))
@@ -393,9 +394,14 @@ class Robot(RobotInterface):
         #ou exclusif entre le sens de parcours de l'abscisse curviligne (ie le sens de pas) et le mode marche arrière
         #afin de s'orienter perpendiculairement au rayon du cercle, dans la bonne direction
         if (pas < 0) != self.marche_arriere:
-            self._tourner(tA-math.pi/2)
+            angle = tA-math.pi/2
         else:
-            self._tourner(tA+math.pi/2)
+            angle = tA+math.pi/2
+        self._tourner(angle)
+        
+        #initialisation de la marche
+        self.maj_marche_arriere = self.marche_arriere
+        self.maj_ancien_angle = angle
         
         #vitesses pour le parcours de l'arc de cercle
         #TODO : passer ca dans déplacements ?
@@ -406,6 +412,7 @@ class Robot(RobotInterface):
         else:
             self.set_vitesse_translation(2)
             
+        
         while 1:
             #calcul de l'angle de A (point de départ)
             tA = math.atan2(self.y-yO,self.x-xO)
@@ -425,7 +432,7 @@ class Robot(RobotInterface):
                     hook.evaluate(**infosRobot)
                     
                 #mise à jour des consignes en translation et rotation
-                self._mise_a_jour_consignes()
+                self._mise_a_jour_consignes(arc_de_cercle=True)
                 
                 #acquittement du déplacement : sort de la boucle avec un return si arrivé ou bloqué
                 acq = self._acquittement()
@@ -614,6 +621,11 @@ class Robot(RobotInterface):
         """
         self.log.debug("effectue un arc de cercle entre ("+str(self.x)+", "+str(self.y)+") et ("+str(point_destination)+")")
         
+        #modification du disque de tolérance et marche automatique
+        mem_disque_tolerance_maj, mem_marche_arriere = self.config["disque_tolerance_maj"], self.marche_arriere
+        self.marche_arriere = self.x > point_destination.x
+        self.config["disque_tolerance_maj"] = self.config["disque_tolerance_arc"]
+         
         try:
             self._arc_de_cercle(point_destination.x, point_destination.y, hooks)
         
@@ -625,6 +637,9 @@ class Robot(RobotInterface):
         except ExceptionCollision:
             self.stopper()
             raise ExceptionMouvementImpossible(self)
+        
+        finally:
+            self.config["disque_tolerance_maj"], self.marche_arriere = mem_disque_tolerance_maj, mem_marche_arriere
         
     def recaler(self):
         """

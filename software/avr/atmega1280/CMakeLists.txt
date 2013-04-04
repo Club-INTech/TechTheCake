@@ -1,3 +1,3 @@
 include(atmega1280.cmake)
-set(MICROCONTROLEURS balise_robot actionneurs_arduino actionneurs_cadeaux actionneurs_bougies actionneurs_pince_verre)
+set(MICROCONTROLEURS balise_robot actionneurs_arduino actionneurs_cadeaux actionneurs_bougies actionneurs_pince_verre capteurs_actionneurs actionneurs_reset)
 add_microcontrolers(m1280 "${MICROCONTROLEURS}")
