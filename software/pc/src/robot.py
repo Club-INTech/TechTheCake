@@ -647,10 +647,8 @@ class Robot(RobotInterface):
         #initialisation de la coordonnée x et de l'orientation
         if self.config["couleur"] == "bleu":
             self.x = -self.config["table_x"]/2. + self.config["largeur_robot"]/2.
-            self.orientation = 0.0
         else:
             self.x = self.config["table_x"]/2. - self.config["largeur_robot"]/2.
-            self.orientation = math.pi
         #on avance doucement, en réactivant l'asservissement en rotation
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
@@ -682,6 +680,28 @@ class Robot(RobotInterface):
         
         #on prend l'orientation initiale pour le match (la symétrie est automatique pour les déplacements)
         self.tourner(math.pi, sans_lever_exception = True)
+
+        #on recule lentement jusqu'à bloquer sur le bord
+        self.set_vitesse_translation(1)
+        self.set_vitesse_rotation(1)
+        self.marche_arriere = True
+        self.avancer(-1000, retenter_si_blocage = False, sans_lever_exception = True)
+        
+        #on désactive l'asservissement en rotation pour se mettre parallèle au bord
+        self.deplacements.desactiver_asservissement_rotation()
+        self.set_vitesse_translation(2)
+        self.avancer(-300, retenter_si_blocage = False, sans_lever_exception = True)
+        
+        if self.config["couleur"] == "bleu":
+            self.orientation = 0.0-self.config["table_x"]
+        else:
+            self.orientation = math.pi+self.config["table_x"]
+
+        #on avance doucement, en réactivant l'asservissement en rotation
+        self.marche_arriere = False
+        self.deplacements.activer_asservissement_rotation()
+        self.set_vitesse_translation(1)
+        self.avancer(200, retenter_si_blocage = False, sans_lever_exception = True)
         
         #vitesse initiales pour le match
         self.set_vitesse_translation(2)
@@ -786,7 +806,7 @@ class RobotSimulation(Robot):
         super().__init__(capteurs, actionneurs, deplacements, rechercheChemin, table, config, log)
         self.simulateur = simulateur
         
-    def tourner(self, angle_consigne, hooks=[], sans_lever_exception=False):
+    def tourner(self, angle_consigne, hooks=[], nombre_tentatives=2, sans_lever_exception=False):
         self._afficher_hooks(hooks)
         super().tourner(angle_consigne, hooks, sans_lever_exception=sans_lever_exception)
         
