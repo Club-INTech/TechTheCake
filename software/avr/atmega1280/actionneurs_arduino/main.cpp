@@ -60,7 +60,7 @@
 typedef Serial<0> serial_PC_;
 typedef Serial<1> serial_AX_;
 
-typedef AX<serial_AX_, BAUD_RATE_AX12> AX12;
+typedef AX<serial_AX_> AX12;
 
 int main(int argc, char const *argv[])
 {
@@ -75,8 +75,9 @@ int main(int argc, char const *argv[])
 
  
     AX12 AX4(4, 0, 0x3ff);
+    AX12 AX0(0, 0, 0x3ff);
 
-    AX12 Tableau_AX[] = {AX4};
+    AX12 Tableau_AX[] = {AX0, AX4};
 
     while(1){
             
@@ -258,7 +259,7 @@ int main(int argc, char const *argv[])
                 uint8_t id;
                 
                 serial_PC_::read(id);
-                Tableau_AX[id].reanimationMode();
+                Tableau_AX[id].reanimationMode(BAUD_RATE_SERIE);
                 serial_PC_::print("AX12 reflaché !\n");
             }
 
@@ -269,11 +270,3 @@ int main(int argc, char const *argv[])
     }
     return 0;
 }
-
-
-
-
-
-
-
-
