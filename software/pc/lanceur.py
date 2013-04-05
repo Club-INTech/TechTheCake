@@ -28,6 +28,7 @@ config["ennemi_fait_toutes_bougies"] = bool(int(ennemi_fait_toutes_bougies))
 config["ennemi_fait_ses_bougies"] = bool(int(ennemi_fait_ses_bougies))
 strategie = container.get_service("strategie")
 robot = container.get_service("robot")
+log = container.get_service("log")
 
 #on renseigne au robot sa position
 if couleur == "rouge":
@@ -47,5 +48,7 @@ if "capteurs_actionneurs" in config["cartes_simulation"] or "capteurs_actionneur
     input("Jumper simulé")
     timer.date_debut = time()
     timer.match_demarre = True
+else:
+    log.debug("Prêt pour le jumper!")
 
 strategie.boucle_strategie()
