@@ -6,8 +6,8 @@
 
 #define NB_SRF_AVANT            1
 #define NB_SRF_ARRIERE          1
-#define NB_INFRAROUGE_AVANT     1
-#define NB_INFRAROUGE_ARRIERE   1
+#define NB_INFRAROUGE_AVANT     0
+#define NB_INFRAROUGE_ARRIERE   0
 
 /**
  * Gestion des actionneurs
