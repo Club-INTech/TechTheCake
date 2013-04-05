@@ -55,13 +55,13 @@ class Actionneurs :
         self.serie.communiquer("ascenseur", "bas", 0)
 
     def ascenseur_ranger(self):
-        self.serie.communiquer("pince_verre", ["g",0,180] , 0)
+        self.serie.communiquer("capteurs_actionneurs", ["g",0,180] , 0)
 
     def ascenseur_serrer(self):
-        self.serie.communiquer("pince_verre", ["g",0,160] , 0)
+        self.serie.communiquer("capteurs_actionneurs", ["g",0,160] , 0)
 
     def ascenseur_deserrer(self):
-        self.serie.communiquer("pince_verre", ["g",0,100] , 0)
+        self.serie.communiquer("capteurs_actionneurs", ["g",0,100] , 0)
 
     def ascenseur_modifier_constantes(self, valeur):
         """
