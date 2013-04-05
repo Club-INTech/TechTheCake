@@ -68,7 +68,7 @@ void Robot::update_position()
 {
 	static int32_t last_mesure_distance = 0;
 	
-	int16_t delta_distance_tic = mesure_distance_ - last_mesure_distance;
+	int32_t delta_distance_tic = mesure_distance_ - last_mesure_distance;
 	
 	float delta_distance_mm = delta_distance_tic * CONVERSION_TIC_MM;
 	float angle_radian = get_angle_radian();
@@ -244,19 +244,29 @@ void Robot::communiquer_pc(){
 	//envoi des paramètres pour l'évaluation des conditions de blocage et d'arret
 	else if(strcmp(buffer,"?infos") == 0)
 	{
-		serial_t_::print((int16_t)moteurGauche.pwm());
-		serial_t_::print((int16_t)moteurDroit.pwm());
-		serial_t_::print((int16_t)rotation.erreur());
-		serial_t_::print((int16_t)translation.erreur());
+		serial_t_::print(moteurGauche.pwm());
+		serial_t_::print(moteurDroit.pwm());
+		serial_t_::print(rotation.erreur());
+		serial_t_::print(translation.erreur());
 	}
 	
 	//envoi des coordonnées du robot
 	else if(strcmp(buffer,"?xyo") == 0)
 	{
-		serial_t_::print((int32_t)x_);
-		serial_t_::print((int32_t)y_);
+		serial_t_::print(x_);
+		serial_t_::print(y_);
 		serial_t_::print((int32_t)(get_angle_radian() * 1000));
 	}
+	
+	//DEBUG des ticks
+	else if(strcmp(buffer,"a") == 0)
+    {
+        serial_t_::print("posT,cT,posR,cR :");
+        serial_t_::print(mesure_distance_);
+        serial_t_::print(translation.consigne());
+        serial_t_::print(mesure_angle_);
+        serial_t_::print(rotation.consigne());
+    }
 }
 ////////////////////////////// VITESSES /////////////////////////////
 
