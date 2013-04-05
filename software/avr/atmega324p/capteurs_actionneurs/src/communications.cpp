@@ -4,6 +4,9 @@
 
 Communications::Communications()
 {
+    sbi(PCMSK3,PCINT29); //active l'interruption sur le port D5
+    sbi(PCMSK3,PCINT30); //active l'interruption sur le port D6
+    sbi(PCICR,PCIE3);//active PCINT3
     serie_robot::init();
     serie_robot::change_baudrate(9600);
 }
@@ -32,11 +35,11 @@ void Communications::execute(char ordre[])
         // infrarouge
         else if (strcmp(ordre, "ir_av")==0)
         {
-            serie_robot::print(capteurs.inf2.value());
+//            serie_robot::print(capteurs.inf2.value());
         }
         else if (strcmp(ordre, "ir_arr")==0)
         {
-            serie_robot::print(capteurs.inf1.value());
+//            serie_robot::print(capteurs.inf1.value());
         }
 
         // Ultrasons SRF05

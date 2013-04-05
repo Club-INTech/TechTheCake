@@ -163,10 +163,6 @@ class CapteurSRFMono
             // Le signal a été envoyé, maintenant on attend la réponse dans l'interruption
         PinRegister::set_input();
         PinRegister::set_interrupt();
-sbi(PCMSK3,PCINT29);
-sbi(PCMSK3,PCINT30);
-sbi(PCICR,PCIE3);//active PCINT3
-sei();
     }
   
     /** Fonction appellée par l'interruption. S'occupe d'envoyer la valeur de la longueur
@@ -182,7 +178,7 @@ sei();
         // Début de l'impulsion
         if (bit && bit!=ancienBit)
         {
-            origineTimer=Timer::value();  /*le timer est utilisée comme horloge (afin d'utiliser plusieurs capteurs)
+            origineTimer=Timer::value();  /*le timer est utilisé comme horloge (afin d'utiliser plusieurs capteurs)
                                            On enregistre donc cette valeur et on fera la différence.*/
             ancienBit=bit;
         }
@@ -191,14 +187,11 @@ sei();
         else if(!(bit) && bit!=ancienBit)
         {
             uint16_t temps_impulsion;
-            PinRegister::clear_interrupt();
             ancienBit=bit;
                 //Enregistrement de la dernière distance calculée, mais sans l'envoyer (l'envoi se fait par la méthode value)
 
-            temps_impulsion = (Timer::value() + Timer::value_max() - origineTimer) & Timer::value_max();
-            
-
-            ringBufferValeurs.append( ( (Timer::value() + Timer::value_max() - origineTimer) & Timer::value_max() ) * (1700-0.0000325 * F_CPU) / 1800.);
+            temps_impulsion = (Timer::value() + 65535 - origineTimer) & 65535;
+            ringBufferValeurs.append( temps_impulsion * (1700-0.0000325 * F_CPU) / 1800.);
                          /*interpolation linéaire entre deux valeurs
                          mesurées: 1050/1800 à 20MHz, 1180/1800 à 16MHz*/
 
