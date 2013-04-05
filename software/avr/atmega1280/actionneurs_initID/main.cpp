@@ -1,3 +1,14 @@
+// ATTENTION, NE FONCTIONNE PAS!!
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 // LIBRAIRIES STANDARD
 #include <util/delay.h>
 #include <avr/io.h>
@@ -47,7 +58,14 @@ int main(int argc, char const *argv[])
     
     AX12 ax12_a_reset(ID_AX, AX_ANGLECW, AX_ANGLECCW);
 
-    ax12_a_reset.reanimationMode(BAUD_RATE_SERIE);
+	while (1)
+	{
+		ax12_a_reset.goTo(90);
+		_delay_ms(900);
+		ax12_a_reset.goTo(100);
+		_delay_ms(900);
+	}
+
     
     return 0;
 }
