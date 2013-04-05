@@ -1,6 +1,6 @@
 
 #passage de la couleur
-couleur = ""
+couleur = "rouge"
 while couleur != "rouge" and couleur != "bleu":
     couleur = input("Quelle couleur? bleu ou rouge >")
 import builtins
@@ -11,11 +11,11 @@ from src.container import *
 from time import time
 from math import pi
 
-ennemi_fait_toutes_bougies = ""
+ennemi_fait_toutes_bougies = "0"
 while ennemi_fait_toutes_bougies != "1" and ennemi_fait_toutes_bougies != "0":
     ennemi_fait_toutes_bougies = input("L'ennemi fait-il toutes les bougies? 1 (oui) ou 0 (non) >")
 
-ennemi_fait_ses_bougies = ""
+ennemi_fait_ses_bougies = "0"
 while ennemi_fait_ses_bougies != "1" and ennemi_fait_ses_bougies != "0":
     ennemi_fait_ses_bougies = input("L'ennemi fait-il ses bougies à lui? 1 (oui) ou 0 (non) >")
     
@@ -39,6 +39,8 @@ else:
     robot.x = -1200
     robot.y = 300
     robot.orientation = 0
+robot.set_vitesse_translation(2)
+robot.set_vitesse_rotation(2)
 
 #robot.recaler()
 
@@ -51,4 +53,6 @@ if "capteurs_actionneurs" in config["cartes_simulation"] or "capteurs_actionneur
 else:
     log.debug("Prêt pour le jumper!")
 
-strategie.boucle_strategie()
+robot.avancer(2000)
+
+#strategie.boucle_strategie()

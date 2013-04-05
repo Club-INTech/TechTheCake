@@ -316,9 +316,10 @@ class Robot(RobotInterface):
     
     def _detecter_collisions(self):
         signe = -1 if self.marche_arriere else 1
-        centre_detection = Point(self.x, self.y) + Point(signe * 200 * math.cos(self.orientation), signe * 200 * math.sin(self.orientation))
+        rayon_detection = self.config["largeur_robot"] + self.config["distance_detection"]/2
+        centre_detection = Point(self.x, self.y) + Point(signe * rayon_detection * math.cos(self.orientation), signe * rayon_detection * math.sin(self.orientation))
         for obstacle in self.table.obstacles():
-            if obstacle.position.distance(centre_detection) < 200:
+            if obstacle.position.distance(centre_detection) < self.config["distance_detection"]/2:
                 self.log.warning("ennemi détecté")
                 raise ExceptionCollision
     
@@ -609,7 +610,7 @@ class Robot(RobotInterface):
             self.stopper()
             if nombre_tentatives > 0:
                 self.log.warning("attente avant nouvelle tentative... reste {0} tentative(s)".format(nombre_tentatives))
-                sleep(0.5)
+                sleep(1)
                 self.va_au_point(point, hooks, trajectoire_courbe, nombre_tentatives-1, True)
             else:
                 raise ExceptionMouvementImpossible(self)
