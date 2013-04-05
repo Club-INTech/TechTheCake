@@ -297,8 +297,8 @@ class ScriptCadeaux(Script):
         
         # Déplacement proche du point d'entrée avec recherche de chemin
         self.robot.marche_arriere = False
-        self.robot.set_vitesse_translation(140)
-        self.robot.set_vitesse_rotation(150)
+        self.robot.set_vitesse_translation(2)
+        self.robot.set_vitesse_rotation(2)
         self.robot.recherche_de_chemin(self.info_versions[version]["point_entree_recherche_chemin"], recharger_table=False)
         
         # Déplacement au point d'entrée
@@ -314,19 +314,19 @@ class ScriptCadeaux(Script):
         hooks = []
         # Ouverture du bras en face du cadeau
         for cadeau in self.table.cadeaux_restants():
-            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * self.decalage_x_ouvre, self.decalage_y_bord ), tolerance_mm=35, effectuer_symetrie=False)
+            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * self.decalage_x_ouvre, self.decalage_y_bord ), tolerance_mm=50, effectuer_symetrie=False)
             hook_ouverture += self.hookGenerator.callback(self.robot.ouvrir_cadeau)
             hook_ouverture += self.hookGenerator.callback(self.table.cadeau_recupere, (cadeau,))
             hooks.append(hook_ouverture)
             
         # Fermeture du bras pendant les "trous" entre cadeaux
         for trou in self.table.trous_cadeaux:
-            hook_fermeture = self.hookGenerator.hook_position(trou + Point(sens * self.decalage_x_ferme, self.decalage_y_bord ), tolerance_mm=35, effectuer_symetrie=False)
+            hook_fermeture = self.hookGenerator.hook_position(trou + Point(sens * self.decalage_x_ferme, self.decalage_y_bord ), tolerance_mm=50, effectuer_symetrie=False)
             hook_fermeture += self.hookGenerator.callback(self.robot.fermer_cadeau)
             hooks.append(hook_fermeture)
 
         # Déplacement le long de la table (peut être un peu trop loin ?)
-        self.robot.set_vitesse_translation(100)
+        self.robot.set_vitesse_translation(2)
         self.robot.va_au_point(self.info_versions[1-version]["point_entree"], hooks)
         
  

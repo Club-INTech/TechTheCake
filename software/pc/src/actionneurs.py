@@ -13,11 +13,11 @@ class Actionneurs :
         self.actionneur_bougies_actif = False
 
     def ouvrir_cadeau(self) :
-        self.serie.communiquer("capteurs_actionneurs",["cadeau",170],0)
+        self.serie.communiquer("capteurs_actionneurs",["cadeau",140],0)
         self.actionneur_cadeaux_actif = True
     
     def fermer_cadeau(self) :
-        self.serie.communiquer("capteurs_actionneurs",["cadeau",230],0)
+        self.serie.communiquer("capteurs_actionneurs",["cadeau",60],0)
         self.actionneur_cadeaux_actif = False
 
     def gonfler_ballon(self) :
