@@ -18,7 +18,7 @@ class Capteurs
 	public:
             //Le prescalaire 64 est nécessaire (sinon les valeurs retournées sont fausses)
         typedef Timer<1, 64> timer_capteur_us;
-        typedef Timer<2, 1024> timer_refresh;
+        typedef Timer<0, 1024> timer_refresh;
         
         typedef CapteurSRFMono< timer_capteur_us, AVR_PORTD<PORTD5> > capteur_us1_type;
         capteur_us1_type us1;
