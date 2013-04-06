@@ -237,7 +237,7 @@ class Robot(RobotInterface):
         delta_x = self.consigne_x-self.x
         delta_y = self.consigne_y-self.y
         distance = round(math.sqrt(delta_x**2 + delta_y**2),2)
-        angle = round(math.atan2(delta_y,delta_x),4)
+        angle = round(math.atan2(delta_y,delta_x),6)
         
         #initialisation de la marche dans mise_a_jour_consignes
         self.maj_marche_arriere = self.marche_arriere
@@ -278,12 +278,13 @@ class Robot(RobotInterface):
         """
         Met à jour les consignes en translation et rotation (vise un point consigne)
         """
+            
         delta_x = self.consigne_x-self.x
         delta_y = self.consigne_y-self.y
         distance = round(math.sqrt(delta_x**2 + delta_y**2),2)
         
         #gestion de la marche arrière du déplacement (peut aller à l'encontre de self.marche_arriere)
-        angle = round(math.atan2(delta_y,delta_x),4)
+        angle = round(math.atan2(delta_y,delta_x),6)
         delta_angle = angle - self.maj_ancien_angle
         if delta_angle > math.pi: delta_angle -= 2*math.pi
         elif delta_angle <= -math.pi: delta_angle += 2*math.pi
@@ -291,7 +292,7 @@ class Robot(RobotInterface):
         
         #print("###")#@
         #print(distance)#@
-        #print(round(math.atan2(delta_y,delta_x),4))#@
+        #print(round(math.atan2(delta_y,delta_x),6))#@
         #if not self.config["correction_trajectoire"]:#@
             #return#@
             
@@ -307,6 +308,13 @@ class Robot(RobotInterface):
                 distance *= -1
                 angle += math.pi
                     
+            """
+            erreur_angle = angle - self.orientation
+            if erreur_angle > math.pi: erreur_angle -= 2*math.pi
+            elif erreur_angle <= -math.pi: erreur_angle += 2*math.pi
+            if erreur_angle > 0.06:
+                print("correction de "+str(erreur_angle))
+            """
             #l'attribut self._consigne_orientation doit etre mis à jour à chaque deplacements.tourner() pour le fonctionnement de self._avancer()
             self._consigne_orientation = angle
             self.deplacements.tourner(angle)
@@ -493,7 +501,6 @@ class Robot(RobotInterface):
         self.marche_arriere = (distance < 0)
         self.effectuer_symetrie = False
         
-        
         x = self.x + distance * math.cos(self._consigne_orientation)
         y = self.y + distance * math.sin(self._consigne_orientation)
         
@@ -661,19 +668,22 @@ class Robot(RobotInterface):
         
         #on désactive l'asservissement en rotation pour se mettre parallèle au bord
         self.deplacements.desactiver_asservissement_rotation()
-        self.set_vitesse_translation(2)
+        self.set_vitesse_translation(200)
         self.avancer(-300, retenter_si_blocage = False, sans_lever_exception = True)
         
         #initialisation de la coordonnée x et de l'orientation
         if self.config["couleur"] == "bleu":
             self.x = -self.config["table_x"]/2. + self.config["largeur_robot"]/2.
+            self.orientation = 0.0+self.config["epsilon_angle"]
         else:
             self.x = self.config["table_x"]/2. - self.config["largeur_robot"]/2.
+            self.orientation = math.pi+self.config["epsilon_angle"]
         #on avance doucement, en réactivant l'asservissement en rotation
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
         self.set_vitesse_translation(1)
-        self.avancer(200, retenter_si_blocage = False, sans_lever_exception = True)
+        
+        self.avancer(100, retenter_si_blocage = False, sans_lever_exception = True)
 
         #on se tourne pour le deuxième recalage
         self.tourner(math.pi/2, sans_lever_exception = True)
@@ -684,19 +694,19 @@ class Robot(RobotInterface):
         
         #on désactive l'asservissement en rotation pour se mettre parallèle au bord
         self.deplacements.desactiver_asservissement_rotation()
-        self.set_vitesse_translation(2)
+        self.set_vitesse_translation(200)
         self.avancer(-300, retenter_si_blocage = False, sans_lever_exception = True)
         
         #initialisation de la coordonnée y et de l'orientation
         #Le +100 en ordonnée correspond à la taille de l'estrade en bois (à mettre dans config?)
         self.y = self.config["largeur_robot"]/2.+100
-        self.orientation = math.pi/2.
+        #self.orientation = math.pi/2.
         
         #on avance doucement, en réactivant l'asservissement en rotation
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
         self.set_vitesse_translation(1)
-        self.avancer(150, retenter_si_blocage = False, sans_lever_exception = True)
+        self.avancer(350, retenter_si_blocage = False, sans_lever_exception = True)
         
         #on prend l'orientation initiale pour le match (la symétrie est automatique pour les déplacements)
         self.tourner(math.pi, sans_lever_exception = True)
@@ -709,19 +719,28 @@ class Robot(RobotInterface):
         
         #on désactive l'asservissement en rotation pour se mettre parallèle au bord
         self.deplacements.desactiver_asservissement_rotation()
-        self.set_vitesse_translation(2)
+        self.set_vitesse_translation(200)
         self.avancer(-300, retenter_si_blocage = False, sans_lever_exception = True)
         
         if self.config["couleur"] == "bleu":
-            self.orientation = 0.0-self.config["epsilon_angle"]
+            self.orientation = 0.0+self.config["epsilon_angle"]
+            self.x = -self.config["table_x"]/2. + self.config["largeur_robot"]/2.
         else:
             self.orientation = math.pi+self.config["epsilon_angle"]
+            self.x = self.config["table_x"]/2. - self.config["largeur_robot"]/2.
 
         #on avance doucement, en réactivant l'asservissement en rotation
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
         self.set_vitesse_translation(1)
-        self.avancer(200, retenter_si_blocage = False, sans_lever_exception = True)
+        self.avancer(100, retenter_si_blocage = False, sans_lever_exception = True)
+        
+        self.tourner(math.pi/2)
+            
+        if self.config["couleur"] == "bleu":
+            self.tourner(0.)
+        else:
+            self.tourner(math.pi)
         
         #vitesse initiales pour le match
         self.set_vitesse_translation(2)
@@ -770,10 +789,17 @@ class Robot(RobotInterface):
         
     def fermer_cadeau(self):
         """
-        Ferme le bras qui a poussé le cadeau
+        Ferme le bras qui a poussé le cadeau, en vue d'un prochain cadeau
         """
         self.log.debug("fermeture du bras cadeaux")
         self.actionneurs.fermer_cadeau()
+        
+    def replier_cadeau(self):
+        """
+        Replie l'actionneur cadeau
+        """
+        self.log.debug("replie du bras cadeaux")
+        self.actionneurs.replier_cadeau()
  
     def recuperer_verre(self, avant):
         """
