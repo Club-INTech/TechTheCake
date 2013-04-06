@@ -18,7 +18,7 @@
 #include <libintech/singleton.hpp>
 
 #define PI 3.14159265
-#define PI_TIC 4414
+#define PI_TIC 4255
 
 #define LARGEUR_ROBOT 200.0
 #define LONGUEUR_TABLE 3000.0
