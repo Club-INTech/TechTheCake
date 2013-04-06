@@ -186,8 +186,6 @@ class ScriptBougies(Script):
         
     def _execute(self, version):
 
-    
-        
         self.robot.set_vitesse_translation(1)
         self.robot.set_vitesse_rotation(1)
         # Il n'y a aucune symétrie sur la couleur dans les déplacements
@@ -297,14 +295,14 @@ class ScriptCadeaux(Script):
         
         # Déplacement proche du point d'entrée avec recherche de chemin
         self.robot.marche_arriere = False
-        self.robot.set_vitesse_translation(140)
-        self.robot.set_vitesse_rotation(150)
+        self.robot.set_vitesse_translation(65)
+        self.robot.set_vitesse_rotation(1)
         self.robot.recherche_de_chemin(self.info_versions[version]["point_entree_recherche_chemin"], recharger_table=False)
         
         # Déplacement au point d'entrée
         point_entree = self.info_versions[version]["point_entree"]
         self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne=point_entree, orientation_finale_voulue=0)
-        self.robot.va_au_point(point_entree)
+        self.robot.va_au_point(point_entree, retenter_si_blocage=False, sans_lever_exception=True)
 
         # Orientation du robot
         sens = self.info_versions[version]["sens"]
@@ -314,20 +312,21 @@ class ScriptCadeaux(Script):
         hooks = []
         # Ouverture du bras en face du cadeau
         for cadeau in self.table.cadeaux_restants():
-            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * self.decalage_x_ouvre, self.decalage_y_bord ), tolerance_mm=35, effectuer_symetrie=False)
+            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * self.decalage_x_ouvre, self.decalage_y_bord ), tolerance_mm=50, effectuer_symetrie=False)
             hook_ouverture += self.hookGenerator.callback(self.robot.ouvrir_cadeau)
             hook_ouverture += self.hookGenerator.callback(self.table.cadeau_recupere, (cadeau,))
             hooks.append(hook_ouverture)
             
         # Fermeture du bras pendant les "trous" entre cadeaux
         for trou in self.table.trous_cadeaux:
-            hook_fermeture = self.hookGenerator.hook_position(trou + Point(sens * self.decalage_x_ferme, self.decalage_y_bord ), tolerance_mm=35, effectuer_symetrie=False)
+            hook_fermeture = self.hookGenerator.hook_position(trou + Point(sens * self.decalage_x_ferme, self.decalage_y_bord ), tolerance_mm=50, effectuer_symetrie=False)
             hook_fermeture += self.hookGenerator.callback(self.robot.fermer_cadeau)
             hooks.append(hook_fermeture)
 
         # Déplacement le long de la table (peut être un peu trop loin ?)
-        self.robot.set_vitesse_translation(100)
-        self.robot.va_au_point(self.info_versions[1-version]["point_entree"], hooks)
+        self.robot.set_vitesse_translation(65)
+        point_sortie = Point(self.info_versions[1-version]["point_entree"].x, self.info_versions[version]["point_entree"].y)
+        self.robot.va_au_point(point_sortie, hooks)
         
  
     def _termine(self):
@@ -342,14 +341,14 @@ class ScriptCadeaux(Script):
                 else:
                     self.robot.tourner(-angle_repli)
             finally:
-                self.robot.fermer_cadeau()
+                self.robot.replier_cadeau()
         else:
             self.log.debug("Fin du script cadeau : l'actionneur cadeaux est déjà rentré.")
 
     def versions(self):
-        self.decalage_x_ouvre = -50
+        self.decalage_x_ouvre = -80
         self.decalage_x_ferme = -60#350
-        self.decalage_y_bord = self.config["rayon_robot"] + 100
+        self.decalage_y_bord = self.config["rayon_robot"] + 70
         self.decalage_x_pour_reglette_blanche = 100
         
         cadeaux = self.table.cadeaux_entrees()
