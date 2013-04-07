@@ -21,3 +21,4 @@ obj/
 project.properties
 hardware/*/*.b\#*
 hardware/*/*.s\#*
+software/android/INTech/Debug/*
