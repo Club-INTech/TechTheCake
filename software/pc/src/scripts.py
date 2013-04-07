@@ -295,8 +295,8 @@ class ScriptCadeaux(Script):
         
         # Déplacement proche du point d'entrée avec recherche de chemin
         self.robot.marche_arriere = False
-        self.robot.set_vitesse_translation(65)
-        self.robot.set_vitesse_rotation(1)
+        self.robot.set_vitesse_translation(2)
+        self.robot.set_vitesse_rotation(2)
         self.robot.recherche_de_chemin(self.info_versions[version]["point_entree_recherche_chemin"], recharger_table=False)
         
         # Déplacement au point d'entrée
