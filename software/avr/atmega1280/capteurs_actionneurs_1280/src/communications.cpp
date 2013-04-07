@@ -4,9 +4,6 @@
 
 Communications::Communications()
 {
-    sbi(PCMSK3,PCINT29); //active l'interruption sur le port D5
-    sbi(PCMSK3,PCINT30); //active l'interruption sur le port D6
-    sbi(PCICR,PCIE3);//active PCINT3
     serie_robot::init();
     serie_robot::change_baudrate(9600);
 }
@@ -33,34 +30,23 @@ void Communications::execute(char ordre[])
         }
 
         // infrarouge
-        else if (strcmp(ordre, "ir_av")==0)
+        else if (strcmp(ordre, "i")==0) //minuscule: arrière. Majuscule: avant
         {
-//            serie_robot::print(capteurs.inf2.value());
+            serie_robot::print(capteurs.inf1.value());
         }
-        else if (strcmp(ordre, "ir_arr")==0)
+        else if (strcmp(ordre, "I")==0)
         {
-//            serie_robot::print(capteurs.inf1.value());
+            serie_robot::print(capteurs.inf2.value());
         }
 
         // Ultrasons SRF05
-        else if (strcmp(ordre, "us_av")==0)
+        else if (strcmp(ordre, "S")==0)
         {
             serie_robot::print(capteurs.us1.value());
         }
-        else if (strcmp(ordre, "us_arr")==0)
+        else if (strcmp(ordre, "s")==0)
         {
             serie_robot::print(capteurs.us2.value());
-        }
-
-
-        // Distributeur
-        else if (strcmp(ordre, "dist_on")==0)
-        {
-            sbi(PORTD, PORTD4);
-        }
-        else if (strcmp(ordre, "dist_off")==0)
-        {
-            cbi(PORTD, PORTD4);
         }
 
         //serial de la carte (ping)
