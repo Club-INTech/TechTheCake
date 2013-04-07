@@ -10,6 +10,7 @@ builtins.couleur_robot = couleur
 from src.container import *
 from time import time
 from math import pi
+from outils_maths.point import Point
 
 ennemi_fait_toutes_bougies = "0"
 while ennemi_fait_toutes_bougies != "1" and ennemi_fait_toutes_bougies != "0":
@@ -32,12 +33,12 @@ log = container.get_service("log")
 
 #on renseigne au robot sa position
 if couleur == "rouge":
-    robot.x = 1200
-    robot.y = 300
+    robot.x = 1220
+    robot.y = 400
     robot.orientation = pi
 else:
-    robot.x = -1200
-    robot.y = 300
+    robot.x = -1220
+    robot.y = 400
     robot.orientation = 0
 robot.set_vitesse_translation(2)
 robot.set_vitesse_rotation(2)
@@ -53,6 +54,7 @@ if "capteurs_actionneurs" in config["cartes_simulation"] or "capteurs_actionneur
 else:
     log.debug("Prêt pour le jumper!")
 
-robot.avancer(2000)
+#robot.avancer(2000)
 
-#strategie.boucle_strategie()
+strategie.boucle_strategie()
+
