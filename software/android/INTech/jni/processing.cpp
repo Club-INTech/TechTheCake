@@ -128,7 +128,7 @@ string Processing::getResults()
     {
         Ball *ball = *result;
 
-        if (ball->getType() != Ball::UNVALID_BALL && ball->getId() >= 0)
+        if (ball->getType() != Ball::UNVALID_BALL && ball->getId() > 0)
         {
             char letter;
 
@@ -147,7 +147,7 @@ string Processing::getResults()
                 break;
             }
 
-            string_result[ball->getId()] = letter;
+            string_result[ball->getId()-1] = letter;
         }
     }
 
@@ -365,7 +365,7 @@ void Processing::_drawBalls(vector<Ball*> &balls, Mat &image)
 
         // Id de la balle
         int id = ball->getId();
-        if (id >= 0)
+        if (id > 0)
         {
             stringstream stream;
             stream << id;
