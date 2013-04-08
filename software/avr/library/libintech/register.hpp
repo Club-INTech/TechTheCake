@@ -139,7 +139,7 @@ struct AVR_ADC {
     }
 
     static uint16_t read() {
-        ADMUX &= 0xF0;  //on remet les bits de poids faibles de ADMUX à 0
+        ADMUX &= 0xE0;  //on remet les bits de poids faibles de ADMUX à 0
         ADMUX |= bit;   //on choisit le ADC à utiliser
         ADCSRA |= (1 << ADSC);  // Start A2D Conversions
 
