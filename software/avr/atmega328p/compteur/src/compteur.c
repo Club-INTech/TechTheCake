@@ -13,14 +13,14 @@ void compteur_init (void)
 {
     // Initialisation interruptions codeurs
     // Masques
-    PCMSK2 |= (1 << PCINT19) | (1 << PCINT18);
-    PCMSK1 |= (1 << PCINT9) | (1 << PCINT8);
+    PCMSK2 |= (1 << PCINT22) | (1 << PCINT23);
+    PCMSK0 |= (1 << PCINT0) | (1 << PCINT1);
     // Activer les interruptions
     PCICR |= (1 << PCIE2);
-    PCICR |= (1 << PCIE1);
+    PCICR |= (1 << PCIE0);
 
     // Initialisation de l'etat des codeurs
-    etat_codeurs = (PIND & CODEUR11) | (PIND & CODEUR12) | (PINC & CODEUR21) | (PINC & CODEUR22);
+    etat_codeurs = (PIND & CODEUR11) | (PIND & CODEUR12) | (PINB & CODEUR21) | (PINB & CODEUR22);
 }
 
 /*
@@ -91,18 +91,18 @@ ISR (PCINT2_vect)
             break;
     }
     
-    etat_codeurs = (PIND & CODEUR11) | (PIND & CODEUR12) | (PINC & CODEUR21) | (PINC & CODEUR22);
+    etat_codeurs = (PIND & CODEUR11) | (PIND & CODEUR12) | (PINB & CODEUR21) | (PINB & CODEUR22);
     
     //printlnLong(roue1);
 }
 
 // Interruption codeur 2
-ISR (PCINT1_vect)
+ISR (PCINT0_vect)
 {
     switch ( etat_codeurs & (CODEUR21 | CODEUR22) ) {
         
         case CODEUR21 | CODEUR22 :
-            switch ( PINC & (CODEUR21 | CODEUR22) ) {
+            switch ( PINB & (CODEUR21 | CODEUR22) ) {
                 case CODEUR22 :
                     roue2++;
                     break;
@@ -115,7 +115,7 @@ ISR (PCINT1_vect)
             break;
             
         case CODEUR21 :
-            switch ( PINC & (CODEUR21 | CODEUR22) ) {
+            switch ( PINB & (CODEUR21 | CODEUR22) ) {
                 case CODEUR21 | CODEUR22 :
                     roue2++;
                     break;
@@ -128,7 +128,7 @@ ISR (PCINT1_vect)
             break;
             
         case CODEUR22 :
-            switch ( PINC & (CODEUR21 | CODEUR22) ) {
+            switch ( PINB & (CODEUR21 | CODEUR22) ) {
                 case CODEUR21 | CODEUR22 :
                     roue2--;
                     break;
@@ -141,7 +141,7 @@ ISR (PCINT1_vect)
             break;
             
         case 0 :
-            switch ( PINC & (CODEUR21 | CODEUR22) ) {
+            switch ( PINB & (CODEUR21 | CODEUR22) ) {
                 case CODEUR21 :
                     roue2++;
                     break;
@@ -158,7 +158,7 @@ ISR (PCINT1_vect)
     }
     
     //printlnLong(roue2);
-    etat_codeurs = (PIND & CODEUR11) | (PIND & CODEUR12) | (PINC & CODEUR21) | (PINC & CODEUR22);
+    etat_codeurs = (PIND & CODEUR11) | (PIND & CODEUR12) | (PINB & CODEUR21) | (PINB & CODEUR22);
 }
 
 void charger_distance (void)
