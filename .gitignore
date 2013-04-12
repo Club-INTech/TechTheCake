@@ -17,6 +17,8 @@ gen/
 obj/
 .classpath
 .cproject
+.settings
 project.properties
 hardware/*/*.b\#*
 hardware/*/*.s\#*
+software/android/INTech/Debug/*

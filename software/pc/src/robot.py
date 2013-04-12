@@ -661,7 +661,7 @@ class Robot(RobotInterface):
         self.log.debug("début du recalage")
         
         #on recule lentement jusqu'à bloquer sur le bord
-        self.set_vitesse_translation(1)
+        self.set_vitesse_translation(2)
         self.set_vitesse_rotation(1)
         self.marche_arriere = True
         self.avancer(-1000, retenter_si_blocage = False, sans_lever_exception = True)
@@ -712,7 +712,7 @@ class Robot(RobotInterface):
         self.tourner(math.pi, sans_lever_exception = True)
 
         #on recule lentement jusqu'à bloquer sur le bord
-        self.set_vitesse_translation(1)
+        self.set_vitesse_translation(2)
         self.set_vitesse_rotation(1)
         self.marche_arriere = True
         self.avancer(-1000, retenter_si_blocage = False, sans_lever_exception = True)

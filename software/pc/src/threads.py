@@ -105,7 +105,7 @@ class ThreadCapteurs(AbstractThread):
                 else:
                     x = robot.x + distance_inter_robots * cos(robot.orientation)
                     y = robot.y + distance_inter_robots * sin(robot.orientation)
-                
+
                 # Vérifie que l'obstacle n'a pas déjà été ajouté récemment
                 if time() - dernier_ajout > tempo:
                     # Vérifie si l'obstacle est sur la table 
