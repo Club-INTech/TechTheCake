@@ -33,8 +33,9 @@ ISR(TIMER1_OVF_vect, ISR_NOBLOCK){
 	//mise à jour des attribut stockant la distance parcourue en tic et l'angle courant en tic
 	int32_t infos[2];
 	get_all(infos);
-	robot.mesure_distance(infos[0]);
-	robot.mesure_angle(infos[1]);
+    
+	robot.mesure_distance(infos[0] + infos[1]);
+	robot.mesure_angle(infos[0] - infos[1]);
 	
 	//mise à jour du pwm envoyé aux moteurs pour l'asservissement
 	robot.asservir();

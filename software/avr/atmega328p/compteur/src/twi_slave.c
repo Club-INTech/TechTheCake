@@ -57,36 +57,16 @@ void TWI_Loop( void )
         }
 
 		if ( order == MASTER_CMD_ALL ) {
-            int32_t angle = roue1 - roue2;
-            int32_t distance = roue1 + roue2;
             
-            messageBuf[0] = (uint8_t) angle;
-            messageBuf[1] = (uint8_t) (angle >> 8);
-            messageBuf[2] = (uint8_t) (angle >> 16);
-            messageBuf[3] = (uint8_t) (angle >> 24);
+            messageBuf[0] = (uint8_t) roue1;
+            messageBuf[1] = (uint8_t) (roue1 >> 8);
+            messageBuf[2] = (uint8_t) (roue1 >> 16);
+            messageBuf[3] = (uint8_t) (roue1 >> 24);
             
-            messageBuf[4] = (uint8_t) distance;
-            messageBuf[5] = (uint8_t) (distance >> 8);
-            messageBuf[6] = (uint8_t) (distance >> 16);
-            messageBuf[7] = (uint8_t) (distance >> 24);
-        }
-        
-        if ( order == MASTER_CMD_ANGLE ) {
-            int32_t angle = roue1 - roue2;
-
-            messageBuf[0] = (uint8_t) angle;
-            messageBuf[1] = (uint8_t) (angle >> 8);
-            messageBuf[2] = (uint8_t) (angle >> 16);
-            messageBuf[3] = (uint8_t) (angle >> 24);
-            
-        }
-
-        if ( order == MASTER_CMD_DISTANCE ) {
-            int32_t distance = roue1 + roue2;
-            messageBuf[0] = (uint8_t) distance;
-            messageBuf[1] = (uint8_t) (distance >> 8);
-            messageBuf[2] = (uint8_t) (distance >> 16);
-            messageBuf[3] = (uint8_t) (distance >> 24);
+            messageBuf[4] = (uint8_t) roue2;
+            messageBuf[5] = (uint8_t) (roue2 >> 8);
+            messageBuf[6] = (uint8_t) (roue2 >> 16);
+            messageBuf[7] = (uint8_t) (roue2 >> 24);
         }
         
         TWI_Start_Transceiver_With_Data(messageBuf, 8);
