@@ -4,9 +4,14 @@
 #define TWI_BUFFER_SIZE 9
                                
 #define MASTER_CMD_RESET    0X10
-#define MASTER_CMD_DISTANCE 0X20
-#define MASTER_CMD_ANGLE    0X30
 #define MASTER_CMD_ALL    0X40
+
+
+#include <libintech/codeuse.hpp>
+//déclaration des ports des codeuses, attention à modifier aussi le twi_slave.c
+extern Codeuse< AVR_PORTB <PORTB0>,AVR_PORTB <PORTB1> > codeuse1;
+extern Codeuse< AVR_PORTD <PORTD7>,AVR_PORTD <PORTD6> > codeuse2;
+
 
 extern unsigned char messageBuf[];
 
