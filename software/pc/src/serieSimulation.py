@@ -118,6 +118,9 @@ class ProtocoleVirtuelCapteursActionneurs:
         #jumper
         return [0]
 
+    def gonfler(self):
+        return []
+
 #    def cadeau(self):
 #        #TODO
 #        return ["rouge"]

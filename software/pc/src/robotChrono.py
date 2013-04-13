@@ -233,7 +233,7 @@ class RobotChrono(RobotInterface):
             
         self.suit_chemin(chemin, symetrie_effectuee=True)
         
-    def va_au_point(self, point_consigne, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, retenter_si_blocage=True, symetrie_effectuee=False):
+    def va_au_point(self, point_consigne, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, retenter_si_blocage=True, symetrie_effectuee=False, sans_lever_exception=False):
         
         point_consigne = point_consigne.copy() #appliquer la symétrie ne doit pas modifier ce point !
         

@@ -681,7 +681,7 @@ class Robot(RobotInterface):
         #on avance doucement, en réactivant l'asservissement en rotation
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
-        self.set_vitesse_translation(2)
+        self.set_vitesse_translation(1)
         
         self.avancer(100, retenter_si_blocage = False, sans_lever_exception = True)
 
@@ -705,7 +705,7 @@ class Robot(RobotInterface):
         #on avance doucement, en réactivant l'asservissement en rotation
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
-        self.set_vitesse_translation(2)
+        self.set_vitesse_translation(1)
         self.avancer(350, retenter_si_blocage = False, sans_lever_exception = True)
         
         #on prend l'orientation initiale pour le match (la symétrie est automatique pour les déplacements)
@@ -732,7 +732,7 @@ class Robot(RobotInterface):
         #on avance doucement, en réactivant l'asservissement en rotation
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
-        self.set_vitesse_translation(2)
+        self.set_vitesse_translation(1)
         self.avancer(100, retenter_si_blocage = False, sans_lever_exception = True)
         
         self.tourner(math.pi/2)
