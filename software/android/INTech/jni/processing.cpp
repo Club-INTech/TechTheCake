@@ -17,7 +17,7 @@ using namespace std;
 
 Processing::Processing():
     cake_borders(0, 0, 230, 100),
-    model(Model::getRepartitionModel("red")),
+    model(Model::getRepartitionModel('r')),
     image_partition(40),
     erode_kernel_size(0),
     closing_kernel_size(0),

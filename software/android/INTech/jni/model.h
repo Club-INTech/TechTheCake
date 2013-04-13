@@ -9,7 +9,7 @@
 class Model
 {
 public:
-    static std::map<int,cv::Point2f> getRepartitionModel(std::string color);
+    static std::map<int,cv::Point2f> getRepartitionModel(char color);
 };
 
 #endif // MODEL_H

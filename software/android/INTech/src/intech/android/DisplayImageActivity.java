@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RadioButton;
 
 public class DisplayImageActivity extends Activity {
 
@@ -51,6 +52,9 @@ public class DisplayImageActivity extends Activity {
 
 		SharedPreferences preferences = PreferenceManager
 				.getDefaultSharedPreferences(this);
+
+		// Chargement de la couleur de l'équipe
+		loadColor(bundle.getChar("color"));
 
 		// Chargement des paramètres pour la détection des balles
 		int hMin = Integer.valueOf(preferences.getString("balls_h_min", "0"));
@@ -125,6 +129,8 @@ public class DisplayImageActivity extends Activity {
 		resultsView.setImageBitmap(resultsBitmap);
 
 	}
+
+	public native void loadColor(char color);
 
 	public native void loadBallsParameters(int hMin, int sMin, int vMin,
 			int hMax, int sMax, int vMax);
