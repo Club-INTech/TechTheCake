@@ -144,7 +144,7 @@ class Strategie:
             -10*math.exp(-distance_ennemi**2/1000000),
             
             # Echecs précédents
-            note_echecs,
+            5*note_echecs,
     
             # Fonction du temps
             poids,
