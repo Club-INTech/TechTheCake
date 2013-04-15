@@ -43,13 +43,13 @@ class RobotInterface(metaclass=abc.ABCMeta):
         pass
         
     @abc.abstractmethod
-    def traiter_bougie(self,id,enHaut):
+    def traiter_bougie(self,enHaut):
         pass
             
     @abc.abstractmethod
     def initialiser_bras_bougie(self,enHaut) : 
         pass
-
+    
     @abc.abstractmethod
     def rentrer_bras_bougie(self) : 
         pass
@@ -61,9 +61,21 @@ class RobotInterface(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def fermer_cadeau(self):
         pass
-        
+    
+    @abc.abstractmethod
+    def replier_cadeau(self):
+        pass
+    
     @abc.abstractmethod
     def gonflage_ballon(self):
+        pass
+    
+    @abc.abstractmethod
+    def lever_ascenseur(self, avant):
+        pass
+    
+    @abc.abstractmethod
+    def ranger_ascenseur(self, avant):
         pass
         
     def places_disponibles(self, avant):
@@ -279,13 +291,16 @@ class RobotChrono(RobotInterface):
     def fermer_cadeau(self):
         pass
         
+    def replier_cadeau(self):
+        pass
+    
     def gonflage_ballon(self):
         pass
         
     def places_disponibles(self, avant):
         pass
 
-    def preparer_ascenseur(self, avant):
+    def lever_ascenseur(self, avant):
         pass
 
     def ranger_ascenseur(self, avant):
@@ -296,4 +311,4 @@ class RobotChrono(RobotInterface):
 
     def deposer_pile(self, avant):
         pass
-
+    
