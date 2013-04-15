@@ -118,6 +118,14 @@ class ProtocoleVirtuelCapteursActionneurs:
         #jumper
         return [0]
 
+    def asc_av(self):
+        #capteur de l'ascenseur avant
+        return [1]
+
+    def asc_arr(self):
+        #capteur de l'ascenseur arrière
+        return [1]
+
     def gonfler(self):
         return []
 
@@ -146,6 +154,22 @@ class ProtocoleVirtuelCapteursActionneurs:
     def _valeur_capteur(self, id):
         valeur = self.simulateur.getSensorValue(id)
         return valeur if valeur >= 0 else 5000
+
+################################################################################
+#####  PROTOCOLE VIRTUEL POUR SIMULATION DE LA SERIE SUR LES ASCENSEURS    #####
+################################################################################
+class ProtocoleVirtuelAscenseur:
+   
+    def __init__(self,simulateur, log):
+        self.simulateur = simulateur
+        self.log = log
+        
+    def ascenseur_avant(self,*useless) :
+        return []
+
+    def ascenseur_arriere(self,*useless) :
+        return []
+
         
 ################################################################################
 #####  PROTOCOLE VIRTUEL POUR SIMULATION DE LA SERIE SUR LES ACTIONNEURS   #####
@@ -228,7 +252,7 @@ class SerieSimulation:
         self.mutex = Mutex()
         
         self.deplacements = ProtocoleVirtuelDeplacements(simulateur, log)
-        self.actionneurs = ProtocoleVirtuelActionneurs(simulateur, log)
+        self.ascenseur = ProtocoleVirtuelAscenseur(simulateur, log)
         self.capteurs_actionneurs = ProtocoleVirtuelCapteursActionneurs(simulateur, log)
         self.laser = ProtocoleVirtuelLaser(simulateur, log)
         

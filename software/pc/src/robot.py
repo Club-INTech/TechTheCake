@@ -801,6 +801,13 @@ class Robot(RobotInterface):
         self.log.debug("replie du bras cadeaux")
         self.actionneurs.replier_cadeau()
  
+    def preparer_ascenseur(self, avant):
+        self.actionneurs.ascenseur_aller_en_haut(avant)
+
+    def ranger_ascenseur(self, avant):
+        self.actionneurs.ascenseur_aller_en_bas(avant)
+        self.actionneurs.ascenseur_serrer(avant)
+
     def recuperer_verre(self, avant):
         """
         Lance la procédure de récupération d'un verre
@@ -814,16 +821,20 @@ class Robot(RobotInterface):
             raise ExceptionMouvementImpossible(self)
         
         # Vérification de la présence du verre
-        
+        if not self.capteurs.verre_present(avant):
+            self.log.critical("Verre absent!")
+            raise ExceptionVerreAbsent
         # Lancement des actionneurs
-        
-        # Mise à jour du total de verres portés
-        super().recuperer_verre(avant)
-            
-        if avant:
-            self.log.debug("saisit d'un verre à l'avant")
         else:
-            self.log.debug("saisit d'un verre à l'arrière")
+            self.actionneurs.ascenseur_deserrer(avant)
+        
+            # Mise à jour du total de verres portés
+            super().recuperer_verre(avant)
+            
+            if avant:
+                self.log.debug("saisie d'un verre à l'avant")
+            else:
+                self.log.debug("saisie d'un verre à l'arrière")
         self.log.debug("le robot a {0} verre(s) à l'avant, {1} à l'arrière".format(self.nb_verres_avant, self.nb_verres_arriere))
         
     def deposer_pile(self, avant):
@@ -882,6 +893,12 @@ class RobotSimulation(Robot):
                 pt_ext    = Point(0 + 800*math.cos(hook.angle_hook), 2000 + 800*math.sin(hook.angle_hook))
                 self.simulateur.drawLine(pt_centre.x, pt_centre.y, pt_ext.x, pt_ext.y, "black", "hook")
         
+class ExceptionVerreAbsent(Exception):
+    """
+    Exception levée lorsqu'un verre est absent
+    """
+    pass
+
 class ExceptionBlocage(Exception):
     """
     Exception levée lorsque le robot est physiquement bloqué par un obstacle

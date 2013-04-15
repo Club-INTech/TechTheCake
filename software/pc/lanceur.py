@@ -1,5 +1,6 @@
 
 #passage de la couleur
+#couleur = ""
 couleur = "rouge"
 while couleur != "rouge" and couleur != "bleu":
     couleur = input("Quelle couleur? bleu ou rouge >")
@@ -13,12 +14,17 @@ from math import pi
 from outils_maths.point import Point
 
 ennemi_fait_toutes_bougies = "0"
+#ennemi_fait_toutes_bougies = ""
 while ennemi_fait_toutes_bougies != "1" and ennemi_fait_toutes_bougies != "0":
     ennemi_fait_toutes_bougies = input("L'ennemi fait-il toutes les bougies? 1 (oui) ou 0 (non) >")
 
-ennemi_fait_ses_bougies = "0"
-while ennemi_fait_ses_bougies != "1" and ennemi_fait_ses_bougies != "0":
-    ennemi_fait_ses_bougies = input("L'ennemi fait-il ses bougies à lui? 1 (oui) ou 0 (non) >")
+if ennemi_fait_toutes_bougies == "1":
+    ennemi_fait_ses_bougies = "1"
+else:
+#    ennemi_fait_ses_bougies = ""
+    ennemi_fait_ses_bougies = "0"
+    while ennemi_fait_ses_bougies != "1" and ennemi_fait_ses_bougies != "0":
+        ennemi_fait_ses_bougies = input("L'ennemi fait-il ses bougies à lui? 1 (oui) ou 0 (non) >")
     
 container = Container()
 
@@ -32,14 +38,17 @@ robot = container.get_service("robot")
 log = container.get_service("log")
 
 #on renseigne au robot sa position
-if couleur == "rouge":
-    robot.x = 1220
-    robot.y = 400
+depart = Point(1350,600)
+
+if config["couleur"] == "rouge":
+    robot.x = depart.x
+    robot.y = depart.y
     robot.orientation = pi
 else:
-    robot.x = -1220
-    robot.y = 400
+    robot.x = -depart.x
+    robot.y = depart.y
     robot.orientation = 0
+
 robot.set_vitesse_translation(2)
 robot.set_vitesse_rotation(2)
 
@@ -54,7 +63,7 @@ if "capteurs_actionneurs" in config["cartes_simulation"] or "capteurs_actionneur
 else:
     log.debug("Prêt pour le jumper!")
 
-#robot.avancer(2000)
-
+#On se décolle du bord
+robot.avancer(200)
 strategie.boucle_strategie()
 

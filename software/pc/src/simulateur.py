@@ -48,10 +48,10 @@ class Simulateur:
         # Initialisation de la position du robot sur le simulateur
         if config["couleur"] == "bleu":
             client.service.setRobotAngle(0)
-            client.service.setRobotPosition(-1200,300)
+            client.service.setRobotPosition(-1350,600)
         else:
             client.service.setRobotAngle(math.pi)
-            client.service.setRobotPosition(1200,300)
+            client.service.setRobotPosition(1350,600)
                     
         # Déclaration d'un robot adverse
         if config["activer_ennemi_principal"]:

@@ -13,7 +13,7 @@ class Script(metaclass=abc.ABCMeta):
     classe mère des scripts
     se charge des dépendances
     """
-    def dependances(self, robot, robotChrono, hookGenerator, table, config, log):
+    def dependances(self, robot, robotChrono, hookGenerator, table, config, log, timer):
         """
         Gère les services nécessaires aux scripts. On n'utilise pas de constructeur.
         """
@@ -23,6 +23,7 @@ class Script(metaclass=abc.ABCMeta):
         self.table = table
         self.config = config
         self.log = log
+        self.timer = timer
 
     def agit(self, version):
         """
@@ -83,7 +84,7 @@ class Script(metaclass=abc.ABCMeta):
              
 class ScriptManager:
     
-    def __init__(self, robot, robotChrono, hookGenerator, table, config, log):
+    def __init__(self, robot, robotChrono, hookGenerator, table, config, log, timer):
         self.log = log
         self.scripts = {}
         
@@ -93,7 +94,7 @@ class ScriptManager:
             heritage = list(inspect.getmro(obj))
             if not inspect.isabstract(obj) and Script in heritage:
                 self.scripts[nom] = obj()
-                self.scripts[nom].dependances(robot, robotChrono, hookGenerator, table, config, log)
+                self.scripts[nom].dependances(robot, robotChrono, hookGenerator, table, config, log, timer)
                 if hasattr(self.scripts[nom], '_constructeur'): self.scripts[nom]._constructeur()
 
 class ScriptBougies(Script):
@@ -302,7 +303,9 @@ class ScriptCadeaux(Script):
         # Déplacement au point d'entrée
         point_entree = self.info_versions[version]["point_entree"]
         self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne=point_entree, orientation_finale_voulue=0)
-        self.robot.va_au_point(point_entree, retenter_si_blocage=False, sans_lever_exception=True)
+# Pourquoi ne pas retenter en cas de blocage?
+#        self.robot.va_au_point(point_entree, retenter_si_blocage=False, sans_lever_exception=True)
+        self.robot.va_au_point(point_entree)
 
         # Orientation du robot
         sens = self.info_versions[version]["sens"]
@@ -438,14 +441,23 @@ class ScriptRecupererVerres(Script):
         Procédure de récupération d'un verre
         """
         destination = self._point_devant_verre(verre["position"], self.marge_recuperation)
+        #Je croyais qu'on remplissait un côté puis l'autre?
         mieux_en_arriere = self.robot.marche_arriere_est_plus_rapide(destination)
         if self.robot.places_disponibles(not mieux_en_arriere):
             self.robot.marche_arriere = mieux_en_arriere
         else:
             self.robot.marche_arriere = not mieux_en_arriere
         
+
+        # On est à distance. On élève l'ascenseur. On s'avance jusqu'à positionner le verre sous l'ascenseur. Si le verre est présent, on ouvre l'ascenseur, on le descend et on le ferme. Si le verre est absent, on laisse l'ascenseur en haut. A la fin du script, on le descend
+        self.robot.preparer_ascenseur(not self.robot.marche_arriere)
         self.robot.va_au_point(destination)
-        self.robot.recuperer_verre(not self.robot.marche_arriere)
+        try:
+            self.robot.recuperer_verre(not self.robot.marche_arriere)
+            self.robot.ranger_ascenseur(not self.robot.marche_arriere)
+        except:
+            pass
+        # Dans tous les cas, que le verre ait été là ou non, on retire le verre de la table
         self.table.verre_recupere(verre)
         
     def _point_devant_verre(self, pos_verre, marge, pos_robot=None):
@@ -466,7 +478,10 @@ class ScriptRecupererVerres(Script):
         return recuperation
          
     def _termine(self):
-        pass
+        # On range les deux ascenseurs
+        self.robot.ranger_ascenseur(True)
+        self.robot.ranger_ascenseur(False)
+
         
     @abc.abstractmethod
     def versions(self):
@@ -524,7 +539,8 @@ class ScriptRecupererVerres(Script):
         return points_avant + points_arriere
 
     def poids(self):
-        return 1
+        # Au début de la partie, prendre les verres est important. A la fin, on évite.
+        return max(0,5-0.1*(time() - self.timer.get_date_debut()))
 
 class ScriptRecupererVerresZoneRouge(ScriptRecupererVerres):
     
@@ -563,6 +579,10 @@ class ScriptDeposerVerres(Script):
         Les cases au extrémités (1 et 5) permettent de déposer les verres sur une reglette en bois.
         """
         
+        # Si on ne transporte aucun verre, aucune version
+        if self.robotVrai.nb_verres_arriere == 0 and self.robotVrai.nb_verres_avant == 0:
+            return []
+
         #décalage dû aux reglettes
         decalages_reglettes = [Point(0,0), Point(0,0)]
         configs = [self.config["case_depart_principal"], self.config["case_depart_secondaire"]]
@@ -620,11 +640,10 @@ class ScriptDeposerVerres(Script):
             if self.robot.nb_verres_avant:
                 #on dépose l'ascenseur avant d'un coté
                 self.robot.tourner(orientation_vers_depot + math.pi/6)
-                try:
-                    #attention, on va taper le bord de la table !
-                    self.robot.avancer(self.distance_entree_depot, retenter_si_blocage=False)
-                except robot.ExceptionMouvementImpossible:
-                    pass
+
+                #attention, on va taper le bord de la table !
+                self.robot.avancer(self.distance_entree_depot, retenter_si_blocage=False, sans_lever_exception=True)
+
                 self.robot.deposer_pile(avant=True)
                 self.robot.avancer(-self.distance_entree_depot)
         
@@ -632,11 +651,10 @@ class ScriptDeposerVerres(Script):
             if self.robot.nb_verres_arriere:
                 #on dépose l'ascenseur arrière de l'autre coté
                 self.robot.tourner(math.pi + orientation_vers_depot - math.pi/6)
-                try:
-                    #attention, on va taper le bord de la table !
-                    self.robot.avancer(-self.distance_entree_depot, retenter_si_blocage=False)
-                except robot.ExceptionMouvementImpossible:
-                    pass
+
+                #attention, on va taper le bord de la table !
+                self.robot.avancer(-self.distance_entree_depot, retenter_si_blocage=False, sans_lever_exception=True)
+
                 self.robot.deposer_pile(avant=False)
                 self.robot.avancer(self.distance_entree_depot)
         
@@ -668,3 +686,34 @@ class ScriptDeposerVerres(Script):
 
     def poids(self):
         return 1
+
+
+class ScriptRenverserVerres(Script):
+
+    def _constructeur(self):
+        pass
+
+    def versions(self):
+        return []
+
+    def _execute(self, version):
+        """
+        On suppose connaître les emplacements de départ des autres robots (là où ils poseront leur verres).
+        """
+        pass
+
+
+    def _termine(self):
+        pass
+            
+    def point_entree(self, id_version):
+        pass
+
+    def score(self):
+        # estimation
+        return 10
+
+    def poids(self):
+        # on le fera vers la fin
+        return 0.1*(time() - self.timer.get_date_debut())
+

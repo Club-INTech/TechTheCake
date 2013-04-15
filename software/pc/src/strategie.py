@@ -36,11 +36,6 @@ class Strategie:
             self.log.warning("Comme l'ennemi fait toutes les bougies, on ne les fera pas.")
             del self.scripts["ScriptBougies"]
     
-        # Pour la pré-coupe
-        del self.scripts["ScriptRecupererVerresZoneBleu"]
-        del self.scripts["ScriptRecupererVerresZoneRouge"]
-        del self.scripts["ScriptDeposerVerres"]
-
         while not self.timer.get_fin_match():
 
             notes = {}
@@ -143,10 +138,15 @@ class Strategie:
             # Echecs précédents
             note_echecs,
     
+            # Fonction du temps
+            poids,
+
             # Les scripts qu'on aurait pas le temps de finir ont un malus de points
             malus
         ]
 #        self.log.critical("Détail note "+str(script)+" en "+str(self.scripts[script].point_entree(version))+": "+str(note))
+#        self.log.critical("Score: "+str(score)+", durée: "+str(duree_script))
+
         
         return sum(note)
 

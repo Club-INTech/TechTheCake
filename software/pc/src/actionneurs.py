@@ -52,20 +52,45 @@ class Actionneurs :
         self.serie.communiquer("capteurs_actionneurs",["bas",240],0)
         self.actionneur_bougies_actif = False
 
-    def ascenseur_aller_en_haut(self):
-        self.serie.communiquer("ascenseur", "haut", 0)
+    def ascenseur_aller_en_haut(self, avant):
+        if avant:
+            self.log.debug("ascenseur avant levé")
+            self.serie.communiquer("ascenseur",["ascenseur_avant","haut"],0)
+        else:
+            self.log.debug("ascenseur arrière levé")
+            self.serie.communiquer("ascenseur",["ascenseur_arriere","haut"],0)
+ 
+    def ascenseur_aller_en_bas(self, avant):
+        if avant:
+            self.log.debug("ascenseur avant baissé")
+            self.serie.communiquer("ascenseur",["ascenseur_avant","bas"],0)
+        else:
+            self.log.debug("ascenseur arrière baissé")
+            self.serie.communiquer("ascenseur",["ascenseur_arriere","bas"],0)
 
-    def ascenseur_aller_en_bas(self):
-        self.serie.communiquer("ascenseur", "bas", 0)
+    def ascenseur_ranger(self, avant):
+        if avant:
+            self.log.debug("ascenseur avant rangé")
+            self.serie.communiquer("ascenseur",["ascenseur_avant","g",0,180],0)
+        else:
+            self.log.debug("ascenseur arrière rangé")
+            self.serie.communiquer("ascenseur",["ascenseur_arriere","g",0,180],0)
 
-    def ascenseur_ranger(self):
-        self.serie.communiquer("capteurs_actionneurs", ["g",0,180] , 0)
+    def ascenseur_serrer(self, avant):
+        if avant:
+            self.log.debug("ascenseur avant serré")
+            self.serie.communiquer("ascenseur",["ascenseur_avant","g",0,160],0)
+        else:
+            self.log.debug("ascenseur arrière serré")
+            self.serie.communiquer("ascenseur",["ascenseur_arriere","g",0,160],0)
 
-    def ascenseur_serrer(self):
-        self.serie.communiquer("capteurs_actionneurs", ["g",0,160] , 0)
-
-    def ascenseur_deserrer(self):
-        self.serie.communiquer("capteurs_actionneurs", ["g",0,100] , 0)
+    def ascenseur_deserrer(self, avant):
+        if avant:
+            self.log.debug("ascenseur avant déserré")
+            self.serie.communiquer("ascenseur",["ascenseur_avant","g",0,100],0)
+        else:
+            self.log.debug("ascenseur arrière déserré")
+            self.serie.communiquer("ascenseur",["ascenseur_arriere","g",0,100],0)
 
     def ascenseur_modifier_constantes(self, valeur):
         """
