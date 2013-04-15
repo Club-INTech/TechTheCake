@@ -136,7 +136,7 @@ class ProtocoleVirtuelCapteursActionneurs:
     def cadeau(self,*useless) :
         return []
     
-    def dist_on(self) :
+    def dist(self) :
         return []
 
     def haut(self,*useless) :
