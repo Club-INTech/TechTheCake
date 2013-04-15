@@ -35,11 +35,11 @@ void Communications::execute(char ordre[])
         // infrarouge
         else if (strcmp(ordre, "ir_av")==0)
         {
-//            serie_robot::print(capteurs.inf2.value());
+            serie_robot::print(capteurs.inf2.value());
         }
         else if (strcmp(ordre, "ir_arr")==0)
         {
-//            serie_robot::print(capteurs.inf1.value());
+            serie_robot::print(capteurs.inf1.value());
         }
 
         // Ultrasons SRF05
