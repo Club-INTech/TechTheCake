@@ -799,7 +799,7 @@ class Robot(RobotInterface):
         self.log.debug("replie du bras cadeaux")
         self.actionneurs.replier_cadeau()
  
-    def preparer_ascenseur(self, avant):
+    def lever_ascenseur(self, avant):
         self.actionneurs.ascenseur_aller_en_haut(avant)
 
     def ranger_ascenseur(self, avant):
@@ -825,6 +825,9 @@ class Robot(RobotInterface):
         # Lancement des actionneurs
         else:
             self.actionneurs.ascenseur_deserrer(avant)
+            self.actionneurs.ascenseur_aller_en_bas(avant)
+            self.actionneurs.ascenseur_serrer(avant)
+            self.lever_ascenseur(avant)
         
             # Mise à jour du total de verres portés
             super().recuperer_verre(avant)

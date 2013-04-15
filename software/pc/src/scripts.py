@@ -451,12 +451,11 @@ class ScriptRecupererVerres(Script):
 #            self.robot.marche_arriere = not mieux_en_arriere
         
 
-        # On est à distance. On élève l'ascenseur. On s'avance jusqu'à positionner le verre sous l'ascenseur. Si le verre est présent, on ouvre l'ascenseur, on le descend et on le ferme. Si le verre est absent, on laisse l'ascenseur en haut. A la fin du script, on le descend
-        self.robot.preparer_ascenseur(not self.robot.marche_arriere)
+        # On est à distance. On élève l'ascenseur (probable qu'il le soit déjà). On s'avance jusqu'à positionner le verre sous l'ascenseur. Si le verre est présent, on ouvre l'ascenseur, on le descend, on le ferme et on le remonte. Si le verre est absent, on laisse l'ascenseur en haut.
+        self.robot.lever_ascenseur(not self.robot.marche_arriere)
         self.robot.va_au_point(destination)
         try:
             self.robot.recuperer_verre(not self.robot.marche_arriere)
-            self.robot.ranger_ascenseur(not self.robot.marche_arriere)
         except:
             pass
         # Dans tous les cas, que le verre ait été là ou non, on retire le verre de la table
@@ -480,9 +479,9 @@ class ScriptRecupererVerres(Script):
         return recuperation
          
     def _termine(self):
-        # On range les deux ascenseurs
-        self.robot.ranger_ascenseur(True)
-        self.robot.ranger_ascenseur(False)
+        # On monte les deux ascenseurs
+        self.robot.lever_ascenseur(True)
+        self.robot.lever_ascenseur(False)
 
         
     @abc.abstractmethod
