@@ -1,6 +1,7 @@
 #include "communications.h"
 #include "capteurs.h"
 #include "libintech/utils.h"
+#include <util/delay.h>
 
 Communications::Communications()
 {
@@ -54,6 +55,15 @@ void Communications::execute(char ordre[])
 
 
         // Distributeur
+        else if (strcmp(ordre, "dist")==0)
+        {
+            uint16_t delai;
+            serie_robot::read(delai);
+            sbi(PORTD, PORTD4);
+            for(uint16_t i=0; i<delai; i++)
+                _delay_ms(1);
+            cbi(PORTD, PORTD4);
+        }
         else if (strcmp(ordre, "dist_on")==0)
         {
             sbi(PORTD, PORTD4);
