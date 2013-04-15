@@ -1,3 +1,4 @@
+import math
 
 class Vitesse:
     """
@@ -28,6 +29,9 @@ class Vitesse:
     
     def __str__(self) :
         return "("+str(self.vx)+"," + str(self.vy) + ")"
+        
+    def norme(self):
+        return math.sqrt(self.vx ** 2 + self.vy ** 2)
         
     def to_list(self):
         return [self.vx, self.vy]
