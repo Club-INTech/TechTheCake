@@ -79,6 +79,7 @@ public class CameraPreviewActivity extends Activity {
 				Intent intent = new Intent(CameraPreviewActivity.this, DisplayImageActivity.class);
 				intent.putExtra("image_path", captureFile.getAbsolutePath());
 				intent.putExtra("socket_mode", getIntent().getExtras().getBoolean("socket_mode"));
+				intent.putExtra("color", getIntent().getExtras().getChar("color"));
 				startActivityForResult(intent, 0);
 
 			} catch (FileNotFoundException e) {

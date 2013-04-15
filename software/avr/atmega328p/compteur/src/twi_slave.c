@@ -3,6 +3,10 @@
 #include "twi_slave.h"
 #include "compteur.h"
 
+//déclaration des ports des codeuses, attention à modifier aussi le twi_slave.h
+Codeuse< AVR_PORTB <PORTB0>,AVR_PORTB <PORTB1> > codeuse1;
+Codeuse< AVR_PORTD <PORTD7>,AVR_PORTD <PORTD6> > codeuse2;
+
 union TWI_statusReg_t
 {
     unsigned char all;
@@ -52,41 +56,21 @@ void TWI_Loop( void )
         }
 
         if ( order == MASTER_CMD_RESET ) {
-            roue1 = 0;
-            roue2 = 0;
+            codeuse1.compteur(0);
+            codeuse2.compteur(0);
         }
 
 		if ( order == MASTER_CMD_ALL ) {
-            int32_t angle = roue1 - roue2;
-            int32_t distance = roue1 + roue2;
             
-            messageBuf[0] = (uint8_t) angle;
-            messageBuf[1] = (uint8_t) (angle >> 8);
-            messageBuf[2] = (uint8_t) (angle >> 16);
-            messageBuf[3] = (uint8_t) (angle >> 24);
+            messageBuf[0] = (uint8_t) codeuse1.compteur();
+            messageBuf[1] = (uint8_t) (codeuse1.compteur() >> 8);
+            messageBuf[2] = (uint8_t) (codeuse1.compteur() >> 16);
+            messageBuf[3] = (uint8_t) (codeuse1.compteur() >> 24);
             
-            messageBuf[4] = (uint8_t) distance;
-            messageBuf[5] = (uint8_t) (distance >> 8);
-            messageBuf[6] = (uint8_t) (distance >> 16);
-            messageBuf[7] = (uint8_t) (distance >> 24);
-        }
-        
-        if ( order == MASTER_CMD_ANGLE ) {
-            int32_t angle = roue1 - roue2;
-
-            messageBuf[0] = (uint8_t) angle;
-            messageBuf[1] = (uint8_t) (angle >> 8);
-            messageBuf[2] = (uint8_t) (angle >> 16);
-            messageBuf[3] = (uint8_t) (angle >> 24);
-            
-        }
-
-        if ( order == MASTER_CMD_DISTANCE ) {
-            int32_t distance = roue1 + roue2;
-            messageBuf[0] = (uint8_t) distance;
-            messageBuf[1] = (uint8_t) (distance >> 8);
-            messageBuf[2] = (uint8_t) (distance >> 16);
-            messageBuf[3] = (uint8_t) (distance >> 24);
+            messageBuf[4] = (uint8_t) codeuse2.compteur();
+            messageBuf[5] = (uint8_t) (codeuse2.compteur() >> 8);
+            messageBuf[6] = (uint8_t) (codeuse2.compteur() >> 16);
+            messageBuf[7] = (uint8_t) (codeuse2.compteur() >> 24);
         }
         
         TWI_Start_Transceiver_With_Data(messageBuf, 8);

@@ -95,7 +95,6 @@ class ThreadCapteurs(AbstractThread):
             if AbstractThread.stop_threads:
                 log.debug("Stoppage du thread capteurs")
                 return None
-            
             distance = capteurs.mesurer(robot.marche_arriere)
             if distance >= 0 and distance <= 1000:
                 #distance : entre le capteur situé à l'extrémité du robot et la facade du robot adverse
@@ -106,7 +105,7 @@ class ThreadCapteurs(AbstractThread):
                 else:
                     x = robot.x + distance_inter_robots * cos(robot.orientation)
                     y = robot.y + distance_inter_robots * sin(robot.orientation)
-                 
+
                 # Vérifie que l'obstacle n'a pas déjà été ajouté récemment
                 if time() - dernier_ajout > tempo:
                     # Vérifie si l'obstacle est sur la table 

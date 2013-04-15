@@ -3,7 +3,9 @@
 #include <string>
 #include <android/log.h>
 #include <opencv2/imgproc/imgproc.hpp>
+
 #include "processing.h"
+#include "model.h"
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "INTech-C++", __VA_ARGS__))
 
@@ -12,10 +14,6 @@ extern "C" {
 JNIEXPORT void JNICALL Java_intech_android_DisplayImageActivity_loadParameters(
 		JNIEnv*, jobject, jint hMin, jint sMin, jint vMin, jint hMax, jint sMax,
 		jint vMax);
-
-JNIEXPORT void JNICALL Java_intech_android_DisplayImageActivity_analyze(JNIEnv*,
-		jobject, jlong srcAddr, jlong maskAddr, jlong contoursAddr,
-		jlong resultsAddr);
 
 JNIEXPORT void JNICALL Java_intech_android_DisplayImageActivity_loadMaskParameters(
 		JNIEnv*, jobject, jint maskErode, jint maskClosing);
@@ -26,8 +24,15 @@ JNIEXPORT void JNICALL Java_intech_android_DisplayImageActivity_loadBallColorsPa
 JNIEXPORT void JNICALL Java_intech_android_DisplayImageActivity_loadBallSizeParameters(
 		JNIEnv*, jobject, jint min, jint max);
 
+JNIEXPORT void JNICALL Java_intech_android_DisplayImageActivity_loadColor(
+		JNIEnv*, jobject, jchar color);
+
 JNIEXPORT jstring JNICALL Java_intech_android_DisplayImageActivity_getResults(
 		JNIEnv*, jobject);
+
+JNIEXPORT void JNICALL Java_intech_android_DisplayImageActivity_analyze(JNIEnv*,
+		jobject, jlong srcAddr, jlong maskAddr, jlong contoursAddr,
+		jlong resultsAddr);
 
 Processing processing = Processing::instance();
 
@@ -74,6 +79,11 @@ JNIEXPORT void JNICALL Java_intech_android_DisplayImageActivity_analyze(JNIEnv*,
 	mask = processing.filtered_balls_mask;
 	contours = processing.image_contours;
 	results = processing.image_results;
+}
+
+JNIEXPORT void JNICALL Java_intech_android_DisplayImageActivity_loadColor(JNIEnv*,
+		jobject, jchar color) {
+	processing.model = Model::getRepartitionModel(color);
 }
 
 JNIEXPORT jstring JNICALL Java_intech_android_DisplayImageActivity_getResults(JNIEnv* env, jobject) {

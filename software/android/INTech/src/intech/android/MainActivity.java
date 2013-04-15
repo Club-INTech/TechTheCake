@@ -98,6 +98,11 @@ public class MainActivity extends Activity {
 			}
 		}
 	};
+	
+	private char getColor() {
+		RadioButton button = (RadioButton) findViewById(R.id.radioBlue);
+		return (button.isChecked()) ? 'b' : 'r';
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -134,6 +139,7 @@ public class MainActivity extends Activity {
 	public void startCameraPreview(boolean socketMode) {
 		Intent intent = new Intent(this, CameraPreviewActivity.class);
 		intent.putExtra("socket_mode", socketMode);
+		intent.putExtra("color", getColor());
 		startActivity(intent);
 	}
 

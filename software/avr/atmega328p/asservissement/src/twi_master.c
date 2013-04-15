@@ -65,27 +65,28 @@ void get_all ( int32_t infos[2]){
 
     TWI_Get_Data_From_Transceiver( buffer_r, 9 );
 
-    int32_t angle;
-    int32_t distance;
+    int32_t roue1;
+    int32_t roue2;
     int32_t temp;
 
-    angle = buffer_r[1];
+    roue1 = buffer_r[1];
     temp = buffer_r[2];
-    angle += (temp << 8);
+    roue1 += (temp << 8);
     temp = buffer_r[3];
-    angle += (temp << 16);
+    roue1 += (temp << 16);
     temp = buffer_r[4];
-    angle += (temp << 24);
-    infos[0] = angle;
+    roue1 += (temp << 24);
+    infos[0] = roue1;
     
-    distance = buffer_r[5];
+    roue2 = buffer_r[5];
     temp = buffer_r[6];
-    distance += (temp << 8);
+    roue2 += (temp << 8);
     temp = buffer_r[7];
-    distance += (temp << 16);
+    roue2 += (temp << 16);
     temp = buffer_r[8];
-    distance += (temp << 24);
-    infos[1]=distance;
+    roue2 += (temp << 24);
+    infos[1]=roue2;
+    
 }
 
 int32_t get_angle ( void )
