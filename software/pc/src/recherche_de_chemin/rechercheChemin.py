@@ -670,7 +670,7 @@ class RechercheChemin:
         """
         return self.environnement_complet.nuages_de_cercles
         
-    def charge_obstacles(self):
+    def charge_obstacles(self, avec_verres_entrees=True):
         ##ajout des obstacles vus par les capteurs et la balise
         #for obstacle in self.table.obstacles():
             #self.ajoute_obstacle_cercle(obstacle.position, obstacle.rayon)
@@ -680,9 +680,8 @@ class RechercheChemin:
             self.ajoute_obstacle_cercle(obstacle.position, obstacle.rayon)
             
         #ajout des verres encore présents sur la table
-        verres_en_entree = self.table.verres_entrees()
         for verre in self.table.verres_restants():
-            if not verre in verres_en_entree:
+            if avec_verres_entrees or not verre in self.table.verres_entrees():
                 self.ajoute_obstacle_cercle(verre["position"], self.config["rayon_verre"])
     
     def prepare_environnement_pour_a_star(self):

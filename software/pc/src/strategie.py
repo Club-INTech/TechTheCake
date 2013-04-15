@@ -45,9 +45,9 @@ class Strategie:
 
             #initialisation de la recherche de chemin pour le calcul de temps
             self.rechercheChemin.retirer_obstacles_dynamiques()
-            self.rechercheChemin.charge_obstacles()
+            self.rechercheChemin.charge_obstacles(avec_verres_entrees=False)
             self.rechercheChemin.prepare_environnement_pour_a_star()
-
+            
             # Notation des scripts
             for script in self.scripts:
                 for version in self.scripts[script].versions():
@@ -62,6 +62,11 @@ class Strategie:
             # Choix du script avec la meilleure note
             (script_a_faire, version_a_faire) = max(notes, key=notes.get)
             self.log.debug("Stratégie ordonne: ({0}, version n°{1}, entrée en {2})".format(script_a_faire, version_a_faire, self.scripts[script_a_faire].point_entree(version_a_faire)))
+            
+            #ajout d'obstacles pour les verres d'entrées, sauf si on execute un script de récupération des verres
+            if not isinstance(self.scripts[script_a_faire], ScriptRecupererVerres):
+                for verre in self.table.verres_entrees():
+                    self.rechercheChemin.ajoute_obstacle_cercle(verre["position"], self.config["rayon_verre"])
 
             # Lancement du script si le match n'est pas terminé
             if not self.timer.get_fin_match():

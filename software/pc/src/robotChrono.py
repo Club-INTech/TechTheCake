@@ -220,7 +220,7 @@ class RobotChrono(RobotInterface):
         
         if recharger_table:
             self.rechercheChemin.retirer_obstacles_dynamiques()
-            self.rechercheChemin.charge_obstacles()
+            self.rechercheChemin.charge_obstacles(avec_verres_entrees=True)
             self.rechercheChemin.prepare_environnement_pour_a_star()
         
         depart = Point(self.x,self.y)
