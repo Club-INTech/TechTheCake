@@ -20,6 +20,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.ToggleButton;
@@ -38,6 +39,9 @@ public class MainActivity extends Activity {
 		// Affichage de l'écran principal
 		setContentView(R.layout.activity_main);
 		PreferenceManager.setDefaultValues(this, R.xml.pref_general, false);
+		
+		// Empecher le verrouillage de l'écran
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		// Callback en cas de demande d'analyse par socket
 		Handler socketRequestHandler = new Handler() {
