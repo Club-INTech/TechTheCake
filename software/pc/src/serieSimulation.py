@@ -118,13 +118,19 @@ class ProtocoleVirtuelCapteursActionneurs:
         #jumper
         return [0]
 
-    def asc_av(self):
+    def cap_asc_av(self):
         #capteur de l'ascenseur avant
         return [1]
 
-    def asc_arr(self):
+    def cap_asc_arr(self):
         #capteur de l'ascenseur arrière
         return [1]
+
+    def asc_av(self,*useless) :
+        return []
+
+    def asc_arr(self,*useless) :
+        return []
 
     def gonfler(self):
         return []
@@ -169,7 +175,6 @@ class ProtocoleVirtuelAscenseur:
 
     def ascenseur_arriere(self,*useless) :
         return []
-
         
 ################################################################################
 #####  PROTOCOLE VIRTUEL POUR SIMULATION DE LA SERIE SUR LES ACTIONNEURS   #####

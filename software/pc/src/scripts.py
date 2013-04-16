@@ -457,7 +457,7 @@ class ScriptRecupererVerres(Script):
         try:
             self.robot.recuperer_verre(not self.robot.marche_arriere)
         except:
-            pass
+            self.log.warning("Verre absent!")
         # Dans tous les cas, que le verre ait été là ou non, on retire le verre de la table
         self.table.verre_recupere(verre)
         
