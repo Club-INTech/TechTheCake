@@ -178,7 +178,7 @@ class Container:
         self.assembler.register("scripts", scripts.ScriptManager, requires=["robot", "robotChrono", "hookGenerator", "table", "config", "log", "threads.timer"], factory=make_scripts)
         
         #enregistrement du service de stratégie
-        self.assembler.register("strategie", strategie.Strategie, requires=["scripts", "rechercheChemin", "table", "threads.timer", "config", "log"])
+        self.assembler.register("strategie", strategie.Strategie, requires=["scripts", "rechercheChemin", "table", "threads.timer", "config", "log", "robot"])
         
     def start_threads(self):
         """

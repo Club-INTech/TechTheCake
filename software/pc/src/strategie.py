@@ -10,7 +10,7 @@ class Strategie:
     Son rôle est de noter différents scripts (selon leur durée, la distance d'un ennemi, ...) et de choisir le plus avantageux. 
     C'est également cette classe qui fait les appels d'ajout d'obstacle à la recherche de chemin.
     """
-    def __init__(self, scripts, rechercheChemin, table, timer, config, log):
+    def __init__(self, scripts, rechercheChemin, table, timer, config, log, robot):
 
         self.scripts = scripts
         self.rechercheChemin = rechercheChemin
@@ -18,6 +18,7 @@ class Strategie:
         self.timer = timer
         self.config = config
         self.log = log
+        self.robot = robot
         
         self.echecs = {}
 
@@ -30,6 +31,7 @@ class Strategie:
             sleep(.5)
 
         self.log.debug("Stratégie lancée")
+        self.robot.avancer(200)
 
         # On ne le fait que maintenant car la config peut changer avant le début du match
         if self.config["ennemi_fait_toutes_bougies"]:

@@ -312,6 +312,7 @@ class ThreadCouleurBougies(AbstractThread):
                 client_socket.send(bytes(config["couleur"][0]+"\n", 'UTF-8'))
                 rcv = str(client_socket.recv(11),"utf-8").replace("\n","")
                 table.definir_couleurs_bougies(rcv)
+                log.debug("Résultats android: " + str(rcv))
             except:
                 # Si on n'a pas d'information de l'appli android, le mieux est de faire toutes les bougies (ce qui permet de gagner le plus de points possible). Pour cela, on contourne la complétion antisymétrique effectuée dans définir_couleur_bougies
                 log.warning("Aucune réponse de l'appli android. On fait toutes les bougies.")
