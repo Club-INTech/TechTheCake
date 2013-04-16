@@ -38,7 +38,7 @@ robot = container.get_service("robot")
 log = container.get_service("log")
 
 #on renseigne au robot sa position
-depart = Point(1350,600)
+depart = Point(1350,400*(config["case_depart_principal"]-0.5))
 
 if config["couleur"] == "rouge":
     robot.x = depart.x
@@ -52,6 +52,10 @@ else:
 robot.set_vitesse_translation(2)
 robot.set_vitesse_rotation(2)
 
+if config["cartes_simulation"]==[]:
+    simulateur = container.get_service("simulateur")
+    simulateur.setRobotPosition(robot.x, robot.y)
+
 #robot.recaler()
 
 # si le jumper est simulé
@@ -63,7 +67,12 @@ if "capteurs_actionneurs" in config["cartes_simulation"] or "capteurs_actionneur
 else:
     log.debug("Prêt pour le jumper!")
 
+    timer = container.get_service("threads.timer")
+    input("Jumper simulé")
+    timer.date_debut = time()
+    timer.match_demarre = True
+
+
 #On se décolle du bord
-robot.avancer(200)
 strategie.boucle_strategie()
 

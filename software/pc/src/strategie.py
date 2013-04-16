@@ -31,6 +31,7 @@ class Strategie:
             sleep(.5)
 
         self.log.debug("Stratégie lancée")
+        # Avec la balise laser, récupérer la position des ennemis. Sur la ou les cases occupées seront probablement les verres
         self.robot.avancer(200)
 
         # On ne le fait que maintenant car la config peut changer avant le début du match

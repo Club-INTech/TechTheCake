@@ -442,11 +442,12 @@ class ScriptRecupererVerres(Script):
         """
         destination = self._point_devant_verre(verre["position"], self.marge_recuperation)
         #Je croyais qu'on remplissait un côté puis l'autre?
-        mieux_en_arriere = self.robot.marche_arriere_est_plus_rapide(destination)
-        if self.robot.places_disponibles(not mieux_en_arriere):
-            self.robot.marche_arriere = mieux_en_arriere
-        else:
-            self.robot.marche_arriere = not mieux_en_arriere
+        self.robot.marche_arriere = not self.robot.places_disponibles(True)
+#        mieux_en_arriere = self.robot.marche_arriere_est_plus_rapide(destination)
+#        if self.robot.places_disponibles(not mieux_en_arriere):
+#            self.robot.marche_arriere = mieux_en_arriere
+#        else:
+#            self.robot.marche_arriere = not mieux_en_arriere
         
 
         # On est à distance. On élève l'ascenseur. On s'avance jusqu'à positionner le verre sous l'ascenseur. Si le verre est présent, on ouvre l'ascenseur, on le descend et on le ferme. Si le verre est absent, on laisse l'ascenseur en haut. A la fin du script, on le descend
