@@ -395,7 +395,8 @@ class ScriptCadeaux(Script):
 class ScriptRecupererVerres(Script):
         
     def _constructeur(self):
-        self.marge_recuperation = 120
+        # On va un peu trop loin afin de bien caler le verre au fond de l'ascenseur et lui permettre d'appuyer sur l'interrupteur
+        self.marge_recuperation = 50
         self.marge_apres_chemin = self.marge_recuperation + 150
         
     def _execute(self, version):
