@@ -168,7 +168,7 @@ class Strategie:
         duree_du_trajet = 2
         
         #obstacles avec vitesse
-        positions = [point_entree.distance(obstacle.position)+duree_du_trajet*obstacle.vitesse for obstacle in self.table.obstacles() if hasattr(obstacle, "vitesse") and obstacle.vitesse is not None]
+        positions = [point_entree.distance(obstacle.position)+duree_du_trajet*obstacle.vitesse.norme() for obstacle in self.table.obstacles() if hasattr(obstacle, "vitesse") and obstacle.vitesse is not None]
         #obstacles sans vitesse
         positions += [point_entree.distance(obstacle.position) for obstacle in self.table.obstacles() if not hasattr(obstacle, "vitesse")]
 

@@ -17,7 +17,8 @@ class Obstacle:
 class RobotAdverseBalise(Obstacle):
     
     def __init__(self, rayon):
-       Obstacle.__init__(self, None, rayon)
+        Obstacle.__init__(self, None, rayon)
+        self.vitesse = None
        
     def positionner(self, position, vitesse=None):
         self.position = position
@@ -352,7 +353,7 @@ class Table:
         """
         Mise à jour de la position d'un robot ennemi sur la table
         """
-        self.robots_adverses[i].positionner(position)
+        self.robots_adverses[i].positionner(position,vitesse)
         self._detection_collision_verre(position)
             
     def _supprimer_obstacle(self, i):
