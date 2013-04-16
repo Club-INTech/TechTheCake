@@ -1,6 +1,7 @@
 package intech.android;
 
 import intech.android.wifi.SocketServerManager;
+import intech.android.wifi.SocketTask;
 import intech.android.wifi.WifiChangeTask;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -114,6 +115,20 @@ public class MainActivity extends Activity {
 		return true;
 	}
 
+	public void toggleSocket(View v) {
+		// Récupération de l'état du serveur
+		ToggleButton button = (ToggleButton) findViewById(R.id.toggleSocketButton);
+		boolean serverStatus = button.isChecked();
+
+		if (serverStatus) {
+			Log.d(TAG, "Activation de la socket");
+			SocketServerManager.getInstance().startListeningSocket();
+		} else {
+			Log.d(TAG, "Désactivation de la socket");
+			SocketServerManager.getInstance().stopListeningSocket();
+		}
+	}
+	
 	public void toggleWifi(View v) {
 		// Récupération de l'état du wifi
 		ToggleButton button = (ToggleButton) findViewById(R.id.toggleWifiButton);
