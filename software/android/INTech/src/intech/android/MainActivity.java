@@ -1,7 +1,6 @@
 package intech.android;
 
 import intech.android.wifi.SocketServerManager;
-import intech.android.wifi.SocketTask;
 import intech.android.wifi.WifiChangeTask;
 
 import org.opencv.android.BaseLoaderCallback;
