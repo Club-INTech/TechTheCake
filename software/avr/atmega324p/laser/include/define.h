@@ -1,7 +1,7 @@
 #ifndef DEFINE_H
 #define DEFINE_H
 
-#define MODE_XBEE_S8            0
+#define MODE_XBEE_S8            1
 #define BALISE_BAUDRATE   		115200
 #define ROBOT_BAUDRATE    		38400
 #define PING_ID           		4
