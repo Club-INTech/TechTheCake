@@ -284,11 +284,8 @@ class RobotChrono(RobotInterface):
         
     def places_disponibles(self, avant):
         pass
-
-    def preparer_ascenseur(self, avant):
-        pass
-
-    def ranger_ascenseur(self, avant):
+	
+    def lever_ascenseur(self, avant):
         pass
 
     def recuperer_verre(self, avant):

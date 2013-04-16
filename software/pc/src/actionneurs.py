@@ -83,18 +83,18 @@ class Actionneurs :
     def ascenseur_serrer(self, avant):
         if avant:
             self.log.debug("ascenseur avant serré")
-            self.serie.communiquer("ascenseur",["ascenseur_avant","g",0,160],0)
+            self.serie.communiquer("capteurs_actionneurs",["asc_av",130],0)
         else:
             self.log.debug("ascenseur arrière serré")
-            self.serie.communiquer("ascenseur",["ascenseur_arriere","g",0,160],0)
+            self.serie.communiquer("capteurs_actionneurs",["asc_arr",130],0)
 
     def ascenseur_deserrer(self, avant):
         if avant:
             self.log.debug("ascenseur avant déserré")
-            self.serie.communiquer("ascenseur",["ascenseur_avant","g",0,100],0)
+            self.serie.communiquer("capteurs_actionneurs",["asc_av",95],0)
         else:
             self.log.debug("ascenseur arrière déserré")
-            self.serie.communiquer("ascenseur",["ascenseur_arriere","g",0,100],0)
+            self.serie.communiquer("capteurs_actionneurs",["asc_arr",95],0)
 
     def ascenseur_modifier_constantes(self, valeur):
         """

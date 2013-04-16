@@ -396,7 +396,7 @@ class ScriptRecupererVerres(Script):
         
     def _constructeur(self):
         # On va un peu trop loin afin de bien caler le verre au fond de l'ascenseur et lui permettre d'appuyer sur l'interrupteur
-        self.marge_recuperation = 50
+        self.marge_recuperation = 80
         self.marge_apres_chemin = self.marge_recuperation + 150
         
     def _execute(self, version):
@@ -692,10 +692,12 @@ class ScriptDeposerVerres(Script):
 class ScriptRenverserVerres(Script):
 
     def _constructeur(self):
-        pass
+	# Position des verres ennemis, mis à jour par la stratégie (0: pas de position)
+        self.cases_verres = [0,0]
 
     def versions(self):
-        return []
+	#Autant de versions que de cases (le "list(set())" retire les doublons de la liste)
+        return [i for i in list(set(self.cases_verres)) if i!=0]
 
     def _execute(self, version):
         """
@@ -703,12 +705,14 @@ class ScriptRenverserVerres(Script):
         """
         pass
 
-
     def _termine(self):
         pass
             
     def point_entree(self, id_version):
-        pass
+        entree = Point(900, 400*(id_version-0.5))
+        if self.config["rouge"]:
+            entree.x = -entree.x
+        return entree
 
     def score(self):
         # estimation

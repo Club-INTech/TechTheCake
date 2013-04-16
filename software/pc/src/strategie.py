@@ -19,7 +19,7 @@ class Strategie:
         self.config = config
         self.log = log
         self.robot = robot
-        
+
         self.echecs = {}
 
     def boucle_strategie(self):
@@ -31,7 +31,8 @@ class Strategie:
             sleep(.5)
 
         self.log.debug("Stratégie lancée")
-        # Avec la balise laser, récupérer la position des ennemis. Sur la ou les cases occupées seront probablement les verres
+        # Avec la balise laser, récupérer la position des ennemis. Sur la ou les cases occupées seront probablement les verres. Mettre à jour position_verres_1 et position_verres_2
+#        self.scripts["ScriptRenverserVerres"].cases_verres=[1,2]
         self.robot.avancer(200, retenter_si_blocage = False, sans_lever_exception = True)
 
         # On ne le fait que maintenant car la config peut changer avant le début du match
