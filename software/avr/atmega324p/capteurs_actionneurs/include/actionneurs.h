@@ -18,11 +18,13 @@
 class Actionneurs
 {
 	public:
-		typedef Serial<1> serie_ax12;
+	typedef Serial<1> serie_ax12;
         typedef AX<serie_ax12> Ax12;
-        AX<serie_ax12> cadeaux;
-        AX<serie_ax12> bougies_haut;
-        AX<serie_ax12> bougies_bas;
+        Ax12 cadeaux;
+        Ax12 bougies_haut;
+        Ax12 bougies_bas;
+	Ax12 asc_avant;
+	Ax12 asc_arriere;
 
 	public:
 		Actionneurs();
