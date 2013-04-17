@@ -20,7 +20,7 @@ Ball::Ball(Point2f center, float radius, bool detected_firstime):
     check_point.type = BLUE_BALL;
 
     // Liste des points de contrôle
-    check_point.point.y += 3 * radius / 2;
+    check_point.point.y += 1.4 * radius;
     check_points.push_back(check_point);
     check_point.point.x += 3 * radius / 4;
     check_points.push_back(check_point);

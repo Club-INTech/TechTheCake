@@ -26,11 +26,11 @@ Processing::Processing():
     min_yellow_color(30, 80, 140),
     max_yellow_color(38, 250, 250),
     blue_ball_color(105),
-    red_ball_color(3),
+    red_ball_color(5),
     ball_color_tolerance(10),
-    white_ball_tolerance(70),
-    min_model_distance(40),
-    max_attemps(30)
+    white_ball_tolerance(80),
+    min_model_distance(100),
+    max_attemps(40)
 {
 }
 
@@ -118,7 +118,7 @@ void Processing::process()
         BallIdentifier detector(model, valid_balls);
         new_balls = detector.identifyBalls(model_distance);
     }
-    while((valid_balls.size() < 5 || model_distance > min_model_distance) && i < max_attemps);
+    while((results.size() < 5 || model_distance > min_model_distance) && i < max_attemps);
 
     if (i == max_attemps)
     {
@@ -138,6 +138,12 @@ void Processing::process()
         }
 
         results.insert(results.end(), new_balls.begin(), new_balls.end());
+    }
+
+    // Force à déterminer une couleur sur toutes les balles détectées
+    for (vector<Ball*>::iterator ball = results.begin(); ball != results.end(); ++ball)
+    {
+        _findBallColor(image_hsv, *ball, true);
     }
 
     // Affichage des balles sur l'image de résultats
@@ -275,7 +281,7 @@ vector<Ball*> Processing::_findBalls(vector<Contour> &contours)
         Ball *ball = new Ball(center, radius);
 
         // Vérification de la couleur
-        _findBallColor(image_hsv, ball);
+        _findBallColor(image_hsv, ball, false);
 
         balls.push_back(ball);
         average_area += area;
@@ -288,7 +294,7 @@ vector<Ball*> Processing::_findBalls(vector<Contour> &contours)
 }
 
 
-void Processing::_findBallColor(Mat &image, Ball *ball)
+void Processing::_findBallColor(Mat &image, Ball *ball, bool force_to_choose)
 {
     vector<Ball::CheckPoint> check_points = ball->getCheckPoints();
     vector<Ball::CheckPoint> check_points_analyzed;
@@ -296,8 +302,9 @@ void Processing::_findBallColor(Mat &image, Ball *ball)
     // Détermine la couleur de chaque point de contrôle
     for (vector<Ball::CheckPoint>::iterator point = check_points.begin(); point != check_points.end(); ++point)
     {
+        // On regarde si la couleur correspond à une des couleurs attendues
         Vec3b color = image.at<Vec3b>(point->point);
-        point->type = _analyzeColor(color);
+        point->type = _analyzeColor(color, force_to_choose);
         check_points_analyzed.push_back(*point);
     }
 
@@ -362,7 +369,7 @@ Point2f Processing::_getApproximativeCakeCenter(vector<Ball*> &balls)
     return Point2f(x.at(med), y.at(med));
 }
 
-Ball::Type Processing::_analyzeColor(Vec3b color)
+Ball::Type Processing::_analyzeColor(Vec3b color, bool force_to_choose)
 {
     int h = (int) color[0];
     int s = (int) color[1];
@@ -381,6 +388,22 @@ Ball::Type Processing::_analyzeColor(Vec3b color)
     if (h >= red_ball_color - ball_color_tolerance && h <= red_ball_color + ball_color_tolerance)
     {
         return Ball::RED_BALL;
+    }
+
+    // Aucune couleur définie mais un résultat doit être donné
+    if (force_to_choose)
+    {
+        int distance_with_blue = abs(blue_ball_color - h);
+        int distance_with_red = abs(red_ball_color - h);
+
+        if (distance_with_red > distance_with_blue)
+        {
+            return Ball::BLUE_BALL;
+        }
+        else
+        {
+            return Ball::RED_BALL;
+        }
     }
 
     return Ball::UNVALID_BALL;
