@@ -12,7 +12,7 @@ extern "C" {
 #define TWI_GEN_CALL            0x00
 
 #define MASTER_CMD_RESET        0X10
-#define MASTER_CMD_ALL			0X20
+#define MASTER_CMD_ALL			0X40
 
 #define SEND_DATA               0x01
 #define REQUEST_DATA            0x02
