@@ -40,8 +40,9 @@ class Capteurs():
         return int(self.serie.communiquer("capteurs_actionneurs",["j"], 1)[0])==1
         
     def verre_present(self, avant):
+        return True
         if avant:
-            return int(self.serie.communiquer("capteurs_actionneurs",["asc_av"], 1)[0])==1
+            return int(self.serie.communiquer("capteurs_actionneurs",["cap_asc_av"], 1)[0])==1
         else:
-            return int(self.serie.communiquer("capteurs_actionneurs",["asc_arr"], 1)[0])==1
+            return int(self.serie.communiquer("capteurs_actionneurs",["cap_asc_arr"], 1)[0])==1
 

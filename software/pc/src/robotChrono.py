@@ -311,4 +311,3 @@ class RobotChrono(RobotInterface):
 
     def deposer_pile(self, avant):
         pass
-    

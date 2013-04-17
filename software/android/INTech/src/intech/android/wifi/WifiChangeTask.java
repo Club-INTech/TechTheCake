@@ -33,10 +33,6 @@ public class WifiChangeTask extends AsyncTask<Void, Void, Void> {
 	protected void onPreExecute() {
 		super.onPreExecute();
 
-		if (!mode) {
-			SocketServerManager.getInstance().stopListeningSocket();
-		}
-
 		dialog.setTitle("Point d'accès Wifi");
 		dialog.setMessage((mode ? "Activation en cours..."
 				: "Désactivation en cours..."));
@@ -47,9 +43,6 @@ public class WifiChangeTask extends AsyncTask<Void, Void, Void> {
 		super.onPostExecute(aVoid);
 		try {
 			dialog.dismiss();
-			if (mode) {
-				SocketServerManager.getInstance().startListeningSocket();
-			}
 		} catch (IllegalArgumentException e) {
 		}
 	}

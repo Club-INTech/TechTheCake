@@ -77,6 +77,17 @@
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <ToggleButton
+        android:id="@+id/toggleSocketButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="5dp"
+        android:onClick="toggleSocket"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textOff="Activer le serveur"
+        android:textOn="Désactiver le serveur" />
+    
+    <ToggleButton
         android:id="@+id/toggleWifiButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -84,7 +95,7 @@
         android:layout_marginTop="5dp"
         android:onClick="toggleWifi"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textOff="Activer le serveur"
-        android:textOn="Désactiver le serveur" />
+        android:textOff="Activer le point d'accès"
+        android:textOn="Désactiver le point d'accès" />
 
 </LinearLayout>

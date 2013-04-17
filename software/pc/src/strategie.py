@@ -10,7 +10,7 @@ class Strategie:
     Son rôle est de noter différents scripts (selon leur durée, la distance d'un ennemi, ...) et de choisir le plus avantageux. 
     C'est également cette classe qui fait les appels d'ajout d'obstacle à la recherche de chemin.
     """
-    def __init__(self, scripts, rechercheChemin, table, timer, config, log, robot):
+    def __init__(self, scripts, rechercheChemin, table, timer, config, log, robot, son):
 
         self.scripts = scripts
         self.rechercheChemin = rechercheChemin
@@ -19,19 +19,20 @@ class Strategie:
         self.config = config
         self.log = log
         self.robot = robot
-        
+        self.son = son
+
         self.echecs = {}
 
     def boucle_strategie(self):
         """
         Boucle qui gère la stratégie, en testant les différents scripts et en exécutant le plus avantageux
         """
-
         while not self.timer.match_demarre:
             sleep(.5)
-
+        self.son.jouer("debut")
         self.log.debug("Stratégie lancée")
-        # Avec la balise laser, récupérer la position des ennemis. Sur la ou les cases occupées seront probablement les verres
+        # Avec la balise laser, récupérer la position des ennemis. Sur la ou les cases occupées seront probablement les verres. Mettre à jour position_verres_1 et position_verres_2
+#        self.scripts["ScriptRenverserVerres"].cases_verres=[1,2]
         self.robot.avancer(200, retenter_si_blocage = False, sans_lever_exception = True)
 
         # On ne le fait que maintenant car la config peut changer avant le début du match
@@ -92,6 +93,7 @@ class Strategie:
                 self.log.warning("Ordre annulé: fin du match.")
 
         self.log.debug("Arrêt de la stratégie")
+        input("")
 
     def _noter_script(self, script, version):
         """

@@ -21,12 +21,12 @@ private:
     void _cleanBallsMask();
     std::vector<Contour> _findContours(cv::Mat &mask);
     Contour _getBiggestContour(std::vector<Contour> &contours);
-    void _findBallColor(cv::Mat &image, Ball *ball);
+    void _findBallColor(cv::Mat &image, Ball *ball, bool force_to_choose = false);
     std::vector<Ball*> _findBalls(std::vector<Processing::Contour> &contours);
     std::vector<Ball*> _keepBallsWithColor(std::vector<Ball*> &balls);
     std::vector<Ball*> _keepBallsInCakeBorders(std::vector<Ball*> &balls);
     cv::Point2f _getApproximativeCakeCenter(std::vector<Ball*> &balls);
-    Ball::Type _analyzeColor(cv::Vec3b color);
+    Ball::Type _analyzeColor(cv::Vec3b color, bool force_to_choose);
     void _drawBalls(std::vector<Ball*> &balls, cv::Mat &image);
 
 public:
@@ -124,6 +124,16 @@ public:
      * @brief Tolérance sur la détection des balles blanches
      */
     int white_ball_tolerance;
+
+    /**
+     * @brief Distance au modèle minimale nécessaire pour considérer un traitement comme valide
+     */
+    int min_model_distance;
+
+    /**
+     * @brief Nombre maximal de tentatives de détection sur une image
+     */
+    int max_attemps;
 
     /**
      * @brief Tableau contenant les résultats de l'analyse

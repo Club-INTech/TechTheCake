@@ -12,31 +12,30 @@ map<int, Point2f> Model::getRepartitionModel(char color)
 
 	if (color == 'r')
 	{
-		model.insert(pair<int, Point2f>(1, Point(180, 90)));
-		model.insert(pair<int, Point2f>(2, Point(206, 92)));
-		model.insert(pair<int, Point2f>(3, Point(237, 95)));
-		model.insert(pair<int, Point2f>(4, Point(274, 97)));
-		model.insert(pair<int, Point2f>(5, Point(311, 97)));
-		model.insert(pair<int, Point2f>(6, Point(346, 95)));
-		model.insert(pair<int, Point2f>(7, Point(209, 55)));
-		model.insert(pair<int, Point2f>(8, Point(241, 58)));
-		model.insert(pair<int, Point2f>(9, Point(283, 59)));
-		model.insert(pair<int, Point2f>(10, Point(322, 59)));
+		model.insert(pair<int, Point2f>(1, Point(115, 111)));
+		model.insert(pair<int, Point2f>(2, Point(146, 114)));
+		model.insert(pair<int, Point2f>(3, Point(186, 114)));
+		model.insert(pair<int, Point2f>(4, Point(232, 116)));
+		model.insert(pair<int, Point2f>(5, Point(278, 114)));
+		model.insert(pair<int, Point2f>(6, Point(322, 112)));
+		model.insert(pair<int, Point2f>(7, Point(148, 80)));
+		model.insert(pair<int, Point2f>(8, Point(188, 81)));
+		model.insert(pair<int, Point2f>(9, Point(240, 81)));
+		model.insert(pair<int, Point2f>(10, Point(290, 80)));
 	}
 	else
 	{
-		model.insert(pair<int, Point2f>(1, Point(180, 90)));
-		model.insert(pair<int, Point2f>(2, Point(206, 92)));
-		model.insert(pair<int, Point2f>(3, Point(237, 95)));
-		model.insert(pair<int, Point2f>(4, Point(274, 97)));
-		model.insert(pair<int, Point2f>(5, Point(311, 97)));
-		model.insert(pair<int, Point2f>(6, Point(346, 95)));
-		model.insert(pair<int, Point2f>(7, Point(209, 55)));
-		model.insert(pair<int, Point2f>(8, Point(241, 58)));
-		model.insert(pair<int, Point2f>(9, Point(283, 59)));
-		model.insert(pair<int, Point2f>(10, Point(322, 59)));
+		model.insert(pair<int, Point2f>(1, Point(115, 111)));
+		model.insert(pair<int, Point2f>(2, Point(146, 114)));
+		model.insert(pair<int, Point2f>(3, Point(186, 114)));
+		model.insert(pair<int, Point2f>(4, Point(232, 116)));
+		model.insert(pair<int, Point2f>(5, Point(278, 114)));
+		model.insert(pair<int, Point2f>(6, Point(322, 112)));
+		model.insert(pair<int, Point2f>(7, Point(148, 80)));
+		model.insert(pair<int, Point2f>(8, Point(188, 81)));
+		model.insert(pair<int, Point2f>(9, Point(240, 81)));
+		model.insert(pair<int, Point2f>(10, Point(290, 80)));
 	}
 
 	return model;
 }
-

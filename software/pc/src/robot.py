@@ -11,7 +11,7 @@ class Robot(RobotInterface):
     """
     classe implémentant le robot.
     """
-    def __init__(self,capteurs,actionneurs,deplacements,rechercheChemin,table,config,log):
+    def __init__(self,capteurs,actionneurs,deplacements,rechercheChemin,table,son,config,log):
         self.mutex = Mutex()
         
         #instances des dépendances
@@ -22,7 +22,7 @@ class Robot(RobotInterface):
         self.table = table
         self.config = config
         self.log = log
-        
+        self.son = son
         
         ###############################################
         #attributs des coordonnées et états du robot.
@@ -329,6 +329,7 @@ class Robot(RobotInterface):
         for obstacle in self.table.obstacles():
             if obstacle.position.distance(centre_detection) < self.config["distance_detection"]/2:
                 self.log.warning("ennemi détecté")
+                self.son.jouer("detection")
                 raise ExceptionCollision
     
     def _acquittement(self, detection_collision=True, sans_lever_exception=False):
@@ -533,7 +534,7 @@ class Robot(RobotInterface):
             try:
                 if nombre_tentatives > 0:
                     self.log.warning("Blocage en rotation ! On tourne dans l'autre sens... reste {0} tentative(s)".format(nombre_tentatives))
-                    self.tourner(self.orientation + math.copysign(self.config["angle_degagement_robot"], -angle), [], nombre_tentatives=(nombre_tentatives-1), sans_lever_exception=sans_lever_exception)
+                    self.tourner(self.orientation + math.copysign(self.config["angle_degagement_robot"], -angle), [], nombre_tentatives=nombre_tentatives-1, sans_lever_exception=sans_lever_exception)
             finally:
                 if not sans_lever_exception:
                     raise ExceptionMouvementImpossible(self)
@@ -608,7 +609,7 @@ class Robot(RobotInterface):
                                 self.avancer(self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
                             else:
                                 self.avancer(-self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
-                finally:
+                except:
                     if not sans_lever_exception:
                         raise ExceptionMouvementImpossible(self)
 
@@ -860,8 +861,8 @@ class Robot(RobotInterface):
         self.actionneurs.gonfler_ballon()
         
 class RobotSimulation(Robot):
-    def __init__(self, simulateur, capteurs, actionneurs, deplacements, rechercheChemin, table, config, log):
-        super().__init__(capteurs, actionneurs, deplacements, rechercheChemin, table, config, log)
+    def __init__(self, simulateur, capteurs, actionneurs, deplacements, rechercheChemin, table, son, config, log):
+        super().__init__(capteurs, actionneurs, deplacements, rechercheChemin, table, son, config, log)
         self.simulateur = simulateur
         
     def tourner(self, angle_consigne, hooks=[], nombre_tentatives=2, sans_lever_exception=False):
@@ -918,4 +919,7 @@ class ExceptionMouvementImpossible(Exception):
     Exception levée lorsque le robot ne peut pas accomplir le mouvement
     """
     def __init__(self, robot):
+        robot.son.jouer("blocage")
         robot._consigne_orientation = robot.orientation
+
+

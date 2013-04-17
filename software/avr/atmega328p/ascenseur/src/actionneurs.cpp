@@ -7,6 +7,7 @@ Actionneurs::Actionneurs()
 	timer_asserv::init();
 	sei();
 	TWI_init();
+    serie::activer_acquittement(true);
 }
 
 void Actionneurs::communiquer(char *ordre)
