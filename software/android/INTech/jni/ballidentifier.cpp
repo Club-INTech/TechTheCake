@@ -12,14 +12,14 @@ BallIdentifier::BallIdentifier(map<int,Point2f> &model, vector<Ball*> &balls):
 
 }
 
-vector<Ball*> BallIdentifier::identifyBalls()
+vector<Ball*> BallIdentifier::identifyBalls(float &model_distance)
 {
     vector<Ball*> new_balls;
 
     if (balls.size() == 0) return new_balls;
 
     // Récupère le modèle le plus proche
-    map<int,Point2f> closest_model = _findClosestModel();
+    map<int,Point2f> closest_model = _findClosestModel(model_distance);
 
     // Identifie les balles
     _identifyBallsWithModel(closest_model, balls);
@@ -33,7 +33,7 @@ vector<Ball*> BallIdentifier::identifyBalls()
     return new_balls;
 }
 
-map<int,Point2f> BallIdentifier::_findClosestModel()
+map<int,Point2f> BallIdentifier::_findClosestModel(float &model_distance)
 {
     // Balle servant de référence pour la translation
     Ball reference = *balls.at(0);
@@ -68,6 +68,7 @@ map<int,Point2f> BallIdentifier::_findClosestModel()
     }
 
     cout << "Distance au modèle: " << min_error << endl;
+    model_distance = min_error;
 
     return closest_model;
 }

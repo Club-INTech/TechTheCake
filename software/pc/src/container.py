@@ -38,6 +38,7 @@ import log
 import hooks
 import filtrage
 import simulateur
+import son
 
 class Container:
     """
@@ -119,7 +120,7 @@ class Container:
             
             #visualisation sur le simulateur pour la table, le robot et la recherche de chemin
             self.assembler.register("table", table.TableSimulation, requires=["simulateur","config","log"])
-            self.assembler.register("robot", robot.RobotSimulation, requires=["simulateur","capteurs","actionneurs","deplacements","rechercheChemin","table","config","log"])
+            self.assembler.register("robot", robot.RobotSimulation, requires=["simulateur","capteurs","actionneurs","deplacements","rechercheChemin","table","son","config","log"])
             self.assembler.register("rechercheChemin", rechercheChemin.RechercheCheminSimulation, requires=["simulateur", "table","config","log"])
         
             #série virtuelle, qui redirige vers le simulateur
@@ -128,7 +129,7 @@ class Container:
             
             #pas de visualisation sur le simulateur pour la table, le robot et la recherche de chemin
             self.assembler.register("table", table.Table, requires=["config","log"])
-            self.assembler.register("robot", robot.Robot, requires=["capteurs","actionneurs","deplacements","rechercheChemin","table","config","log"])
+            self.assembler.register("robot", robot.Robot, requires=["capteurs","actionneurs","deplacements","rechercheChemin","table","son","config","log"])
             self.assembler.register("rechercheChemin", rechercheChemin.RechercheChemin, requires=["table","config","log"])
             
             def make_none():
@@ -162,8 +163,11 @@ class Container:
         #enregistrement du service hookGenerator
         self.assembler.register("hookGenerator", hooks.HookGenerator, requires=["config","log"])
         
+        #enregistrement du service son
+        self.assembler.register("son", son.Son, requires=["config", "log"])
+
         #enregistrement du service timer
-        self.assembler.register("threads.timer", threads.ThreadTimer, requires=["log","config","robot","table","capteurs"])
+        self.assembler.register("threads.timer", threads.ThreadTimer, requires=["log","config","robot","table","capteurs","son"])
         self.assembler.register("threads.position", threads.ThreadPosition, requires=["container"])
         self.assembler.register("threads.capteurs", threads.ThreadCapteurs, requires=["container"])
         self.assembler.register("threads.laser", threads.ThreadLaser, requires=["container"])
@@ -178,7 +182,7 @@ class Container:
         self.assembler.register("scripts", scripts.ScriptManager, requires=["robot", "robotChrono", "hookGenerator", "table", "config", "log", "threads.timer"], factory=make_scripts)
         
         #enregistrement du service de stratégie
-        self.assembler.register("strategie", strategie.Strategie, requires=["scripts", "rechercheChemin", "table", "threads.timer", "config", "log", "robot"])
+        self.assembler.register("strategie", strategie.Strategie, requires=["scripts", "rechercheChemin", "table", "threads.timer", "config", "log", "robot", "son"])
         
     def start_threads(self):
         """

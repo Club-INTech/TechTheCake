@@ -126,6 +126,16 @@ public:
     int white_ball_tolerance;
 
     /**
+     * @brief Distance au modèle minimale nécessaire pour considérer un traitement comme valide
+     */
+    int min_model_distance;
+
+    /**
+     * @brief Nombre maximal de tentatives de détection sur une image
+     */
+    int max_attemps;
+
+    /**
      * @brief Tableau contenant les résultats de l'analyse
      */
     std::vector<Ball*> results;

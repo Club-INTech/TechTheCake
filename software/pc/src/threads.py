@@ -5,6 +5,7 @@ from outils_maths.vitesse import Vitesse
 from math import cos,sin,pi
 from time import sleep,time
 import socket
+from random import randint
 
 class AbstractThread(threading.Thread):
     
@@ -52,7 +53,6 @@ class ThreadPosition(AbstractThread):
                 robot.update_x_y_orientation()
             except Exception as e:
                 print(e)
-            
             sleep(0.1)
             
         log.debug("Fin du thread de mise à jour")
@@ -125,16 +125,18 @@ class ThreadTimer(AbstractThread):
     Deux variables globales sont très utilisées: timer.fin_match et timer.match_demarre. 
     Supprime les obstacles périssables du service de table.
     """
-    def __init__(self, log, config, robot, table, capteurs):
+    def __init__(self, log, config, robot, table, capteurs, son):
         AbstractThread.__init__(self, None)
         self.log = log
         self.config = config
         self.robot = robot
         self.table = table
         self.capteurs = capteurs
+        self.son = son
         self.match_demarre = False
         self.fin_match = False
         self.mutex = Mutex()
+        self.compte_rebours = True
 
     def initialisation(self):
         """
@@ -149,7 +151,7 @@ class ThreadTimer(AbstractThread):
         with self.mutex:
             self.date_debut = time()
             self.match_demarre = True
-            
+
     def run(self):
         """
         Le thread timer, qui supprime les obstacles périssables et arrête le robot à la fin du match.
@@ -161,6 +163,16 @@ class ThreadTimer(AbstractThread):
                 self.log.debug("Stoppage du thread timer")
                 return None
             self.table.supprimer_obstacles_perimes()
+
+            #son aléatoire            
+            if randint(0,200) == 0:
+                self.son.jouer("random")
+
+            #son compte-à-rebours
+            if time() - self.get_date_debut() > self.config["temps_match"] - 4 and self.compte_rebours:
+                self.son.jouer("compte_rebours", force=True)
+                self.compte_rebours = False
+
             sleep(.5)
         with self.mutex:
             self.fin_match = True
@@ -170,6 +182,7 @@ class ThreadTimer(AbstractThread):
         self.robot.deplacements.desactiver_asservissement_rotation()
         self.robot.gonflage_ballon()
         self.robot.deplacements.arret_final()
+        self.son.jouer("generique", force=True)
         self.log.debug("Fin du thread timer")
         
     def get_date_debut(self):
