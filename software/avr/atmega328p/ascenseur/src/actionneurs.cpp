@@ -16,7 +16,7 @@ void Actionneurs::communiquer(char *ordre)
 	{
 		serie::print("2");
 	}
-	else if (strcmp(ordre, "ascenseur_avant") == 0)
+	else if (strcmp(ordre, "asc_av") == 0)
 	{
 		serie::read(ordre);
 		if (strcmp(ordre, "haut") == 0) // Hauteur d'un verre
@@ -47,7 +47,7 @@ void Actionneurs::communiquer(char *ordre)
 
 		}
 	}
-	else if (strcmp(ordre, "ascenseur_arriere") == 0)
+	else if (strcmp(ordre, "asc_ar") == 0)
 	{
 		serie::read(ordre);
 		if (strcmp(ordre, "haut") == 0) // Hauteur d'un verre
