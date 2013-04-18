@@ -25,13 +25,13 @@ class Son:
             "compte_rebours": [pygame.mixer.Sound("sons/GLaDOS_testchambermisc34_fr.wav")],
 
             # Fin
-            "generique": [pygame.mixer.Sound("sons/generique.ogg")],
+            "generique": [pygame.mixer.Sound("sons/generique.ogg"), pygame.mixer.Sound("sons/radio.ogg"), pygame.mixer.Sound("sons/still_alive.ogg")],
 
             # Random
             "random": [pygame.mixer.Sound("sons/Space_core_space04_fr.wav"), pygame.mixer.Sound("sons/Space_core_space21_fr.wav"), pygame.mixer.Sound("sons/Space_core_space23_fr.wav")]
     }
 
-    def jouer(self, id, force=False):
+    def jouer(self, id, force=False, enBoucle=False):
         """
         Boucle qui gère la stratégie, en testant les différents scripts et en exécutant le plus avantageux
         """
@@ -42,7 +42,11 @@ class Son:
                 self.date_dernier = time.time()
                 taille = len(self.sons[id])
                 pygame.mixer.stop()
-                self.sons[id][randint(0,taille-1)].play()
+                if enBoucle:
+                    self.sons[id][randint(0,taille-1)].play(loops=-1)
+                else:
+                    self.sons[id][randint(0,taille-1)].play()
+
         except Exception as e:
             self.log.warning("Erreur service de son: "+str(e))
 
