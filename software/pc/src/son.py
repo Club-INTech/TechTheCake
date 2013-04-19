@@ -13,7 +13,7 @@ class Son:
         self.date_dernier = 0
         self.sons = {
             # Ennemi détecté
-            "detection": [pygame.mixer.Sound("sons/Turret_sp_sabotage_factory_good_pass01_fr.wav"), pygame.mixer.Sound("sons/Turret_turret_autosearch_5_fr.wav")],
+            "detection": [pygame.mixer.Sound("sons/Turret_sp_sabotage_factory_good_pass01_fr.wav"), pygame.mixer.Sound("sons/Turret_turret_autosearch_5_fr.wav"), pygame.mixer.Sound("sons/Turret_sp_sabotage_factory_good_prerange01_fr.wav")],
 
             # Exception mouvement impossible
             "blocage": [pygame.mixer.Sound("sons/Turret_turret_disabled_5_fr.wav"), pygame.mixer.Sound("sons/Turret_turret_disabled_6_fr.wav"), pygame.mixer.Sound("sons/Turret_turret_fizzler_1_fr.wav"), pygame.mixer.Sound("sons/Defective_Turret_sp_sabotage_factory_defect_fail18_fr.wav")],
@@ -28,7 +28,7 @@ class Son:
             "generique": [pygame.mixer.Sound("sons/generique.ogg")],
 
             # Random
-            "random": [pygame.mixer.Sound("sons/Space_core_space04_fr.wav"), pygame.mixer.Sound("sons/Space_core_space21_fr.wav"), pygame.mixer.Sound("sons/Space_core_space23_fr.wav")]
+            "random": [pygame.mixer.Sound("sons/Space_core_space04_fr.wav"), pygame.mixer.Sound("sons/Space_core_space21_fr.wav"), pygame.mixer.Sound("sons/GLaDOS_potatos_longfall_speech03_fr.wav")]
     }
 
     def jouer(self, id, force=False):
