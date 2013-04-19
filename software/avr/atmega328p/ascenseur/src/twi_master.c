@@ -1,7 +1,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
-
 #include "twi_master.h"
 
 union TWI_statusReg
@@ -66,27 +65,28 @@ void get_all ( int32_t infos[2]){
 
     TWI_Get_Data_From_Transceiver( buffer_r, 9 );
 
-    int32_t ascenseur_avant;
-    int32_t ascenseur_arriere;
+    int32_t roue1;
+    int32_t roue2;
     int32_t temp;
 
-    ascenseur_avant = buffer_r[1];
+    roue1 = buffer_r[1];
     temp = buffer_r[2];
-    ascenseur_avant += (temp << 8);
+    roue1 += (temp << 8);
     temp = buffer_r[3];
-    ascenseur_avant += (temp << 16);
+    roue1 += (temp << 16);
     temp = buffer_r[4];
-    ascenseur_avant += (temp << 24);
-    infos[0] = ascenseur_avant;
+    roue1 += (temp << 24);
+    infos[0] = roue1;
     
-    ascenseur_arriere = buffer_r[5];
+    roue2 = buffer_r[5];
     temp = buffer_r[6];
-    ascenseur_arriere += (temp << 8);
+    roue2 += (temp << 8);
     temp = buffer_r[7];
-    ascenseur_arriere += (temp << 16);
+    roue2 += (temp << 16);
     temp = buffer_r[8];
-    ascenseur_arriere += (temp << 24);
-    infos[1]=ascenseur_arriere;
+    roue2 += (temp << 24);
+    infos[1]=roue2;
+    
 }
 
 /****************************************************************************

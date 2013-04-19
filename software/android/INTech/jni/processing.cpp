@@ -26,9 +26,11 @@ Processing::Processing():
     min_yellow_color(30, 80, 140),
     max_yellow_color(38, 250, 250),
     blue_ball_color(105),
-    red_ball_color(3),
+    red_ball_color(5),
     ball_color_tolerance(10),
-    white_ball_tolerance(70)
+    white_ball_tolerance(80),
+    min_model_distance(100),
+    max_attemps(40)
 {
 }
 
@@ -58,44 +60,71 @@ void Processing::loadImage(cv::Mat &image)
 #else
     cvtColor(image_bgr, image_hsv, CV_BGR2HSV);
 #endif
-
-    // Extraction de la couleur jaune
-    inRange(image_hsv, min_yellow_color, max_yellow_color, raw_balls_mask);
 }
 
 void Processing::process()
 {
-    // Nettoyage des masques
-    _cleanBallsMask();
+    int i = 1;
+    cv::Scalar min_color(min_yellow_color), max_color(max_yellow_color);
+    vector<Ball*> new_balls, valid_balls;
+    float model_distance;
 
-    // Détection des contours sur les balles
-    vector<Contour> balls_contours = _findContours(filtered_balls_mask);
+    // Tentatives de détection de balles
+    do
+    {
+        cout << "-------------------------------" << endl;
 
-    // Affichage des contours sur l'image
-    image_contours = image_bgr.clone();
-    drawContours(image_contours, balls_contours, -1, Scalar(255, 255, 255, 255));
+        // Translation de l'intervalle de couleur jaune autour de la valeur de départ
+        min_color[0] = (i % 2 == 0) ? min_yellow_color[0] + i / 2 : min_yellow_color[0] - i / 2;
+        max_color[0] = min_color[0] + (max_yellow_color[0] - min_yellow_color[0]);
 
-    // Détection des contours pouvant représenter des balles de tennis
-    results = _findBalls(balls_contours);
-    cout << results.size() << " forme(s) ressemblant à des balles" << endl;
-    if (results.size() == 0) return;
+        cout << "Extraction du jaune pour H dans [" << min_color[0] << "," << max_color[0] << "]" << endl;
 
-    // Filtre les balles et garde uniquement celles associées à une couleur
-    vector<Ball*> balls_with_color = _keepBallsWithColor(results);
-    cout << balls_with_color.size() << " balle(s) avec une couleur" << endl;
+        // Extraction de la couleur jaune
+        inRange(image_hsv, min_color, max_color, raw_balls_mask);
 
-    // Détecte le centre des balles
-    Point2f cake_center = _getApproximativeCakeCenter(balls_with_color);
-    cake_borders.x = cake_center.x - cake_borders.width / 2;
-    cake_borders.y = cake_center.y - cake_borders.height / 2;
+        // Nettoyage des masques
+        _cleanBallsMask();
 
-    // Exclusion des balles hors de la zone estimée du gateau
-    vector<Ball*> valid_balls = _keepBallsInCakeBorders(balls_with_color);
-    cout << valid_balls.size() << " balle(s) dans la zone estimée du gateau" << endl;
+        // Détection des contours sur les balles
+        vector<Contour> balls_contours = _findContours(filtered_balls_mask);
 
-    // Identifie les balles selon le modèle
-    BallIdentifier detector(model, valid_balls);
-    vector<Ball*> new_balls = detector.identifyBalls();
+        // Affichage des contours sur l'image
+        image_contours = image_bgr.clone();
+        drawContours(image_contours, balls_contours, -1, Scalar(255, 255, 255, 255));
+
+        // Détection des contours pouvant représenter des balles de tennis
+        results = _findBalls(balls_contours);
+        cout << results.size() << " forme(s) ressemblant à des balles" << endl;
+
+        i++;
+
+        if (results.size() == 0) continue;
+
+        // Filtre les balles et garde uniquement celles associées à une couleur
+        vector<Ball*> balls_with_color = _keepBallsWithColor(results);
+        cout << balls_with_color.size() << " balle(s) avec une couleur" << endl;
+
+        // Détecte le centre des balles
+        Point2f cake_center = _getApproximativeCakeCenter(balls_with_color);
+        cake_borders.x = cake_center.x - cake_borders.width / 2;
+        cake_borders.y = cake_center.y - cake_borders.height / 2;
+
+        // Exclusion des balles hors de la zone estimée du gateau
+        valid_balls = _keepBallsInCakeBorders(balls_with_color);
+        cout << valid_balls.size() << " balle(s) dans la zone estimée du gateau" << endl;
+
+        // Identifie les balles selon le modèle
+        BallIdentifier detector(model, valid_balls);
+        new_balls = detector.identifyBalls(model_distance);
+    }
+    while((results.size() < 5 || model_distance > min_model_distance) && i < max_attemps);
+
+    if (i == max_attemps)
+    {
+        cout << "Maximum de tentatives atteint: ABANDON !" << endl;
+        return;
+    }
 
     // De nouvelles balles ont été créée à partir du modèle
     if (new_balls.size() > 0)
@@ -111,12 +140,19 @@ void Processing::process()
         results.insert(results.end(), new_balls.begin(), new_balls.end());
     }
 
+    // Force à déterminer une couleur sur toutes les balles détectées
+    for (vector<Ball*>::iterator ball = results.begin(); ball != results.end(); ++ball)
+    {
+        _findBallColor(image_hsv, *ball, true);
+    }
+
     // Affichage des balles sur l'image de résultats
     image_results = image_bgr.clone();
     _drawBalls(results, image_results);
 
     // Affichage du résultat sur la console
     cout << getResults() << endl;
+    cout << "-------------------------------" << endl;
     cout << "-------------------------------" << endl;
 }
 
@@ -229,6 +265,12 @@ vector<Ball*> Processing::_findBalls(vector<Contour> &contours)
         float radius;
         minEnclosingCircle(*contour, center, radius);
 
+        // Vérification de la cohérence du rayon du cercle
+        if (PI * radius * radius > 2 * max_ball_area)
+        {
+            continue;
+        }
+
         // Vérifie que le cercle est dans la zone à analyser
         if (center.y > image_bgr.rows * image_partition / 100)
         {
@@ -239,7 +281,7 @@ vector<Ball*> Processing::_findBalls(vector<Contour> &contours)
         Ball *ball = new Ball(center, radius);
 
         // Vérification de la couleur
-        _findBallColor(image_hsv, ball);
+        _findBallColor(image_hsv, ball, false);
 
         balls.push_back(ball);
         average_area += area;
@@ -252,7 +294,7 @@ vector<Ball*> Processing::_findBalls(vector<Contour> &contours)
 }
 
 
-void Processing::_findBallColor(Mat &image, Ball *ball)
+void Processing::_findBallColor(Mat &image, Ball *ball, bool force_to_choose)
 {
     vector<Ball::CheckPoint> check_points = ball->getCheckPoints();
     vector<Ball::CheckPoint> check_points_analyzed;
@@ -260,8 +302,9 @@ void Processing::_findBallColor(Mat &image, Ball *ball)
     // Détermine la couleur de chaque point de contrôle
     for (vector<Ball::CheckPoint>::iterator point = check_points.begin(); point != check_points.end(); ++point)
     {
+        // On regarde si la couleur correspond à une des couleurs attendues
         Vec3b color = image.at<Vec3b>(point->point);
-        point->type = _analyzeColor(color);
+        point->type = _analyzeColor(color, force_to_choose);
         check_points_analyzed.push_back(*point);
     }
 
@@ -326,7 +369,7 @@ Point2f Processing::_getApproximativeCakeCenter(vector<Ball*> &balls)
     return Point2f(x.at(med), y.at(med));
 }
 
-Ball::Type Processing::_analyzeColor(Vec3b color)
+Ball::Type Processing::_analyzeColor(Vec3b color, bool force_to_choose)
 {
     int h = (int) color[0];
     int s = (int) color[1];
@@ -345,6 +388,22 @@ Ball::Type Processing::_analyzeColor(Vec3b color)
     if (h >= red_ball_color - ball_color_tolerance && h <= red_ball_color + ball_color_tolerance)
     {
         return Ball::RED_BALL;
+    }
+
+    // Aucune couleur définie mais un résultat doit être donné
+    if (force_to_choose)
+    {
+        int distance_with_blue = abs(blue_ball_color - h);
+        int distance_with_red = abs(red_ball_color - h);
+
+        if (distance_with_red > distance_with_blue)
+        {
+            return Ball::BLUE_BALL;
+        }
+        else
+        {
+            return Ball::RED_BALL;
+        }
     }
 
     return Ball::UNVALID_BALL;

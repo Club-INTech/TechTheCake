@@ -182,7 +182,7 @@ class ThreadTimer(AbstractThread):
         self.robot.deplacements.desactiver_asservissement_rotation()
         self.robot.gonflage_ballon()
         self.robot.deplacements.arret_final()
-        self.son.jouer("generique", force=True)
+        self.son.jouer("generique", force=True, enBoucle=True)
         self.log.debug("Fin du thread timer")
         
     def get_date_debut(self):

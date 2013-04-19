@@ -29,7 +29,7 @@ public final class SocketServerManager {
 	}
 	
 	public void stopListeningSocket() {
-		server.stop();
+		if (server != null) server.stop();
 	}
 
 }

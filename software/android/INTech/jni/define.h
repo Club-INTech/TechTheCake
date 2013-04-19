@@ -14,4 +14,6 @@
 
 #endif
 
+#define PI  3.14159
+
 #endif // COLOR_H
