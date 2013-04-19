@@ -1,37 +1,44 @@
 from random import randint
-import pygame.mixer
 import time
+
+# Pour installer pygame: http://pythonfun.wordpress.com/2011/08/08/installing-pygame-with-python-3-2-on-ubuntu-11-04/
 
 class Son:
     """
     Classe gérant les sons.
     """
     def __init__(self, config, log):
-        pygame.init()
         self.log = log
         self.config = config
+        try:
+            import pygame.mixer
+            pygame.init()
+            self.sons = {
+                # Ennemi détecté
+                "detection": [pygame.mixer.Sound("sons/Turret_sp_sabotage_factory_good_pass01_fr.wav"), pygame.mixer.Sound("sons/Turret_turret_autosearch_5_fr.wav"), pygame.mixer.Sound("sons/Turret_sp_sabotage_factory_good_prerange01_fr.wav")],
+
+                # Exception mouvement impossible
+                "blocage": [pygame.mixer.Sound("sons/Turret_turret_disabled_5_fr.wav"), pygame.mixer.Sound("sons/Turret_turret_disabled_6_fr.wav"), pygame.mixer.Sound("sons/Turret_turret_fizzler_1_fr.wav"), pygame.mixer.Sound("sons/Defective_Turret_sp_sabotage_factory_defect_fail18_fr.wav")],
+
+                # Début du match
+                "debut": [pygame.mixer.Sound("sons/Turret_turret_deploy_2_fr.wav"), pygame.mixer.Sound("sons/Turret_turret_active_5_fr.wav")],
+
+                # Avant la fin
+                "compte_rebours": [pygame.mixer.Sound("sons/GLaDOS_testchambermisc34_fr.wav")],
+
+                # Fin
+                "generique": [pygame.mixer.Sound("sons/generique.ogg"), pygame.mixer.Sound("sons/radio.ogg"), pygame.mixer.Sound("sons/still_alive.ogg")],
+
+                # Random
+                "random": [pygame.mixer.Sound("sons/Space_core_space04_fr.wav"), pygame.mixer.Sound("sons/Space_core_space21_fr.wav"), pygame.mixer.Sound("sons/GLaDOS_potatos_longfall_speech03_fr.wav")]
+        }
+        except:
+        # Si on a un problème avec pygame, on atteint simplement la musique
+            self.config["musique"] = 0
+            self.log.critical("Pygame ou sons introuvable")
         self.date_dernier = 0
-        self.sons = {
-            # Ennemi détecté
-            "detection": [pygame.mixer.Sound("sons/Turret_sp_sabotage_factory_good_pass01_fr.wav"), pygame.mixer.Sound("sons/Turret_turret_autosearch_5_fr.wav")],
 
-            # Exception mouvement impossible
-            "blocage": [pygame.mixer.Sound("sons/Turret_turret_disabled_5_fr.wav"), pygame.mixer.Sound("sons/Turret_turret_disabled_6_fr.wav"), pygame.mixer.Sound("sons/Turret_turret_fizzler_1_fr.wav"), pygame.mixer.Sound("sons/Defective_Turret_sp_sabotage_factory_defect_fail18_fr.wav")],
-
-            # Début du match
-            "debut": [pygame.mixer.Sound("sons/Turret_turret_deploy_2_fr.wav"), pygame.mixer.Sound("sons/Turret_turret_active_5_fr.wav")],
-
-            # Avant la fin
-            "compte_rebours": [pygame.mixer.Sound("sons/GLaDOS_testchambermisc34_fr.wav")],
-
-            # Fin
-            "generique": [pygame.mixer.Sound("sons/generique.ogg")],
-
-            # Random
-            "random": [pygame.mixer.Sound("sons/Space_core_space04_fr.wav"), pygame.mixer.Sound("sons/Space_core_space21_fr.wav"), pygame.mixer.Sound("sons/Space_core_space23_fr.wav")]
-    }
-
-    def jouer(self, id, force=False):
+    def jouer(self, id, force=False, enBoucle=False):
         """
         Boucle qui gère la stratégie, en testant les différents scripts et en exécutant le plus avantageux
         """
@@ -42,7 +49,11 @@ class Son:
                 self.date_dernier = time.time()
                 taille = len(self.sons[id])
                 pygame.mixer.stop()
-                self.sons[id][randint(0,taille-1)].play()
+                if enBoucle:
+                    self.sons[id][randint(0,taille-1)].play(loops=-1)
+                else:
+                    self.sons[id][randint(0,taille-1)].play()
+
         except Exception as e:
             self.log.warning("Erreur service de son: "+str(e))
 
