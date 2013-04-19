@@ -1,6 +1,8 @@
 from random import randint
 import time
 
+# Pour installer pygame: http://pythonfun.wordpress.com/2011/08/08/installing-pygame-with-python-3-2-on-ubuntu-11-04/
+
 class Son:
     """
     Classe gérant les sons.
