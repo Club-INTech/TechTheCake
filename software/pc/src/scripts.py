@@ -201,6 +201,10 @@ class ScriptBougies(Script):
         # Déplacement proche du point d'entrée avec recherche de chemin
         proche_entree = self.info_versions[version]["point_entree_recherche_chemin"]
         self.robot.recherche_de_chemin(proche_entree, recharger_table=False)
+
+        # Initialisation des deux bras
+        self.robot.initialiser_bras_bougie(True)
+        self.robot.initialiser_bras_bougie(False)
         
         # Déplacement au point d'entrée
         orientation_tangente = self.info_versions[version]["angle_entree"] + math.pi/2
