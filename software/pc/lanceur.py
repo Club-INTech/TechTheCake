@@ -56,7 +56,10 @@ if config["cartes_simulation"]==[]:
     simulateur = container.get_service("simulateur")
     simulateur.setRobotPosition(robot.x, robot.y)
 
-#robot.recaler()
+if "asservissement" not in config["cartes_simulation"] or "asservissement" in config["cartes_serie"]:
+    robot.recaler()
+    log.debug("Position: "+str(Point(robot.x, robot.y)))
+    log.debug("Orientation: "+str(robot.orientation))
 
 # si le jumper est simulé
 if "capteurs_actionneurs" in config["cartes_simulation"] or "capteurs_actionneurs" not in config["cartes_serie"]:
