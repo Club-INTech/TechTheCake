@@ -317,17 +317,17 @@ class ScriptCadeaux(Script):
         
         # Création des hooks pour tous les cadeaux à activer
         hooks = []
-
+        
         # Ouverture du bras en face du cadeau
         for cadeau in self.table.cadeaux_restants():
-            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * self.decalage_x_ouvre, self.decalage_y_bord ), tolerance_mm=50, effectuer_symetrie=False)
+            hook_ouverture = self.hookGenerator.hook_droite_verticale(cadeau["position"].x + sens * self.decalage_x_ouvre, vers_x_croissant=1-version)
             hook_ouverture += self.hookGenerator.callback(self.robot.ouvrir_cadeau)
             hook_ouverture += self.hookGenerator.callback(self.table.cadeau_recupere, (cadeau,))
             hooks.append(hook_ouverture)
 
         # Fermeture du bras pendant les "trous" entre cadeaux
         for trou in self.table.trous_cadeaux:
-            hook_fermeture = self.hookGenerator.hook_position(trou + Point(sens * self.decalage_x_ferme, self.decalage_y_bord ), tolerance_mm=50, effectuer_symetrie=False)
+            hook_fermeture = self.hookGenerator.hook_droite_verticale(trou.x + sens * self.decalage_x_ferme, vers_x_croissant=1-version)
             hook_fermeture += self.hookGenerator.callback(self.robot.fermer_cadeau)
             hooks.append(hook_fermeture)
 
@@ -355,7 +355,7 @@ class ScriptCadeaux(Script):
 
     def versions(self):
         self.decalage_x_ouvre = -80
-        self.decalage_x_ferme = -60#350
+        self.decalage_x_ferme = -90#350
         self.decalage_y_bord = self.config["rayon_robot"] + 70
         self.decalage_x_pour_reglette_blanche = 100
         

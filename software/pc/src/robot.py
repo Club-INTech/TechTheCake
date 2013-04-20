@@ -894,7 +894,10 @@ class RobotSimulation(Robot):
                 pt_centre = Point(0 + rayon_centre*math.cos(hook.angle_hook), 2000 + rayon_centre*math.sin(hook.angle_hook))
                 pt_ext    = Point(0 + 800*math.cos(hook.angle_hook), 2000 + 800*math.sin(hook.angle_hook))
                 self.simulateur.drawLine(pt_centre.x, pt_centre.y, pt_ext.x, pt_ext.y, "black", "hook")
-        
+                
+            elif isinstance(hook, hooks_module.HookDroiteVerticale):
+                self.simulateur.drawLine(hook.posX, 0, hook.posX, 400, "black", "hook")
+                
 class ExceptionVerreAbsent(Exception):
     """
     Exception levée lorsqu'un verre est absent
