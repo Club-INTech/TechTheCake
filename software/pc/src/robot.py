@@ -662,7 +662,7 @@ class Robot(RobotInterface):
         self.log.debug("début du recalage")
         
         #on recule lentement jusqu'à bloquer sur le bord
-        self.set_vitesse_translation(1)
+        self.set_vitesse_translation(2)
         self.set_vitesse_rotation(1)
         self.marche_arriere = True
         self.avancer(-1000, retenter_si_blocage = False, sans_lever_exception = True)
@@ -679,22 +679,21 @@ class Robot(RobotInterface):
         else:
             self.x = self.config["table_x"]/2. - self.config["largeur_robot"]/2.
             self.orientation = math.pi+self.config["epsilon_angle"]
+
         #on avance doucement, en réactivant l'asservissement en rotation
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
-        self.set_vitesse_translation(1)
+        self.set_vitesse_translation(2)
         self.avancer(500, retenter_si_blocage = False, sans_lever_exception = True)
 
         #on se tourne pour le deuxième recalage
         #on se dirige vers le côté le plus proche
         if self.y < self.config["table_y"]/2:
-            self.log.critical("En bas!")
             cote_bas = True
-            self.tourner(-math.pi/2, sans_lever_exception = True)
-        else:
-            self.log.critical("En haut!")
-            cote_bas = False
             self.tourner(math.pi/2, sans_lever_exception = True)
+        else:
+            cote_bas = False
+            self.tourner(-math.pi/2, sans_lever_exception = True)
         
         #on recule lentement jusqu'à bloquer sur le bord
         self.marche_arriere = True
@@ -721,7 +720,7 @@ class Robot(RobotInterface):
         self.tourner(math.pi, sans_lever_exception = True)
 
         #on recule lentement jusqu'à bloquer sur le bord
-        self.set_vitesse_translation(1)
+        self.set_vitesse_translation(2)
         self.set_vitesse_rotation(1)
         self.marche_arriere = True
         self.avancer(-1000, retenter_si_blocage = False, sans_lever_exception = True)
@@ -778,27 +777,13 @@ class Robot(RobotInterface):
         Rentre les bras qui ont soufflé les bougies
         """
         self.actionneurs.rentrer_bras_bougie()
-
-    def ouvrir_cadeau(self):
-        """
-        Ouvre le bras qui pousse le cadeau
-        """
-        self.log.debug("ouverture du bras cadeaux")
-        self.actionneurs.ouvrir_cadeau()
         
-    def fermer_cadeau(self):
+    def actionneur_cadeau(self, angle):
         """
-        Ferme le bras qui a poussé le cadeau, en vue d'un prochain cadeau
+        Commande l'actionneur cadeau
         """
-        self.log.debug("fermeture du bras cadeaux")
-        self.actionneurs.fermer_cadeau()
-        
-    def replier_cadeau(self):
-        """
-        Replie l'actionneur cadeau
-        """
-        self.log.debug("replie du bras cadeaux")
-        self.actionneurs.replier_cadeau()
+        self.log.debug("Bras cadeaux à la position: "+angle)
+        self.actionneurs.actionneur_cadeau(angle)
  
     def lever_ascenseur(self, avant):
         self.actionneurs.ascenseur_aller_en_haut(avant)
@@ -825,6 +810,10 @@ class Robot(RobotInterface):
             raise ExceptionVerreAbsent
         # Lancement des actionneurs
         else:
+            if avant:
+                self.avancer(-10)
+            else:
+                self.avancer(10)
             self.actionneurs.ascenseur_deserrer(avant)
             self.actionneurs.ascenseur_aller_en_bas(avant)
             self.actionneurs.ascenseur_serrer(avant)

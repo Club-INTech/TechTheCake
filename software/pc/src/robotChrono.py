@@ -55,17 +55,9 @@ class RobotInterface(metaclass=abc.ABCMeta):
         pass
     
     @abc.abstractmethod
-    def ouvrir_cadeau(self):
+    def actionneur_cadeau(self):
         pass
-        
-    @abc.abstractmethod
-    def fermer_cadeau(self):
-        pass
-    
-    @abc.abstractmethod
-    def replier_cadeau(self):
-        pass
-    
+            
     @abc.abstractmethod
     def gonflage_ballon(self):
         pass
@@ -285,15 +277,9 @@ class RobotChrono(RobotInterface):
     def rentrer_bras_bougie(self) : 
         pass
     
-    def ouvrir_cadeau(self):
+    def actionneur_cadeau(self):
         pass
-        
-    def fermer_cadeau(self):
-        pass
-        
-    def replier_cadeau(self):
-        pass
-    
+            
     def gonflage_ballon(self):
         pass
         
