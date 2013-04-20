@@ -33,6 +33,15 @@ ISR (TIMER1_OVF_vect, ISR_NOBLOCK)
 	actionneurs.ascenseur_avant.changerValeurCodeuse(position[1]);
 	actionneurs.ascenseur_arriere.asservir();
 	actionneurs.ascenseur_avant.asservir();
+	static int i = 0;
+	i++;
+	if (i == 5)
+	{
+		Serial<0>::print("#");
+		Serial<0>::print(position[0]);
+		Serial<0>::print(actionneurs.ascenseur_arriere.consigne());
+		i = 0;
+	}
 }
 
 
