@@ -29,7 +29,7 @@ Processing::Processing():
     red_ball_color(5),
     ball_color_tolerance(10),
     white_ball_tolerance(80),
-    min_model_distance(100),
+    min_model_distance(10),
     max_attemps(40)
 {
 }
@@ -68,61 +68,86 @@ void Processing::process()
     cv::Scalar min_color(min_yellow_color), max_color(max_yellow_color);
     vector<Ball*> new_balls, valid_balls;
     float model_distance;
+    bool success = false;
 
-    // Tentatives de détection de balles
+    // Tentatives de détection des balles avec un objectif de moins en moins précis
     do
     {
-        cout << "-------------------------------" << endl;
+        // Tentatives de détection des balles en faisant varier l'intervalle de couleur du jaune
+        do
+        {
+            cout << "-------------------------------" << endl;
 
-        // Translation de l'intervalle de couleur jaune autour de la valeur de départ
-        min_color[0] = (i % 2 == 0) ? min_yellow_color[0] + i / 2 : min_yellow_color[0] - i / 2;
-        max_color[0] = min_color[0] + (max_yellow_color[0] - min_yellow_color[0]);
+            // Translation de l'intervalle de couleur jaune autour de la valeur de départ
+            min_color[0] = (i % 2 == 0) ? min_yellow_color[0] + i / 2 : min_yellow_color[0] - i / 2;
+            max_color[0] = min_color[0] + (max_yellow_color[0] - min_yellow_color[0]);
 
-        cout << "Extraction du jaune pour H dans [" << min_color[0] << "," << max_color[0] << "]" << endl;
+            cout << "Extraction du jaune pour H dans [" << min_color[0] << "," << max_color[0] << "]" << endl;
 
-        // Extraction de la couleur jaune
-        inRange(image_hsv, min_color, max_color, raw_balls_mask);
+            // Extraction de la couleur jaune
+            inRange(image_hsv, min_color, max_color, raw_balls_mask);
 
-        // Nettoyage des masques
-        _cleanBallsMask();
+            // Nettoyage des masques
+            _cleanBallsMask();
 
-        // Détection des contours sur les balles
-        vector<Contour> balls_contours = _findContours(filtered_balls_mask);
+            // Détection des contours sur les balles
+            vector<Contour> balls_contours = _findContours(filtered_balls_mask);
 
-        // Affichage des contours sur l'image
-        image_contours = image_bgr.clone();
-        drawContours(image_contours, balls_contours, -1, Scalar(255, 255, 255, 255));
+            // Affichage des contours sur l'image
+            image_contours = image_bgr.clone();
+            drawContours(image_contours, balls_contours, -1, Scalar(255, 255, 255, 255));
 
-        // Détection des contours pouvant représenter des balles de tennis
-        results = _findBalls(balls_contours);
-        cout << results.size() << " forme(s) ressemblant à des balles" << endl;
+            // Détection des contours pouvant représenter des balles de tennis
+            results = _findBalls(balls_contours);
+            cout << results.size() << " forme(s) ressemblant à des balles" << endl;
 
-        i++;
+            i++;
 
-        if (results.size() == 0) continue;
+            if (results.size() == 0) continue;
 
-        // Filtre les balles et garde uniquement celles associées à une couleur
-        vector<Ball*> balls_with_color = _keepBallsWithColor(results);
-        cout << balls_with_color.size() << " balle(s) avec une couleur" << endl;
+            // Filtre les balles et garde uniquement celles associées à une couleur
+            vector<Ball*> balls_with_color = _keepBallsWithColor(results);
+            cout << balls_with_color.size() << " balle(s) avec une couleur" << endl;
 
-        // Détecte le centre des balles
-        Point2f cake_center = _getApproximativeCakeCenter(balls_with_color);
-        cake_borders.x = cake_center.x - cake_borders.width / 2;
-        cake_borders.y = cake_center.y - cake_borders.height / 2;
+            // Détecte le centre des balles
+            Point2f cake_center = _getApproximativeCakeCenter(balls_with_color);
+            cake_borders.x = cake_center.x - cake_borders.width / 2;
+            cake_borders.y = cake_center.y - cake_borders.height / 2;
 
-        // Exclusion des balles hors de la zone estimée du gateau
-        valid_balls = _keepBallsInCakeBorders(balls_with_color);
-        cout << valid_balls.size() << " balle(s) dans la zone estimée du gateau" << endl;
+            // Exclusion des balles hors de la zone estimée du gateau
+            valid_balls = _keepBallsInCakeBorders(balls_with_color);
+            cout << valid_balls.size() << " balle(s) dans la zone estimée du gateau" << endl;
 
-        // Identifie les balles selon le modèle
-        BallIdentifier detector(model, valid_balls);
-        new_balls = detector.identifyBalls(model_distance);
+            // Identifie les balles selon le modèle
+            BallIdentifier detector(model, valid_balls);
+            new_balls = detector.identifyBalls(model_distance);
+        }
+        while((results.size() < 5 || model_distance > min_model_distance) && i < max_attemps);
+
+        if (i == max_attemps)
+        {
+            cout << "Maximum de tentatives atteint: ABANDON" << endl;
+
+            // Augmente la distance au modèle tolérable
+            min_model_distance += 10;
+            cout << "Augmentation de l'objectif de distance au modèle: " << min_model_distance << endl;
+
+            // Supprime les derniers résultats
+            clearResults();
+            i = 1;
+        }
+        else
+        {
+            success = true;
+            break;
+        }
     }
-    while((results.size() < 5 || model_distance > min_model_distance) && i < max_attemps);
+    while(min_model_distance < 100);
 
-    if (i == max_attemps)
+    // Est-ce que la détection a abouti ?
+    if (!success)
     {
-        cout << "Maximum de tentatives atteint: ABANDON !" << endl;
+        cout << "Aucune détection avec l'objectif de distance maximal fixé, ABANDON GÉNÉRAL" << endl;
         return;
     }
 
