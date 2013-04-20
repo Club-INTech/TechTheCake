@@ -7,6 +7,7 @@
 
 #include "processing.h"
 #include "morpho.h"
+#include "model.h"
 
 using namespace std;
 using namespace cv;
@@ -123,8 +124,19 @@ void em(Mat source)
 }
 */
 
-int main(int, char** argv)
+int main(int argc, char** argv)
 {
+    if (argc != 3)
+    {
+        cout << "2 arguments attendus: <chemin vers l'image> <couleur = (r|b)>" << endl;
+        return 1;
+    }
+
+    if (argv[2][0] == 'b')
+    {
+        processing.model = Model::getRepartitionModel('b');
+    }
+
     Mat src = imread(argv[1], 1);
     processing.loadImage(src);
 
