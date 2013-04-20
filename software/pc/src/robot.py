@@ -418,13 +418,11 @@ class Robot(RobotInterface):
         
         #vitesses pour le parcours de l'arc de cercle
         #TODO : passer ca dans déplacements ?
-        self.set_vitesse_translation(2)
+        self.set_vitesse_translation(1)
         if "asservissement" in self.config["cartes_serie"]:
             #ATTENTION : cette vitesse est ajustée pour un rayon donné ! (celui utilisé pour enfoncer les bougies)
-            self.set_vitesse_rotation(int(self.config["vitesse_rot_arc_cercle"]))
-        else:
-            self.set_vitesse_translation(2)
-            
+            #self.set_vitesse_rotation(int(self.config["vitesse_rot_arc_cercle"]))
+            self.set_vitesse_rotation(int(max(110-0.21*(r-478), 30)))
         
         while 1:
             #calcul de l'angle de A (point de départ)
@@ -624,7 +622,7 @@ class Robot(RobotInterface):
                 raise ExceptionMouvementImpossible(self)
             
             
-    def arc_de_cercle(self, point_destination, hooks=[]):
+    def arc_de_cercle(self, point_destination, hooks=[], nombre_tentatives=2):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.
         Elle permet d'effectuer un arc de cercle à partir de la position courante vers le projetté de M sur le cercle passant par la position courante.
@@ -648,8 +646,13 @@ class Robot(RobotInterface):
         #détection d'un robot adverse
         except ExceptionCollision:
             self.stopper()
-            raise ExceptionMouvementImpossible(self)
-        
+            if nombre_tentatives > 0:
+                self.log.warning("attente avant nouvelle tentative... reste {0} tentative(s)".format(nombre_tentatives))
+                sleep(1)
+                self.arc_de_cercle(point_destination, hooks, nombre_tentatives-1)
+            else:
+                raise ExceptionMouvementImpossible(self)
+            
         finally:
             self.disque_tolerance_consigne = self.config["disque_tolerance_maj"]
             self.marche_arriere = mem_marche_arriere
@@ -873,9 +876,9 @@ class RobotSimulation(Robot):
         self._afficher_hooks(hooks)
         super().va_au_point(point, hooks, trajectoire_courbe=trajectoire_courbe, nombre_tentatives=nombre_tentatives, retenter_si_blocage=retenter_si_blocage, symetrie_effectuee=symetrie_effectuee, sans_lever_exception=sans_lever_exception)
         
-    def arc_de_cercle(self, point, hooks=[]):
+    def arc_de_cercle(self, point, hooks=[], nombre_tentatives=2):
         self._afficher_hooks(hooks)
-        super().arc_de_cercle(point, hooks)
+        super().arc_de_cercle(point, hooks, nombre_tentatives)
         
     def _afficher_hooks(self, hooks):
         self.simulateur.clearEntity("hook")
