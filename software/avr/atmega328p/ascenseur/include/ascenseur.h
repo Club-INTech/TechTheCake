@@ -17,6 +17,7 @@ class Ascenseur
 		void consigne(int32_t);
 		void consigne(AscenseurPosition);
 		void changerValeurCodeuse(int32_t);
+		int32_t valeurCodeuse();
 
 	private:
 		Moteur _moteur;

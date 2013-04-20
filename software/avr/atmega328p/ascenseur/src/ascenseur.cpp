@@ -3,11 +3,11 @@
 
 template<class Moteur>
 Ascenseur<Moteur>::Ascenseur():
-	_asservissement(0.1,0,0),
+	_asservissement(0.01,0,0),
 	_compteur_blocage(0),
 	_codeuse(0)
 {
-	_asservissement.valeur_bridage(175);
+	_asservissement.valeur_bridage(150);
 }
 
 template<class Moteur>
@@ -20,10 +20,9 @@ void Ascenseur<Moteur>::asservir()
 	_moteur.envoyerPwm(pwm);
 
 	// Si blocage moteur
-
 	derivee_erreur = _asservissement.erreur_d();
 	bouge_pas = (derivee_erreur <= 30) && (derivee_erreur >= -30);
-	moteur_force = (pwm >= 75) || (pwm <= -75);
+	moteur_force = (pwm >= 40) || (pwm <= -40);
 	if (bouge_pas && moteur_force)
 	{
 		++_compteur_blocage;
@@ -71,6 +70,12 @@ template<class Moteur>
 void Ascenseur<Moteur>::changerValeurCodeuse(int32_t position)
 {
 	_codeuse = position;
+}
+
+template<class Moteur>
+int32_t Ascenseur<Moteur>::valeurCodeuse()
+{
+	return _codeuse;
 }
 
 template class Ascenseur<Actionneurs::moteur_avant_t>;
