@@ -12,16 +12,16 @@ map<int, Point2f> Model::getRepartitionModel(char color)
 
 	if (color == 'r')
 	{
-		model.insert(pair<int, Point2f>(1, Point(346, 88)));
-		model.insert(pair<int, Point2f>(2, Point(313, 91)));
-		model.insert(pair<int, Point2f>(3, Point(273, 96)));
-		model.insert(pair<int, Point2f>(4, Point(226, 98)));
-		model.insert(pair<int, Point2f>(5, Point(180, 99)));
-		model.insert(pair<int, Point2f>(6, Point(135, 100)));
-		model.insert(pair<int, Point2f>(7, Point(307, 43)));
-		model.insert(pair<int, Point2f>(8, Point(263, 63)));
-		model.insert(pair<int, Point2f>(9, Point(208, 65)));
-		model.insert(pair<int, Point2f>(10, Point(159, 63)));
+		model.insert(pair<int, Point2f>(1, Point(380, 170)));
+		model.insert(pair<int, Point2f>(2, Point(348, 173)));
+		model.insert(pair<int, Point2f>(3, Point(308, 178)));
+		model.insert(pair<int, Point2f>(4, Point(264, 178)));
+		model.insert(pair<int, Point2f>(5, Point(219, 179)));
+		model.insert(pair<int, Point2f>(6, Point(178, 179)));
+		model.insert(pair<int, Point2f>(7, Point(342, 142)));
+		model.insert(pair<int, Point2f>(8, Point(300, 146)));
+		model.insert(pair<int, Point2f>(9, Point(250, 146)));
+		model.insert(pair<int, Point2f>(10, Point(201, 144)));
 	}
 	else
 	{
