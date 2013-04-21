@@ -250,6 +250,16 @@ class ScriptBougies(Script):
             hook_baisser_bras += self.hookGenerator.callback(self.robot.initialiser_bras_bougie, (bougie["enHaut"],))
             hooks.append(hook_baisser_bras)
         
+        #on enfonce les bougies extremales si possible (l'actionneur du haut pour celle des x petits, celui du bas pour x grands)
+        if self.table.bougies_entrees(self.couleur_a_traiter)[version]["id"] == 2:
+            self.robot.traiter_bougie(True)
+            sleep(0.5)
+            self.robot.initialiser_bras_bougie(True)
+        elif self.table.bougies_entrees(self.couleur_a_traiter)[version]["id"] == 17:
+            self.robot.traiter_bougie(False)
+            sleep(0.5)
+            self.robot.initialiser_bras_bougie(False)
+            
         # Lancement de l'arc de cercle
         self.robot.marche_arriere = self.info_versions[version]["marche_arriere"]
         self.robot.arc_de_cercle(sortie, hooks)

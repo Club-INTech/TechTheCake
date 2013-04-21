@@ -648,7 +648,7 @@ class Robot(RobotInterface):
             self.stopper()
             if nombre_tentatives > 0:
                 self.log.warning("attente avant nouvelle tentative... reste {0} tentative(s)".format(nombre_tentatives))
-                sleep(1)
+                sleep(2)
                 self.arc_de_cercle(point_destination, hooks, nombre_tentatives-1)
             else:
                 raise ExceptionMouvementImpossible(self)
