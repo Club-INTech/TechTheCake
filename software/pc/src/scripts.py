@@ -203,12 +203,8 @@ class ScriptBougies(Script):
         self.robot.recherche_de_chemin(proche_entree, recharger_table=False)
 
         # Initialisation des deux bras
-        self.robot.initialiser_bras_bougie(True)
-        self.robot.initialiser_bras_bougie(False)
-        
-        #préparation des actionneurs
-        self.robot.initialiser_bras_bougie(True)
-        self.robot.initialiser_bras_bougie(False)
+        self.robot.actionneurs_bougie(True, "haut")
+        self.robot.actionneurs_bougie(False, "haut")
         
         # Déplacement au point d'entrée
         orientation_tangente = self.info_versions[version]["angle_entree"] + math.pi/2
@@ -241,13 +237,13 @@ class ScriptBougies(Script):
                 
             # Baisser le bras
             hook_baisser_bras = self.hookGenerator.hook_angle_gateau(angle_baisser_bras, vers_x_croissant)
-            hook_baisser_bras += self.hookGenerator.callback(self.robot.traiter_bougie, (bougie["enHaut"],))
+            hook_baisser_bras += self.hookGenerator.callback(self.robot.actionneurs_bougie, (bougie["enHaut"],"moyen"))
             hook_baisser_bras += self.hookGenerator.callback(self.table.bougie_recupere, (bougie,))
             hooks.append(hook_baisser_bras)
             
             # Lever le bras (On relève seulement celui qui a été abaissé)
             hook_baisser_bras = self.hookGenerator.hook_angle_gateau(angle_lever_bras, vers_x_croissant)
-            hook_baisser_bras += self.hookGenerator.callback(self.robot.initialiser_bras_bougie, (bougie["enHaut"],))
+            hook_baisser_bras += self.hookGenerator.callback(self.robot.actionneurs_bougie, (bougie["enHaut"],"haut"))
             hooks.append(hook_baisser_bras)
         
         #on enfonce les bougies extremales si possible (l'actionneur du haut pour celle des x petits, celui du bas pour x grands)
@@ -292,7 +288,8 @@ class ScriptBougies(Script):
                         orientation_normale = math.atan2(self.robot.y - 2000, self.robot.x - 0)
                         self.robot.tourner(orientation_normale)
                     finally:
-                        self.robot.rentrer_bras_bougie()
+                        self.robot.actionneurs_bougie(True, "bas")
+                        self.robot.actionneurs_bougie(False, "bas")
         else:
             self.log.debug("Fin du script bougies : les actionneurs bougies sont déjà rentrés.")
         
@@ -474,7 +471,7 @@ class ScriptRecupererVerres(Script):
         
 
         # On est à distance. On élève l'ascenseur (probable qu'il le soit déjà). On s'avance jusqu'à positionner le verre sous l'ascenseur. Si le verre est présent, on ouvre l'ascenseur, on le descend, on le ferme et on le remonte. Si le verre est absent, on laisse l'ascenseur en haut.
-        self.robot.lever_ascenseur(not self.robot.marche_arriere)
+        self.robot.altitude_ascenseur(not self.robot.marche_arriere, "haut")
         self.robot.va_au_point(destination)
         try:
             self.robot.recuperer_verre(not self.robot.marche_arriere)
@@ -502,8 +499,8 @@ class ScriptRecupererVerres(Script):
          
     def _termine(self):
         # On monte les deux ascenseurs
-        self.robot.lever_ascenseur(True)
-        self.robot.lever_ascenseur(False)
+        self.robot.altitude_ascenseur(True, "haut")
+        self.robot.altitude_ascenseur(False, "haut")
 
         
     @abc.abstractmethod

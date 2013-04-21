@@ -33,7 +33,7 @@ class Strategie:
         self.log.debug("Stratégie lancée")
         # Avec la balise laser, récupérer la position des ennemis. Sur la ou les cases occupées seront probablement les verres. Mettre à jour position_verres_1 et position_verres_2
 #        self.scripts["ScriptRenverserVerres"].cases_verres=[1,2]
-        self.robot.avancer(200, retenter_si_blocage = False, sans_lever_exception = True)
+        self.robot.avancer(300, retenter_si_blocage = False, sans_lever_exception = True)
 
         # On ne le fait que maintenant car la config peut changer avant le début du match
         if self.config["ennemi_fait_toutes_bougies"]:
@@ -75,9 +75,8 @@ class Strategie:
                 try:
                     # Tentative d'execution du script
                     self.scripts[script_a_faire].agit(version_a_faire)
-                    
                 except robot.ExceptionMouvementImpossible:
-                    
+
                     # Enregistrement de l'échec du script
                     if (script_a_faire, version_a_faire) in self.echecs:
                         self.echecs[(script_a_faire, version_a_faire)] += 1

@@ -7,8 +7,7 @@ import copy
 #####  CLASSE ROBOTINTERFACE, permet de vérifier l'équivalence des méthodes publiques de Robot et RobotChrono. ###
 ##################################################################################################################
 
-class RobotInterface(metaclass=abc.ABCMeta):
-    
+class RobotInterface(metaclass=abc.ABCMeta):    
 
     @abc.abstractmethod
     def stopper(self):
@@ -43,19 +42,11 @@ class RobotInterface(metaclass=abc.ABCMeta):
         pass
         
     @abc.abstractmethod
-    def traiter_bougie(self,enHaut):
-        pass
-            
-    @abc.abstractmethod
-    def initialiser_bras_bougie(self,enHaut) : 
+    def actionneurs_bougie(self, en_haut, angle):
         pass
     
     @abc.abstractmethod
-    def rentrer_bras_bougie(self) : 
-        pass
-    
-    @abc.abstractmethod
-    def actionneur_cadeau(self):
+    def actionneur_cadeau(self, angle):
         pass
             
     @abc.abstractmethod
@@ -63,13 +54,13 @@ class RobotInterface(metaclass=abc.ABCMeta):
         pass
     
     @abc.abstractmethod
-    def lever_ascenseur(self, avant):
+    def actionneurs_ascenseur(self, avant, position):
         pass
-    
+            
     @abc.abstractmethod
-    def ranger_ascenseur(self, avant):
+    def altitude_ascenseur(self, avant, hauteur):
         pass
-        
+
     def places_disponibles(self, avant):
         """
         Renvoie le nombre de places disponibles sur un ascenceur
@@ -268,16 +259,10 @@ class RobotChrono(RobotInterface):
         """
         self.vitesse_rotation = int(valeur)
         
-    def traiter_bougie(self,enHaut):
-        pass
-            
-    def initialiser_bras_bougie(self,enHaut) : 
-        pass
-
-    def rentrer_bras_bougie(self) : 
+    def actionneurs_bougie(self, en_haut, angle):
         pass
     
-    def actionneur_cadeau(self):
+    def actionneur_cadeau(self, angle):
         pass
             
     def gonflage_ballon(self):
@@ -286,10 +271,10 @@ class RobotChrono(RobotInterface):
     def places_disponibles(self, avant):
         pass
 
-    def lever_ascenseur(self, avant):
+    def actionneurs_ascenseur(self, avant, position):
         pass
 
-    def ranger_ascenseur(self, avant):
+    def altitude_ascenseur(self, avant, hauteur):
         pass
 
     def recuperer_verre(self, avant):
