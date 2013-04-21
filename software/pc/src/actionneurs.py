@@ -12,21 +12,16 @@ class Actionneurs :
         self.actionneur_cadeaux_actif = False
         self.actionneur_bougies_actif = False
 
-    def ouvrir_cadeau(self) :
-        self.serie.communiquer("capteurs_actionneurs",["cadeau",110],0)
-        self.actionneur_cadeaux_actif = True
-            
-    def replier_cadeau(self) :
-        self.serie.communiquer("capteurs_actionneurs",["cadeau",140],0)
-        self.actionneur_cadeaux_actif = True
-    
-    def fermer_cadeau(self) :
-        self.serie.communiquer("capteurs_actionneurs",["cadeau",75],0)
-        self.actionneur_cadeaux_actif = False
-        
-    def replier_cadeau(self) :
-        self.serie.communiquer("capteurs_actionneurs",["cadeau",60],0)
-        self.actionneur_cadeaux_actif = False
+    def actionneur_cadeau(self, angle) :
+        if angle == "bas":
+            self.serie.communiquer("capteurs_actionneurs",["cadeau",60],0)
+            self.actionneur_cadeaux_actif = True
+        elif angle == "moyen":
+            self.serie.communiquer("capteurs_actionneurs",["cadeau",85],0)
+            self.actionneur_cadeaux_actif = False
+        elif angle == "haut":
+            self.serie.communiquer("capteurs_actionneurs",["cadeau",110],0)
+            self.actionneur_cadeaux_actif = True
 
     def gonfler_ballon(self) :
         self.serie.communiquer("capteurs_actionneurs",["dist",self.config["delai_distributeur"]], 0)
@@ -44,7 +39,7 @@ class Actionneurs :
     def enfoncer_bougie(self, enHaut) :
         if enHaut:
             self.log.debug("Enfonce une bougie avec l'actionneur du haut")
-            self.serie.communiquer("capteurs_actionneurs",["haut",160],0)
+            self.serie.communiquer("capteurs_actionneurs",["haut",170],0)
         else:
             self.log.debug("Enfonce une bougie avec l'actionneur du bas")
             self.serie.communiquer("capteurs_actionneurs",["bas",180],0)

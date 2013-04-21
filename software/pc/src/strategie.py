@@ -143,7 +143,7 @@ class Strategie:
             5*score/duree_script,
 
             # On évite l'ennemi s'il est proche de l'objectif (gaussienne)
-            -10*math.exp(-distance_ennemi**2/1000000),
+            -10*math.exp(-(distance_ennemi**4)/(5*10**11)),
             
             # Echecs précédents
             5*note_echecs,

@@ -1,5 +1,10 @@
 from random import randint
 import time
+try:
+    import pygame.mixer
+    pygame_ok = True
+except:
+    pygame_ok = False
 
 class Son:
     """
@@ -8,8 +13,8 @@ class Son:
     def __init__(self, config, log):
         self.log = log
         self.config = config
-        try:
-            import pygame.mixer
+        if pygame_ok and self.config["musique"]:
+            self.log.debug("Chargement sons.")
             pygame.init()
             self.sons = {
                 # Ennemi détecté
@@ -30,11 +35,13 @@ class Son:
                 # Random
                 "random": [pygame.mixer.Sound("sons/Space_core_space04_fr.wav"), pygame.mixer.Sound("sons/Space_core_space21_fr.wav"), pygame.mixer.Sound("sons/GLaDOS_potatos_longfall_speech03_fr.wav")]
         }
-        except:
+            self.log.debug("Sons chargés.")
+        else:
         # Si on a un problème avec pygame, on atteint simplement la musique
             self.config["musique"] = 0
-            self.log.critical("Pygame ou sons introuvable")
-        self.date_dernier = 0
+            if not pygame_ok:
+                self.log.critical("Pygame introuvable (voir http://pythonfun.wordpress.com/2011/08/08/installing-pygame-with-python-3-2-on-ubuntu-11-04/). Service de son ignoré.")
+        self.date_dernier = -100
 
     def jouer(self, id, force=False, enBoucle=False):
         """
