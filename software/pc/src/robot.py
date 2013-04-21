@@ -210,14 +210,19 @@ class Robot(RobotInterface):
         self._consigne_orientation = angle
         self.deplacements.tourner(angle)
         
+        date_debut_boucle = time()
+        duree_max = 10
         #pas de détection de collision dans les rotations
-        while not self._acquittement(detection_collision=False, sans_lever_exception=sans_lever_exception):
+        while time()-date_debut_boucle < duree_max and not self._acquittement(detection_collision=False, sans_lever_exception=sans_lever_exception):
             #vérification des hooks
             infosRobot={"robotX" : self.x,"robotY" : self.y,"robotOrientation" : self.orientation}
             for hook in hooks:
                 hook.evaluate(**infosRobot)
-            
+                
             sleep(self.sleep_milieu_boucle_acquittement)
+
+        if time()-date_debut_boucle >= duree_max:
+            self.log.critical("Boucle infinie durant l'acquittement!")
         
     def _va_au_point(self, x, y, hooks=[], trajectoire_courbe=False, sans_lever_exception = False):
         """
@@ -225,7 +230,6 @@ class Robot(RobotInterface):
         Si le paramètre trajectoire_courbe=False, le robot évite d'effectuer un virage, et donc tourne sur lui meme avant la translation.
         Les hooks sont évalués, et une boucle d'acquittement générique est utilisée.
         """
-            
         #comme à toute consigne initiale de mouvement, le robot est débloqué
         self.blocage = False
         
@@ -238,7 +242,6 @@ class Robot(RobotInterface):
         delta_y = self.consigne_y-self.y
         distance = round(math.sqrt(delta_x**2 + delta_y**2),2)
         angle = round(math.atan2(delta_y,delta_x),6)
-        
         #initialisation de la marche dans mise_a_jour_consignes
         self.maj_marche_arriere = self.marche_arriere
         self.maj_ancien_angle = angle
@@ -418,13 +421,11 @@ class Robot(RobotInterface):
         
         #vitesses pour le parcours de l'arc de cercle
         #TODO : passer ca dans déplacements ?
-        self.set_vitesse_translation(2)
+        self.set_vitesse_translation(1)
         if "asservissement" in self.config["cartes_serie"]:
             #ATTENTION : cette vitesse est ajustée pour un rayon donné ! (celui utilisé pour enfoncer les bougies)
-            self.set_vitesse_rotation(int(self.config["vitesse_rot_arc_cercle"]))
-        else:
-            self.set_vitesse_translation(2)
-            
+            #self.set_vitesse_rotation(int(self.config["vitesse_rot_arc_cercle"]))
+            self.set_vitesse_rotation(int(max(110-0.21*(r-478), 30)))
         
         while 1:
             #calcul de l'angle de A (point de départ)
@@ -624,7 +625,7 @@ class Robot(RobotInterface):
                 raise ExceptionMouvementImpossible(self)
             
             
-    def arc_de_cercle(self, point_destination, hooks=[]):
+    def arc_de_cercle(self, point_destination, hooks=[], nombre_tentatives=2):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.
         Elle permet d'effectuer un arc de cercle à partir de la position courante vers le projetté de M sur le cercle passant par la position courante.
@@ -648,12 +649,29 @@ class Robot(RobotInterface):
         #détection d'un robot adverse
         except ExceptionCollision:
             self.stopper()
-            raise ExceptionMouvementImpossible(self)
-        
+            if nombre_tentatives > 0:
+                self.log.warning("attente avant nouvelle tentative... reste {0} tentative(s)".format(nombre_tentatives))
+                sleep(1)
+                self.arc_de_cercle(point_destination, hooks, nombre_tentatives-1)
+            else:
+                raise ExceptionMouvementImpossible(self)
+            
         finally:
             self.disque_tolerance_consigne = self.config["disque_tolerance_maj"]
             self.marche_arriere = mem_marche_arriere
         
+    def initialiser_actionneurs(self):
+        """
+        Fonction appelée en début de match qui rentre les actionneurs et monte les ascenseurs
+        """
+        self.actionneurs.actionneurs_bougie(True, "bas")        
+        self.actionneurs.actionneurs_bougie(False, "bas")        
+        self.actionneurs.actionneur_cadeau("bas")
+        self.actionneurs.actionneurs_ascenseur(True, "ouvert")
+        self.actionneurs.actionneurs_ascenseur(False, "ouvert")
+        self.actionneurs.altitude_ascenseur(True, "bas")
+        self.actionneurs.altitude_ascenseur(False, "haut")
+
     def recaler(self):
         """
         Recalage du robot sur les bords de la table, pour initialiser ses coordonnées.
@@ -662,7 +680,7 @@ class Robot(RobotInterface):
         self.log.debug("début du recalage")
         
         #on recule lentement jusqu'à bloquer sur le bord
-        self.set_vitesse_translation(1)
+        self.set_vitesse_translation(2)
         self.set_vitesse_rotation(1)
         self.marche_arriere = True
         self.avancer(-1000, retenter_si_blocage = False, sans_lever_exception = True)
@@ -679,6 +697,10 @@ class Robot(RobotInterface):
         else:
             self.x = self.config["table_x"]/2. - self.config["largeur_robot"]/2.
             self.orientation = math.pi+self.config["epsilon_angle"]
+
+        # Ce sleep est nécessaire. En effet, la mise à jour de self.x et de self.y n'est pas immédiate (on passe par la carte d'asserv et tout) et sans sleep la mise à jour se fait pendant l'appel d'avancer, ce qui la fait bugger. Plus exactement, avancer transforme une distance en un point en se basant sur l'ancienne position (la mise à jour n'étant pas encore effectuée), puis va_au_point retransforme ce point en distance, mais cette fois en basant sur la position du robot mise à jour, ce qui fait que la distance obtenue au final n'est pas celle donnée au départ. Normalement, ce problème n'arrive que quand on modifie robot.x et robot.y, c'est-à-dire dans la méthode recaler, là où un sleep n'est pas trop ennuyeux
+        sleep(1)
+
         #on avance doucement, en réactivant l'asservissement en rotation
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
@@ -688,17 +710,16 @@ class Robot(RobotInterface):
         #on se tourne pour le deuxième recalage
         #on se dirige vers le côté le plus proche
         if self.y < self.config["table_y"]/2:
-            self.log.critical("En bas!")
             cote_bas = True
-            self.tourner(-math.pi/2, sans_lever_exception = True)
-        else:
-            self.log.critical("En haut!")
-            cote_bas = False
             self.tourner(math.pi/2, sans_lever_exception = True)
+        else:
+            cote_bas = False
+            self.tourner(-math.pi/2, sans_lever_exception = True)
         
         #on recule lentement jusqu'à bloquer sur le bord
         self.marche_arriere = True
-        self.avancer(-1000, retenter_si_blocage = False, sans_lever_exception = True)
+        self.set_vitesse_translation(2)
+        self.avancer(-1300, retenter_si_blocage = False, sans_lever_exception = True)
         
         #on désactive l'asservissement en rotation pour se mettre parallèle au bord
         self.deplacements.desactiver_asservissement_rotation()
@@ -711,17 +732,20 @@ class Robot(RobotInterface):
         else:
             self.y = self.config["table_y"]-self.config["largeur_robot"]/2.
         
+        #nécessaire, cf plus haut
+        sleep(1)
+
         #on avance doucement, en réactivant l'asservissement en rotation
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
-        self.set_vitesse_translation(2)
+        self.set_vitesse_translation(1)
         self.avancer(abs(self.y-400*(self.config["case_depart_principal"]-0.5)), retenter_si_blocage = False, sans_lever_exception = True)
         
         #on prend l'orientation initiale pour le match (la symétrie est automatique pour les déplacements)
         self.tourner(math.pi, sans_lever_exception = True)
 
         #on recule lentement jusqu'à bloquer sur le bord
-        self.set_vitesse_translation(1)
+        self.set_vitesse_translation(2)
         self.set_vitesse_rotation(1)
         self.marche_arriere = True
         self.avancer(-1000, retenter_si_blocage = False, sans_lever_exception = True)
@@ -737,6 +761,9 @@ class Robot(RobotInterface):
         else:
             self.orientation = math.pi+self.config["epsilon_angle"]
             self.x = self.config["table_x"]/2. - self.config["largeur_robot"]/2.
+
+        # néessaire, cf plus haut
+        sleep(1)
 
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
@@ -761,51 +788,42 @@ class Robot(RobotInterface):
         self.deplacements.set_vitesse_rotation(valeur)
         self.vitesse_rotation = int(valeur)
 
-    def traiter_bougie(self, enHaut):
+    def actionneurs_bougie(self, en_haut, angle) : 
         """
-        teste la couleur puis enfonce si c'est la bonne couleur
+        Commande les actionneurs bougie
         """
-        self.actionneurs.enfoncer_bougie(enHaut)
-
-    def initialiser_bras_bougie(self,enHaut) : 
-        """
-        Ouvre les bras qui soufflent les bougies
-        """    
-        self.actionneurs.initialiser_bras_bougie(enHaut)
-
-    def rentrer_bras_bougie(self) : 
-        """
-        Rentre les bras qui ont soufflé les bougies
-        """
-        self.actionneurs.rentrer_bras_bougie()
-
-    def ouvrir_cadeau(self):
-        """
-        Ouvre le bras qui pousse le cadeau
-        """
-        self.log.debug("ouverture du bras cadeaux")
-        self.actionneurs.ouvrir_cadeau()
+        if en_haut:
+            self.log.debug("Bras bougie haut à la position: "+angle)
+        else:
+            self.log.debug("Bras bougie bas à la position: "+angle)
+        self.actionneurs.actionneurs_bougie( en_haut, angle)
         
-    def fermer_cadeau(self):
+    def actionneur_cadeau(self, angle):
         """
-        Ferme le bras qui a poussé le cadeau, en vue d'un prochain cadeau
+        Commande l'actionneur cadeau
         """
-        self.log.debug("fermeture du bras cadeaux")
-        self.actionneurs.fermer_cadeau()
-        
-    def replier_cadeau(self):
-        """
-        Replie l'actionneur cadeau
-        """
-        self.log.debug("replie du bras cadeaux")
-        self.actionneurs.replier_cadeau()
+        self.log.debug("Bras cadeaux à la position: "+angle)
+        self.actionneurs.actionneur_cadeau(angle)
  
-    def lever_ascenseur(self, avant):
-        self.actionneurs.ascenseur_aller_en_haut(avant)
+    def actionneurs_ascenseur(self, avant, position):
+        """
+        Commande l'actionneur ascenseur
+        """
+        if avant:
+            self.log.debug("Ascenseur avant en position: "+position)
+        else:
+            self.log.debug("Ascenseur arrière en position: "+position)
+        self.actionneurs.actionneurs_ascenseur(avant, position)
 
-    def ranger_ascenseur(self, avant):
-        self.actionneurs.ascenseur_aller_en_bas(avant)
-        self.actionneurs.ascenseur_serrer(avant)
+    def altitude_ascenseur(self, avant, hauteur):
+        """
+        Commande l'altitude de l'ascenseur
+        """
+        if avant:
+            self.log.debug("Ascenseur avant en position: "+hauteur)
+        else:
+            self.log.debug("Ascenseur arrière en position: "+hauteur)
+        self.actionneurs.altitude_ascenseur(avant, hauteur)
 
     def recuperer_verre(self, avant):
         """
@@ -825,9 +843,13 @@ class Robot(RobotInterface):
             raise ExceptionVerreAbsent
         # Lancement des actionneurs
         else:
-            self.actionneurs.ascenseur_deserrer(avant)
+            if avant:
+                self.avancer(-10)
+            else:
+                self.avancer(10)
+            self.actionneurs.actionneur_ascenseur(avant, "ouvert")
             self.actionneurs.ascenseur_aller_en_bas(avant)
-            self.actionneurs.ascenseur_serrer(avant)
+            self.actionneurs.actionneur_ascenseur(avant, "fermé")
             self.lever_ascenseur(avant)
         
             # Mise à jour du total de verres portés
@@ -873,9 +895,9 @@ class RobotSimulation(Robot):
         self._afficher_hooks(hooks)
         super().va_au_point(point, hooks, trajectoire_courbe=trajectoire_courbe, nombre_tentatives=nombre_tentatives, retenter_si_blocage=retenter_si_blocage, symetrie_effectuee=symetrie_effectuee, sans_lever_exception=sans_lever_exception)
         
-    def arc_de_cercle(self, point, hooks=[]):
+    def arc_de_cercle(self, point, hooks=[], nombre_tentatives=2):
         self._afficher_hooks(hooks)
-        super().arc_de_cercle(point, hooks)
+        super().arc_de_cercle(point, hooks, nombre_tentatives)
         
     def _afficher_hooks(self, hooks):
         self.simulateur.clearEntity("hook")
@@ -894,7 +916,10 @@ class RobotSimulation(Robot):
                 pt_centre = Point(0 + rayon_centre*math.cos(hook.angle_hook), 2000 + rayon_centre*math.sin(hook.angle_hook))
                 pt_ext    = Point(0 + 800*math.cos(hook.angle_hook), 2000 + 800*math.sin(hook.angle_hook))
                 self.simulateur.drawLine(pt_centre.x, pt_centre.y, pt_ext.x, pt_ext.y, "black", "hook")
-        
+                
+            elif isinstance(hook, hooks_module.HookDroiteVerticale):
+                self.simulateur.drawLine(hook.posX, 0, hook.posX, 400, "black", "hook")
+                
 class ExceptionVerreAbsent(Exception):
     """
     Exception levée lorsqu'un verre est absent

@@ -66,6 +66,22 @@ class HookAngleGateau(Hook):
         if (self.vers_x_croissant and erreur > 0) or (not self.vers_x_croissant and erreur < 0):
             self.declencher()
             
+class HookDroiteVerticale(Hook):
+    """
+    Classe des Hooks ayant pour condition le passage d'une droite verticale de référence. 
+    La méthode evaluate() effectue l'action (callback) si 
+    le robot dépasse la ligne 
+    dans le sens `vers_x_croissant` (booléen)
+    """
+    def __init__(self, config, log, posX, vers_x_croissant):
+        Hook.__init__(self, config, log)
+        self.posX = posX
+        self.vers_x_croissant = vers_x_croissant
+        
+    def evaluate(self, robotX, **useless):
+        if (self.vers_x_croissant and robotX > self.posX) or (not self.vers_x_croissant and robotX < self.posX):
+            self.declencher()
+            
 class HookGenerator():
     """
     Cette classe est chargée en tant que service dans le container.
@@ -89,6 +105,12 @@ class HookGenerator():
         Création d'un hook de dépassement d'une droite autour du gateau
         """
         return HookAngleGateau(self.config, self.log, angle, vers_x_croissant)
+        
+    def hook_droite_verticale(self, posX, vers_x_croissant):
+        """
+        Création d'un hook de dépassement d'une droite verticale
+        """
+        return HookDroiteVerticale(self.config, self.log, posX, vers_x_croissant)
         
     def callback(self, fonction, arguments=(), unique=True):
         return Callback(fonction, arguments, unique)

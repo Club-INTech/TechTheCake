@@ -115,7 +115,7 @@ class ScriptBougies(Script):
         
         # Prise en compte actionneur bas / haut
         self.delta_angle_actionneur_haut = -80 / rayon_bras # Actionneur haut à l'avant du robot
-        self.delta_angle_actionneur_bas =   80 / rayon_bras # Actionneur bas à l'arrière du robot
+        self.delta_angle_actionneur_bas =   30 / rayon_bras # Actionneur bas à l'arrière du robot
         
         #constantes d'écart à la bougie (valeurs absolues)
         self.delta_abs_angle_baisser_bras = 15 / rayon_bras
@@ -131,7 +131,7 @@ class ScriptBougies(Script):
         self.delta_angle_entree_rc = math.acos((500+self.distance_entree)/(500+self.distance_entree_rc))
         
         #angle maximal du point d'entrée pour ne pas toucher les bords de table
-        self.angle_max = math.asin((self.config["rayon_robot"] + 10) / (500 + self.config["distance_au_gateau"] + self.config["longueur_robot"]/2))
+        self.angle_max = math.asin((self.config["rayon_robot"] + 0) / (500 + self.config["distance_au_gateau"] + self.config["longueur_robot"]/2))
         
     def _point_polaire(self, angle, distance_gateau):
         """
@@ -203,8 +203,8 @@ class ScriptBougies(Script):
         self.robot.recherche_de_chemin(proche_entree, recharger_table=False)
 
         # Initialisation des deux bras
-        self.robot.initialiser_bras_bougie(True)
-        self.robot.initialiser_bras_bougie(False)
+        self.robot.actionneurs_bougie(True, "haut")
+        self.robot.actionneurs_bougie(False, "haut")
         
         # Déplacement au point d'entrée
         orientation_tangente = self.info_versions[version]["angle_entree"] + math.pi/2
@@ -237,13 +237,13 @@ class ScriptBougies(Script):
                 
             # Baisser le bras
             hook_baisser_bras = self.hookGenerator.hook_angle_gateau(angle_baisser_bras, vers_x_croissant)
-            hook_baisser_bras += self.hookGenerator.callback(self.robot.traiter_bougie, (bougie["enHaut"],))
+            hook_baisser_bras += self.hookGenerator.callback(self.robot.actionneurs_bougie, (bougie["enHaut"],"moyen"))
             hook_baisser_bras += self.hookGenerator.callback(self.table.bougie_recupere, (bougie,))
             hooks.append(hook_baisser_bras)
             
             # Lever le bras (On relève seulement celui qui a été abaissé)
             hook_baisser_bras = self.hookGenerator.hook_angle_gateau(angle_lever_bras, vers_x_croissant)
-            hook_baisser_bras += self.hookGenerator.callback(self.robot.initialiser_bras_bougie, (bougie["enHaut"],))
+            hook_baisser_bras += self.hookGenerator.callback(self.robot.actionneurs_bougie, (bougie["enHaut"],"haut"))
             hooks.append(hook_baisser_bras)
         
         # Lancement de l'arc de cercle
@@ -256,6 +256,9 @@ class ScriptBougies(Script):
         
         orientation_normale = math.atan2(self.robot.y - 2000, self.robot.x - 0)
         distance_degagement = 2*self.config["rayon_robot"]
+        
+        self.robot.set_vitesse_translation(1)
+        self.robot.set_vitesse_rotation(1)
         
         if self.robot.actionneur_bougies_sorti():
             self.log.debug("Fin du script bougies : repli des actionneurs bougies.")
@@ -275,7 +278,8 @@ class ScriptBougies(Script):
                         orientation_normale = math.atan2(self.robot.y - 2000, self.robot.x - 0)
                         self.robot.tourner(orientation_normale)
                     finally:
-                        self.robot.rentrer_bras_bougie()
+                        self.robot.actionneurs_bougie(True, "bas")
+                        self.robot.actionneurs_bougie(False, "bas")
         else:
             self.log.debug("Fin du script bougies : les actionneurs bougies sont déjà rentrés.")
         
@@ -300,7 +304,7 @@ class ScriptCadeaux(Script):
         
         # Déplacement proche du point d'entrée avec recherche de chemin
         self.robot.marche_arriere = False
-        self.robot.set_vitesse_translation(2)
+        self.robot.set_vitesse_translation(65)
         self.robot.set_vitesse_rotation(1)
         self.robot.recherche_de_chemin(self.info_versions[version]["point_entree_recherche_chemin"], recharger_table=False)
         
@@ -317,22 +321,22 @@ class ScriptCadeaux(Script):
         
         # Création des hooks pour tous les cadeaux à activer
         hooks = []
-
+        
         # Ouverture du bras en face du cadeau
         for cadeau in self.table.cadeaux_restants():
-            hook_ouverture = self.hookGenerator.hook_position(cadeau["position"] + Point(sens * self.decalage_x_ouvre, self.decalage_y_bord ), tolerance_mm=50, effectuer_symetrie=False)
-            hook_ouverture += self.hookGenerator.callback(self.robot.ouvrir_cadeau)
+            hook_ouverture = self.hookGenerator.hook_droite_verticale(cadeau["position"].x + sens * self.decalage_x_ouvre, vers_x_croissant=1-version)
+            hook_ouverture += self.hookGenerator.callback(self.robot.actionneur_cadeau, ("haut",))
             hook_ouverture += self.hookGenerator.callback(self.table.cadeau_recupere, (cadeau,))
             hooks.append(hook_ouverture)
 
         # Fermeture du bras pendant les "trous" entre cadeaux
         for trou in self.table.trous_cadeaux:
-            hook_fermeture = self.hookGenerator.hook_position(trou + Point(sens * self.decalage_x_ferme, self.decalage_y_bord ), tolerance_mm=50, effectuer_symetrie=False)
-            hook_fermeture += self.hookGenerator.callback(self.robot.fermer_cadeau)
+            hook_fermeture = self.hookGenerator.hook_droite_verticale(trou.x + sens * self.decalage_x_ferme, vers_x_croissant=1-version)
+            hook_fermeture += self.hookGenerator.callback(self.robot.actionneur_cadeau, ("moyen", ))
             hooks.append(hook_fermeture)
 
         # Déplacement le long de la table (peut être un peu trop loin ?)
-        self.robot.set_vitesse_translation(2)
+        self.robot.set_vitesse_translation(65)
         point_sortie = Point(self.info_versions[1-version]["point_entree"].x, self.info_versions[version]["point_entree"].y)
         self.robot.va_au_point(point_sortie, hooks)
         
@@ -343,20 +347,20 @@ class ScriptCadeaux(Script):
             self.log.debug("Fin du script cadeau : repli de l'actionneur cadeaux.")
             self.effectuer_symetrie = False
             try:
-                angle_repli = math.pi/3
+                angle_repli = math.pi/2
                 if self.robot.x > 0:
                     self.robot.tourner(angle_repli)
                 else:
                     self.robot.tourner(-angle_repli)
             finally:
-                self.robot.replier_cadeau()
+                self.robot.actionneur_cadeau("bas")
         else:
             self.log.debug("Fin du script cadeau : l'actionneur cadeaux est déjà rentré.")
 
     def versions(self):
-        self.decalage_x_ouvre = -80
-        self.decalage_x_ferme = -60#350
-        self.decalage_y_bord = self.config["rayon_robot"] + 70
+        self.decalage_x_ouvre = -110
+        self.decalage_x_ferme = -140#350
+        self.decalage_y_bord = self.config["rayon_robot"] + 90
         self.decalage_x_pour_reglette_blanche = 100
         
         cadeaux = self.table.cadeaux_entrees()
@@ -457,7 +461,7 @@ class ScriptRecupererVerres(Script):
         
 
         # On est à distance. On élève l'ascenseur (probable qu'il le soit déjà). On s'avance jusqu'à positionner le verre sous l'ascenseur. Si le verre est présent, on ouvre l'ascenseur, on le descend, on le ferme et on le remonte. Si le verre est absent, on laisse l'ascenseur en haut.
-        self.robot.lever_ascenseur(not self.robot.marche_arriere)
+        self.robot.altitude_ascenseur(not self.robot.marche_arriere, "haut")
         self.robot.va_au_point(destination)
         try:
             self.robot.recuperer_verre(not self.robot.marche_arriere)
@@ -485,8 +489,8 @@ class ScriptRecupererVerres(Script):
          
     def _termine(self):
         # On monte les deux ascenseurs
-        self.robot.lever_ascenseur(True)
-        self.robot.lever_ascenseur(False)
+        self.robot.altitude_ascenseur(True, "haut")
+        self.robot.altitude_ascenseur(False, "haut")
 
         
     @abc.abstractmethod
