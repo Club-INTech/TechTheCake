@@ -844,13 +844,21 @@ class Robot(RobotInterface):
         # Lancement des actionneurs
         else:
             if avant:
-                self.avancer(-10)
+                self.avancer(-30)
             else:
-                self.avancer(10)
-            self.actionneurs.actionneur_ascenseur(avant, "ouvert")
-            self.actionneurs.ascenseur_aller_en_bas(avant)
-            self.actionneurs.actionneur_ascenseur(avant, "fermé")
-            self.lever_ascenseur(avant)
+                self.avancer(30)
+            self.actionneurs.actionneurs_ascenseur(avant, "ouvert")
+            sleep(.3)
+            self.actionneurs.altitude_ascenseur(avant, "bas")
+            sleep(.5)
+            if avant:
+                self.avancer(20)
+            else:
+                self.avancer(-20)
+            sleep(.2)
+            self.actionneurs.actionneurs_ascenseur(avant, "fermé")
+            sleep(.3)
+            self.actionneurs.altitude_ascenseur(avant, "haut")
         
             # Mise à jour du total de verres portés
             super().recuperer_verre(avant)
