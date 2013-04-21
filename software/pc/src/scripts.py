@@ -115,7 +115,7 @@ class ScriptBougies(Script):
         
         # Prise en compte actionneur bas / haut
         self.delta_angle_actionneur_haut = -80 / rayon_bras # Actionneur haut à l'avant du robot
-        self.delta_angle_actionneur_bas =   80 / rayon_bras # Actionneur bas à l'arrière du robot
+        self.delta_angle_actionneur_bas =   30 / rayon_bras # Actionneur bas à l'arrière du robot
         
         #constantes d'écart à la bougie (valeurs absolues)
         self.delta_abs_angle_baisser_bras = 15 / rayon_bras
@@ -131,7 +131,7 @@ class ScriptBougies(Script):
         self.delta_angle_entree_rc = math.acos((500+self.distance_entree)/(500+self.distance_entree_rc))
         
         #angle maximal du point d'entrée pour ne pas toucher les bords de table
-        self.angle_max = math.asin((self.config["rayon_robot"] + 10) / (500 + self.config["distance_au_gateau"] + self.config["longueur_robot"]/2))
+        self.angle_max = math.asin((self.config["rayon_robot"] + 0) / (500 + self.config["distance_au_gateau"] + self.config["longueur_robot"]/2))
         
     def _point_polaire(self, angle, distance_gateau):
         """
@@ -206,6 +206,10 @@ class ScriptBougies(Script):
         self.robot.initialiser_bras_bougie(True)
         self.robot.initialiser_bras_bougie(False)
         
+        #préparation des actionneurs
+        self.robot.initialiser_bras_bougie(True)
+        self.robot.initialiser_bras_bougie(False)
+        
         # Déplacement au point d'entrée
         orientation_tangente = self.info_versions[version]["angle_entree"] + math.pi/2
         self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne=entree, orientation_finale_voulue=orientation_tangente)
@@ -256,6 +260,9 @@ class ScriptBougies(Script):
         
         orientation_normale = math.atan2(self.robot.y - 2000, self.robot.x - 0)
         distance_degagement = 2*self.config["rayon_robot"]
+        
+        self.robot.set_vitesse_translation(1)
+        self.robot.set_vitesse_rotation(1)
         
         if self.robot.actionneur_bougies_sorti():
             self.log.debug("Fin du script bougies : repli des actionneurs bougies.")

@@ -39,7 +39,7 @@ class Actionneurs :
     def enfoncer_bougie(self, enHaut) :
         if enHaut:
             self.log.debug("Enfonce une bougie avec l'actionneur du haut")
-            self.serie.communiquer("capteurs_actionneurs",["haut",160],0)
+            self.serie.communiquer("capteurs_actionneurs",["haut",170],0)
         else:
             self.log.debug("Enfonce une bougie avec l'actionneur du bas")
             self.serie.communiquer("capteurs_actionneurs",["bas",180],0)
