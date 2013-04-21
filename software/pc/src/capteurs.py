@@ -42,10 +42,9 @@ class Capteurs():
             return 3000
 
     def demarrage_match(self):
-        return int(self.serie.communiquer("capteurs_actionneurs",["j"], 1)[0])==1
+        return not int(self.serie.communiquer("capteurs_actionneurs",["j"], 1)[0])==1
         
     def verre_present(self, avant):
-        return True
         if avant:
             return int(self.serie.communiquer("capteurs_actionneurs",["cap_asc_av"], 1)[0])==1
         else:

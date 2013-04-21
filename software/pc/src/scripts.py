@@ -406,10 +406,13 @@ class ScriptRecupererVerres(Script):
     def _constructeur(self):
         # On va un peu trop loin afin de bien caler le verre au fond de l'ascenseur et lui permettre d'appuyer sur l'interrupteur
         self.marge_recuperation = 80
-        self.marge_apres_chemin = self.marge_recuperation + 150
+        self.marge_apres_chemin = self.marge_recuperation + 200
         
     def _execute(self, version):
         
+        self.robot.set_vitesse_translation(1)
+        self.robot.set_vitesse_rotation(1)
+
         # Désactivation de la symétrie
         self.robot.effectuer_symetrie = False
         
@@ -466,7 +469,7 @@ class ScriptRecupererVerres(Script):
         try:
             self.robot.recuperer_verre(not self.robot.marche_arriere)
         except:
-            self.log.warning("Verre absent!")
+            pass
         # Dans tous les cas, que le verre ait été là ou non, on retire le verre de la table
         self.table.verre_recupere(verre)
         

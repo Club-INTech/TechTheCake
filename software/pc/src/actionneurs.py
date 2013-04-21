@@ -50,13 +50,16 @@ class Actionneurs :
                 self.actionneur_bougies_actif = True
 
     def altitude_ascenseur(self, avant, hauteur):
-    #TODO compléter le protocole
         if avant:
-            self.log.debug("ascenseur avant levé")
-            self.serie.communiquer("ascenseur",["ascenseur_avant",hauteur],0)
+            if hauteur == "moyen":
+                self.serie.communiquer("ascenseur",["asc_av","consigne",10],0)
+            else:
+                self.serie.communiquer("ascenseur",["asc_av",hauteur],0)
         else:
-            self.log.debug("ascenseur arrière levé")
-            self.serie.communiquer("ascenseur",["ascenseur_arriere",hauteur],0)
+            if hauteur == "moyen":
+                self.serie.communiquer("ascenseur",["asc_ar","consigne",10],0)
+            else:
+                self.serie.communiquer("ascenseur",["asc_ar",hauteur],0)
 
     def actionneurs_ascenseur(self, avant, position):
         if position == "fermé":
@@ -64,11 +67,16 @@ class Actionneurs :
                 self.serie.communiquer("capteurs_actionneurs",["asc_av",120],0)
             else:
                 self.serie.communiquer("capteurs_actionneurs",["asc_arr",120],0)
+#        elif position == "ouvert":
+#            if avant:
+#                self.serie.communiquer("capteurs_actionneurs",["asc_av",95],0)
+#            else:
+#                self.serie.communiquer("capteurs_actionneurs",["asc_arr",95],0)
         elif position == "ouvert":
             if avant:
-                self.serie.communiquer("capteurs_actionneurs",["asc_av",95],0)
+                self.serie.communiquer("capteurs_actionneurs",["asc_av",85],0)
             else:
-                self.serie.communiquer("capteurs_actionneurs",["asc_arr",95],0)
+                self.serie.communiquer("capteurs_actionneurs",["asc_arr",85],0)
 
 
     def ascenseur_modifier_constantes(self, valeur):
