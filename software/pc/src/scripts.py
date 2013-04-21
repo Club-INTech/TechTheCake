@@ -348,6 +348,13 @@ class ScriptCadeaux(Script):
         # Déplacement le long de la table (peut être un peu trop loin ?)
         self.robot.set_vitesse_translation(65)
         point_sortie = Point(self.info_versions[1-version]["point_entree"].x, self.info_versions[version]["point_entree"].y)
+        
+        """
+        #HACK on fait en 2 segments pour se ré-orienter (pas de correction de trajectoire)
+        if abs(point_sortie.x - self.robot.x) > 1000:
+            point_milieu = Point((point_sortie.x + self.robot.x)/2, (point_sortie.y + self.robot.y)/2)
+            self.robot.va_au_point(point_milieu, hooks)
+        """
         self.robot.va_au_point(point_sortie, hooks)
         
  
