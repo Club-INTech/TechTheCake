@@ -5,7 +5,8 @@ template<class Moteur>
 Ascenseur<Moteur>::Ascenseur():
 	_asservissement(0.01,0,0),
 	_compteur_blocage(0),
-	_codeuse(0)
+	_codeuse(0),
+	_offset(0)
 {
 	_asservissement.valeur_bridage(150);
 }
@@ -28,6 +29,11 @@ void Ascenseur<Moteur>::asservir()
 		++_compteur_blocage;
 		if (_compteur_blocage >= COMPTEUR_BLOCAGE_MAX)
 		{
+			if _asservissement.consigne() == ASCENSEUR_BAS)
+			{
+				_offset += -_codeuse;
+				_codeuse = 0;
+			}
 			_compteur_blocage = 0;
 			_asservissement.consigne(_codeuse);
 		}
@@ -64,7 +70,7 @@ void Ascenseur<Moteur>::consigne(AscenseurPosition consigne)
 template<class Moteur>
 void Ascenseur<Moteur>::changerValeurCodeuse(int32_t position)
 {
-	_codeuse = position;
+	_codeuse = position + _offset;
 }
 
 template<class Moteur>
@@ -78,5 +84,6 @@ int32_t Ascenseur<Moteur>::consigne()
 {
 	return _asservissement.consigne();
 }
+
 template class Ascenseur<Actionneurs::moteur_avant_t>;
 template class Ascenseur<Actionneurs::moteur_arriere_t>;
