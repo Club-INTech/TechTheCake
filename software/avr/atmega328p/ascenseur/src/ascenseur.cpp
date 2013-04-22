@@ -21,18 +21,13 @@ void Ascenseur<Moteur>::asservir()
 
 	// Si blocage moteur
 	derivee_erreur = _asservissement.erreur_d();
-	bouge_pas = (derivee_erreur <= 30) && (derivee_erreur >= -30);
+	bouge_pas = (derivee_erreur <= 10) && (derivee_erreur >= -10);
 	moteur_force = (pwm >= 40) || (pwm <= -40);
 	if (bouge_pas && moteur_force)
 	{
 		++_compteur_blocage;
 		if (_compteur_blocage >= COMPTEUR_BLOCAGE_MAX)
 		{
-			// Recalage si blocage en bas
-			if (_asservissement.consigne() == ASCENSEUR_BAS) // Si l'ascenseur bloc en bas, alors la codeuse est mise à 0
-			{
-				_codeuse = 0;
-			}
 			_compteur_blocage = 0;
 			_asservissement.consigne(_codeuse);
 		}
@@ -78,5 +73,10 @@ int32_t Ascenseur<Moteur>::valeurCodeuse()
 	return _codeuse;
 }
 
+template<class Moteur>
+int32_t Ascenseur<Moteur>::consigne()
+{
+	return _asservissement.consigne();
+}
 template class Ascenseur<Actionneurs::moteur_avant_t>;
 template class Ascenseur<Actionneurs::moteur_arriere_t>;

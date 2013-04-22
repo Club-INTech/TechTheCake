@@ -3,7 +3,7 @@
 
 #include <libintech/asservissement.hpp>
 
-#define COMPTEUR_BLOCAGE_MAX 10 // ~ 1 sec (à vérifier)
+#define COMPTEUR_BLOCAGE_MAX 50 // ~ 1 sec (à vérifier)
 
 enum AscenseurPosition {ASCENSEUR_HAUT = 55000, ASCENSEUR_BAS = -75000};
 
@@ -16,6 +16,7 @@ class Ascenseur
 		void modifierVitesseKpKdKi(uint8_t bridage, float kp, float kd, float ki);
 		void consigne(int32_t);
 		void consigne(AscenseurPosition);
+		int32_t consigne();
 		void changerValeurCodeuse(int32_t);
 		int32_t valeurCodeuse();
 
