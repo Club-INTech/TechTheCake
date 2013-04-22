@@ -24,6 +24,10 @@ void Actionneurs::communiquer(char *ordre)
 	{	
 		ascenseur_arriere.consigne(ASCENSEUR_BAS);
 	}
+	else if (strcmp(ordre, "m") == 0) // Aller en bas
+	{	
+		ascenseur_arriere.consigne(ASCENSEUR_4_VERRES);
+	}
 	else if (strcmp(ordre, "consigne") == 0) // Rentrer une consigne
 	{
 		int32_t consigne;
@@ -53,6 +57,10 @@ void Actionneurs::communiquer(char *ordre)
 		else if (strcmp(ordre, "bas") == 0) // Aller en bas
 		{	
 			ascenseur_avant.consigne(ASCENSEUR_BAS);
+		}
+		else if (strcmp(ordre, "plein") == 0) // Pour 4 verres
+		{	
+			ascenseur_avant.consigne(ASCENSEUR_4_VERRES);
 		}
 		else if (strcmp(ordre, "consigne") == 0) // Rentrer une consigne
 		{
@@ -88,6 +96,10 @@ void Actionneurs::communiquer(char *ordre)
 		else if (strcmp(ordre, "bas") == 0) // Aller en bas
 		{	
 			ascenseur_arriere.consigne(ASCENSEUR_BAS);
+		}
+		else if (strcmp(ordre, "plein") == 0) // Pour 4 verres
+		{	
+			ascenseur_avant.consigne(ASCENSEUR_4_VERRES);
 		}
 		else if (strcmp(ordre, "consigne") == 0) // Rentrer une consigne
 		{

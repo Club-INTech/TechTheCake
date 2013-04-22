@@ -3,7 +3,7 @@
 
 template<class Moteur>
 Ascenseur<Moteur>::Ascenseur():
-	_asservissement(0.01,0,0),
+	_asservissement(0.01,0.0001,0),
 	_compteur_blocage(0),
 	_codeuse(0),
 	_offset(0)
