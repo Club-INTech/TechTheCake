@@ -29,10 +29,9 @@ void Ascenseur<Moteur>::asservir()
 		++_compteur_blocage;
 		if (_compteur_blocage >= COMPTEUR_BLOCAGE_MAX)
 		{
-			if _asservissement.consigne() == ASCENSEUR_BAS)
+			if (_asservissement.consigne() == ASCENSEUR_BAS)
 			{
 				_offset += -_codeuse;
-				_codeuse = 0;
 			}
 			_compteur_blocage = 0;
 			_asservissement.consigne(_codeuse);
