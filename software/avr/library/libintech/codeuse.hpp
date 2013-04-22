@@ -3,7 +3,7 @@
 
 #include "register.hpp"
 
-template<class PinA, class PinB>
+template<class PinA, class PinB, bool DeuxCanaux>
 class Codeuse
 {
 
@@ -20,8 +20,8 @@ public:
 		PinB::set_input();
 
 		// Initialisation interruptions codeurs
-		PinA::set_interrupt();
 		PinB::set_interrupt();
+        if (DeuxCanaux) PinA::set_interrupt();
 
 		mb = PinB::read();
 	}

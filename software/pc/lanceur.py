@@ -9,7 +9,7 @@ builtins.couleur_robot = couleur
 
 #module d'injection de dépendances
 from src.container import *
-from time import time
+from time import time, sleep
 from math import pi
 from outils_maths.point import Point
 
@@ -49,6 +49,9 @@ else:
     robot.y = depart.y
     robot.orientation = 0
 
+#Toujours mettre un sleep après avoir affecté les variables robot.x ou robot.y
+sleep(1)
+
 robot.set_vitesse_translation(2)
 robot.set_vitesse_rotation(2)
 
@@ -57,6 +60,7 @@ if config["cartes_simulation"]==[]:
     simulateur.setRobotPosition(robot.x, robot.y)
 
 if "asservissement" not in config["cartes_simulation"] or "asservissement" in config["cartes_serie"]:
+    robot.initialiser_actionneurs()
     robot.recaler()
     log.debug("Position: "+str(Point(robot.x, robot.y)))
     log.debug("Orientation: "+str(robot.orientation))

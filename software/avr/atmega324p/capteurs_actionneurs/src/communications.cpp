@@ -107,7 +107,6 @@ void Communications::execute(char ordre[])
         }
         else if(strcmp(ordre, "asc_arr") == 0)
         {
-            serie_robot::print(3);
           uint16_t angle;
           serie_robot::read(angle);
           actionneurs.asc_arriere.goTo(angle);

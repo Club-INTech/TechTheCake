@@ -22,25 +22,29 @@ class Capteurs():
             
     def mesurer(self, marche_arriere=False):
 
-        if marche_arriere:
-            capteur_values = self.serie.communiquer("capteurs_actionneurs",["us_arr"], self.nb_capteurs_ultrason_arriere)
-        else:
-            capteur_values = self.serie.communiquer("capteurs_actionneurs",["us_av"], self.nb_capteurs_ultrason_avant)
+        try:
+            if marche_arriere:
+                capteur_values = self.serie.communiquer("capteurs_actionneurs",["us_arr"], self.nb_capteurs_ultrason_arriere)
+            else:
+                capteur_values = self.serie.communiquer("capteurs_actionneurs",["us_av"], self.nb_capteurs_ultrason_avant)
 
-        if marche_arriere:
-            capteur_values = capteur_values + self.serie.communiquer("capteurs_actionneurs",["ir_arr"], self.nb_capteurs_infrarouge_arriere)
-        else:
-            capteur_values = capteur_values + self.serie.communiquer("capteurs_actionneurs",["ir_av"], self.nb_capteurs_infrarouge_avant)
+            if marche_arriere:
+                capteur_values = capteur_values + self.serie.communiquer("capteurs_actionneurs",["ir_arr"], self.nb_capteurs_infrarouge_arriere)
+            else:
+                capteur_values = capteur_values + self.serie.communiquer("capteurs_actionneurs",["ir_av"], self.nb_capteurs_infrarouge_avant)
 
-        capteur_values = [int(i) for i in capteur_values]
-        
-        return sorted(capteur_values, reverse=True)[0]
+            capteur_values = [int(i) for i in capteur_values]
+            
+            return sorted(capteur_values, reverse=True)[0]
+        except:
+            # En cas d'erreur, on renvoie l'infini
+            self.log.warning("Erreur de lecture des capteurs de proximité")
+            return 3000
 
     def demarrage_match(self):
-        return int(self.serie.communiquer("capteurs_actionneurs",["j"], 1)[0])==1
+        return not int(self.serie.communiquer("capteurs_actionneurs",["j"], 1)[0])==1
         
     def verre_present(self, avant):
-        return True
         if avant:
             return int(self.serie.communiquer("capteurs_actionneurs",["cap_asc_av"], 1)[0])==1
         else:

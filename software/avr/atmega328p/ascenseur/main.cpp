@@ -31,6 +31,7 @@ ISR (TIMER1_OVF_vect, ISR_NOBLOCK)
 	get_all(position);
 	actionneurs.ascenseur_arriere.changerValeurCodeuse(position[0]);
 	actionneurs.ascenseur_avant.changerValeurCodeuse(position[1]);
+    
 	actionneurs.ascenseur_arriere.asservir();
 	actionneurs.ascenseur_avant.asservir();
 }

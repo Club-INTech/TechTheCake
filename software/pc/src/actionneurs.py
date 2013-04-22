@@ -15,10 +15,10 @@ class Actionneurs :
     def actionneur_cadeau(self, angle) :
         if angle == "bas":
             self.serie.communiquer("capteurs_actionneurs",["cadeau",60],0)
-            self.actionneur_cadeaux_actif = True
+            self.actionneur_cadeaux_actif = False
         elif angle == "moyen":
             self.serie.communiquer("capteurs_actionneurs",["cadeau",85],0)
-            self.actionneur_cadeaux_actif = False
+            self.actionneur_cadeaux_actif = True
         elif angle == "haut":
             self.serie.communiquer("capteurs_actionneurs",["cadeau",110],0)
             self.actionneur_cadeaux_actif = True
@@ -26,70 +26,58 @@ class Actionneurs :
     def gonfler_ballon(self) :
         self.serie.communiquer("capteurs_actionneurs",["dist",self.config["delai_distributeur"]], 0)
         self.log.debug("Gonflage du ballon")
-        
-    def initialiser_bras_bougie(self, enHaut) : 
-        if enHaut:
-            self.log.debug("Relève l'actionneur bougie du haut")
-            self.serie.communiquer("capteurs_actionneurs",["haut",140],0) # Attention, il ne faut pas les monter trop haut sinon on dépasse la hauteur réglementaire
+
+    def actionneurs_bougie(self, en_haut, angle):
+        if en_haut:
+            if angle == "bas":
+                self.serie.communiquer("capteurs_actionneurs",["haut",240],0)
+                self.actionneur_bougies_actif = False
+            elif angle == "moyen":
+                self.serie.communiquer("capteurs_actionneurs",["haut",180],0)
+                self.actionneur_bougies_actif = True
+            elif angle == "haut":
+                self.serie.communiquer("capteurs_actionneurs",["haut",150],0)
+                self.actionneur_bougies_actif = True
         else:
-            self.log.debug("Relève l'actionneur bougie du bas")
-            self.serie.communiquer("capteurs_actionneurs",["bas",150],0)
-        self.actionneur_bougies_actif = True
+            if angle == "bas":
+                self.serie.communiquer("capteurs_actionneurs",["bas",240],0)
+                self.actionneur_bougies_actif = False
+            elif angle == "moyen":
+                self.serie.communiquer("capteurs_actionneurs",["bas",180],0)
+                self.actionneur_bougies_actif = True
+            elif angle == "haut":
+                self.serie.communiquer("capteurs_actionneurs",["bas",150],0)
+                self.actionneur_bougies_actif = True
 
-    def enfoncer_bougie(self, enHaut) :
-        if enHaut:
-            self.log.debug("Enfonce une bougie avec l'actionneur du haut")
-            self.serie.communiquer("capteurs_actionneurs",["haut",170],0)
-        else:
-            self.log.debug("Enfonce une bougie avec l'actionneur du bas")
-            self.serie.communiquer("capteurs_actionneurs",["bas",180],0)
-        self.actionneur_bougies_actif = True
-
-    def rentrer_bras_bougie(self) : 
-        self.log.debug("Rentre les 2 actionneurs pour bougies")
-        self.serie.communiquer("capteurs_actionneurs",["haut",240],0)
-        self.serie.communiquer("capteurs_actionneurs",["bas",240],0)
-        self.actionneur_bougies_actif = False
-
-    def ascenseur_aller_en_haut(self, avant):
+    def altitude_ascenseur(self, avant, hauteur):
         if avant:
-            self.log.debug("ascenseur avant levé")
-            self.serie.communiquer("ascenseur",["ascenseur_avant","haut"],0)
+            if hauteur == "moyen":
+                self.serie.communiquer("ascenseur",["asc_av","consigne",10],0)
+            else:
+                self.serie.communiquer("ascenseur",["asc_av",hauteur],0)
         else:
-            self.log.debug("ascenseur arrière levé")
-            self.serie.communiquer("ascenseur",["ascenseur_arriere","haut"],0)
- 
-    def ascenseur_aller_en_bas(self, avant):
-        if avant:
-            self.log.debug("ascenseur avant baissé")
-            self.serie.communiquer("ascenseur",["ascenseur_avant","bas"],0)
-        else:
-            self.log.debug("ascenseur arrière baissé")
-            self.serie.communiquer("ascenseur",["ascenseur_arriere","bas"],0)
+            if hauteur == "moyen":
+                self.serie.communiquer("ascenseur",["asc_ar","consigne",10],0)
+            else:
+                self.serie.communiquer("ascenseur",["asc_ar",hauteur],0)
 
-    def ascenseur_ranger(self, avant):
-        if avant:
-            self.log.debug("ascenseur avant rangé")
-            self.serie.communiquer("ascenseur",["ascenseur_avant","g",0,180],0)
-        else:
-            self.log.debug("ascenseur arrière rangé")
-            self.serie.communiquer("ascenseur",["ascenseur_arriere","g",0,180],0)
+    def actionneurs_ascenseur(self, avant, position):
+        if position == "fermé":
+            if avant:
+                self.serie.communiquer("capteurs_actionneurs",["asc_av",120],0)
+            else:
+                self.serie.communiquer("capteurs_actionneurs",["asc_arr",120],0)
+#        elif position == "ouvert":
+#            if avant:
+#                self.serie.communiquer("capteurs_actionneurs",["asc_av",95],0)
+#            else:
+#                self.serie.communiquer("capteurs_actionneurs",["asc_arr",95],0)
+        elif position == "ouvert":
+            if avant:
+                self.serie.communiquer("capteurs_actionneurs",["asc_av",85],0)
+            else:
+                self.serie.communiquer("capteurs_actionneurs",["asc_arr",85],0)
 
-    def ascenseur_serrer(self, avant):
-        if avant:
-            self.log.debug("ascenseur avant serré")
-            self.serie.communiquer("capteurs_actionneurs",["asc_av",130],0)
-        else:
-            self.log.debug("ascenseur arrière serré")
-            self.serie.communiquer("capteurs_actionneurs",["asc_arr",130],0)
-
-    def ascenseur_deserrer(self, avant):
-        if avant:
-            self.log.debug("ascenseur avant déserré")
-            self.serie.communiquer("capteurs_actionneurs",["asc_av",95],0)
-        else:
-            self.log.debug("ascenseur arrière déserré")
-            self.serie.communiquer("capteurs_actionneurs",["asc_arr",95],0)
 
     def ascenseur_modifier_constantes(self, valeur):
         """

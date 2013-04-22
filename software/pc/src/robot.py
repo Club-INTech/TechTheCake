@@ -210,14 +210,19 @@ class Robot(RobotInterface):
         self._consigne_orientation = angle
         self.deplacements.tourner(angle)
         
+        date_debut_boucle = time()
+        duree_max = 10
         #pas de détection de collision dans les rotations
-        while not self._acquittement(detection_collision=False, sans_lever_exception=sans_lever_exception):
+        while time()-date_debut_boucle < duree_max and not self._acquittement(detection_collision=False, sans_lever_exception=sans_lever_exception):
             #vérification des hooks
             infosRobot={"robotX" : self.x,"robotY" : self.y,"robotOrientation" : self.orientation}
             for hook in hooks:
                 hook.evaluate(**infosRobot)
-            
+                
             sleep(self.sleep_milieu_boucle_acquittement)
+
+        if time()-date_debut_boucle >= duree_max:
+            self.log.critical("Boucle infinie durant l'acquittement!")
         
     def _va_au_point(self, x, y, hooks=[], trajectoire_courbe=False, sans_lever_exception = False):
         """
@@ -646,7 +651,7 @@ class Robot(RobotInterface):
             self.stopper()
             if nombre_tentatives > 0:
                 self.log.warning("attente avant nouvelle tentative... reste {0} tentative(s)".format(nombre_tentatives))
-                sleep(1)
+                sleep(2)
                 self.arc_de_cercle(point_destination, hooks, nombre_tentatives-1)
             else:
                 raise ExceptionMouvementImpossible(self)
@@ -655,6 +660,18 @@ class Robot(RobotInterface):
             self.disque_tolerance_consigne = self.config["disque_tolerance_maj"]
             self.marche_arriere = mem_marche_arriere
         
+    def initialiser_actionneurs(self):
+        """
+        Fonction appelée en début de match qui rentre les actionneurs et monte les ascenseurs
+        """
+        self.actionneurs.actionneurs_bougie(True, "bas")        
+        self.actionneurs.actionneurs_bougie(False, "bas")        
+        self.actionneurs.actionneur_cadeau("bas")
+        self.actionneurs.actionneurs_ascenseur(True, "ouvert")
+        self.actionneurs.actionneurs_ascenseur(False, "ouvert")
+        self.actionneurs.altitude_ascenseur(True, "bas")
+        self.actionneurs.altitude_ascenseur(False, "haut")
+
     def recaler(self):
         """
         Recalage du robot sur les bords de la table, pour initialiser ses coordonnées.
@@ -702,7 +719,7 @@ class Robot(RobotInterface):
         #on recule lentement jusqu'à bloquer sur le bord
         self.marche_arriere = True
         self.set_vitesse_translation(2)
-        self.avancer(-1000, retenter_si_blocage = False, sans_lever_exception = True)
+        self.avancer(-1300, retenter_si_blocage = False, sans_lever_exception = True)
         
         #on désactive l'asservissement en rotation pour se mettre parallèle au bord
         self.deplacements.desactiver_asservissement_rotation()
@@ -771,23 +788,15 @@ class Robot(RobotInterface):
         self.deplacements.set_vitesse_rotation(valeur)
         self.vitesse_rotation = int(valeur)
 
-    def traiter_bougie(self, enHaut):
+    def actionneurs_bougie(self, en_haut, angle) : 
         """
-        teste la couleur puis enfonce si c'est la bonne couleur
+        Commande les actionneurs bougie
         """
-        self.actionneurs.enfoncer_bougie(enHaut)
-
-    def initialiser_bras_bougie(self,enHaut) : 
-        """
-        Ouvre les bras qui soufflent les bougies
-        """    
-        self.actionneurs.initialiser_bras_bougie(enHaut)
-
-    def rentrer_bras_bougie(self) : 
-        """
-        Rentre les bras qui ont soufflé les bougies
-        """
-        self.actionneurs.rentrer_bras_bougie()
+        if en_haut:
+            self.log.debug("Bras bougie haut à la position: "+angle)
+        else:
+            self.log.debug("Bras bougie bas à la position: "+angle)
+        self.actionneurs.actionneurs_bougie( en_haut, angle)
         
     def actionneur_cadeau(self, angle):
         """
@@ -796,12 +805,25 @@ class Robot(RobotInterface):
         self.log.debug("Bras cadeaux à la position: "+angle)
         self.actionneurs.actionneur_cadeau(angle)
  
-    def lever_ascenseur(self, avant):
-        self.actionneurs.ascenseur_aller_en_haut(avant)
+    def actionneurs_ascenseur(self, avant, position):
+        """
+        Commande l'actionneur ascenseur
+        """
+        if avant:
+            self.log.debug("Ascenseur avant en position: "+position)
+        else:
+            self.log.debug("Ascenseur arrière en position: "+position)
+        self.actionneurs.actionneurs_ascenseur(avant, position)
 
-    def ranger_ascenseur(self, avant):
-        self.actionneurs.ascenseur_aller_en_bas(avant)
-        self.actionneurs.ascenseur_serrer(avant)
+    def altitude_ascenseur(self, avant, hauteur):
+        """
+        Commande l'altitude de l'ascenseur
+        """
+        if avant:
+            self.log.debug("Ascenseur avant en position: "+hauteur)
+        else:
+            self.log.debug("Ascenseur arrière en position: "+hauteur)
+        self.actionneurs.altitude_ascenseur(avant, hauteur)
 
     def recuperer_verre(self, avant):
         """
@@ -822,13 +844,21 @@ class Robot(RobotInterface):
         # Lancement des actionneurs
         else:
             if avant:
-                self.avancer(-10)
+                self.avancer(-30)
             else:
-                self.avancer(10)
-            self.actionneurs.ascenseur_deserrer(avant)
-            self.actionneurs.ascenseur_aller_en_bas(avant)
-            self.actionneurs.ascenseur_serrer(avant)
-            self.lever_ascenseur(avant)
+                self.avancer(30)
+            self.actionneurs.actionneurs_ascenseur(avant, "ouvert")
+            sleep(.3)
+            self.actionneurs.altitude_ascenseur(avant, "bas")
+            sleep(.5)
+            if avant:
+                self.avancer(20)
+            else:
+                self.avancer(-20)
+            sleep(.2)
+            self.actionneurs.actionneurs_ascenseur(avant, "fermé")
+            sleep(.3)
+            self.actionneurs.altitude_ascenseur(avant, "haut")
         
             # Mise à jour du total de verres portés
             super().recuperer_verre(avant)
