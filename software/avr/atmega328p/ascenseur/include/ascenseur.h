@@ -25,6 +25,7 @@ class Ascenseur
 		Asservissement _asservissement;
 		int8_t _compteur_blocage;
 		int32_t _codeuse;
+		int32_t _offset;
 };
 
 #endif
