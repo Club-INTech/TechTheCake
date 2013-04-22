@@ -709,7 +709,7 @@ class Robot(RobotInterface):
 
         #on se tourne pour le deuxième recalage
         #on se dirige vers le côté le plus proche
-        if self.y < self.config["table_y"]/2:
+        if self.config["case_depart_principal"] <= 3:
             cote_bas = True
             self.tourner(math.pi/2, sans_lever_exception = True)
         else:
@@ -718,8 +718,11 @@ class Robot(RobotInterface):
         
         #on recule lentement jusqu'à bloquer sur le bord
         self.marche_arriere = True
+        self.set_vitesse_translation(1)
+        self.avancer(-abs(self.y-400*(self.config["case_depart_principal"]-0.5))+100, retenter_si_blocage = False, sans_lever_exception = True)
+
         self.set_vitesse_translation(2)
-        self.avancer(-1300, retenter_si_blocage = False, sans_lever_exception = True)
+        self.avancer(-300, retenter_si_blocage = False, sans_lever_exception = True)
         
         #on désactive l'asservissement en rotation pour se mettre parallèle au bord
         self.deplacements.desactiver_asservissement_rotation()
@@ -745,10 +748,11 @@ class Robot(RobotInterface):
         self.tourner(math.pi, sans_lever_exception = True)
 
         #on recule lentement jusqu'à bloquer sur le bord
-        self.set_vitesse_translation(2)
         self.set_vitesse_rotation(1)
         self.marche_arriere = True
-        self.avancer(-1000, retenter_si_blocage = False, sans_lever_exception = True)
+        self.avancer(-400, retenter_si_blocage = False, sans_lever_exception = True)
+        self.set_vitesse_translation(2)
+        self.avancer(-300, retenter_si_blocage = False, sans_lever_exception = True)
         
         #on désactive l'asservissement en rotation pour se mettre parallèle au bord
         self.deplacements.desactiver_asservissement_rotation()
@@ -880,6 +884,8 @@ class Robot(RobotInterface):
             self.log.debug("Dépot de la pile de verres à l'arrière.")
                 
         # Lancement des actionneurs
+        self.actionneurs.actionneurs_ascenseur(avant, "ouvert")
+        
         
         # Mise à jour du total de verres portés
         super().deposer_pile(avant)
