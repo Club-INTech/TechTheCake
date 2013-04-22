@@ -6,7 +6,6 @@
 #include "actionneurs.h"
 #include "capteurs.h"
 
-
 class Communications
 {
 	public:

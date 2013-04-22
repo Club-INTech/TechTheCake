@@ -39,6 +39,8 @@ ISR(TIMER0_OVF_vect) //overflow du timer 2, qui appelle le refresh d'un ou des c
     }
     overflow++;
     overflow%=5;
+
+    communications.capteurs.maj();
 }
 
 ISR(PCINT0_vect)

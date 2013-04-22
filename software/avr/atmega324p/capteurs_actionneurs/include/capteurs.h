@@ -9,6 +9,8 @@
 #define NB_INFRAROUGE_AVANT     1
 #define NB_INFRAROUGE_ARRIERE   1
 
+#define TAILLE_BUFFER_ASC   50
+
 /**
  * Gestion des actionneurs
  * 
@@ -32,6 +34,13 @@ class Capteurs
 
 	public:
 		Capteurs();
+        void maj();
+        uint8_t ascenseur_avant();
+        uint8_t ascenseur_arriere();
+
+    private:
+        uint8_t bufferAscenseurAvant[TAILLE_BUFFER_ASC];
+        uint8_t bufferAscenseurArriere[TAILLE_BUFFER_ASC];
 
 };
 
