@@ -248,13 +248,13 @@ class ScriptBougies(Script):
         
         #on enfonce les bougies extremales si possible (l'actionneur du haut pour celle des x petits, celui du bas pour x grands)
         if self.table.bougies_entrees(self.couleur_a_traiter)[version]["id"] == 2:
-            self.robot.traiter_bougie(True)
+            self.robot.actionneurs_bougie(True, "moyen")
             sleep(0.5)
-            self.robot.initialiser_bras_bougie(True)
+            self.robot.actionneurs_bougie(True, "haut")
         elif self.table.bougies_entrees(self.couleur_a_traiter)[version]["id"] == 17:
-            self.robot.traiter_bougie(False)
+            self.robot.actionneurs_bougie(False, "moyen")
             sleep(0.5)
-            self.robot.initialiser_bras_bougie(False)
+            self.robot.actionneurs_bougie(False, "haut")
             
         # Lancement de l'arc de cercle
         self.robot.marche_arriere = self.info_versions[version]["marche_arriere"]
@@ -472,7 +472,9 @@ class ScriptRecupererVerres(Script):
         """
         destination = self._point_devant_verre(verre["position"], self.marge_recuperation)
         #Je croyais qu'on remplissait un côté puis l'autre?
-        self.robot.marche_arriere = not self.robot.places_disponibles(True)
+
+        self.robot.marche_arriere = self.robot.places_disponibles(True)
+#        self.robot.marche_arriere = not self.robot.places_disponibles(True)
 #        mieux_en_arriere = self.robot.marche_arriere_est_plus_rapide(destination)
 #        if self.robot.places_disponibles(not mieux_en_arriere):
 #            self.robot.marche_arriere = mieux_en_arriere
