@@ -115,15 +115,15 @@ class ProtocoleVirtuelCapteursActionneurs:
         return [self._valeur_capteur(1)]
 
     def j(self):
-        #jumper
-        return [0]
+        #jumper (jumper présent)
+        return [1]
 
     def cap_asc_av(self):
-        #capteur de l'ascenseur avant
+        #capteur de l'ascenseur avant (verre présent)
         return [1]
 
     def cap_asc_arr(self):
-        #capteur de l'ascenseur arrière
+        #capteur de l'ascenseur arrière (verre présent)
         return [1]
 
     def asc_av(self,*useless) :
@@ -170,10 +170,10 @@ class ProtocoleVirtuelAscenseur:
         self.simulateur = simulateur
         self.log = log
         
-    def ascenseur_avant(self,*useless) :
+    def asc_av(self,*useless) :
         return []
 
-    def ascenseur_arriere(self,*useless) :
+    def asc_ar(self,*useless) :
         return []
         
 ################################################################################
