@@ -662,7 +662,7 @@ class Robot(RobotInterface):
         
     def initialiser_actionneurs(self):
         """
-        Fonction appelée en début de match qui rentre les actionneurs et monte les ascenseurs
+        Fonction appelée en début de match qui rentre les actionneurs et monte les ascenseurs et les ouvre
         """
         self.actionneurs.actionneurs_bougie(True, "bas")        
         self.actionneurs.actionneurs_bougie(False, "bas")        
@@ -670,6 +670,10 @@ class Robot(RobotInterface):
         self.actionneurs.actionneurs_ascenseur(True, "ouvert")
         self.actionneurs.actionneurs_ascenseur(False, "ouvert")
         self.actionneurs.altitude_ascenseur(True, "bas")
+        self.actionneurs.altitude_ascenseur(False, "bas")
+        # le temps que l'ascenseur détecte le blocage
+        sleep(5)
+        self.actionneurs.altitude_ascenseur(True, "haut")
         self.actionneurs.altitude_ascenseur(False, "haut")
 
     def recaler(self):
@@ -719,7 +723,7 @@ class Robot(RobotInterface):
         #on recule lentement jusqu'à bloquer sur le bord
         self.marche_arriere = True
         self.set_vitesse_translation(1)
-        self.avancer(-abs(self.y-400*(self.config["case_depart_principal"]-0.5))+100, retenter_si_blocage = False, sans_lever_exception = True)
+        self.avancer(-abs(400*(self.config["case_depart_principal"]-0.5))+100, retenter_si_blocage = False, sans_lever_exception = True)
 
         self.set_vitesse_translation(2)
         self.avancer(-300, retenter_si_blocage = False, sans_lever_exception = True)
@@ -823,6 +827,9 @@ class Robot(RobotInterface):
         """
         Commande l'altitude de l'ascenseur
         """
+        # Si l'ascenseur est plein, on ne le lève pas complètement
+        if hauteur == "haut" and self.places_disponibles(avant) == 0:
+            hauteur = "plein"
         if avant:
             self.log.debug("Ascenseur avant en position: "+hauteur)
         else:
@@ -848,20 +855,20 @@ class Robot(RobotInterface):
         # Lancement des actionneurs
         else:
             if avant:
-                self.avancer(-30)
+                self.deplacements.avancer(-30)
             else:
-                self.avancer(30)
+                self.deplacements.avancer(30)
             self.actionneurs.actionneurs_ascenseur(avant, "ouvert")
-            sleep(.3)
-            self.actionneurs.altitude_ascenseur(avant, "bas")
-            sleep(.5)
-            if avant:
-                self.avancer(20)
-            else:
-                self.avancer(-20)
             sleep(.2)
-            self.actionneurs.actionneurs_ascenseur(avant, "fermé")
+            self.actionneurs.altitude_ascenseur(avant, "bas")
             sleep(.3)
+            if avant:
+                self.deplacements.avancer(40)
+            else:
+                self.deplacements.avancer(-40)
+            sleep(.1)
+            self.actionneurs.actionneurs_ascenseur(avant, "fermé")
+            sleep(.2)
             self.actionneurs.altitude_ascenseur(avant, "haut")
         
             # Mise à jour du total de verres portés
@@ -884,8 +891,11 @@ class Robot(RobotInterface):
             self.log.debug("Dépot de la pile de verres à l'arrière.")
                 
         # Lancement des actionneurs
+        self.actionneurs.altitude_ascenseur(avant, "bas")
+        sleep(.5)
+        self.actionneurs.actionneurs_ascenseur(avant, "petit ouvert")
+        sleep(.5)
         self.actionneurs.actionneurs_ascenseur(avant, "ouvert")
-        
         
         # Mise à jour du total de verres portés
         super().deposer_pile(avant)

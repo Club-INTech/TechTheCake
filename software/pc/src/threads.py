@@ -91,6 +91,7 @@ class ThreadCapteurs(AbstractThread):
         # Attention: le match doit être démarré pour utiliser date_debut         
         dernier_ajout = 0
 
+        log.debug("Activation des capteurs")
         while not timer.get_fin_match():
             if AbstractThread.stop_threads:
                 log.debug("Stoppage du thread capteurs")
