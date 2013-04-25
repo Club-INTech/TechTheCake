@@ -3,9 +3,9 @@
 
 #include <libintech/asservissement.hpp>
 
-#define COMPTEUR_BLOCAGE_MAX 50 // ~ 1 sec (à vérifier)
+#define COMPTEUR_BLOCAGE_MAX 10 // ~ 1 sec (à vérifier)
 
-enum AscenseurPosition {ASCENSEUR_HAUT = 55000, ASCENSEUR_BAS = -75000};
+enum AscenseurPosition {ASCENSEUR_HAUT = 46000, ASCENSEUR_BAS = -75000, ASCENSEUR_4_VERRES = 10000};
 
 template<class Moteur>
 class Ascenseur

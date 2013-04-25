@@ -39,35 +39,53 @@ class Strategie:
         if self.config["ennemi_fait_toutes_bougies"]:
             self.log.warning("Comme l'ennemi fait toutes les bougies, on ne les fera pas.")
             del self.scripts["ScriptBougies"]
-    
+
+        # La première décision est scriptée
+        premier_tour = True
+
         while not self.timer.get_fin_match():
 
-            notes = {}
+            if not premier_tour:
+                notes = {}
 
-            #initialisation de la recherche de chemin pour le calcul de temps
-            self.rechercheChemin.retirer_obstacles_dynamiques()
-            self.rechercheChemin.charge_obstacles(avec_verres_entrees=False)
-            self.rechercheChemin.prepare_environnement_pour_a_star()
+                #initialisation de la recherche de chemin pour le calcul de temps
+                self.rechercheChemin.retirer_obstacles_dynamiques()
+                self.rechercheChemin.charge_obstacles(avec_verres_entrees=False)
+                self.rechercheChemin.prepare_environnement_pour_a_star()
+                
+                # Notation des scripts
+                for script in self.scripts:
+                    for version in self.scripts[script].versions():
+                        notes[(script,version)] = self._noter_script(script, version)
+                self.log.debug("Notes des scripts: " + str(notes))
+
+                # S'il n'y a plus de script à exécuter (ce qui ne devrait jamais arriver), on interrompt la stratégie
+                if notes == {}:
+                    self.log.critical("Plus de scripts à exécuter! Temps restant: "+str(self.config["temps_match"] - time() + self.timer.get_date_debut()))
+                    break
+
+                # Choix du script avec la meilleure note
+                (script_a_faire, version_a_faire) = max(notes, key=notes.get)
+                self.log.debug("Stratégie ordonne: ({0}, version n°{1}, entrée en {2})".format(script_a_faire, version_a_faire, self.scripts[script_a_faire].point_entree(version_a_faire)))
+
             
-            # Notation des scripts
-            for script in self.scripts:
-                for version in self.scripts[script].versions():
-                    notes[(script,version)] = self._noter_script(script, version)
-            self.log.debug("Notes des scripts: " + str(notes))
+                #ajout d'obstacles pour les verres d'entrées, sauf si on execute un script de récupération des verres
+                if not isinstance(self.scripts[script_a_faire], ScriptRecupererVerres):
+                    for verre in self.table.verres_entrees():
+                        self.rechercheChemin.ajoute_obstacle_cercle(verre["position"], self.config["rayon_verre"])
 
-            # S'il n'y a plus de script à exécuter (ce qui ne devrait jamais arriver), on interrompt la stratégie
-            if notes == {}:
-                self.log.critical("Plus de scripts à exécuter! Temps restant: "+str(self.config["temps_match"] - time() + self.timer.get_date_debut()))
-                break
-
-            # Choix du script avec la meilleure note
-            (script_a_faire, version_a_faire) = max(notes, key=notes.get)
-            self.log.debug("Stratégie ordonne: ({0}, version n°{1}, entrée en {2})".format(script_a_faire, version_a_faire, self.scripts[script_a_faire].point_entree(version_a_faire)))
-            
-            #ajout d'obstacles pour les verres d'entrées, sauf si on execute un script de récupération des verres
-            if not isinstance(self.scripts[script_a_faire], ScriptRecupererVerres):
-                for verre in self.table.verres_entrees():
-                    self.rechercheChemin.ajoute_obstacle_cercle(verre["position"], self.config["rayon_verre"])
+            # Le premier tour, on fait les verres les plus proches
+            else:
+                premier_tour = False;
+                if self.config["couleur"] == "bleu":
+                    script_a_faire = "ScriptRecupererVerresZoneBleu"
+                else:
+                    script_a_faire = "ScriptRecupererVerresZoneRouge"
+                self.scripts[script_a_faire].versions()
+                if abs(self.scripts[script_a_faire].point_entree(0).y - self.robot.y) < abs(self.scripts[script_a_faire].point_entree(1).y - self.robot.y):
+                    version_a_faire = 0
+                else:
+                    version_a_faire = 1
 
             # Lancement du script si le match n'est pas terminé
             if not self.timer.get_fin_match():
@@ -153,8 +171,8 @@ class Strategie:
             # Les scripts qu'on aurait pas le temps de finir ont un malus de points
             malus
         ]
-#        self.log.critical("Détail note "+str(script)+" en "+str(self.scripts[script].point_entree(version))+": "+str(note))
-#        self.log.critical("Score: "+str(score)+", durée: "+str(duree_script))
+        self.log.critical("Détail note "+str(script)+" en "+str(self.scripts[script].point_entree(version))+": "+str(note))
+        self.log.critical("Score: "+str(score)+", durée: "+str(duree_script))
 
         
         return sum(note)

@@ -51,32 +51,26 @@ class Actionneurs :
 
     def altitude_ascenseur(self, avant, hauteur):
         if avant:
-            if hauteur == "moyen":
-                self.serie.communiquer("ascenseur",["asc_av","consigne",10],0)
-            else:
-                self.serie.communiquer("ascenseur",["asc_av",hauteur],0)
+            self.serie.communiquer("ascenseur",["asc_av",hauteur],0)
         else:
-            if hauteur == "moyen":
-                self.serie.communiquer("ascenseur",["asc_ar","consigne",10],0)
-            else:
-                self.serie.communiquer("ascenseur",["asc_ar",hauteur],0)
+            self.serie.communiquer("ascenseur",["asc_ar",hauteur],0)
 
     def actionneurs_ascenseur(self, avant, position):
         if position == "fermé":
             if avant:
+                self.serie.communiquer("capteurs_actionneurs",["asc_av",145],0)
+            else:
+                self.serie.communiquer("capteurs_actionneurs",["asc_arr",145],0)
+        elif position == "petit ouvert":
+            if avant:
+                self.serie.communiquer("capteurs_actionneurs",["asc_av",140],0)
+            else:
+                self.serie.communiquer("capteurs_actionneurs",["asc_arr",140],0)
+        elif position == "ouvert":
+            if avant:
                 self.serie.communiquer("capteurs_actionneurs",["asc_av",120],0)
             else:
                 self.serie.communiquer("capteurs_actionneurs",["asc_arr",120],0)
-#        elif position == "ouvert":
-#            if avant:
-#                self.serie.communiquer("capteurs_actionneurs",["asc_av",95],0)
-#            else:
-#                self.serie.communiquer("capteurs_actionneurs",["asc_arr",95],0)
-        elif position == "ouvert":
-            if avant:
-                self.serie.communiquer("capteurs_actionneurs",["asc_av",85],0)
-            else:
-                self.serie.communiquer("capteurs_actionneurs",["asc_arr",85],0)
 
 
     def ascenseur_modifier_constantes(self, valeur):
