@@ -1,6 +1,5 @@
 #from outils_maths.point import Point
-from recherche_de_chemin.visilibity import Point
-from outils_maths.polygone import Polygone
+from recherche_de_chemin.visilibity import Point,Polygon
 import recherche_de_chemin.fonctions_auxiliaires_fusion as fus
 
 import math
@@ -33,7 +32,7 @@ def elargit_rectangle(polygone, distance):
         #DEBUG# builtins.simulateur.drawPoint(2*bar.x-polygone[k].x,2*bar.y-polygone[k].y,"red",True)#@
         
     #on obtient le polygone étendu recherché
-    return Polygone(polygoneEtendu)
+    return Polygon(polygoneEtendu)
     
 def elargit_polygone(polygone, distance, cote_polygone):
     """
@@ -104,7 +103,7 @@ def elargit_polygone(polygone, distance, cote_polygone):
             #DEBUG# builtins.simulateur.drawPoint(pointsNormauxB[k-1].x,pointsNormauxB[k-1].y,"green",True)#@
         
     #on obtient le polygone étendu recherché
-    return Polygone(polygoneEtendu)
+    return Polygon(polygoneEtendu)
     
     
 def _etablit_points_normaux(polygone, distance):

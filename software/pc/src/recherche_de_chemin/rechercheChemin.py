@@ -670,6 +670,43 @@ class RechercheChemin:
         """
         return self.environnement_complet.nuages_de_cercles
         
+    ########################## MISE À JOUR DES ÉLÉMENTS DE JEU ##########################
+    
+    def _ajouter_zone_verres(self, minX, maxX,avec_verres_entrees):
+        gauche,droite,haut,bas = int(self.config["table_x"])/2,-int(self.config["table_x"])/2,0,int(self.config["table_y"])
+        au_moins_un = False
+        
+        for verre in self.table.verres_restants():
+            #prise en compte éventuelle des verres d'entrée
+            if avec_verres_entrees or not verre in self.table.verres_entrees():
+                x = verre["position"].x
+                y = verre["position"].y
+                r = self.config["rayon_verre"]
+                #verre dans la zone passée en paramètre
+                if x > minX and x < maxX:
+                    au_moins_un = True
+                    gauche,droite,haut,bas = min(gauche,x-r),max(droite,x+r),max(haut,y+r),min(bas,y-r)
+        if au_moins_un:
+            self.ajoute_obstacle_rectangle([Point(gauche,haut),Point(droite,haut),Point(droite,bas),Point(gauche,bas)])
+                
+    def _ajoute_verres(self, avec_verres_entrees):
+        """
+        Optimise le placement des obstacles pour les verres. 
+        """
+        ## par fusion d'obstacles (lent)
+        #for verre in self.table.verres_restants():
+            #if avec_verres_entrees or not verre in self.table.verres_entrees():
+                #self.ajoute_obstacle_cercle(verre["position"], self.config["rayon_verre"])
+        
+        #par ajout d'un ou deux rectangles (pas optimisé)
+        if not self.table.verres[8]["present"] or not self.table.verres[3]["present"]:
+            #passage possible au centre : on ajoute 2 obstacles sur les cotés
+            self._ajouter_zone_verres(-1500,0,avec_verres_entrees)
+            self._ajouter_zone_verres(0,1500,avec_verres_entrees)
+        else:
+            #pas de passage possible : un seul obstacle pour tous les verres
+            self._ajouter_zone_verres(-1500,1500,avec_verres_entrees)
+            
     def charge_obstacles(self, avec_verres_entrees=True):
         ##ajout des obstacles vus par les capteurs et la balise
         #for obstacle in self.table.obstacles():
@@ -680,9 +717,10 @@ class RechercheChemin:
             self.ajoute_obstacle_cercle(obstacle.position, obstacle.rayon)
             
         #ajout des verres encore présents sur la table
-        for verre in self.table.verres_restants():
-            if avec_verres_entrees or not verre in self.table.verres_entrees():
-                self.ajoute_obstacle_cercle(verre["position"], self.config["rayon_verre"])
+        self._ajoute_verres(avec_verres_entrees)
+    
+    
+    ####################### PRÉPARATION DE L'ENVIRONNEMENT ET CALCUL DE TRAJET ########################
     
     def prepare_environnement_pour_a_star(self):
         """
