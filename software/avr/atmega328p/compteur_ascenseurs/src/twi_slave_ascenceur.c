@@ -5,7 +5,7 @@
 
 //déclaration des ports des codeuses, attention à modifier aussi le twi_slave.h
 Codeuse< AVR_PORTB <PORTB0>,AVR_PORTB <PORTB1>, false> codeuse1;
-Codeuse< AVR_PORTD <PORTD7>,AVR_PORTD <PORTD6>, false> codeuse2;
+Codeuse< AVR_PORTD <PORTD6>,AVR_PORTD <PORTD7>, false> codeuse2;
 
 union TWI_statusReg_t
 {
