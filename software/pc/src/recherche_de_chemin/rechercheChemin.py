@@ -629,28 +629,36 @@ class RechercheChemin:
             #on vérifie si ce polygone doit etre fusionné avec d'autres obstacles en cas de contact
             self._fusionner_avec_obstacles_en_contact()
     
-    def ajoute_obstacle_polygone(self, polygone, rayon_supplementaire = 0):
+    def ajoute_obstacle_polygone(self, polygone, rayon_supplementaire = 0, avecFusion=True):
         """
         Ajout un obstacle polygonal sur la table (liste de points). 
         Il est considéré comme dynamique et peut etre retiré via retirer_obstacles_dynamiques()
         """
         #traduction du polygone en une structure de polygone compatible avec visilibity
         polygoneVisilibity = vis.Polygon(list(map(lambda p: Point(p.x,p.y), polygone)))
+        #vérification du sens de définition du polygone (sens antétrigonométrique)
+        if polygoneVisilibity.area() >= 0:
+            reverse = []
+            for k in range(polygoneVisilibity.n()-1,-1,-1):
+                reverse.append(polygoneVisilibity[k])
+            polygoneVisilibity = vis.Polygon(reverse)
         #élargissement de l'obstacle pour un robot non ponctuel
         polygoneObstacle = enlarge.elargit_polygone(polygoneVisilibity, self.rayonPropre+rayon_supplementaire, Environnement.cote_polygone)
         #ajout à l'environnement (ce qui calcule le cercle contenant du rectangle)
         self.environnement_complet.ajoute_polygone(polygoneObstacle)
-        #calcul du polygone recoupé aux bords
-        troncPolygon = self._recouper_aux_bords_table(polygoneObstacle, self.environnement_complet.nuages_de_cercles[-1], self.environnement_complet)
-        if troncPolygon is None:
-            #le polygone n'est pas dans la table : on le retire
-            del self.environnement_complet.polygones[-1]
-            del self.environnement_complet.nuages_de_cercles[-1]
-        else:
-            #on enregistre le nouveau polygone tronqué
-            self.environnement_complet.polygones[-1] = troncPolygon
-            #on vérifie si ce polygone doit etre fusionné avec d'autres obstacles en cas de contact
-            self._fusionner_avec_obstacles_en_contact()
+        
+        if avecFusion:
+            #calcul du polygone recoupé aux bords
+            troncPolygon = self._recouper_aux_bords_table(polygoneObstacle, self.environnement_complet.nuages_de_cercles[-1], self.environnement_complet)
+            if troncPolygon is None:
+                #le polygone n'est pas dans la table : on le retire
+                del self.environnement_complet.polygones[-1]
+                del self.environnement_complet.nuages_de_cercles[-1]
+            else:
+                #on enregistre le nouveau polygone tronqué
+                self.environnement_complet.polygones[-1] = troncPolygon
+                #on vérifie si ce polygone doit etre fusionné avec d'autres obstacles en cas de contact
+                self._fusionner_avec_obstacles_en_contact()
             
     def retirer_obstacles_dynamiques(self):
         """
@@ -715,6 +723,10 @@ class RechercheChemin:
     def _test_verres(self):
         v = [self.table.verres[6],self.table.verres[6],self.table.verres[7],self.table.verres[1],self.table.verres[0],self.table.verres[9],self.table.verres[8],self.table.verres[3],self.table.verres[2],self.table.verres[10],self.table.verres[11],self.table.verres[4],self.table.verres[5]]
         p = [verre["present"] for verre in v]
+        
+        arete_verres = [(v[1],v[2]),(v[1],v[5]),(v[2],v[5]),(v[2],v[6]),(v[3],v[4]),(v[3],v[7]),(v[3],v[8]),(v[4],v[8]),(v[5],v[6]),(v[5],v[9]),(v[5],v[10]),(v[6],v[7]),(v[6],v[10]),(v[7],v[8]),(v[7],v[11]),(v[8],v[11]),(v[8],v[12]),(v[9],v[10]),(v[11],v[12])]
+        arete_grande_verres = [(v[1],v[6]),(v[1],v[9]),(v[2],v[7]),(v[2],v[10]),(v[2],v[3]),(v[3],v[6]),(v[3],v[11]),(v[4],v[7]),(v[4],v[12]),(v[6],v[9]),(v[6],v[11]),(v[7],v[10]),(v[7],v[12]),(v[10],v[11])]
+        
         aux = [0] * 13
 
         #rajoute un verre virtuel là où ça ne change rien
@@ -824,57 +836,52 @@ class RechercheChemin:
         arete_grande[13] = p[6] and p[7] and p[10] and p[11]
         
         ##################################
-        #rendu
-        arete_verres = [(v[1],v[2]),(v[1],v[5]),(v[2],v[5]),(v[2],v[6]),(v[3],v[4]),(v[3],v[7]),(v[3],v[8]),(v[4],v[8]),(v[5],v[6]),(v[5],v[9]),(v[5],v[10]),(v[6],v[7]),(v[6],v[10]),(v[7],v[8]),(v[7],v[11]),(v[8],v[11]),(v[8],v[12]),(v[9],v[10]),(v[11],v[12])]
-        arete_grande_verres = [(v[1],v[6]),(v[1],v[9]),(v[2],v[7]),(v[2],v[10]),(v[2],v[3]),(v[3],v[6]),(v[3],v[11]),(v[4],v[7]),(v[4],v[12]),(v[6],v[9]),(v[6],v[11]),(v[7],v[10]),(v[7],v[12]),(v[10],v[11])]
-        
-        polygones = []
         aretes_bool = arete + arete_grande
         aretes_verres = arete_verres + arete_grande_verres
-        
+        polygones = []
         #rassemblage des aretes en polygones
         while len(aretes_verres)>0:
-            
             #recherche d'un nouveau polygone
-            while not aretes_bool[0]:
+            if not aretes_bool[0]:
                 del aretes_verres[0]
                 del aretes_bool[0]
-            polygones.append([aretes_verres[0][0]["position"],aretes_verres[0][1]["position"]])
-            del aretes_verres[0]
-            del aretes_bool[0]
-            
-            #completion du polygone
-            k = 0
-            while k < len(aretes_bool):
-                if aretes_bool[k]:
-                    if aretes_verres[k][0]["position"] == polygones[-1][-1]:
-                        polygones[-1].append(aretes_verres[k][1]["position"])
-                        del aretes_verres[k]
-                        del aretes_bool[k]
-                        k = 0
-                    elif aretes_verres[k][1]["position"] == polygones[-1][-1]:
-                        polygones[-1].append(aretes_verres[k][0]["position"])
-                        del aretes_verres[k]
-                        del aretes_bool[k]
-                        k = 0
+            else:
+                polygones.append([aretes_verres[0][0]["position"],aretes_verres[0][1]["position"]])
+                del aretes_verres[0]
+                del aretes_bool[0]
+                
+                #completion du polygone
+                k = 0
+                while k < len(aretes_bool):
+                    if aretes_bool[k]:
+                        if aretes_verres[k][0]["position"] == polygones[-1][-1]:
+                            polygones[-1].append(aretes_verres[k][1]["position"])
+                            del aretes_verres[k]
+                            del aretes_bool[k]
+                            k = 0
+                        elif aretes_verres[k][1]["position"] == polygones[-1][-1]:
+                            polygones[-1].append(aretes_verres[k][0]["position"])
+                            del aretes_verres[k]
+                            del aretes_bool[k]
+                            k = 0
+                        else:
+                            k += 1
                     else:
-                        k += 1
-                else:
-                    del aretes_verres[k]
-                    del aretes_bool[k]
+                        del aretes_verres[k]
+                        del aretes_bool[k]
         
-        #suppression du bouclage et des sommets plats
+        
         for p in polygones:
-            del p[-1]
-            p = self._lisser_chemin(p)
+            if len(p) > 2:
+                #suppression des sommets plats, puis du bouclage (dans cet ordre !)
+                p = self._lisser_chemin(p)
+                del p[-1]
+            #création des polygones
+            # -élargie les obstacles (prise en compte du rayon des verres)
+            # -vérifie le sens de définition (antétrigonométrique) du polygone
+            self.ajoute_obstacle_polygone(p,40,avecFusion=False)
             
-        #@@@
-        #TODO vérification du sens antétrigo
-        
-        #TODO dilatation des obstacles
-        for p in polygones:
-            self.ajoute_obstacle_polygone(p,40)
-        
+        #TODO gestion des polygones de 2 points pour la dilatation des obstacles
         #TODO ajout d'un cercles pour les verres hors polygones
         
         ########################## AFFICHAGE #########################"
