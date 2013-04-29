@@ -49,7 +49,7 @@ def elargit_polygone(polygone, distance, cote_polygone):
     On a juste à choisir `ecart_angulaire`, qui définit la précision d'approche de cet arc de cercle.
     """
     
-    ecart_angulaire = 0.5*cote_polygone/distance
+    ecart_angulaire = 0.5*0.5*cote_polygone/distance
     
     pointsNormauxA,pointsNormauxB = _etablit_points_normaux(polygone, distance)
     polygoneEtendu = []
