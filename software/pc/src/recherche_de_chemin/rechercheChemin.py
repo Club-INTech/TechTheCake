@@ -584,7 +584,7 @@ class RechercheChemin:
             else: k+=1
         return chemin
         
-    def ajoute_obstacle_cercle(self, centre, rayon):
+    def ajoute_obstacle_cercle(self, centre, rayon, avecFusion=True):
         """
         Ajout un obstacle circulaire sur la table.
         Il est considéré comme dynamique et peut etre retiré via retirer_obstacles_dynamiques()
@@ -593,17 +593,19 @@ class RechercheChemin:
         cercleObstacle = enlarge.elargit_cercle(Cercle(centre,rayon),self.rayonPropre)
         #ajout à l'environnement (ce qui calcule le polygone approchant le cercle)
         self.environnement_complet.ajoute_cercle(cercleObstacle)
-        #calcul du polygone recoupé aux bords
-        troncPolygon = self._recouper_aux_bords_table(self.environnement_complet.polygones[-1], [cercleObstacle], self.environnement_complet)
-        if troncPolygon is None:
-            #le polygone n'est pas dans la table : on le retire
-            del self.environnement_complet.polygones[-1]
-            del self.environnement_complet.nuages_de_cercles[-1]
-        else:
-            #on enregistre le nouveau polygone tronqué
-            self.environnement_complet.polygones[-1] = troncPolygon
-            #on vérifie si ce polygone doit etre fusionné avec d'autres obstacles en cas de contact
-            self._fusionner_avec_obstacles_en_contact()
+        
+        if avecFusion:
+            #calcul du polygone recoupé aux bords
+            troncPolygon = self._recouper_aux_bords_table(self.environnement_complet.polygones[-1], [cercleObstacle], self.environnement_complet)
+            if troncPolygon is None:
+                #le polygone n'est pas dans la table : on le retire
+                del self.environnement_complet.polygones[-1]
+                del self.environnement_complet.nuages_de_cercles[-1]
+            else:
+                #on enregistre le nouveau polygone tronqué
+                self.environnement_complet.polygones[-1] = troncPolygon
+                #on vérifie si ce polygone doit etre fusionné avec d'autres obstacles en cas de contact
+                self._fusionner_avec_obstacles_en_contact()
     
     def ajoute_obstacle_rectangle(self, rectangle):
         """
@@ -682,22 +684,22 @@ class RechercheChemin:
         
     ########################## MISE À JOUR DES ÉLÉMENTS DE JEU ##########################
     
-    def _ajouter_zone_verres(self, minX, maxX,avec_verres_entrees):
-        gauche,droite,haut,bas = int(self.config["table_x"])/2,-int(self.config["table_x"])/2,0,int(self.config["table_y"])
-        au_moins_un = False
+    #def _ajouter_zone_verres(self, minX, maxX,avec_verres_entrees):
+        #gauche,droite,haut,bas = int(self.config["table_x"])/2,-int(self.config["table_x"])/2,0,int(self.config["table_y"])
+        #au_moins_un = False
         
-        for verre in self.table.verres_restants():
-            #prise en compte éventuelle des verres d'entrée
-            if avec_verres_entrees or not verre in self.table.verres_entrees():
-                x = verre["position"].x
-                y = verre["position"].y
-                r = self.config["rayon_verre"]
-                #verre dans la zone passée en paramètre
-                if x > minX and x < maxX:
-                    au_moins_un = True
-                    gauche,droite,haut,bas = min(gauche,x-r),max(droite,x+r),max(haut,y+r),min(bas,y-r)
-        if au_moins_un:
-            self.ajoute_obstacle_rectangle([Point(gauche,haut),Point(droite,haut),Point(droite,bas),Point(gauche,bas)])
+        #for verre in self.table.verres_restants():
+            ##prise en compte éventuelle des verres d'entrée
+            #if avec_verres_entrees or not verre in self.table.verres_entrees():
+                #x = verre["position"].x
+                #y = verre["position"].y
+                #r = self.config["rayon_verre"]
+                ##verre dans la zone passée en paramètre
+                #if x > minX and x < maxX:
+                    #au_moins_un = True
+                    #gauche,droite,haut,bas = min(gauche,x-r),max(droite,x+r),max(haut,y+r),min(bas,y-r)
+        #if au_moins_un:
+            #self.ajoute_obstacle_rectangle([Point(gauche,haut),Point(droite,haut),Point(droite,bas),Point(gauche,bas)])
                 
     def _ajoute_verres(self, avec_verres_entrees):
         """
@@ -717,7 +719,7 @@ class RechercheChemin:
             ##pas de passage possible : un seul obstacle pour tous les verres
             #self._ajouter_zone_verres(-1500,1500,avec_verres_entrees)
             
-        #autre méthode
+        ## par table booléenne
         self._test_verres()
         
     def _test_verres(self):
@@ -726,6 +728,8 @@ class RechercheChemin:
         
         arete_verres = [(v[1],v[2]),(v[1],v[5]),(v[2],v[5]),(v[2],v[6]),(v[3],v[4]),(v[3],v[7]),(v[3],v[8]),(v[4],v[8]),(v[5],v[6]),(v[5],v[9]),(v[5],v[10]),(v[6],v[7]),(v[6],v[10]),(v[7],v[8]),(v[7],v[11]),(v[8],v[11]),(v[8],v[12]),(v[9],v[10]),(v[11],v[12])]
         arete_grande_verres = [(v[1],v[6]),(v[1],v[9]),(v[2],v[7]),(v[2],v[10]),(v[2],v[3]),(v[3],v[6]),(v[3],v[11]),(v[4],v[7]),(v[4],v[12]),(v[6],v[9]),(v[6],v[11]),(v[7],v[10]),(v[7],v[12]),(v[10],v[11])]
+        
+        v.remove(v[0]) #position 0 inutilisée : juste pour le décalage d'index
         
         aux = [0] * 13
 
@@ -846,6 +850,12 @@ class RechercheChemin:
                 del aretes_verres[0]
                 del aretes_bool[0]
             else:
+                #suppression des verres sur aretes (pour retenir les autres)
+                try: v.remove(aretes_verres[0][0])
+                except: pass#verre déjà supprimé
+                try: v.remove(aretes_verres[0][1])
+                except: pass#verre déjà supprimé
+                
                 polygones.append([aretes_verres[0][0]["position"],aretes_verres[0][1]["position"]])
                 del aretes_verres[0]
                 del aretes_bool[0]
@@ -854,6 +864,12 @@ class RechercheChemin:
                 k = 0
                 while k < len(aretes_bool):
                     if aretes_bool[k]:
+                        #suppression des verres sur aretes (pour retenir les autres)
+                        try: v.remove(aretes_verres[k][0])
+                        except: pass#verre déjà supprimé
+                        try: v.remove(aretes_verres[k][1])
+                        except: pass#verre déjà supprimé
+                        
                         if aretes_verres[k][0]["position"] == polygones[-1][-1]:
                             polygones[-1].append(aretes_verres[k][1]["position"])
                             del aretes_verres[k]
@@ -870,19 +886,28 @@ class RechercheChemin:
                         del aretes_verres[k]
                         del aretes_bool[k]
         
-        
         for p in polygones:
             if len(p) > 2:
-                #suppression des sommets plats, puis du bouclage (dans cet ordre !)
+                #suppression des sommets plats
                 p = self._lisser_chemin(p)
+            if p[0] == p[-1]:
+                #suppression du bouclage
                 del p[-1]
+                
             #création des polygones
             # -élargie les obstacles (prise en compte du rayon des verres)
             # -vérifie le sens de définition (antétrigonométrique) du polygone
             self.ajoute_obstacle_polygone(p,40,avecFusion=False)
             
-        #TODO gestion des polygones de 2 points pour la dilatation des obstacles
-        #TODO ajout d'un cercles pour les verres hors polygones
+        #ajout d'un cercle pour les verres seuls (hors polygones)
+        for verre in [ver for ver in v if ver["present"]]:
+            tout_seul = True
+            for poly in polygones:
+                if collisions.collisionPointPoly(verre["position"],poly):
+                    tout_seul = False
+                    break
+            if tout_seul:
+                self.ajoute_obstacle_cercle(verre["position"], self.config["rayon_verre"]-20, avecFusion=False)
         
         ########################## AFFICHAGE #########################"
         #clean affichage
