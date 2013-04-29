@@ -7,7 +7,7 @@ chemin = directory[:directory.index(racine)]+racine
 #répertoires d'importation
 sys.path.insert(0, os.path.join(chemin, "src/"))
 
-from recherche_de_chemin.visilibity import Point
+from recherche_de_chemin.visilibity import Point,Polygon
 #from outils_maths.point import Point
 import math
 
@@ -83,11 +83,20 @@ def collisionSegmentSegment(a,b,c,d):
                     return True,pointCollision
                 
 def collisionPointPoly(point,poly):
+    """
+    Renvoie true si le point est à l'intérieur du polygone. 
+    Le polygone peut etre une liste de point, ou du type visilibity.Polygon
+    """
+    if type(poly) is Polygon:
+        sommets = poly.n()
+    elif type(poly) is list:
+        sommets = len(poly)
+        
     nbCollisions = 0
-    for i in range(poly.n()-1):
+    for i in range(sommets-1):
         if collisionSegmentSegment(Point(10000,10000),point,poly[i],poly[i+1]):
             nbCollisions += 1
-    if collisionSegmentSegment(Point(10000,10000),point,poly[poly.n()-1],poly[0]):
+    if collisionSegmentSegment(Point(10000,10000),point,poly[sommets-1],poly[0]):
         nbCollisions += 1
     #nbCollisions impair : le point est dans le polygone
     return (nbCollisions % 2)
