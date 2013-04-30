@@ -417,7 +417,7 @@ class ScriptCadeaux(Script):
         return 4 * len(self.table.cadeaux_restants())
 
     def poids(self):
-        return 1
+        return 0
 
 class ScriptRecupererVerres(Script):
         
@@ -673,6 +673,9 @@ class ScriptDeposerVerres(Script):
         self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne = point_depot)
         self.robot.va_au_point(point_depot)
         
+        self.robot.set_vitesse_translation(1)
+        self.robot.set_vitesse_rotation(1)
+
         def deposer_avant():
             if self.robot.nb_verres_avant:
                 #on dépose l'ascenseur avant d'un coté
@@ -722,7 +725,11 @@ class ScriptDeposerVerres(Script):
         return 4 * ( sum(range(1,self.robotVrai.nb_verres_avant+1)) + sum(range(1,self.robotVrai.nb_verres_arriere+1)) )
 
     def poids(self):
-        return 1
+        # S'il n'y a plus de verre sur le terrain (ou qu'on est plein), on fonce déposer ceux qu'on a!
+        if len(self.table.verres_entrees()) == 0 or (self.robotVrai.places_disponibles(True) == 0 and self.robotVrai.places_disponibles(False) == 0):
+            return 20
+        else:
+            return 0
 
 
 class ScriptRenverserVerres(Script):
