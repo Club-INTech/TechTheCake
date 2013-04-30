@@ -108,14 +108,14 @@ class ScriptBougies(Script):
         # Vrai si on n'a reçu aucune information de l'application android (sert au calcul des points)
         self.en_aveugle = False
 
-        self.couleur_a_traiter = self.table.COULEUR_BOUGIE_ROUGE if self.config["couleur"] == "rouge" else self.table.COULEUR_BOUGIE_BLEU
+        self.couleur_a_traiter = self.table.COULEUR_BOUGIE_ROUGE | self.table.COULEUR_BOUGIE_BLANC if self.config["couleur"] == "rouge" else self.table.COULEUR_BOUGIE_BLEU | self.table.COULEUR_BOUGIE_BLANC
         
         # pour calculer simplement les delta_angle
         rayon_bras = float(500 + self.config["distance_au_gateau"])
         
         # Prise en compte actionneur bas / haut
-        self.delta_angle_actionneur_haut = -80 / rayon_bras # Actionneur haut à l'avant du robot
-        self.delta_angle_actionneur_bas =   30 / rayon_bras # Actionneur bas à l'arrière du robot
+        self.delta_angle_actionneur_haut = 80 / rayon_bras # Actionneur haut à l'avant du robot
+        self.delta_angle_actionneur_bas =  -30 / rayon_bras # Actionneur bas à l'arrière du robot
         
         #constantes d'écart à la bougie (valeurs absolues)
         self.delta_abs_angle_baisser_bras = 15 / rayon_bras
@@ -235,6 +235,7 @@ class ScriptBougies(Script):
                 angle_baisser_bras += self.delta_angle_actionneur_bas
                 angle_lever_bras += self.delta_angle_actionneur_bas
                 
+            self.log.debug("Lever: "+str(angle_lever_bras)+", baisser: "+str(angle_baisser_bras)+", en haut: "+str(bougie["enHaut"]))
             # Baisser le bras
             hook_baisser_bras = self.hookGenerator.hook_angle_gateau(angle_baisser_bras, vers_x_croissant)
             hook_baisser_bras += self.hookGenerator.callback(self.robot.actionneurs_bougie, (bougie["enHaut"],"moyen"))
@@ -471,15 +472,15 @@ class ScriptRecupererVerres(Script):
         Procédure de récupération d'un verre
         """
         destination = self._point_devant_verre(verre["position"], self.marge_recuperation)
-        #Je croyais qu'on remplissait un côté puis l'autre?
 
-        self.robot.marche_arriere = self.robot.places_disponibles(True)
 #        self.robot.marche_arriere = not self.robot.places_disponibles(True)
-#        mieux_en_arriere = self.robot.marche_arriere_est_plus_rapide(destination)
-#        if self.robot.places_disponibles(not mieux_en_arriere):
-#            self.robot.marche_arriere = mieux_en_arriere
-#        else:
-#            self.robot.marche_arriere = not mieux_en_arriere
+
+        # Comme les ascenseurs ne sont pas très fiables, mieux faut les remplir en parallèle
+        mieux_en_arriere = self.robot.marche_arriere_est_plus_rapide(destination)
+        if self.robot.places_disponibles(not mieux_en_arriere):
+            self.robot.marche_arriere = mieux_en_arriere
+        else:
+            self.robot.marche_arriere = not mieux_en_arriere
         
 
         # On est à distance. On élève l'ascenseur (probable qu'il le soit déjà). On s'avance jusqu'à positionner le verre sous l'ascenseur. Si le verre est présent, on ouvre l'ascenseur, on le descend, on le ferme et on le remonte. Si le verre est absent, on laisse l'ascenseur en haut.
