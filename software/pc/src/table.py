@@ -214,8 +214,20 @@ class Table:
         """
         conversionIndice = [0, 2, 4, 5, 7, 9, 1, 3, 6, 8]
 
+        if self.config["phases_finales"]:
+            nb_blanc_normal = 0
+            nb_rouge_normal = 5
+        else:
+            nb_blanc_normal = 2
+            nb_rouge_normal = 4
+
         # Pour les vérifications (compteur valable pour un côté du gâteau seulement)
-        compteur = {Table.COULEUR_BOUGIE_INCONNUE : 0, Table.COULEUR_BOUGIE_BLANC : 0, Table.COULEUR_BOUGIE_ROUGE : 0, Table.COULEUR_BOUGIE_BLEU : 0}
+        compteur = {
+                Table.COULEUR_BOUGIE_INCONNUE : 0,
+                Table.COULEUR_BOUGIE_BLANC : 0,
+                Table.COULEUR_BOUGIE_ROUGE : 0,
+                Table.COULEUR_BOUGIE_BLEU : 0
+        }
 
         for i, couleur in enumerate(list(code)):
             
@@ -231,24 +243,75 @@ class Table:
                 "r": Table.COULEUR_BOUGIE_BLEU,
                 "b": Table.COULEUR_BOUGIE_ROUGE
             }
-
                  
             # Inversion si on est rouge
             indice = conversionIndice[i]
             if self.config["couleur"] == "rouge":
                 indice = 19 - indice
-                
-            compteur[conversion[couleur]] += 1
+                compteur[symetrie[couleur]] += 1
+            else:
+                compteur[conversion[couleur]] += 1
+
             self.bougies[indice]["couleur"] = conversion[couleur]
             self.bougies[19-indice]["couleur"] = symetrie[couleur]
 
-        # En cas de bug, peut-on redemander?
-        if not ((not self.config["phases_finales"] and compteur[Table.COULEUR_BOUGIE_BLANC] == 2) or (self.config["phases_finales"] and compteur[Table.COULEUR_BOUGIE_BLANC] == 0)):
-            self.log.warning("Erreur détection bougies blanches! (vues: "+str(compteur[Table.COULEUR_BOUGIE_BLANC])+")")
+        # On supprime toutes les bougies blanches en en retenant le nombre
+        for i in range(10):
+            if self.bougies[i]["couleur"] == Table.COULEUR_BOUGIE_BLANC:
+                self.bougies[i]["couleur"] = Table.COULEUR_BOUGIE_INCONNUE
+                self.bougies[19-i]["couleur"] = Table.COULEUR_BOUGIE_INCONNUE
+                compteur[Table.COULEUR_BOUGIE_BLANC] -= 1
+                compteur[Table.COULEUR_BOUGIE_INCONNUE] += 1
+
+        # On met les bougies blanches là où elles devraient être
+        if nb_blanc_normal == 2:
+            compteur[self.bougies[7]["couleur"]] -= 1
+            compteur[self.bougies[9]["couleur"]] -= 1
+            self.bougies[7]["couleur"] = Table.COULEUR_BOUGIE_BLANC
+            self.bougies[9]["couleur"] = Table.COULEUR_BOUGIE_BLANC
+            self.bougies[10]["couleur"] = Table.COULEUR_BOUGIE_BLANC
+            self.bougies[12]["couleur"] = Table.COULEUR_BOUGIE_BLANC
+            compteur[Table.COULEUR_BOUGIE_BLANC] += 2
         
-        if (not self.config["phases_finales"] and compteur[Table.COULEUR_BOUGIE_ROUGE] != 4) or (self.config["phases_finales"] and compteur[Table.COULEUR_BOUGIE_ROUGE] != 5):
-            self.log.warning("Erreur détection bougies couleur! ("+str(compteur[Table.COULEUR_BOUGIE_ROUGE])+" rouges, "+str(compteur[Table.COULEUR_BOUGIE_BLEU])+" bleues")
-            
+        # On vérifie qu'on a le bon nombre de couleur. Si on a des bougies de couleur inconnue et qu'on a par contre toutes les bougies d'une couleur, alors forcément elles sont de l'autre couleur
+        if not nb_rouge_normal==compteur[Table.COULEUR_BOUGIE_ROUGE]:
+            self.log.warning("Erreur détection bougies rouges! (vues: "+str(compteur[Table.COULEUR_BOUGIE_ROUGE])+")")
+        elif compteur[Table.COULEUR_BOUGIE_INCONNUE] != 0:
+            self.log.warning("Les bougies inconnues sont supposées bleues")
+            compteur[Table.COULEUR_BOUGIE_INCONNUE] = 0
+            for i in range(10):
+                if self.bougies[i]["couleur"] == Table.COULEUR_BOUGIE_INCONNUE:
+                    self.bougies[i]["couleur"] == Table.COULEUR_BOUGIE_BLEU
+                    self.bougies[19-i]["couleur"] == Table.COULEUR_BOUGIE_BLEU
+                    compteur[Table.COULEUR_BOUGIE_BLEU] += 1
+
+        if not nb_rouge_normal==compteur[Table.COULEUR_BOUGIE_BLEU]:
+            self.log.warning("Erreur détection bougies bleues! (vues: "+str(compteur[Table.COULEUR_BOUGIE_BLEU])+")")
+        elif compteur[Table.COULEUR_BOUGIE_INCONNUE] != 0:
+            self.log.warning("Les bougies inconnues sont supposées rouges")
+            compteur[Table.COULEUR_BOUGIE_INCONNUE] = 0
+            for i in range(10):
+                if self.bougies[i]["couleur"] == Table.COULEUR_BOUGIE_INCONNUE:
+                    self.bougies[i]["couleur"] == Table.COULEUR_BOUGIE_ROUGE
+                    self.bougies[19-i]["couleur"] == Table.COULEUR_BOUGIE_ROUGE
+                    compteur[Table.COULEUR_BOUGIE_ROUGE] += 1
+
+        if compteur[Table.COULEUR_BOUGIE_INCONNUE] != 0:
+            self.log.warning("Les bougies inconnues sont supposées de la couleur adverse")
+
+            for i in range(10):
+                if self.bougies[i]["couleur"] == Table.COULEUR_BOUGIE_INCONNUE and self.config["couleur"] == "bleu":
+                    self.bougies[i]["couleur"] == Table.COULEUR_BOUGIE_ROUGE
+                    self.bougies[19-i]["couleur"] == Table.COULEUR_BOUGIE_ROUGE
+                    compteur[Table.COULEUR_BOUGIE_INCONNUE] -= 1
+                    compteur[Table.COULEUR_BOUGIE_ROUGE] += 1
+                elif self.bougies[i]["couleur"] == Table.COULEUR_BOUGIE_INCONNUE and self.config["couleur"] == "rouge":
+                    self.bougies[i]["couleur"] == Table.COULEUR_BOUGIE_BLEU
+                    self.bougies[19-i]["couleur"] == Table.COULEUR_BOUGIE_BLEU
+                    compteur[Table.COULEUR_BOUGIE_INCONNUE] -= 1
+                    compteur[Table.COULEUR_BOUGIE_ROUGE] += 1
+
+
     ###############################################
     ### GESTION DES VERRES
     ###############################################
