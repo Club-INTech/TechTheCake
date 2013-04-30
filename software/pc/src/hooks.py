@@ -82,6 +82,22 @@ class HookDroiteVerticale(Hook):
         if (self.vers_x_croissant and robotX > self.posX) or (not self.vers_x_croissant and robotX < self.posX):
             self.declencher()
             
+class HookCapteurVerres(Hook):
+    """
+    Classe des Hooks ayant pour condition le déclenchement d'un des deux capteurs de verres
+    La méthode evaluate() effectue l'action (callback) si le capteur est activé
+    """
+    def __init__(self, config, log, robot, avant):
+        Hook.__init__(self, config, log)
+        self.robot = robot
+        self.avant = avant
+        
+    def evaluate(self, **useless):
+        if self.robot.capteurs.verre_present(self.avant):
+            self.robot.deplacements.stopper()
+            self.declencher()
+
+
 class HookGenerator():
     """
     Cette classe est chargée en tant que service dans le container.
@@ -111,6 +127,12 @@ class HookGenerator():
         Création d'un hook de dépassement d'une droite verticale
         """
         return HookDroiteVerticale(self.config, self.log, posX, vers_x_croissant)
+
+    def hook_capteur_verres(self, robot, avant):
+        """
+        Création d'un hook de détection de verre
+        """
+        return HookCapteurVerres(self.config, self.log, robot, avant)
         
     def callback(self, fonction, arguments=(), unique=True):
         return Callback(fonction, arguments, unique)

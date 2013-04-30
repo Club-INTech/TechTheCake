@@ -107,6 +107,7 @@ class ScriptBougies(Script):
         
         # Vrai si on n'a reçu aucune information de l'application android (sert au calcul des points)
         self.en_aveugle = False
+        self.malus = 0
 
         self.couleur_a_traiter = self.table.COULEUR_BOUGIE_ROUGE | self.table.COULEUR_BOUGIE_BLANC if self.config["couleur"] == "rouge" else self.table.COULEUR_BOUGIE_BLEU | self.table.COULEUR_BOUGIE_BLANC
         
@@ -303,7 +304,7 @@ class ScriptBougies(Script):
             return 4 * len([element for element in self.table.bougies_restantes(self.couleur_a_traiter)])
     
     def poids(self):
-        return 1
+        return self.malus
 
 class ScriptCadeaux(Script):
         
@@ -484,11 +485,15 @@ class ScriptRecupererVerres(Script):
 
         # On est à distance. On élève l'ascenseur (probable qu'il le soit déjà). On s'avance jusqu'à positionner le verre sous l'ascenseur. Si le verre est présent, on ouvre l'ascenseur, on le descend, on le ferme et on le remonte. Si le verre est absent, on laisse l'ascenseur en haut.
         self.robot.altitude_ascenseur(not self.robot.marche_arriere, "haut")
-        self.robot.va_au_point(destination)
-        try:
-            self.robot.recuperer_verre(not self.robot.marche_arriere)
-        except:
-            pass
+
+        hooks = []
+
+        hook_verre = self.hookGenerator.hook_capteur_verres(self.robot, not self.robot.marche_arriere)
+        hook_verre += self.hookGenerator.callback(self.robot.recuperer_verre, (not self.robot.marche_arriere, ))
+        hooks.append(hook_verre)
+        
+        self.robot.va_au_point(destination, hooks)
+
         # Dans tous les cas, que le verre ait été là ou non, on retire le verre de la table
         self.table.verre_recupere(verre)
         
