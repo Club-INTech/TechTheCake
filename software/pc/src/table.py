@@ -212,7 +212,11 @@ class Table:
         """
         Indique la couleur des bougies, avec le format du programme Android
         """
-        #TODO : ajouter des vérifications :  2x couleur robot sur le coté + supports blancs au milieu
+        conversionIndice = [0, 2, 4, 5, 7, 9, 1, 3, 6, 8]
+
+        # Pour les vérifications (compteur valable pour un côté du gâteau seulement)
+        compteur = {Table.COULEUR_BOUGIE_INCONNUE : 0, Table.COULEUR_BOUGIE_BLANC : 0, Table.COULEUR_BOUGIE_ROUGE : 0, Table.COULEUR_BOUGIE_BLEU : 0}
+
         for i, couleur in enumerate(list(code)):
             
             conversion = {
@@ -227,13 +231,23 @@ class Table:
                 "r": Table.COULEUR_BOUGIE_BLEU,
                 "b": Table.COULEUR_BOUGIE_ROUGE
             }
-            
+
+                 
             # Inversion si on est rouge
+            indice = conversionIndice[i]
             if self.config["couleur"] == "rouge":
-                i = 19-i
+                indice = 19 - indice
                 
-            self.bougies[i]["couleur"] = conversion[couleur]
-            self.bougies[19-i]["couleur"] = symetrie[couleur]
+            compteur[conversion[couleur]] += 1
+            self.bougies[indice]["couleur"] = conversion[couleur]
+            self.bougies[19-indice]["couleur"] = symetrie[couleur]
+
+        # En cas de bug, peut-on redemander?
+        if not ((not self.config["phases_finales"] and compteur[Table.COULEUR_BOUGIE_BLANC] == 2) or (self.config["phases_finales"] and compteur[Table.COULEUR_BOUGIE_BLANC] == 0)):
+            self.log.warning("Erreur détection bougies blanches! (vues: "+str(compteur[Table.COULEUR_BOUGIE_BLANC])+")")
+        
+        if (not self.config["phases_finales"] and compteur[Table.COULEUR_BOUGIE_ROUGE] != 4) or (self.config["phases_finales"] and compteur[Table.COULEUR_BOUGIE_ROUGE] != 5):
+            self.log.warning("Erreur détection bougies couleur! ("+str(compteur[Table.COULEUR_BOUGIE_ROUGE])+" rouges, "+str(compteur[Table.COULEUR_BOUGIE_BLEU])+" bleues")
             
     ###############################################
     ### GESTION DES VERRES
