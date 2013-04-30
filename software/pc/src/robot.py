@@ -11,7 +11,7 @@ class Robot(RobotInterface):
     """
     classe implémentant le robot.
     """
-    def __init__(self,capteurs,actionneurs,deplacements,rechercheChemin,table,son,config,log):
+    def __init__(self,capteurs,actionneurs,deplacements,rechercheChemin,hookGenerator,table,son,config,log):
         self.mutex = Mutex()
         
         #instances des dépendances
@@ -19,6 +19,7 @@ class Robot(RobotInterface):
         self.actionneurs = actionneurs
         self.deplacements = deplacements
         self.rechercheChemin = rechercheChemin
+        self.hookGenerator = hookGenerator
         self.table = table
         self.config = config
         self.log = log
@@ -67,7 +68,7 @@ class Robot(RobotInterface):
         self._effectuer_symetrie = True
         
         #le nombre de verres dans l'ascenseur avant ou arrière
-        self._nb_verres_avant = 0
+        self._nb_verres_avant = 4
         self._nb_verres_arriere = 0
         
         #le robot n'est pas prêt tant qu'il n'a pas recu ses coordonnées initiales par le thread de mise à jour
@@ -576,6 +577,7 @@ class Robot(RobotInterface):
             return chemin
             
         self.suit_chemin(chemin, symetrie_effectuee=True)
+
     
     def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, retenter_si_blocage=True, symetrie_effectuee=False, sans_lever_exception=False):
         """
@@ -662,8 +664,10 @@ class Robot(RobotInterface):
         
     def initialiser_actionneurs(self):
         """
-        Fonction appelée en début de match qui rentre les actionneurs et monte les ascenseurs et les ouvre
+        Fonction appelée en début de match qui asservit le robot, rentre les actionneurs et monte les ascenseurs et les ouvre
         """
+        self.deplacements.activer_asservissement_rotation()
+        self.deplacements.activer_asservissement_translation()
         self.actionneurs.actionneurs_bougie(True, "bas")        
         self.actionneurs.actionneurs_bougie(False, "bas")        
         self.actionneurs.actionneur_cadeau("bas")
@@ -838,46 +842,46 @@ class Robot(RobotInterface):
 
     def recuperer_verre(self, avant):
         """
-        Lance la procédure de récupération d'un verre
+        Lance la procédure de récupération d'un verre, sachant qu'il est présent
         """
         # Vérification de la capacité
         if self.places_disponibles(avant) == 0:
             if avant:
-                self.log.critical("le robot ne peut pas porter plus de verres à l'avant")
+                self.log.critical("Verre détecté, mais le robot ne peut pas porter plus de verres à l'avant")
             else:
-                self.log.critical("le robot ne peut pas porter plus de verres à l'arrière")
+                self.log.critical("Verre détecté, mais le robot ne peut pas porter plus de verres à l'arrière")
             raise ExceptionMouvementImpossible(self)
         
-        # Vérification de la présence du verre
-        if not self.capteurs.verre_present(avant):
-            self.log.warning("Verre absent!")
-            raise ExceptionVerreAbsent
-        # Lancement des actionneurs
+        # Lancement des actionneurs (on sait déjà que le verre est présent)
+        if avant:
+            self.deplacements.avancer(50)
         else:
-            if avant:
-                self.deplacements.avancer(-30)
-            else:
-                self.deplacements.avancer(30)
-            self.actionneurs.actionneurs_ascenseur(avant, "ouvert")
-            sleep(.2)
-            self.actionneurs.altitude_ascenseur(avant, "bas")
-            sleep(.3)
-            if avant:
-                self.deplacements.avancer(40)
-            else:
-                self.deplacements.avancer(-40)
-            sleep(.1)
-            self.actionneurs.actionneurs_ascenseur(avant, "fermé")
-            sleep(.2)
-            self.actionneurs.altitude_ascenseur(avant, "haut")
+            self.deplacements.avancer(-50)
+        sleep(.2)
+        if avant:
+            self.deplacements.avancer(-30)
+        else:
+            self.deplacements.avancer(30)
+        self.actionneurs.actionneurs_ascenseur(avant, "ouvert")
+        sleep(.2)
+        self.actionneurs.altitude_ascenseur(avant, "bas")
+        sleep(.3)
+        if avant:
+            self.deplacements.avancer(40)
+        else:
+            self.deplacements.avancer(-40)
+        sleep(.1)
+        self.actionneurs.actionneurs_ascenseur(avant, "fermé")
+        sleep(.2)
+        self.actionneurs.altitude_ascenseur(avant, "haut")
+    
+        # Mise à jour du total de verres portés
+        super().recuperer_verre(avant)
         
-            # Mise à jour du total de verres portés
-            super().recuperer_verre(avant)
-            
-            if avant:
-                self.log.debug("saisie d'un verre à l'avant")
-            else:
-                self.log.debug("saisie d'un verre à l'arrière")
+        if avant:
+            self.log.debug("saisie d'un verre à l'avant")
+        else:
+            self.log.debug("saisie d'un verre à l'arrière")
         self.log.debug("le robot a {0} verre(s) à l'avant, {1} à l'arrière".format(self.nb_verres_avant, self.nb_verres_arriere))
         
     def deposer_pile(self, avant):
@@ -911,8 +915,8 @@ class Robot(RobotInterface):
         self.actionneurs.gonfler_ballon()
         
 class RobotSimulation(Robot):
-    def __init__(self, simulateur, capteurs, actionneurs, deplacements, rechercheChemin, table, son, config, log):
-        super().__init__(capteurs, actionneurs, deplacements, rechercheChemin, table, son, config, log)
+    def __init__(self, simulateur, capteurs, actionneurs, deplacements, rechercheChemin, hookGenerator, table, son, config, log):
+        super().__init__(capteurs, actionneurs, deplacements, rechercheChemin, hookGenerator, table, son, config, log)
         self.simulateur = simulateur
         
     def tourner(self, angle_consigne, hooks=[], nombre_tentatives=2, sans_lever_exception=False):

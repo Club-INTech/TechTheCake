@@ -120,7 +120,7 @@ class Container:
             
             #visualisation sur le simulateur pour la table, le robot et la recherche de chemin
             self.assembler.register("table", table.TableSimulation, requires=["simulateur","config","log"])
-            self.assembler.register("robot", robot.RobotSimulation, requires=["simulateur","capteurs","actionneurs","deplacements","rechercheChemin","table","son","config","log"])
+            self.assembler.register("robot", robot.RobotSimulation, requires=["simulateur","capteurs","actionneurs","deplacements","rechercheChemin","hookGenerator","table","son","config","log"])
             self.assembler.register("rechercheChemin", rechercheChemin.RechercheCheminSimulation, requires=["simulateur", "table","config","log"])
         
             #série virtuelle, qui redirige vers le simulateur
@@ -129,7 +129,7 @@ class Container:
             
             #pas de visualisation sur le simulateur pour la table, le robot et la recherche de chemin
             self.assembler.register("table", table.Table, requires=["config","log"])
-            self.assembler.register("robot", robot.Robot, requires=["capteurs","actionneurs","deplacements","rechercheChemin","table","son","config","log"])
+            self.assembler.register("robot", robot.Robot, requires=["capteurs","actionneurs","deplacements","rechercheChemin","hookGenerator","table","son","config","log"])
             self.assembler.register("rechercheChemin", rechercheChemin.RechercheChemin, requires=["table","config","log"])
             
             def make_none():

@@ -315,7 +315,7 @@ class ScriptCadeaux(Script):
         
         # Déplacement proche du point d'entrée avec recherche de chemin
         self.robot.marche_arriere = False
-        self.robot.set_vitesse_translation(65)
+        self.robot.set_vitesse_translation(85)
         self.robot.set_vitesse_rotation(1)
         self.robot.recherche_de_chemin(self.info_versions[version]["point_entree_recherche_chemin"], recharger_table=False)
         
@@ -423,14 +423,11 @@ class ScriptRecupererVerres(Script):
         
     def _constructeur(self):
         # On va un peu trop loin afin de bien caler le verre au fond de l'ascenseur et lui permettre d'appuyer sur l'interrupteur
-        self.marge_recuperation = 80
-        self.marge_apres_chemin = self.marge_recuperation + 200
+        self.marge_recuperation = -20
+        self.marge_apres_chemin = self.marge_recuperation + 300
         
     def _execute(self, version):
         
-        self.robot.set_vitesse_translation(1)
-        self.robot.set_vitesse_rotation(1)
-
         # Désactivation de la symétrie
         self.robot.effectuer_symetrie = False
         
@@ -453,7 +450,7 @@ class ScriptRecupererVerres(Script):
         self._recuperation_verre(self.info_versions[version]["verre_entree"])
 
         # Tant qu'il y a de la place dans le robot
-        #TODO : dangereux si bouclage entre 2 verres inaccessibles. Prévoir un timeout ?
+        #TODO : dangereux si bouclage entre 2 verres inaccessibles. Prévoir un timeout ? (normalement OK)
         while self.robot.places_disponibles(True) != 0 or self.robot.places_disponibles(False) != 0:
             
             # Indentification du verre le plus proche dans la zone
@@ -481,7 +478,6 @@ class ScriptRecupererVerres(Script):
             self.robot.marche_arriere = mieux_en_arriere
         else:
             self.robot.marche_arriere = not mieux_en_arriere
-        
 
         # On est à distance. On élève l'ascenseur (probable qu'il le soit déjà). On s'avance jusqu'à positionner le verre sous l'ascenseur. Si le verre est présent, on ouvre l'ascenseur, on le descend, on le ferme et on le remonte. Si le verre est absent, on laisse l'ascenseur en haut.
         self.robot.altitude_ascenseur(not self.robot.marche_arriere, "haut")
@@ -492,6 +488,9 @@ class ScriptRecupererVerres(Script):
         hook_verre += self.hookGenerator.callback(self.robot.recuperer_verre, (not self.robot.marche_arriere, ))
         hooks.append(hook_verre)
         
+        self.robot.set_vitesse_translation(115)
+        self.robot.set_vitesse_rotation(3)
+
         self.robot.va_au_point(destination, hooks)
 
         # Dans tous les cas, que le verre ait été là ou non, on retire le verre de la table
