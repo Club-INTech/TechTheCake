@@ -850,7 +850,7 @@ class Robot(RobotInterface):
         
         # Vérification de la présence du verre
         if not self.capteurs.verre_present(avant):
-            self.log.critical("Verre absent!")
+            self.log.warning("Verre absent!")
             raise ExceptionVerreAbsent
         # Lancement des actionneurs
         else:
@@ -895,6 +895,10 @@ class Robot(RobotInterface):
         sleep(.5)
         self.actionneurs.actionneurs_ascenseur(avant, "petit ouvert")
         sleep(.5)
+        if avant:
+            self.deplacements.avancer(-40)
+        else:
+            self.deplacements.avancer(40)
         self.actionneurs.actionneurs_ascenseur(avant, "ouvert")
         
         # Mise à jour du total de verres portés
