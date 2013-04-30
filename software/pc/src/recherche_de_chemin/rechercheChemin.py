@@ -8,8 +8,7 @@ chemin = directory[:directory.index(racine)]+racine
 #répertoires d'importation
 sys.path.insert(0, os.path.join(chemin, "src/"))
 
-import builtins#@@
-
+#DEBUG# import builtins#@
 
 #bibliothèque compilée de recherche de chemin
 try:
@@ -720,9 +719,9 @@ class RechercheChemin:
             #self._ajouter_zone_verres(-1500,1500,avec_verres_entrees)
             
         ## par table booléenne
-        self._test_verres()
+        self._table_bool_verres()
         
-    def _test_verres(self):
+    def _table_bool_verres(self):
         v = [self.table.verres[6],self.table.verres[6],self.table.verres[7],self.table.verres[1],self.table.verres[0],self.table.verres[9],self.table.verres[8],self.table.verres[3],self.table.verres[2],self.table.verres[10],self.table.verres[11],self.table.verres[4],self.table.verres[5]]
         p = [verre["present"] for verre in v]
         
@@ -909,28 +908,14 @@ class RechercheChemin:
             if tout_seul:
                 self.ajoute_obstacle_cercle(verre["position"], self.config["rayon_verre"]-20, avecFusion=False)
         
-        ########################## AFFICHAGE #########################"
-        #clean affichage
-        builtins.simulateur.clearEntity("opt_verres")
-        for p in polygones:
-            print(p)
-            for i in range(1,len(p)):
-                builtins.simulateur.drawLine(p[i-1].x,p[i-1].y,p[i].x,p[i].y,"red","opt_verres")
-            builtins.simulateur.drawLine(p[len(p)-1].x,p[len(p)-1].y,p[0].x,p[0].y,"red","opt_verres")
+        ### affichage de debug ###
+        #builtins.simulateur.clearEntity("opt_verres")
+        #for p in polygones:
+            #print(p)
+            #for i in range(1,len(p)):
+                #builtins.simulateur.drawLine(p[i-1].x,p[i-1].y,p[i].x,p[i].y,"red","opt_verres")
+            #builtins.simulateur.drawLine(p[len(p)-1].x,p[len(p)-1].y,p[0].x,p[0].y,"red","opt_verres")
             
-        
-        ##affichage des aretes
-        #for k in range(len(arete)):
-            #if arete[k]:
-                #builtins.simulateur.drawLine(arete_verres[k][0]["position"].x,arete_verres[k][0]["position"].y,arete_verres[k][1]["position"].x,arete_verres[k][1]["position"].y,"blue","opt_verres")
-        #for k in range(len(arete_grande)):
-            #if arete_grande[k]:
-                #builtins.simulateur.drawLine(arete_grande_verres[k][0]["position"].x,arete_grande_verres[k][0]["position"].y,arete_grande_verres[k][1]["position"].x,arete_grande_verres[k][1]["position"].y,"blue","opt_verres")
-                
-        #affichage des verres présents
-        for verre in [ver for ver in v if ver["present"]]:
-            builtins.simulateur.drawPoint(verre["position"].x,verre["position"].y,"blue","opt_verres")
-        
     def charge_obstacles(self, avec_verres_entrees=True):
         ##ajout des obstacles vus par les capteurs et la balise
         #for obstacle in self.table.obstacles():
