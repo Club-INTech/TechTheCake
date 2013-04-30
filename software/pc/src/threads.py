@@ -328,16 +328,22 @@ class ThreadCouleurBougies(AbstractThread):
                 table.definir_couleurs_bougies(rcv)
                 log.debug("Résultats android: " + str(rcv))
             except:
-                # Si on n'a pas d'information de l'appli android, le mieux est de faire toutes les bougies (ce qui permet de gagner le plus de points possible). Pour cela, on contourne la complétion antisymétrique effectuée dans définir_couleur_bougies
-                log.warning("Aucune réponse de l'appli android. On fait toutes les bougies.")
-                couleur_bougies = table.COULEUR_BOUGIE_BLEU if config["couleur"]=="bleu" else table.COULEUR_BOUGIE_ROUGE
-                for i in range (20):
-                    table.bougies[i]["couleur"] = couleur_bougies
-                #le script tiendra compte de ce comportement dans le décompte des points
-                if "ScriptBougies" in scripts:
-                    scripts["ScriptBougies"].en_aveugle = True
+                # Si on n'a pas d'information de l'appli android, il vaut mieux stratégiquement ne pas faire les bougies, sauf s'il faut toutes les faire. En effet, si on fait toutes les bougies, la différence des points ne changera pas. Et comme on manque de temps pour tout faire, autant ne pas les faire.
+                if config["ennemi_fait_ses_bougies"]:
+                    log.warning("Aucune réponse de l'appli android. On fait toutes les bougies car l'ennemi fait les siennes.")
+                    couleur_bougies = table.COULEUR_BOUGIE_BLEU if config["couleur"]=="bleu" else table.COULEUR_BOUGIE_ROUGE
+                    for i in range (20):
+                        table.bougies[i]["couleur"] = couleur_bougies
+                    #le script tiendra compte de ce comportement dans le décompte des points
+                    if "ScriptBougies" in scripts:
+                        scripts["ScriptBougies"].en_aveugle = True
+                else:
+                    log.warning("Aucune réponse de l'appli android. Abandon des bougies.")
+                    del scripts["ScriptBougies"]
             finally:
                 client_socket.close()
-           
+
+#        table.definir_couleurs_bougies("bbrbwwrbrr") # test
+
         log.debug("Fin du thread de détection des couleurs des bougies")
         
