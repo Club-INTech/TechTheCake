@@ -315,7 +315,7 @@ class ScriptCadeaux(Script):
         
         # Déplacement proche du point d'entrée avec recherche de chemin
         self.robot.marche_arriere = False
-        self.robot.set_vitesse_translation(85)
+        self.robot.set_vitesse_translation(2)
         self.robot.set_vitesse_rotation(2)
         self.robot.recherche_de_chemin(self.info_versions[version]["point_entree_recherche_chemin"], recharger_table=False)
         
@@ -667,6 +667,8 @@ class ScriptDeposerVerres(Script):
         
         # Point d'entrée du script par recherche de chemin
         point_proche_case = self.info_versions[version]["point_entree_recherche_chemin"]
+        self.robot.set_vitesse_translation(2)
+        self.robot.set_vitesse_rotation(2)
         self.robot.recherche_de_chemin(point_proche_case, recharger_table=False)
         
         # On doit poser les verres contre le bord (x extremal) de la table au début, et revenir vers le centre si on est déjà passé
@@ -675,10 +677,9 @@ class ScriptDeposerVerres(Script):
         # Déplacement au centre de la case, qui n'a normalement pas d'assiette
         point_depot = self.info_versions[version]["point_entree"]
         self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne = point_depot)
-        self.robot.va_au_point(point_depot)
-        
         self.robot.set_vitesse_translation(1)
         self.robot.set_vitesse_rotation(1)
+        self.robot.va_au_point(point_depot)
 
         def deposer_avant():
             if self.robot.nb_verres_avant:
