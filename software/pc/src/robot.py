@@ -675,15 +675,16 @@ class Robot(RobotInterface):
         Fonction appelée en début de match qui asservit le robot, rentre les actionneurs et monte les ascenseurs et les ouvre
         """
         self.log.debug("Initialisation mécanique")
+        self.capteurs.activer_capteurs_prox()
         self.deplacements.activer_asservissement_rotation()
         self.deplacements.activer_asservissement_translation()
         self.actionneurs.actionneurs_bougie(True, "bas")        
         self.actionneurs.actionneurs_bougie(False, "bas")        
         self.actionneurs.actionneur_cadeau("bas")
-        self.actionneurs.actionneurs_ascenseur(True, "ouvert")
-        self.actionneurs.actionneurs_ascenseur(False, "ouvert")
-        self.actionneurs.altitude_ascenseur(True, "bas")
-        self.actionneurs.altitude_ascenseur(False, "bas")
+        self.actionneurs_ascenseur(True, "fermer_completement")
+        self.actionneurs_ascenseur(False, "fermer_completement")
+        self.altitude_ascenseur(True, "bas")
+        self.altitude_ascenseur(False, "bas")
         # le temps que l'ascenseur détecte le blocage
         sleep(5)
         self.actionneurs.altitude_ascenseur(True, "haut")
@@ -842,6 +843,12 @@ class Robot(RobotInterface):
         # Si l'ascenseur est plein, on ne le lève pas complètement
         if hauteur == "haut" and self.places_disponibles(avant) == 0:
             hauteur = "plein"
+        if hauteur == "haut":
+            self.log.debug("Capteurs de proximité désactivés")
+            self.capteurs.desactiver_capteurs_prox()
+        else:
+            self.log.debug("Capteurs de proximité activés")
+            self.capteurs.activer_capteurs_prox()
         if avant:
             self.log.debug("Ascenseur avant en position: "+hauteur)
         else:
@@ -885,13 +892,11 @@ class Robot(RobotInterface):
         else:
             self.deplacements.avancer(-80)
         sleep(.2)
-        self.actionneurs.actionneurs_ascenseur(avant, "fermé")
+        self.actionneurs.actionneurs_ascenseur(avant, "ferme")
         sleep(.1)
 
         # Mise à jour du total de verres portés
         super().recuperer_verre(avant)
-
-        self.altitude_ascenseur(avant, "haut")
 
         if avant:
             self.log.debug("saisie d'un verre à l'avant")

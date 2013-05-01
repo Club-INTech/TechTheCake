@@ -494,8 +494,10 @@ class ScriptRecupererVerres(Script):
         hook_verre += self.hookGenerator.callback(self.robot.recuperer_verre, (not self.robot.marche_arriere, ))
         hooks.append(hook_verre)
         
-        self.robot.set_vitesse_translation(115)
+        self.robot.set_vitesse_translation(85)
         self.robot.set_vitesse_rotation(2)
+
+        self.robot.altitude_ascenseur(not self.robot.marche_arriere, "haut")
 
         self.robot.va_au_point(destination, hooks)
 
@@ -520,10 +522,7 @@ class ScriptRecupererVerres(Script):
         return recuperation
          
     def _termine(self):
-        # On monte les deux ascenseurs
-        self.robot.altitude_ascenseur(True, "haut")
-        self.robot.altitude_ascenseur(False, "haut")
-
+        pass
         
     @abc.abstractmethod
     def versions(self):
