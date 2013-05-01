@@ -681,8 +681,8 @@ class Robot(RobotInterface):
         self.actionneurs.actionneurs_bougie(True, "bas")        
         self.actionneurs.actionneurs_bougie(False, "bas")        
         self.actionneurs.actionneur_cadeau("bas")
-        self.actionneurs_ascenseur(True, "fermer_completement")
-        self.actionneurs_ascenseur(False, "fermer_completement")
+        self.actionneurs_ascenseur(True, "ferme_completement")
+        self.actionneurs_ascenseur(False, "ferme_completement")
         self.altitude_ascenseur(True, "bas")
         self.altitude_ascenseur(False, "bas")
         # le temps que l'ascenseur détecte le blocage
@@ -887,6 +887,7 @@ class Robot(RobotInterface):
         sleep(.2)
         self.actionneurs.altitude_ascenseur(avant, "bas")
         sleep(.2)
+        self.capteurs.activer_capteurs_prox()
         if avant:
             self.deplacements.avancer(80)
         else:

@@ -522,7 +522,10 @@ class ScriptRecupererVerres(Script):
         return recuperation
          
     def _termine(self):
-        pass
+        # On desced les deux ascenseurs
+        self.robot.altitude_ascenseur(True, "plein")
+        self.robot.altitude_ascenseur(False, "plen")
+
         
     @abc.abstractmethod
     def versions(self):
