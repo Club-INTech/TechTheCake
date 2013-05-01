@@ -449,6 +449,8 @@ class ScriptRecupererVerres(Script):
         nouvelle_destination = self._point_devant_verre(premier_verre, self.marge_apres_chemin, chemin_avec_depart[-1])
         chemin_vers_entree.append(nouvelle_destination)
         
+        self.robot.set_vitesse_translation(2)
+        self.robot.set_vitesse_rotation(2)
         self.robot.suit_chemin(chemin_vers_entree, symetrie_effectuee=True)
         
         # Récupération du premier verre
@@ -485,9 +487,7 @@ class ScriptRecupererVerres(Script):
 #        else:
 #            self.robot.marche_arriere = not mieux_en_arriere
 
-        # On est à distance. On élève l'ascenseur (probable qu'il le soit déjà). On s'avance jusqu'à positionner le verre sous l'ascenseur. Si le verre est présent, on ouvre l'ascenseur, on le descend, on le ferme et on le remonte. Si le verre est absent, on laisse l'ascenseur en haut.
-        self.robot.altitude_ascenseur(not self.robot.marche_arriere, "haut")
-
+        # On est à distance.L'ascenseur est déjà levé. On s'avance jusqu'à positionner le verre sous l'ascenseur. Si le verre est présent, on ouvre l'ascenseur, on le descend, on le ferme et on le remonte. Si le verre est absent, on laisse l'ascenseur en haut.
         hooks = []
 
         hook_verre = self.hookGenerator.hook_capteur_verres(self.robot, not self.robot.marche_arriere)
@@ -495,7 +495,7 @@ class ScriptRecupererVerres(Script):
         hooks.append(hook_verre)
         
         self.robot.set_vitesse_translation(115)
-        self.robot.set_vitesse_rotation(3)
+        self.robot.set_vitesse_rotation(2)
 
         self.robot.va_au_point(destination, hooks)
 
