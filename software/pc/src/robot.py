@@ -862,30 +862,37 @@ class Robot(RobotInterface):
         
         # Lancement des actionneurs (on sait déjà que le verre est présent)
         if avant:
-            self.deplacements.avancer(50)
+            self.deplacements.avancer(80)
         else:
-            self.deplacements.avancer(-50)
+            self.deplacements.avancer(-80)
         sleep(.2)
         if avant:
-            self.deplacements.avancer(-30)
+            self.deplacements.avancer(-20)
         else:
-            self.deplacements.avancer(30)
+            self.deplacements.avancer(20)
+        sleep(.1)
         self.actionneurs.actionneurs_ascenseur(avant, "ouvert")
+        sleep(.1)
+        if avant:
+            self.deplacements.avancer(-40)
+        else:
+            self.deplacements.avancer(40)
         sleep(.2)
         self.actionneurs.altitude_ascenseur(avant, "bas")
-        sleep(.3)
-        if avant:
-            self.deplacements.avancer(40)
-        else:
-            self.deplacements.avancer(-40)
-        sleep(.1)
-        self.actionneurs.actionneurs_ascenseur(avant, "fermé")
         sleep(.2)
-        self.actionneurs.altitude_ascenseur(avant, "haut")
-    
+        if avant:
+            self.deplacements.avancer(80)
+        else:
+            self.deplacements.avancer(-80)
+        sleep(.2)
+        self.actionneurs.actionneurs_ascenseur(avant, "fermé")
+        sleep(.1)
+
         # Mise à jour du total de verres portés
         super().recuperer_verre(avant)
-        
+
+        self.altitude_ascenseur(avant, "haut")
+
         if avant:
             self.log.debug("saisie d'un verre à l'avant")
         else:
