@@ -719,11 +719,11 @@ class RechercheChemin:
             #self._ajouter_zone_verres(-1500,1500,avec_verres_entrees)
             
         ## par table booléenne
-        self._table_bool_verres()
+        self._table_bool_verres(avec_verres_entrees)
         
-    def _table_bool_verres(self):
+    def _table_bool_verres(self,avec_verres_entrees):
         v = [self.table.verres[6],self.table.verres[6],self.table.verres[7],self.table.verres[1],self.table.verres[0],self.table.verres[9],self.table.verres[8],self.table.verres[3],self.table.verres[2],self.table.verres[10],self.table.verres[11],self.table.verres[4],self.table.verres[5]]
-        p = [verre["present"] for verre in v]
+        p = [verre["present"] if (avec_verres_entrees or not verre in self.table.verres_entrees()) else False for verre in v]
         
         arete_verres = [(v[1],v[2]),(v[1],v[5]),(v[2],v[5]),(v[2],v[6]),(v[3],v[4]),(v[3],v[7]),(v[3],v[8]),(v[4],v[8]),(v[5],v[6]),(v[5],v[9]),(v[5],v[10]),(v[6],v[7]),(v[6],v[10]),(v[7],v[8]),(v[7],v[11]),(v[8],v[11]),(v[8],v[12]),(v[9],v[10]),(v[11],v[12])]
         arete_grande_verres = [(v[1],v[6]),(v[1],v[9]),(v[2],v[7]),(v[2],v[10]),(v[2],v[3]),(v[3],v[6]),(v[3],v[11]),(v[4],v[7]),(v[4],v[12]),(v[6],v[9]),(v[6],v[11]),(v[7],v[10]),(v[7],v[12]),(v[10],v[11])]
@@ -899,7 +899,7 @@ class RechercheChemin:
             self.ajoute_obstacle_polygone(p,40,avecFusion=False)
             
         #ajout d'un cercle pour les verres seuls (hors polygones)
-        for verre in [ver for ver in v if ver["present"]]:
+        for verre in [ver for ver in v if ver["present"] and (avec_verres_entrees or not ver in self.table.verres_entrees())]:
             tout_seul = True
             for poly in polygones:
                 if collisions.collisionPointPoly(verre["position"],poly):
