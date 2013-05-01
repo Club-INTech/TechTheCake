@@ -909,19 +909,27 @@ class Robot(RobotInterface):
             self.log.debug("Dépot de la pile de verres à l'arrière.")
                 
         # Lancement des actionneurs
+        if avant:
+            self.deplacements.avancer(20)
+        else:
+            self.deplacements.avancer(-20)
         self.actionneurs.actionneurs_ascenseur(avant, "petit ouvert")
         sleep(.5)
         self.actionneurs.actionneurs_ascenseur(avant, "ouvert")
         sleep(.5)
+        if avant:
+            self.deplacements.avancer(-20)
+        else:
+            self.deplacements.avancer(20)
+        sleep(.5)
         self.actionneurs.altitude_ascenseur(avant, "bas")
         sleep(.5)
-        self.actionneurs.actionneurs_ascenseur(avant, "ferme")
-
         if avant:
-            self.deplacements.avancer(10)
+            self.deplacements.avancer(30)
         else:
-            self.deplacements.avancer(-10)
-
+            self.deplacements.avancer(-30)
+        sleep(.5)
+        self.actionneurs.actionneurs_ascenseur(avant, "ferme")
         sleep(.5)
         self.actionneurs.actionneurs_ascenseur(avant, "petit ouvert")
         sleep(.5)
