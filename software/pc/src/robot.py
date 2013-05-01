@@ -68,7 +68,7 @@ class Robot(RobotInterface):
         self._effectuer_symetrie = True
         
         #le nombre de verres dans l'ascenseur avant ou arrière
-        self._nb_verres_avant = 4
+        self._nb_verres_avant = 0
         self._nb_verres_arriere = 0
         
         #le robot n'est pas prêt tant qu'il n'a pas recu ses coordonnées initiales par le thread de mise à jour
@@ -223,7 +223,7 @@ class Robot(RobotInterface):
             sleep(self.sleep_milieu_boucle_acquittement)
 
         if time()-date_debut_boucle >= duree_max:
-            self.log.critical("Boucle infinie durant l'acquittement!")
+            self.log.critical("Boucle infinie durant l'acquittement de tourner!")
         
     def _va_au_point(self, x, y, hooks=[], trajectoire_courbe=False, sans_lever_exception = False):
         """
@@ -265,7 +265,10 @@ class Robot(RobotInterface):
             self._detecter_collisions() #on n'avance pas si un obstacle est devant
             self.deplacements.avancer(distance)
 
-        while not self._acquittement(sans_lever_exception = sans_lever_exception):
+        date_debut_boucle = time()
+        duree_max = 10
+        #pas de détection de collision dans les rotations
+        while time()-date_debut_boucle < duree_max and not self._acquittement(sans_lever_exception = sans_lever_exception):
             #vérification des hooks
             infosRobot = {"robotX": self.x, "robotY": self.y, "robotOrientation": self.orientation}
             for hook in hooks:
@@ -277,6 +280,9 @@ class Robot(RobotInterface):
             #self._mise_a_jour_consignes()#@
             
             sleep(self.sleep_milieu_boucle_acquittement)
+
+        if time()-date_debut_boucle >= duree_max:
+            self.log.critical("Boucle infinie durant l'acquittement de _va_au_point!")
     
     def _mise_a_jour_consignes(self, arc_de_cercle=False):
         """
@@ -666,6 +672,7 @@ class Robot(RobotInterface):
         """
         Fonction appelée en début de match qui asservit le robot, rentre les actionneurs et monte les ascenseurs et les ouvre
         """
+        self.log.debug("Initialisation mécanique")
         self.deplacements.activer_asservissement_rotation()
         self.deplacements.activer_asservissement_translation()
         self.actionneurs.actionneurs_bougie(True, "bas")        
@@ -679,6 +686,7 @@ class Robot(RobotInterface):
         sleep(5)
         self.actionneurs.altitude_ascenseur(True, "haut")
         self.actionneurs.altitude_ascenseur(False, "haut")
+        self.log.debug("Initialisation terminée")
 
     def recaler(self):
         """
