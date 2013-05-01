@@ -1,7 +1,7 @@
 
 #passage de la couleur
 #couleur = ""
-couleur = "bleu"
+couleur = "rouge"
 while couleur != "rouge" and couleur != "bleu":
     couleur = input("Quelle couleur? bleu ou rouge >")
 import builtins
@@ -31,6 +31,12 @@ phases_finales = "0"
 while phases_finales != "1" and phases_finales != "0":
     phases_finales = input("Sommes-nous en phases finales? 1 (oui) ou 0 (non) >")
 
+case_depart_principal = "2"
+#case_depart_principal = ""
+while case_depart_principal != "2" and case_depart_principal != "3" and case_depart_principal != "4":
+    case_depart_principal = input("Quelle case de départ? 2/3/4 >")
+
+
 container = Container()
 
 #module de la stratégie
@@ -39,6 +45,7 @@ config["couleur"] = couleur
 config["ennemi_fait_toutes_bougies"] = bool(int(ennemi_fait_toutes_bougies))
 config["ennemi_fait_ses_bougies"] = bool(int(ennemi_fait_ses_bougies))
 config["phases_finales"] = bool(int(phases_finales))
+config["case_depart_principal"] = bool(int(case_depart_principal))
 strategie = container.get_service("strategie")
 robot = container.get_service("robot")
 log = container.get_service("log")
