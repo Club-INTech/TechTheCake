@@ -33,8 +33,12 @@ class Strategie:
         self.log.debug("Stratégie lancée")
         # Avec la balise laser, récupérer la position des ennemis. Sur la ou les cases occupées seront probablement les verres. Mettre à jour position_verres_1 et position_verres_2
 #        self.scripts["ScriptRenverserVerres"].cases_verres=[1,2]
-        self.robot.avancer(300, retenter_si_blocage = False, sans_lever_exception = True)
-
+        try:
+            self.robot.set_vitesse_translation(2)
+            self.robot.set_vitesse_rotation(2)
+            self.robot.avancer(300, retenter_si_blocage = False, sans_lever_exception = True)
+        except:
+            pass
         # On ne le fait que maintenant car la config peut changer avant le début du match
         if self.config["ennemi_fait_toutes_bougies"]:
             self.log.warning("Comme l'ennemi fait toutes les bougies, on ne les fera pas.")
@@ -65,7 +69,9 @@ class Strategie:
                     break
 
                 # Choix du script avec la meilleure note
-                (script_a_faire, version_a_faire) = max(notes, key=notes.get)
+                (script_a_faire, version_a_faire) = max(notes, key=notes.get)  
+#                script_a_faire = "ScriptCadeaux"
+#                version_a_faire = 1
                 self.log.debug("Stratégie ordonne: ({0}, version n°{1}, entrée en {2})".format(script_a_faire, version_a_faire, self.scripts[script_a_faire].point_entree(version_a_faire)))
 
             
@@ -109,6 +115,10 @@ class Strategie:
             else:
                 self.log.warning("Ordre annulé: fin du match.")
 
+            self.robot.deposer_verre_avant = self.robot.nb_verres_avant >= 2 or (self.robot.nb_verres_avant >= 1 and time() - self.timer.get_date_debut() >= self.config["duree_combo"])
+            self.robot.deposer_verre_arriere = self.robot.nb_verres_arriere >= 2 or (self.robot.nb_verres_arriere >= 1 and time() - self.timer.get_date_debut() >= self.config["duree_combo"])
+
+
         self.log.debug("Arrêt de la stratégie")
         input("")
 
@@ -121,10 +131,13 @@ class Strategie:
             
         #chemin impossible
         except libRechercheChemin.ExceptionAucunChemin:
+            self.log.critical("Epic fail de {0}! ExceptionAucunChemin".format((script,version)))
             return -1000
         except libRechercheChemin.ExceptionArriveeDansObstacle:
+            self.log.critical("Epic fail de {0}! ExceptionArriveeDansObstacle".format((script,version)))
             return -1000
         except libRechercheChemin.ExceptionArriveeHorsTable:
+            self.log.critical("Epic fail de {0}! ExceptionArriveeHorsTable".format((script,version)))
             return -1000
             
         # Erreur dans la durée script, script ignoré
@@ -139,8 +152,6 @@ class Strategie:
 
         # Si on n'a pas le temps de faire le script avant la fin du match
         if not duree_script < (self.config["temps_match"] - time() + self.timer.get_date_debut()):
-            self.log.warning("Plus le temps d'exécuter " + script)
-            self.log.warning("Son temps: " + str(duree_script)+". Temps restant: " + str(self.config["temps_match"] - time() + self.timer.get_date_debut()))
             malus = -10
         else:
             malus = 0
@@ -171,9 +182,8 @@ class Strategie:
             # Les scripts qu'on aurait pas le temps de finir ont un malus de points
             malus
         ]
-        self.log.critical("Détail note "+str(script)+" en "+str(self.scripts[script].point_entree(version))+": "+str(note))
-        self.log.critical("Score: "+str(score)+", durée: "+str(duree_script))
-
+        self.log.debug("Détail note "+str(script)+" en "+str(self.scripts[script].point_entree(version))+": "+str(note))
+#        self.log.debug("Score: "+str(score)+", durée: "+str(duree_script))
         
         return sum(note)
 

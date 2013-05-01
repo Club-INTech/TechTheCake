@@ -351,7 +351,7 @@ class ScriptCadeaux(Script):
             hooks.append(hook_fermeture)
 
         # Déplacement le long de la table (peut être un peu trop loin ?)
-        self.robot.set_vitesse_translation(145)
+        self.robot.set_vitesse_translation(105)
         point_sortie = Point(self.info_versions[1-version]["point_entree"].x, self.info_versions[version]["point_entree"].y)
         
         """
@@ -380,8 +380,8 @@ class ScriptCadeaux(Script):
             self.log.debug("Fin du script cadeau : l'actionneur cadeaux est déjà rentré.")
 
     def versions(self):
-        self.decalage_x_ouvre = -250
-        self.decalage_x_ferme = -290#350
+        self.decalage_x_ouvre = -190
+        self.decalage_x_ferme = -230#350
         self.decalage_y_bord = self.config["rayon_robot"] + 90
         self.decalage_x_pour_reglette_blanche = 100
         
@@ -476,7 +476,8 @@ class ScriptRecupererVerres(Script):
         destination = self._point_devant_verre(verre["position"], self.marge_recuperation)
 
         # Les ascenseurs étant fiables, il vaut mieux remplir un côté puis l'autre
-        self.robot.marche_arriere = not self.robot.places_disponibles(True)
+#        self.robot.marche_arriere = not self.robot.places_disponibles(True)
+        self.robot.marche_arriere = self.robot.places_disponibles(False)
 
 #        mieux_en_arriere = self.robot.marche_arriere_est_plus_rapide(destination)
 #        if self.robot.places_disponibles(not mieux_en_arriere):
@@ -609,7 +610,7 @@ class ScriptDeposerVerres(Script):
         self.decalage_recherche_chemin = Point(-400,0)
         
         #recul à chaque nouveau dépot, pour éviter de dégommer les anciennes piles
-        self.largeur_recul_piles = 100
+        self.largeur_recul_piles = 150
         
         #distance entre le point d'entree et l'endroit où on dépose une pile
         self.distance_entree_depot = 120
@@ -621,7 +622,7 @@ class ScriptDeposerVerres(Script):
         """
         
         # Si on ne transporte aucun verre, aucune version
-        if self.robotVrai.nb_verres_arriere == 0 and self.robotVrai.nb_verres_avant == 0:
+        if not self.robotVrai.deposer_verre_avant and not self.robotVrai.deposer_verre_arriere:
             return []
 
         #décalage dû aux reglettes
@@ -677,30 +678,46 @@ class ScriptDeposerVerres(Script):
         # Déplacement au centre de la case, qui n'a normalement pas d'assiette
         point_depot = self.info_versions[version]["point_entree"]
         self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne = point_depot)
+
         self.robot.set_vitesse_translation(1)
         self.robot.set_vitesse_rotation(1)
         self.robot.va_au_point(point_depot)
 
-        def deposer_avant():
-            if self.robot.nb_verres_avant:
-                #on dépose l'ascenseur avant d'un coté
-                self.robot.tourner(orientation_vers_depot + math.pi/6)
+        def deposer_avant(combo, sens_arriere):
+            if self.robot.deposer_verre_avant or combo:
+                if combo:
+                    #on se met du côté arrière!
+                    self.robot.tourner(orientation_vers_depot - math.pi/6)
 
-                #attention, on va taper le bord de la table !
-                self.robot.avancer(self.distance_entree_depot, retenter_si_blocage=False, sans_lever_exception=True)
+                    #attention, on va taper le bord de la table !
+                    self.robot.avancer(self.distance_entree_depot, retenter_si_blocage=False, sans_lever_exception=True)
+                    if sens_arriere:
+                        self.robot.deposer_pile_combo(avant=True)
+                    else:
+                        self.robot.deposer_pile(avant=True)
 
-                self.robot.deposer_pile(avant=True)
+                else:
+                    #on dépose l'ascenseur avant d'un coté
+                    self.robot.tourner(orientation_vers_depot + math.pi/6)
+
+                    #attention, on va taper le bord de la table !
+                    self.robot.avancer(self.distance_entree_depot, retenter_si_blocage=False, sans_lever_exception=True)
+
+                    self.robot.deposer_pile(avant=True)
                 self.robot.avancer(-self.distance_entree_depot)
         
-        def deposer_arriere():
-            if self.robot.nb_verres_arriere:
+        def deposer_arriere(combo, sens_arriere):
+            if self.robot.deposer_verre_avant or combo:
                 #on dépose l'ascenseur arrière de l'autre coté
                 self.robot.tourner(math.pi + orientation_vers_depot - math.pi/6)
 
                 #attention, on va taper le bord de la table !
                 self.robot.avancer(-self.distance_entree_depot, retenter_si_blocage=False, sans_lever_exception=True)
 
-                self.robot.deposer_pile(avant=False)
+                if combo and sens_arriere:
+                    self.robot.deposer_pile(avant=False)
+                else:
+                    self.robot.deposer_pile_combo(avant=False)
                 self.robot.avancer(self.distance_entree_depot)
         
         #on retient un passage de plus dans cette case
@@ -708,12 +725,25 @@ class ScriptDeposerVerres(Script):
         
         #tenir compte de l'orientation d'arrivée pour commencer à l'avant ou à l'arrière
         position_verres = point_depot + Point(150*math.cos(orientation_vers_depot),150*math.sin(orientation_vers_depot))
-        if self.robot.marche_arriere_est_plus_rapide(point_consigne=position_verres):
-            deposer_arriere()
-            deposer_avant()
+
+        sens_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne=position_verres)
+        combo = False
+        if self.robot.nb_verres_avant == 1 and self.robot.nb_verres_arriere >= 1 and self.robot.nb_verres_arriere <= 3:
+            combo = True
+            sens_arriere = False
+        elif self.robot.nb_verres_arriere == 1 and self.robot.nb_verres_avant >= 1 and self.robot.nb_verres_avant <= 3:
+            combo = True
+            sens_arriere = True
+
+        if combo:
+            self.log.debug("C-C-C-C-COMBOOO! Points bonus: "+str(4*max(self.robot.nb_verres_arriere, self.robot.nb_verres_avant)))
+
+        if sens_arriere:
+            deposer_arriere(combo, True)
+            deposer_avant(combo, True)
         else:
-            deposer_avant()
-            deposer_arriere()
+            deposer_avant(combo, False)
+            deposer_arriere(combo, False)
             
         #on se dégage
         self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne=point_proche_case)

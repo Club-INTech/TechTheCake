@@ -70,7 +70,9 @@ class Robot(RobotInterface):
         #le nombre de verres dans l'ascenseur avant ou arrière
         self._nb_verres_avant = 0
         self._nb_verres_arriere = 0
-        
+        self.deposer_verre_avant = False
+        self.deposer_verre_arriere = False
+
         #le robot n'est pas prêt tant qu'il n'a pas recu ses coordonnées initiales par le thread de mise à jour
         self.pret = False
         
@@ -890,6 +892,44 @@ class Robot(RobotInterface):
             self.log.debug("saisie d'un verre à l'arrière")
         self.log.debug("le robot a {0} verre(s) à l'avant, {1} à l'arrière".format(self.nb_verres_avant, self.nb_verres_arriere))
         
+    def deposer_pile_combo(self, avant):
+        """
+        Combo!
+        """
+        if avant:
+            self.log.debug("Dépot de la pile de verres à l'avant.")
+        else:
+            self.log.debug("Dépot de la pile de verres à l'arrière.")
+                
+        # Lancement des actionneurs
+        self.actionneurs.actionneurs_ascenseur(avant, "petit ouvert")
+        sleep(.5)
+        self.actionneurs.actionneurs_ascenseur(avant, "ouvert")
+        sleep(.5)
+        self.actionneurs.altitude_ascenseur(avant, "bas")
+        sleep(.5)
+        self.actionneurs.actionneurs_ascenseur(avant, "ferme")
+
+        if avant:
+            self.deplacements.avancer(10)
+        else:
+            self.deplacements.avancer(-10)
+
+        sleep(.5)
+        self.actionneurs.actionneurs_ascenseur(avant, "petit ouvert")
+        sleep(.5)
+        self.actionneurs.actionneurs_ascenseur(avant, "ouvert")
+        sleep(.5)
+
+        if avant:
+            self.deplacements.avancer(-10)
+        else:
+            self.deplacements.avancer(10)
+        
+        # Mise à jour du total de verres portés
+        super().deposer_pile(avant)
+        
+
     def deposer_pile(self, avant):
         """
         Dépose l'ensemble des verres d'un ascenseur.
@@ -906,10 +946,12 @@ class Robot(RobotInterface):
         self.actionneurs.actionneurs_ascenseur(avant, "petit ouvert")
         sleep(.5)
         if avant:
-            self.deplacements.avancer(-40)
+            self.deplacements.avancer(-20)
         else:
-            self.deplacements.avancer(40)
+            self.deplacements.avancer(20)
         self.actionneurs.actionneurs_ascenseur(avant, "ouvert")
+        sleep(.5)
+        self.actionneurs.altitude_ascenseur(avant, "haut")
         
         # Mise à jour du total de verres portés
         super().deposer_pile(avant)
