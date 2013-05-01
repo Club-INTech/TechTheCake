@@ -282,3 +282,7 @@ class RobotChrono(RobotInterface):
 
     def deposer_pile(self, avant):
         pass
+
+    def deposer_pile_combo(self, avant):
+        pass
+

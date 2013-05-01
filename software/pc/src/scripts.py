@@ -684,7 +684,7 @@ class ScriptDeposerVerres(Script):
         self.robot.va_au_point(point_depot)
 
         def deposer_avant(combo, sens_arriere):
-            if self.robot.deposer_verre_avant or combo:
+            if self.robotVrai.deposer_verre_avant or combo:
                 if combo:
                     #on se met du côté arrière!
                     self.robot.tourner(orientation_vers_depot - math.pi/6)
@@ -707,14 +707,14 @@ class ScriptDeposerVerres(Script):
                 self.robot.avancer(-self.distance_entree_depot)
         
         def deposer_arriere(combo, sens_arriere):
-            if self.robot.deposer_verre_avant or combo:
+            if self.robotVrai.deposer_verre_arriere or combo:
                 #on dépose l'ascenseur arrière de l'autre coté
                 self.robot.tourner(math.pi + orientation_vers_depot - math.pi/6)
 
                 #attention, on va taper le bord de la table !
                 self.robot.avancer(-self.distance_entree_depot, retenter_si_blocage=False, sans_lever_exception=True)
 
-                if combo and sens_arriere:
+                if not combo or sens_arriere:
                     self.robot.deposer_pile(avant=False)
                 else:
                     self.robot.deposer_pile_combo(avant=False)

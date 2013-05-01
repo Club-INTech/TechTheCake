@@ -118,6 +118,9 @@ class Strategie:
             self.robot.deposer_verre_avant = self.robot.nb_verres_avant >= 2 or (self.robot.nb_verres_avant >= 1 and time() - self.timer.get_date_debut() >= self.config["duree_combo"])
             self.robot.deposer_verre_arriere = self.robot.nb_verres_arriere >= 2 or (self.robot.nb_verres_arriere >= 1 and time() - self.timer.get_date_debut() >= self.config["duree_combo"])
 
+            self.log.debug("Peut-on déposer à l'avant? "+str(self.robot.deposer_verre_avant))
+            self.log.debug("Peut-on déposer à l'arrière? "+str(self.robot.deposer_verre_arriere))
+
 
         self.log.debug("Arrêt de la stratégie")
         input("")
@@ -152,6 +155,8 @@ class Strategie:
 
         # Si on n'a pas le temps de faire le script avant la fin du match
         if not duree_script < (self.config["temps_match"] - time() + self.timer.get_date_debut()):
+            self.log.warning("Plus le temps d'exécuter " + script)
+            self.log.warning("Son temps: " + str(duree_script)+". Temps restant: " + str(self.config["temps_match"] - time() + self.timer.get_date_debut()))
             malus = -10
         else:
             malus = 0
