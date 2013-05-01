@@ -316,7 +316,7 @@ class ScriptCadeaux(Script):
         # Déplacement proche du point d'entrée avec recherche de chemin
         self.robot.marche_arriere = False
         self.robot.set_vitesse_translation(85)
-        self.robot.set_vitesse_rotation(1)
+        self.robot.set_vitesse_rotation(2)
         self.robot.recherche_de_chemin(self.info_versions[version]["point_entree_recherche_chemin"], recharger_table=False)
         
         # Déplacement au point d'entrée
@@ -335,7 +335,11 @@ class ScriptCadeaux(Script):
         
         # Ouverture du bras en face du cadeau
         for cadeau in self.table.cadeaux_restants():
-            hook_ouverture = self.hookGenerator.hook_droite_verticale(cadeau["position"].x + sens * self.decalage_x_ouvre, vers_x_croissant=1-version)
+            # Le premier cadeau à une anticipation en x plus faible du fait de la plus faible vitesse du robot
+            if cadeau["id"] == self.table.cadeaux_entrees()[version]["id"]:
+                hook_ouverture = self.hookGenerator.hook_droite_verticale(cadeau["position"].x + sens * self.decalage_x_ouvre/2, vers_x_croissant=1-version)
+            else:
+                hook_ouverture = self.hookGenerator.hook_droite_verticale(cadeau["position"].x + sens * self.decalage_x_ouvre, vers_x_croissant=1-version)
             hook_ouverture += self.hookGenerator.callback(self.robot.actionneur_cadeau, ("haut",))
             hook_ouverture += self.hookGenerator.callback(self.table.cadeau_recupere, (cadeau,))
             hooks.append(hook_ouverture)
@@ -347,7 +351,7 @@ class ScriptCadeaux(Script):
             hooks.append(hook_fermeture)
 
         # Déplacement le long de la table (peut être un peu trop loin ?)
-        self.robot.set_vitesse_translation(65)
+        self.robot.set_vitesse_translation(105)
         point_sortie = Point(self.info_versions[1-version]["point_entree"].x, self.info_versions[version]["point_entree"].y)
         
         """
@@ -376,8 +380,8 @@ class ScriptCadeaux(Script):
             self.log.debug("Fin du script cadeau : l'actionneur cadeaux est déjà rentré.")
 
     def versions(self):
-        self.decalage_x_ouvre = -110
-        self.decalage_x_ferme = -140#350
+        self.decalage_x_ouvre = -190
+        self.decalage_x_ferme = -230#350
         self.decalage_y_bord = self.config["rayon_robot"] + 90
         self.decalage_x_pour_reglette_blanche = 100
         
@@ -397,14 +401,15 @@ class ScriptCadeaux(Script):
                 point_entree_recherche_chemin[cadeau["id"]].x -= self.decalage_x_pour_reglette_blanche
             
         # S'il n'y a plus qu'un seul cadeau, cadeaux contient quand même deux éléments
+        # Le coefficient 1/2 devant self.decalage_x_ouvre vient du fait qu'au début du script, la vitesse est encore faible et donc on doit moins anticiper les mouvements
         self.info_versions = [
             {   "point_entree_recherche_chemin": point_entree_recherche_chemin[cadeaux[0]["id"]], 
-                "point_entree": cadeaux[0]["position"] + Point(1 * self.decalage_x_ouvre,self.decalage_y_bord), 
+                "point_entree": cadeaux[0]["position"] + Point(1 * self.decalage_x_ouvre/2,self.decalage_y_bord), 
                 "sens": 1, 
                 "marche_arriere": False
             },               
             {   "point_entree_recherche_chemin": point_entree_recherche_chemin[cadeaux[1]["id"]], 
-                "point_entree": cadeaux[1]["position"] + Point(-1 * self.decalage_x_ouvre,self.decalage_y_bord), 
+                "point_entree": cadeaux[1]["position"] + Point(-1 * self.decalage_x_ouvre/2,self.decalage_y_bord), 
                 "sens": -1, 
                 "marche_arriere": True
             }]
@@ -470,14 +475,14 @@ class ScriptRecupererVerres(Script):
         """
         destination = self._point_devant_verre(verre["position"], self.marge_recuperation)
 
-#        self.robot.marche_arriere = not self.robot.places_disponibles(True)
+        # Les ascenseurs étant fiables, il vaut mieux remplir un côté puis l'autre
+        self.robot.marche_arriere = not self.robot.places_disponibles(True)
 
-        # Comme les ascenseurs ne sont pas très fiables, mieux faut les remplir en parallèle
-        mieux_en_arriere = self.robot.marche_arriere_est_plus_rapide(destination)
-        if self.robot.places_disponibles(not mieux_en_arriere):
-            self.robot.marche_arriere = mieux_en_arriere
-        else:
-            self.robot.marche_arriere = not mieux_en_arriere
+#        mieux_en_arriere = self.robot.marche_arriere_est_plus_rapide(destination)
+#        if self.robot.places_disponibles(not mieux_en_arriere):
+#            self.robot.marche_arriere = mieux_en_arriere
+#        else:
+#            self.robot.marche_arriere = not mieux_en_arriere
 
         # On est à distance. On élève l'ascenseur (probable qu'il le soit déjà). On s'avance jusqu'à positionner le verre sous l'ascenseur. Si le verre est présent, on ouvre l'ascenseur, on le descend, on le ferme et on le remonte. Si le verre est absent, on laisse l'ascenseur en haut.
         self.robot.altitude_ascenseur(not self.robot.marche_arriere, "haut")
