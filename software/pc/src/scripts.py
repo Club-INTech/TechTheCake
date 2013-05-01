@@ -351,7 +351,7 @@ class ScriptCadeaux(Script):
             hooks.append(hook_fermeture)
 
         # Déplacement le long de la table (peut être un peu trop loin ?)
-        self.robot.set_vitesse_translation(105)
+        self.robot.set_vitesse_translation(145)
         point_sortie = Point(self.info_versions[1-version]["point_entree"].x, self.info_versions[version]["point_entree"].y)
         
         """
@@ -380,8 +380,8 @@ class ScriptCadeaux(Script):
             self.log.debug("Fin du script cadeau : l'actionneur cadeaux est déjà rentré.")
 
     def versions(self):
-        self.decalage_x_ouvre = -190
-        self.decalage_x_ferme = -230#350
+        self.decalage_x_ouvre = -250
+        self.decalage_x_ferme = -290#350
         self.decalage_y_bord = self.config["rayon_robot"] + 90
         self.decalage_x_pour_reglette_blanche = 100
         
