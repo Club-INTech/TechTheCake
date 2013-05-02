@@ -116,7 +116,7 @@ class ScriptBougies(Script):
         
         # Prise en compte actionneur bas / haut
         self.delta_angle_actionneur_haut = 80 / rayon_bras # Actionneur haut à l'avant du robot
-        self.delta_angle_actionneur_bas =  -30 / rayon_bras # Actionneur bas à l'arrière du robot
+        self.delta_angle_actionneur_bas =  -22 / rayon_bras # Actionneur bas à l'arrière du robot
         
         #constantes d'écart à la bougie (valeurs absolues)
         self.delta_abs_angle_baisser_bras = 15 / rayon_bras
@@ -132,7 +132,7 @@ class ScriptBougies(Script):
         self.delta_angle_entree_rc = math.acos((500+self.distance_entree)/(500+self.distance_entree_rc))
         
         #angle maximal du point d'entrée pour ne pas toucher les bords de table
-        self.angle_max = math.asin((self.config["rayon_robot"] + 0) / (500 + self.config["distance_au_gateau"] + self.config["longueur_robot"]/2))
+        self.angle_max = math.asin((self.config["rayon_robot"] - 10) / (500 + self.config["distance_au_gateau"] + self.config["longueur_robot"]/2))
         
     def _point_polaire(self, angle, distance_gateau):
         """
