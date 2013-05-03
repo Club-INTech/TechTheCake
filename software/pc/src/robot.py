@@ -672,7 +672,7 @@ class Robot(RobotInterface):
         
     def initialiser_actionneurs(self):
         """
-        Fonction appelée en début de match qui asservit le robot, rentre les actionneurs et monte les ascenseurs et les ouvre
+        Fonction appelée en début de match qui asservit le robot, rentre les actionneurs et monte les ascenseurs et les ferme
         """
         self.log.debug("Initialisation mécanique")
         self.capteurs.activer_capteurs_prox()
@@ -687,8 +687,8 @@ class Robot(RobotInterface):
         self.altitude_ascenseur(False, "bas")
         # le temps que l'ascenseur détecte le blocage
         sleep(5)
-        self.actionneurs.altitude_ascenseur(True, "haut")
-        self.actionneurs.altitude_ascenseur(False, "haut")
+        self.altitude_ascenseur(True, "haut")
+        self.altitude_ascenseur(False, "haut")
         self.log.debug("Initialisation terminée")
 
     def recaler(self):
@@ -885,7 +885,7 @@ class Robot(RobotInterface):
         else:
             self.deplacements.avancer(40)
         sleep(.2)
-        self.actionneurs.altitude_ascenseur(avant, "bas")
+        self.altitude_ascenseur(avant, "bas")
         sleep(.2)
         self.capteurs.activer_capteurs_prox()
         if avant:
@@ -928,7 +928,7 @@ class Robot(RobotInterface):
         else:
             self.deplacements.avancer(20)
         sleep(.5)
-        self.actionneurs.altitude_ascenseur(avant, "bas")
+        self.altitude_ascenseur(avant, "bas")
         sleep(.5)
         if avant:
             self.deplacements.avancer(30)
@@ -962,7 +962,7 @@ class Robot(RobotInterface):
             self.log.debug("Dépot de la pile de verres à l'arrière.")
                 
         # Lancement des actionneurs
-        self.actionneurs.altitude_ascenseur(avant, "bas")
+        self.altitude_ascenseur(avant, "bas")
         sleep(.5)
         self.actionneurs.actionneurs_ascenseur(avant, "petit ouvert")
         sleep(.5)
@@ -972,7 +972,7 @@ class Robot(RobotInterface):
             self.deplacements.avancer(20)
         self.actionneurs.actionneurs_ascenseur(avant, "ouvert")
         sleep(.5)
-        self.actionneurs.altitude_ascenseur(avant, "haut")
+        self.altitude_ascenseur(avant, "haut")
         
         # Mise à jour du total de verres portés
         super().deposer_pile(avant)
