@@ -122,6 +122,9 @@ class ScriptBougies(Script):
         self.delta_abs_angle_baisser_bras = 15 / rayon_bras
         self.delta_abs_angle_lever_bras = 20 / rayon_bras
         
+        #correction pour l'asymétrique du parcours vers x croissants
+        self.correction_vers_x_croissants = 20 / rayon_bras
+        
         # Ecart angulaire entre le point d'entrée et la bougie : tient compte du décalage des actionneurs.
         delta_actionneurs = max(abs(self.delta_angle_actionneur_haut), abs(self.delta_angle_actionneur_bas))
         self.delta_angle_entree = self.delta_abs_angle_baisser_bras + delta_actionneurs + 20/rayon_bras
@@ -236,6 +239,11 @@ class ScriptBougies(Script):
                 angle_baisser_bras += self.delta_angle_actionneur_bas
                 angle_lever_bras += self.delta_angle_actionneur_bas
                 
+            if vers_x_croissant:
+                #négatif = comme actionneur bas = en avant
+                angle_baisser_bras -= self.correction_vers_x_croissants
+                angle_lever_bras -= self.correction_vers_x_croissants
+            
             # Baisser le bras
             hook_baisser_bras = self.hookGenerator.hook_angle_gateau(angle_baisser_bras, vers_x_croissant)
             hook_baisser_bras += self.hookGenerator.callback(self.robot.actionneurs_bougie, (bougie["enHaut"],"moyen"))
