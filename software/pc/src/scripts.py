@@ -243,9 +243,9 @@ class ScriptBougies(Script):
             hooks.append(hook_baisser_bras)
             
             # Lever le bras (On relève seulement celui qui a été abaissé)
-            hook_baisser_bras = self.hookGenerator.hook_angle_gateau(angle_lever_bras, vers_x_croissant)
-            hook_baisser_bras += self.hookGenerator.callback(self.robot.actionneurs_bougie, (bougie["enHaut"],"haut"))
-            hooks.append(hook_baisser_bras)
+            hook_lever_bras = self.hookGenerator.hook_angle_gateau(angle_lever_bras, vers_x_croissant)
+            hook_lever_bras += self.hookGenerator.callback(self.robot.actionneurs_bougie, (bougie["enHaut"],"haut"))
+            hooks.append(hook_lever_bras)
         
         #on enfonce les bougies extremales si possible (l'actionneur du haut pour celle des x petits, celui du bas pour x grands)
         if self.table.bougies_entrees(self.couleur_a_traiter)[version]["id"] == 2:
@@ -478,8 +478,8 @@ class ScriptRecupererVerres(Script):
         destination = self._point_devant_verre(verre["position"], self.marge_recuperation)
 
         # Les ascenseurs étant fiables, il vaut mieux remplir un côté puis l'autre
-#        self.robot.marche_arriere = not self.robot.places_disponibles(True)
-        self.robot.marche_arriere = self.robot.places_disponibles(False)
+        self.robot.marche_arriere = not self.robot.places_disponibles(True)
+#        self.robot.marche_arriere = self.robot.places_disponibles(False)
 
 #        mieux_en_arriere = self.robot.marche_arriere_est_plus_rapide(destination)
 #        if self.robot.places_disponibles(not mieux_en_arriere):
@@ -522,7 +522,7 @@ class ScriptRecupererVerres(Script):
         return recuperation
          
     def _termine(self):
-        # On desced les deux ascenseurs
+        # On descend les deux ascenseurs (ce qui réactive aussi les capteurs)
         self.robot.altitude_ascenseur(True, "plein")
         self.robot.altitude_ascenseur(False, "plein")
 
