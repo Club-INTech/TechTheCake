@@ -226,7 +226,8 @@ class Robot(RobotInterface):
 
         if time()-date_debut_boucle >= duree_max:
             self.log.critical("Boucle infinie durant l'acquittement de tourner!")
-        
+            self.log.critical(str(self.deplacements.get_infos_stoppage_enMouvement()))#@
+    
     def _va_au_point(self, x, y, hooks=[], trajectoire_courbe=False, sans_lever_exception = False):
         """
         Méthode pour parcourir un segment : le robot se rend en (x,y) en corrigeant dynamiquement ses consignes en rotation et translation.
@@ -285,6 +286,7 @@ class Robot(RobotInterface):
 
         if time()-date_debut_boucle >= duree_max:
             self.log.critical("Boucle infinie durant l'acquittement de _va_au_point!")
+            self.log.critical(str(self.deplacements.get_infos_stoppage_enMouvement()))#@
     
     def _mise_a_jour_consignes(self, arc_de_cercle=False):
         """
@@ -430,11 +432,11 @@ class Robot(RobotInterface):
         
         #vitesses pour le parcours de l'arc de cercle
         #TODO : passer ca dans déplacements ?
-        self.set_vitesse_translation(1)
+        self.set_vitesse_translation(38)
         if "asservissement" in self.config["cartes_serie"]:
             #ATTENTION : cette vitesse est ajustée pour un rayon donné ! (celui utilisé pour enfoncer les bougies)
             #self.set_vitesse_rotation(int(self.config["vitesse_rot_arc_cercle"]))
-            self.set_vitesse_rotation(int(max(110-0.21*(r-478), 30)))
+            self.set_vitesse_rotation(int(max(118-0.21*(r-478), 30)))
         
         while 1:
             #calcul de l'angle de A (point de départ)
