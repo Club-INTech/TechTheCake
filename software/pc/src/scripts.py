@@ -116,11 +116,14 @@ class ScriptBougies(Script):
         
         # Prise en compte actionneur bas / haut
         self.delta_angle_actionneur_haut = 80 / rayon_bras # Actionneur haut à l'avant du robot
-        self.delta_angle_actionneur_bas =  -30 / rayon_bras # Actionneur bas à l'arrière du robot
+        self.delta_angle_actionneur_bas =  -22 / rayon_bras # Actionneur bas à l'arrière du robot
         
         #constantes d'écart à la bougie (valeurs absolues)
         self.delta_abs_angle_baisser_bras = 15 / rayon_bras
         self.delta_abs_angle_lever_bras = 20 / rayon_bras
+        
+        #correction pour l'asymétrique du parcours vers x croissants
+        self.correction_vers_x_croissants = 20 / rayon_bras
         
         # Ecart angulaire entre le point d'entrée et la bougie : tient compte du décalage des actionneurs.
         delta_actionneurs = max(abs(self.delta_angle_actionneur_haut), abs(self.delta_angle_actionneur_bas))
@@ -132,7 +135,7 @@ class ScriptBougies(Script):
         self.delta_angle_entree_rc = math.acos((500+self.distance_entree)/(500+self.distance_entree_rc))
         
         #angle maximal du point d'entrée pour ne pas toucher les bords de table
-        self.angle_max = math.asin((self.config["rayon_robot"] + 0) / (500 + self.config["distance_au_gateau"] + self.config["longueur_robot"]/2))
+        self.angle_max = math.asin((self.config["rayon_robot"] - 10) / (500 + self.config["distance_au_gateau"] + self.config["longueur_robot"]/2))
         
     def _point_polaire(self, angle, distance_gateau):
         """
@@ -236,6 +239,11 @@ class ScriptBougies(Script):
                 angle_baisser_bras += self.delta_angle_actionneur_bas
                 angle_lever_bras += self.delta_angle_actionneur_bas
                 
+            if vers_x_croissant:
+                #négatif = comme actionneur bas = en avant
+                angle_baisser_bras -= self.correction_vers_x_croissants
+                angle_lever_bras -= self.correction_vers_x_croissants
+            
             # Baisser le bras
             hook_baisser_bras = self.hookGenerator.hook_angle_gateau(angle_baisser_bras, vers_x_croissant)
             hook_baisser_bras += self.hookGenerator.callback(self.robot.actionneurs_bougie, (bougie["enHaut"],"moyen"))
@@ -243,9 +251,9 @@ class ScriptBougies(Script):
             hooks.append(hook_baisser_bras)
             
             # Lever le bras (On relève seulement celui qui a été abaissé)
-            hook_baisser_bras = self.hookGenerator.hook_angle_gateau(angle_lever_bras, vers_x_croissant)
-            hook_baisser_bras += self.hookGenerator.callback(self.robot.actionneurs_bougie, (bougie["enHaut"],"haut"))
-            hooks.append(hook_baisser_bras)
+            hook_lever_bras = self.hookGenerator.hook_angle_gateau(angle_lever_bras, vers_x_croissant)
+            hook_lever_bras += self.hookGenerator.callback(self.robot.actionneurs_bougie, (bougie["enHaut"],"haut"))
+            hooks.append(hook_lever_bras)
         
         #on enfonce les bougies extremales si possible (l'actionneur du haut pour celle des x petits, celui du bas pour x grands)
         if self.table.bougies_entrees(self.couleur_a_traiter)[version]["id"] == 2:
@@ -351,7 +359,7 @@ class ScriptCadeaux(Script):
             hooks.append(hook_fermeture)
 
         # Déplacement le long de la table (peut être un peu trop loin ?)
-        self.robot.set_vitesse_translation(105)
+        self.robot.set_vitesse_translation(90)
         point_sortie = Point(self.info_versions[1-version]["point_entree"].x, self.info_versions[version]["point_entree"].y)
         
         """
@@ -478,8 +486,8 @@ class ScriptRecupererVerres(Script):
         destination = self._point_devant_verre(verre["position"], self.marge_recuperation)
 
         # Les ascenseurs étant fiables, il vaut mieux remplir un côté puis l'autre
-#        self.robot.marche_arriere = not self.robot.places_disponibles(True)
-        self.robot.marche_arriere = self.robot.places_disponibles(False)
+        self.robot.marche_arriere = not self.robot.places_disponibles(True)
+#        self.robot.marche_arriere = self.robot.places_disponibles(False)
 
 #        mieux_en_arriere = self.robot.marche_arriere_est_plus_rapide(destination)
 #        if self.robot.places_disponibles(not mieux_en_arriere):
@@ -522,7 +530,7 @@ class ScriptRecupererVerres(Script):
         return recuperation
          
     def _termine(self):
-        # On desced les deux ascenseurs
+        # On descend les deux ascenseurs (ce qui réactive aussi les capteurs)
         self.robot.altitude_ascenseur(True, "plein")
         self.robot.altitude_ascenseur(False, "plein")
 

@@ -27,6 +27,19 @@ class Strategie:
         """
         Boucle qui gère la stratégie, en testant les différents scripts et en exécutant le plus avantageux
         """
+        # La première décision est scriptée
+        premier_tour = True
+
+        if self.config["couleur"] == "bleu":
+            script_a_faire = "ScriptRecupererVerresZoneBleu"
+        else:
+            script_a_faire = "ScriptRecupererVerresZoneRouge"
+        self.scripts[script_a_faire].versions()
+        if abs(self.scripts[script_a_faire].point_entree(0).y - self.robot.y) < abs(self.scripts[script_a_faire].point_entree(1).y - self.robot.y):
+            version_a_faire = 0
+        else:
+            version_a_faire = 1
+
         while not self.timer.match_demarre:
             sleep(.5)
         self.son.jouer("debut")
@@ -39,13 +52,13 @@ class Strategie:
             self.robot.avancer(300, retenter_si_blocage = False, sans_lever_exception = True)
         except:
             pass
+        self.robot.actionneurs_ascenseur(True, "ouvert")
+        self.robot.actionneurs_ascenseur(False, "ouvert")
+
         # On ne le fait que maintenant car la config peut changer avant le début du match
         if self.config["ennemi_fait_toutes_bougies"]:
             self.log.warning("Comme l'ennemi fait toutes les bougies, on ne les fera pas.")
             del self.scripts["ScriptBougies"]
-
-        # La première décision est scriptée
-        premier_tour = True
 
         while not self.timer.get_fin_match():
 
@@ -70,8 +83,8 @@ class Strategie:
 
                 # Choix du script avec la meilleure note
                 (script_a_faire, version_a_faire) = max(notes, key=notes.get)  
-#                script_a_faire = "ScriptCadeaux"
-#                version_a_faire = 1
+#                script_a_faire = "ScriptBougies"
+#                version_a_faire = 0
                 self.log.debug("Stratégie ordonne: ({0}, version n°{1}, entrée en {2})".format(script_a_faire, version_a_faire, self.scripts[script_a_faire].point_entree(version_a_faire)))
 
             
@@ -80,18 +93,7 @@ class Strategie:
                     for verre in self.table.verres_entrees():
                         self.rechercheChemin.ajoute_obstacle_cercle(verre["position"], self.config["rayon_verre"])
 
-            # Le premier tour, on fait les verres les plus proches
-            else:
-                premier_tour = False;
-                if self.config["couleur"] == "bleu":
-                    script_a_faire = "ScriptRecupererVerresZoneBleu"
-                else:
-                    script_a_faire = "ScriptRecupererVerresZoneRouge"
-                self.scripts[script_a_faire].versions()
-                if abs(self.scripts[script_a_faire].point_entree(0).y - self.robot.y) < abs(self.scripts[script_a_faire].point_entree(1).y - self.robot.y):
-                    version_a_faire = 0
-                else:
-                    version_a_faire = 1
+            premier_tour = False;
 
             # Lancement du script si le match n'est pas terminé
             if not self.timer.get_fin_match():
@@ -121,9 +123,7 @@ class Strategie:
             self.log.debug("Peut-on déposer à l'avant? "+str(self.robot.deposer_verre_avant))
             self.log.debug("Peut-on déposer à l'arrière? "+str(self.robot.deposer_verre_arriere))
 
-
         self.log.debug("Arrêt de la stratégie")
-        input("")
 
     def _noter_script(self, script, version):
         """

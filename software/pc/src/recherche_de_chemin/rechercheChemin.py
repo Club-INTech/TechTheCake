@@ -8,6 +8,7 @@ chemin = directory[:directory.index(racine)]+racine
 #répertoires d'importation
 sys.path.insert(0, os.path.join(chemin, "src/"))
 
+#DEBUG# import builtins#@
 
 #bibliothèque compilée de recherche de chemin
 try:
@@ -582,7 +583,7 @@ class RechercheChemin:
             else: k+=1
         return chemin
         
-    def ajoute_obstacle_cercle(self, centre, rayon):
+    def ajoute_obstacle_cercle(self, centre, rayon, avecFusion=True):
         """
         Ajout un obstacle circulaire sur la table.
         Il est considéré comme dynamique et peut etre retiré via retirer_obstacles_dynamiques()
@@ -591,17 +592,19 @@ class RechercheChemin:
         cercleObstacle = enlarge.elargit_cercle(Cercle(centre,rayon),self.rayonPropre)
         #ajout à l'environnement (ce qui calcule le polygone approchant le cercle)
         self.environnement_complet.ajoute_cercle(cercleObstacle)
-        #calcul du polygone recoupé aux bords
-        troncPolygon = self._recouper_aux_bords_table(self.environnement_complet.polygones[-1], [cercleObstacle], self.environnement_complet)
-        if troncPolygon is None:
-            #le polygone n'est pas dans la table : on le retire
-            del self.environnement_complet.polygones[-1]
-            del self.environnement_complet.nuages_de_cercles[-1]
-        else:
-            #on enregistre le nouveau polygone tronqué
-            self.environnement_complet.polygones[-1] = troncPolygon
-            #on vérifie si ce polygone doit etre fusionné avec d'autres obstacles en cas de contact
-            self._fusionner_avec_obstacles_en_contact()
+        
+        if avecFusion:
+            #calcul du polygone recoupé aux bords
+            troncPolygon = self._recouper_aux_bords_table(self.environnement_complet.polygones[-1], [cercleObstacle], self.environnement_complet)
+            if troncPolygon is None:
+                #le polygone n'est pas dans la table : on le retire
+                del self.environnement_complet.polygones[-1]
+                del self.environnement_complet.nuages_de_cercles[-1]
+            else:
+                #on enregistre le nouveau polygone tronqué
+                self.environnement_complet.polygones[-1] = troncPolygon
+                #on vérifie si ce polygone doit etre fusionné avec d'autres obstacles en cas de contact
+                self._fusionner_avec_obstacles_en_contact()
     
     def ajoute_obstacle_rectangle(self, rectangle):
         """
@@ -627,28 +630,36 @@ class RechercheChemin:
             #on vérifie si ce polygone doit etre fusionné avec d'autres obstacles en cas de contact
             self._fusionner_avec_obstacles_en_contact()
     
-    def ajoute_obstacle_polygone(self, polygone):
+    def ajoute_obstacle_polygone(self, polygone, rayon_supplementaire = 0, avecFusion=True):
         """
         Ajout un obstacle polygonal sur la table (liste de points). 
         Il est considéré comme dynamique et peut etre retiré via retirer_obstacles_dynamiques()
         """
         #traduction du polygone en une structure de polygone compatible avec visilibity
         polygoneVisilibity = vis.Polygon(list(map(lambda p: Point(p.x,p.y), polygone)))
+        #vérification du sens de définition du polygone (sens antétrigonométrique)
+        if polygoneVisilibity.area() >= 0:
+            reverse = []
+            for k in range(polygoneVisilibity.n()-1,-1,-1):
+                reverse.append(polygoneVisilibity[k])
+            polygoneVisilibity = vis.Polygon(reverse)
         #élargissement de l'obstacle pour un robot non ponctuel
-        polygoneObstacle = enlarge.elargit_polygone(polygoneVisilibity, self.rayonPropre, Environnement.cote_polygone)
+        polygoneObstacle = enlarge.elargit_polygone(polygoneVisilibity, self.rayonPropre+rayon_supplementaire, Environnement.cote_polygone)
         #ajout à l'environnement (ce qui calcule le cercle contenant du rectangle)
         self.environnement_complet.ajoute_polygone(polygoneObstacle)
-        #calcul du polygone recoupé aux bords
-        troncPolygon = self._recouper_aux_bords_table(polygoneObstacle, self.environnement_complet.nuages_de_cercles[-1], self.environnement_complet)
-        if troncPolygon is None:
-            #le polygone n'est pas dans la table : on le retire
-            del self.environnement_complet.polygones[-1]
-            del self.environnement_complet.nuages_de_cercles[-1]
-        else:
-            #on enregistre le nouveau polygone tronqué
-            self.environnement_complet.polygones[-1] = troncPolygon
-            #on vérifie si ce polygone doit etre fusionné avec d'autres obstacles en cas de contact
-            self._fusionner_avec_obstacles_en_contact()
+        
+        if avecFusion:
+            #calcul du polygone recoupé aux bords
+            troncPolygon = self._recouper_aux_bords_table(polygoneObstacle, self.environnement_complet.nuages_de_cercles[-1], self.environnement_complet)
+            if troncPolygon is None:
+                #le polygone n'est pas dans la table : on le retire
+                del self.environnement_complet.polygones[-1]
+                del self.environnement_complet.nuages_de_cercles[-1]
+            else:
+                #on enregistre le nouveau polygone tronqué
+                self.environnement_complet.polygones[-1] = troncPolygon
+                #on vérifie si ce polygone doit etre fusionné avec d'autres obstacles en cas de contact
+                self._fusionner_avec_obstacles_en_contact()
             
     def retirer_obstacles_dynamiques(self):
         """
@@ -672,22 +683,22 @@ class RechercheChemin:
         
     ########################## MISE À JOUR DES ÉLÉMENTS DE JEU ##########################
     
-    def _ajouter_zone_verres(self, minX, maxX,avec_verres_entrees):
-        gauche,droite,haut,bas = int(self.config["table_x"])/2,-int(self.config["table_x"])/2,0,int(self.config["table_y"])
-        au_moins_un = False
+    #def _ajouter_zone_verres(self, minX, maxX,avec_verres_entrees):
+        #gauche,droite,haut,bas = int(self.config["table_x"])/2,-int(self.config["table_x"])/2,0,int(self.config["table_y"])
+        #au_moins_un = False
         
-        for verre in self.table.verres_restants():
-            #prise en compte éventuelle des verres d'entrée
-            if avec_verres_entrees or not verre in self.table.verres_entrees():
-                x = verre["position"].x
-                y = verre["position"].y
-                r = self.config["rayon_verre"]
-                #verre dans la zone passée en paramètre
-                if x > minX and x < maxX:
-                    au_moins_un = True
-                    gauche,droite,haut,bas = min(gauche,x-r),max(droite,x+r),max(haut,y+r),min(bas,y-r)
-        if au_moins_un:
-            self.ajoute_obstacle_rectangle([Point(gauche,haut),Point(droite,haut),Point(droite,bas),Point(gauche,bas)])
+        #for verre in self.table.verres_restants():
+            ##prise en compte éventuelle des verres d'entrée
+            #if avec_verres_entrees or not verre in self.table.verres_entrees():
+                #x = verre["position"].x
+                #y = verre["position"].y
+                #r = self.config["rayon_verre"]
+                ##verre dans la zone passée en paramètre
+                #if x > minX and x < maxX:
+                    #au_moins_un = True
+                    #gauche,droite,haut,bas = min(gauche,x-r),max(droite,x+r),max(haut,y+r),min(bas,y-r)
+        #if au_moins_un:
+            #self.ajoute_obstacle_rectangle([Point(gauche,haut),Point(droite,haut),Point(droite,bas),Point(gauche,bas)])
                 
     def _ajoute_verres(self, avec_verres_entrees):
         """
@@ -698,14 +709,212 @@ class RechercheChemin:
             #if avec_verres_entrees or not verre in self.table.verres_entrees():
                 #self.ajoute_obstacle_cercle(verre["position"], self.config["rayon_verre"])
         
-        #par ajout d'un ou deux rectangles (pas optimisé)
-        if not self.table.verres[8]["present"] or not self.table.verres[3]["present"]:
-            #passage possible au centre : on ajoute 2 obstacles sur les cotés
-            self._ajouter_zone_verres(-1500,0,avec_verres_entrees)
-            self._ajouter_zone_verres(0,1500,avec_verres_entrees)
-        else:
-            #pas de passage possible : un seul obstacle pour tous les verres
-            self._ajouter_zone_verres(-1500,1500,avec_verres_entrees)
+        ##par ajout d'un ou deux rectangles (pas optimisé)
+        #if not self.table.verres[8]["present"] or not self.table.verres[3]["present"]:
+            ##passage possible au centre : on ajoute 2 obstacles sur les cotés
+            #self._ajouter_zone_verres(-1500,0,avec_verres_entrees)
+            #self._ajouter_zone_verres(0,1500,avec_verres_entrees)
+        #else:
+            ##pas de passage possible : un seul obstacle pour tous les verres
+            #self._ajouter_zone_verres(-1500,1500,avec_verres_entrees)
+            
+        ## par table booléenne
+        self._table_bool_verres(avec_verres_entrees)
+        
+    def _table_bool_verres(self,avec_verres_entrees):
+        v = [self.table.verres[6],self.table.verres[6],self.table.verres[7],self.table.verres[1],self.table.verres[0],self.table.verres[9],self.table.verres[8],self.table.verres[3],self.table.verres[2],self.table.verres[10],self.table.verres[11],self.table.verres[4],self.table.verres[5]]
+        p = [verre["present"] if (avec_verres_entrees or not verre in self.table.verres_entrees()) else False for verre in v]
+        
+        arete_verres = [(v[1],v[2]),(v[1],v[5]),(v[2],v[5]),(v[2],v[6]),(v[3],v[4]),(v[3],v[7]),(v[3],v[8]),(v[4],v[8]),(v[5],v[6]),(v[5],v[9]),(v[5],v[10]),(v[6],v[7]),(v[6],v[10]),(v[7],v[8]),(v[7],v[11]),(v[8],v[11]),(v[8],v[12]),(v[9],v[10]),(v[11],v[12])]
+        arete_grande_verres = [(v[1],v[6]),(v[1],v[9]),(v[2],v[7]),(v[2],v[10]),(v[2],v[3]),(v[3],v[6]),(v[3],v[11]),(v[4],v[7]),(v[4],v[12]),(v[6],v[9]),(v[6],v[11]),(v[7],v[10]),(v[7],v[12]),(v[10],v[11])]
+        
+        v.remove(v[0]) #position 0 inutilisée : juste pour le décalage d'index
+        
+        aux = [0] * 13
+
+        #rajoute un verre virtuel là où ça ne change rien
+        aux[5] = p[5]  or  (p[2]  and  p[6]  and  p[10]  and  (p[1]  or  p[9]))
+        aux[8] = p[8]  or  (p[3]  and  p[7]  and  p[11]  and  (p[4]  or  p[2]))
+
+        aux[2] = (p[6]  and  p[7]  and  (p[5]  and  p[1])  and  (p[3]  or  (p[8]  and  p[4])))  or  p[2]
+        aux[3] = (p[6]  and  p[7]  and  ((p[5]  and  p[1])  or  p[2])  and  (p[8]  and  p[4]))  or  p[3]
+
+        aux[10] = (p[6]  and  p[7]  and  (p[5]  and  p[9])  and  (p[11]  or  (p[8]  and  p[12])))  or  p[10]
+        aux[11] = (p[6]  and  p[7]  and  ((p[5]  and  p[9])  or  p[10])  and  (p[8]  and  p[12]))  or  p[11]
+
+        p[5] = aux[5]
+        p[8] = aux[8]
+        p[2] = aux[2]
+        p[3] = aux[3]
+        p[10] = aux[10]
+        p[11] = aux[11]
+
+        #supprime toutes les frontières intérieures
+        gauche = [0] * 19
+        droite = [0] * 19
+        arete = [0] * 19
+
+        gauche[1] = p[1] and (p[2] or p[6]) and p[5]
+        droite[1] = p[1] and p[9] and p[5]
+        arete[1] = p[1] and p[5] and not (droite[1] and gauche[1])
+
+        droite[2] = p[2] and p[1] and p[5]
+        gauche[2] = p[2] and (p[6] or p[10]) and p[5]
+        arete[2] = p[2] and p[5] and not (droite[2] and gauche[2])
+
+        gauche[3] = p[2] and p[7] and p[6]
+        droite[3] = p[2] and (p[1] or p[5] or p[10]) and p[6]
+        arete[3] = p[2] and p[6] and not (droite[3] and gauche[3])
+
+        droite[5] = p[3] and p[6] and p[7]
+        gauche[5] = p[3] and (p[4] or p[8] or p[11]) and p[7]
+        arete[5] = p[3] and p[7] and not (droite[5] and gauche[5])
+
+        gauche[6] = p[3] and p[4] and p[8]
+        droite[6] = p[3] and (p[7] or p[11]) and p[8]
+        arete[6] = p[3] and p[8] and not (droite[6] and gauche[6])
+
+        droite[7] = p[4] and (p[3] or p[7]) and p[8]
+        gauche[7] = p[4] and p[12] and p[8]
+        arete[7] = p[4] and p[8] and not (droite[7] and gauche[7])
+
+        gauche[8] = p[5] and (p[1] or p[2] ) and p[6] 
+        droite[8] = p[5] and (p[9] or p[10]) and p[6] 
+        arete[8] = p[5] and p[6] and not (droite[8] and gauche[8])
+
+        droite[9] = p[5] and p[1] and p[9]
+        gauche[9] = p[5] and (p[6] or p[10]) and p[9]
+        arete[9] = p[5] and p[9] and not (droite[9] and gauche[9])
+
+        droite[10] = p[5] and p[9] and p[10] 
+        gauche[10] = p[5] and (p[6] or p[2]) and p[10] 
+        arete[10] = p[5] and p[10] and not (droite[10] and gauche[10])
+
+        gauche[11] = p[6] and p[7] and (p[2] or p[3])
+        droite[11] = p[6] and p[7] and (p[10] or p[11])
+        arete[11] = p[6] and p[7] and not (droite[11] and gauche[11])
+
+        gauche[12] = p[6] and p[7] and p[10] 
+        droite[12] = p[6] and (p[2] or p[5] or p[9]) and p[10] 
+        arete[12] = p[6] and p[10] and not (droite[12] and gauche[12])
+
+        gauche[13] = p[7] and (p[3] or p[4]) and p[8]
+        droite[13] = p[7] and (p[11] or p[12]) and p[8]
+        arete[13] = p[7] and p[8] and not (droite[13] and gauche[13])
+
+        droite[14] = p[7] and p[6] and p[11] 
+        gauche[14] = p[7] and (p[3] or p[8] or p[12]) and p[11] 
+        arete[14] = p[7] and p[11] and not (droite[14] and gauche[14])
+
+        droite[15] = p[8] and (p[3] or p[7]) and p[11]
+        gauche[15] = p[8] and p[12] and p[11]
+        arete[15] = p[8] and p[11] and not (droite[15] and gauche[15])
+
+        gauche[16] = p[8] and p[4] and p[12]
+        droite[16] = p[8] and (p[11] or p[7]) and p[12]
+        arete[16] = p[8] and p[12] and not (droite[16] and gauche[16])
+
+        # pour les grandes arrêtes éventuellement intérieures :
+        arete_grande = [0] * 14
+        arete_grande[0] = p[1] and (not (p[2] == p[5])) and p[6]
+        arete_grande[2] = p[2] and p[6] and p[7] and not (p[3])
+        arete_grande[3] = p[2] and (not (p[5] == p[6])) and p[10]
+        arete_grande[5] = p[3] and p[7] and p[6] and not (p[2])
+        arete_grande[6] = p[3] and (not (p[7] == p[8])) and p[11]
+        arete_grande[7] = p[4] and (not (p[3] == p[8])) and p[7]
+        arete_grande[9] = p[6] and (not (p[5] == p[10])) and p[9]
+        arete_grande[10] = p[6] and p[7] and p[11] and not (p[10])
+        arete_grande[11] = p[7] and p[6] and p[10] and not (p[11])
+        arete_grande[12] = p[7] and (not (p[8] == p[11])) and p[12]
+
+        # il reste 8 frontières, dont on calcule lactivation
+        arete[0] = p[1] and p[2]
+        arete[4] = p[3] and p[4]
+        arete[17] = p[9] and p[10]
+        arete[18] = p[11] and p[12]
+
+        arete_grande[1] = p[1] and p[5] and p[9]
+        arete_grande[8] = p[4] and p[8] and p[12]
+        arete_grande[4] = p[6] and p[7] and p[2] and p[3] 
+        arete_grande[13] = p[6] and p[7] and p[10] and p[11]
+        
+        ##################################
+        aretes_bool = arete + arete_grande
+        aretes_verres = arete_verres + arete_grande_verres
+        polygones = []
+        #rassemblage des aretes en polygones
+        while len(aretes_verres)>0:
+            #recherche d'un nouveau polygone
+            if not aretes_bool[0]:
+                del aretes_verres[0]
+                del aretes_bool[0]
+            else:
+                #suppression des verres sur aretes (pour retenir les autres)
+                try: v.remove(aretes_verres[0][0])
+                except: pass#verre déjà supprimé
+                try: v.remove(aretes_verres[0][1])
+                except: pass#verre déjà supprimé
+                
+                polygones.append([aretes_verres[0][0]["position"],aretes_verres[0][1]["position"]])
+                del aretes_verres[0]
+                del aretes_bool[0]
+                
+                #completion du polygone
+                k = 0
+                while k < len(aretes_bool):
+                    if aretes_bool[k]:
+                        #suppression des verres sur aretes (pour retenir les autres)
+                        try: v.remove(aretes_verres[k][0])
+                        except: pass#verre déjà supprimé
+                        try: v.remove(aretes_verres[k][1])
+                        except: pass#verre déjà supprimé
+                        
+                        if aretes_verres[k][0]["position"] == polygones[-1][-1]:
+                            polygones[-1].append(aretes_verres[k][1]["position"])
+                            del aretes_verres[k]
+                            del aretes_bool[k]
+                            k = 0
+                        elif aretes_verres[k][1]["position"] == polygones[-1][-1]:
+                            polygones[-1].append(aretes_verres[k][0]["position"])
+                            del aretes_verres[k]
+                            del aretes_bool[k]
+                            k = 0
+                        else:
+                            k += 1
+                    else:
+                        del aretes_verres[k]
+                        del aretes_bool[k]
+        
+        for p in polygones:
+            if len(p) > 2:
+                #suppression des sommets plats
+                p = self._lisser_chemin(p)
+            if p[0] == p[-1]:
+                #suppression du bouclage
+                del p[-1]
+                
+            #création des polygones
+            # -élargie les obstacles (prise en compte du rayon des verres)
+            # -vérifie le sens de définition (antétrigonométrique) du polygone
+            self.ajoute_obstacle_polygone(p,40,avecFusion=False)
+            
+        #ajout d'un cercle pour les verres seuls (hors polygones)
+        for verre in [ver for ver in v if ver["present"] and (avec_verres_entrees or not ver in self.table.verres_entrees())]:
+            tout_seul = True
+            for poly in polygones:
+                if collisions.collisionPointPoly(verre["position"],poly):
+                    tout_seul = False
+                    break
+            if tout_seul:
+                self.ajoute_obstacle_cercle(verre["position"], self.config["rayon_verre"]-20, avecFusion=False)
+        
+        ### affichage de debug ###
+        #builtins.simulateur.clearEntity("opt_verres")
+        #for p in polygones:
+            #print(p)
+            #for i in range(1,len(p)):
+                #builtins.simulateur.drawLine(p[i-1].x,p[i-1].y,p[i].x,p[i].y,"red","opt_verres")
+            #builtins.simulateur.drawLine(p[len(p)-1].x,p[len(p)-1].y,p[0].x,p[0].y,"red","opt_verres")
             
     def charge_obstacles(self, avec_verres_entrees=True):
         ##ajout des obstacles vus par les capteurs et la balise
@@ -919,7 +1128,7 @@ class RechercheCheminSimulation(RechercheChemin):
             
     def cherche_chemin_avec_a_star(self, depart, arrivee):
         chemin = RechercheChemin.cherche_chemin_avec_a_star(self, depart, arrivee)
-        
+         
         self.simulateur.clearEntity("rc_chemin")
         for p1,p2 in zip([depart]+chemin[:-1],chemin):
             self.simulateur.drawPoint(p1.x,p1.y,"red","rc_chemin")
