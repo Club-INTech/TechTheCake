@@ -14,9 +14,10 @@ public:
     };
 
 public:
-    VisilibityWrapper(int width, int height);
-    void epsilon(double e);
-    void define_map_dimensions(int width, int height);
+    VisilibityWrapper(int width, int height, float ratio);
+    void tolerance_cv(double t);
+    void epsilon_vis(double e);
+    void define_map_dimensions(int width, int height, float ratio);
     void add_rectangle(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4);
     void add_circle(int x, int y, int radius);
     Exception build_environment();
@@ -25,7 +26,7 @@ public:
 
 
 private:
-    double _epsilon;
+    double _epsilon_vis;
     VisiLibity::Environment _environment;
     VisiLibity::Visibility_Graph _visibility_graph;
     Table _table;
