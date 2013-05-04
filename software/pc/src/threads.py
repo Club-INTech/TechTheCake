@@ -181,8 +181,10 @@ class ThreadTimer(AbstractThread):
         sleep(.500) #afin d'être sûr que le robot a eu le temps de s'arrêter
         self.robot.deplacements.desactiver_asservissement_translation()
         self.robot.deplacements.desactiver_asservissement_rotation()
+        sleep(2)
         self.robot.gonflage_ballon()
-        self.robot.deplacements.arret_final()
+        sleep(1)
+        self.robot.deplacements.arret_final() #désactive la série
         self.son.jouer("generique", force=True, enBoucle=True)
         self.log.debug("Fin du thread timer")
         
@@ -344,7 +346,7 @@ class ThreadCouleurBougies(AbstractThread):
             finally:
                 client_socket.close()
 
-#        table.definir_couleurs_bougies("bbrbwwrbrr") # test
+        table.definir_couleurs_bougies("rbrbwwrbrb") # test
 
         log.debug("Fin du thread de détection des couleurs des bougies")
         

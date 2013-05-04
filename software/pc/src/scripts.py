@@ -359,7 +359,7 @@ class ScriptCadeaux(Script):
             hooks.append(hook_fermeture)
 
         # Déplacement le long de la table (peut être un peu trop loin ?)
-        self.robot.set_vitesse_translation(105)
+        self.robot.set_vitesse_translation(90)
         point_sortie = Point(self.info_versions[1-version]["point_entree"].x, self.info_versions[version]["point_entree"].y)
         
         """
