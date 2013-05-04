@@ -27,6 +27,11 @@ void Table::reset()
     _image = Mat(_height, _width, CV_8U);
 }
 
+void Table::tolerance_cv(double t)
+{
+    _tolerance_cv = t;
+}
+
 void Table::add_polygon(vector<Point> polygon)
 {
     // Tableau de points (fillPoly ne prend pas de vector)
@@ -55,7 +60,7 @@ vector<VisiLibity::Polygon> Table::get_obstacles()
     for (int i = 0; i < contours.size(); i++)
     {
         // Détermine le polygone englobant assez proche
-        approxPolyDP(Mat(contours[i]), polygon_contours[i], 10, true);
+        approxPolyDP(Mat(contours[i]), polygon_contours[i], _tolerance_cv, true);
     }
 
 #if DISPLAY_DEBUG_WINDOWS
@@ -113,10 +118,14 @@ void Table::print(VisiLibity::Polygon polygon)
 
 Point Table::to_opencv_coordinates(Point p)
 {
+    //Changement de repère pour traiter avec opencv
+//     int x_cv = (p.x + 
     return p;
 }
 
 Point Table::to_table_coordinates(Point p)
 {
+//     VisiLibity::Point(
+        
     return p;
 }
