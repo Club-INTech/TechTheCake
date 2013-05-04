@@ -1,7 +1,10 @@
 #include "table.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
+
+#if DISPLAY_DEBUG_WINDOWS
 #include <opencv2/highgui/highgui.hpp>
+#endif
 
 using namespace std;
 using namespace cv;
@@ -17,10 +20,6 @@ Table::Table(int width, int height):
     _image_polygons(height, width, CV_8U)
 {
     reset();
-
-    namedWindow("Table", CV_WINDOW_AUTOSIZE);
-    namedWindow("Contours", CV_WINDOW_AUTOSIZE);
-    namedWindow("Polygons", CV_WINDOW_AUTOSIZE);
 }
 
 void Table::reset()
@@ -45,8 +44,10 @@ vector<VisiLibity::Polygon> Table::get_obstacles()
     vector<Contour> contours;
     findContours(image_copy, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
+#if DISPLAY_DEBUG_WINDOWS
     // Affichage des contours
     drawContours(_image_contours, contours, -1, Scalar(255));
+#endif
 
     // Liste des polygones, un polygone par contour détecté
     vector<Polygon> polygon_contours(contours.size());
@@ -54,11 +55,13 @@ vector<VisiLibity::Polygon> Table::get_obstacles()
     for (int i = 0; i < contours.size(); i++)
     {
         // Détermine le polygone englobant assez proche
-        approxPolyDP(Mat(contours[i]), polygon_contours[i], 0, true);
+        approxPolyDP(Mat(contours[i]), polygon_contours[i], 10, true);
     }
 
+#if DISPLAY_DEBUG_WINDOWS
     // Affichage des polygones finaux
     drawContours(_image_polygons, polygon_contours, -1, Scalar(255));
+#endif
 
     vector<VisiLibity::Polygon> obstacles;
 
@@ -91,10 +94,16 @@ vector<VisiLibity::Polygon> Table::get_obstacles()
 
 void Table::display()
 {
+#if DISPLAY_DEBUG_WINDOWS
+    namedWindow("Table", CV_WINDOW_AUTOSIZE);
+    namedWindow("Contours", CV_WINDOW_AUTOSIZE);
+    namedWindow("Polygons", CV_WINDOW_AUTOSIZE);
+
     imshow("Table", _image);
     imshow("Contours", _image_contours);
     imshow("Polygons", _image_polygons);
     cvvWaitKey(0);
+#endif
 }
 
 void Table::print(VisiLibity::Polygon polygon)
