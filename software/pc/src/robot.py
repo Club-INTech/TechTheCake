@@ -622,7 +622,7 @@ class Robot(RobotInterface):
                                 self.avancer(self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
                             else:
                                 self.avancer(-self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
-                except:
+                finally:
                     if not sans_lever_exception:
                         raise ExceptionMouvementImpossible(self)
 
