@@ -22,6 +22,8 @@ w = recherche_chemin.VisilibityWrapper(600, 400)
 w.epsilon(0.001)
 w.add_rectangle(10, 10, 100, 10, 100, 50, 10, 50)
 
+#~ w.reset_environment()
+
 if w.build_environment() != w.RETURN_OK:
     print("problème avec l'environnement visilibity")
     quit()

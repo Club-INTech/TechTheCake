@@ -10,6 +10,7 @@ class Table
 {
 public:
     Table(int width, int height);
+    void reset();
     void add_polygon(std::vector<cv::Point> polygon);
     std::vector<VisiLibity::Polygon> get_obstacles();
     void display();

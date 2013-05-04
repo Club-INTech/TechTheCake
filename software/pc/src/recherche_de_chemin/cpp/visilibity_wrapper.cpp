@@ -40,7 +40,8 @@ void VisilibityWrapper::add_rectangle(int x1, int y1, int x2, int y2, int x3, in
 
 void VisilibityWrapper::add_circle(int x, int y, int radius)
 {
-
+    // Transformation du cercle en polygone
+    // TODO
 }
 
 VisilibityWrapper::Exception VisilibityWrapper::build_environment()
@@ -64,6 +65,11 @@ VisilibityWrapper::Exception VisilibityWrapper::build_environment()
     _visibility_graph = VisiLibity::Visibility_Graph(_environment, _epsilon);
 
     return VisilibityWrapper::RETURN_OK;
+}
+
+void VisilibityWrapper::reset_environment()
+{
+    _table.reset();
 }
 
 VisiLibity::Polyline VisilibityWrapper::path(int x_start, int y_start, int x_end, int y_end)

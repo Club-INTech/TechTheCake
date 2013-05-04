@@ -16,9 +16,16 @@ Table::Table(int width, int height):
     _image_contours(height, width, CV_8U),
     _image_polygons(height, width, CV_8U)
 {
+    reset();
+
     namedWindow("Table", CV_WINDOW_AUTOSIZE);
     namedWindow("Contours", CV_WINDOW_AUTOSIZE);
     namedWindow("Polygons", CV_WINDOW_AUTOSIZE);
+}
+
+void Table::reset()
+{
+    _image = Mat(_height, _width, CV_8U);
 }
 
 void Table::add_polygon(vector<Point> polygon)
@@ -70,12 +77,11 @@ vector<VisiLibity::Polygon> Table::get_obstacles()
         // Construction du polygone, dans l'ordre inverse pour visilibity
         VisiLibity::Polygon visilibity_polygon;
 
-        for (vector<Point>::iterator point = polygon->end(); point != polygon->begin(); point--)
+        for (int i = 0; i < polygon->size(); i++)
         {
-            visilibity_polygon.push_back(VisiLibity::Point(point->x, point->y));
+            Point point = (*polygon)[i];
+            visilibity_polygon.push_back(VisiLibity::Point(point.x, point.y));
         }
-
-        print(visilibity_polygon);
 
         obstacles.push_back(visilibity_polygon);
     }
