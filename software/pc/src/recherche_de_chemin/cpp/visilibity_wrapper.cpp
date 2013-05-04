@@ -6,8 +6,8 @@
 
 using namespace std;
 
-VisilibityWrapper::VisilibityWrapper(int width, int height):
-    _table(width, height)
+VisilibityWrapper::VisilibityWrapper(int width, int height, float ratio):
+    _table(width, height, ratio)
 {
 }
 
@@ -21,7 +21,7 @@ void VisilibityWrapper::epsilon_vis(double e)
     _epsilon_vis = e;
 }
 
-void VisilibityWrapper::define_map_dimensions(int width, int height)
+void VisilibityWrapper::define_map_dimensions(int width, int height, float ratio)
 {
     // Construction du polygone
     vector<VisiLibity::Point> points;
