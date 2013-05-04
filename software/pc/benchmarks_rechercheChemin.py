@@ -2,11 +2,14 @@
 from src.container import *
 container = Container()
 rechercheChemin = container.get_service("rechercheChemin")
+table = container.get_service("table")
 
 import math
 from time import time,sleep
 from outils_maths.point import Point
 import recherche_de_chemin.rechercheChemin as libRechercheChemin
+import builtins
+builtins.simulateur = container.get_service("simulateur")
 
 ##############
 #le mode affichage permet d'afficher les obstacles et les chemins sur le simulateur.
@@ -16,7 +19,7 @@ affichage = True
 #nombre d'itération pour moyenner le benchmark en mode non affichage
 nbIterations = 50.
 #recherche de chemin avec astar ou avec visilibity
-aStar = False
+aStar = True
 ##############
 
 
@@ -37,10 +40,10 @@ if affichage:
             simulateur.drawVector(obstacle[obstacle.n()-1].x,obstacle[obstacle.n()-1].y,obstacle[0].x,obstacle[0].y,"green",True)
 
         #cercles
-        if aStar: environnement = rechercheChemin.get_cercles_astar()
-        else: environnement = rechercheChemin.get_cercles_conteneurs()
-        for obstacle in environnement:
-            simulateur.drawCircle(obstacle.centre.x, obstacle.centre.y, obstacle.rayon, False, "blue")
+        #if aStar: environnement = rechercheChemin.get_cercles_astar()
+        #else: environnement = rechercheChemin.get_cercles_conteneurs()
+        #for obstacle in environnement:
+            #simulateur.drawCircle(obstacle.centre.x, obstacle.centre.y, obstacle.rayon, False, "blue")
 
     def draw_path(depart, arrivee, chemin, color):
         simulateur.drawPoint(depart.x,depart.y, color)
@@ -85,9 +88,14 @@ for i in range(nbEnvironnements):
         debut_conception = time()
         if i==0:
             description = "vide"
+            rechercheChemin.charge_obstacles()
         elif i==1:
-            description = "usuel 1"
+            description = "usuel"
+            table.verres[1]["present"] = False
+            table.verres[9]["present"] = False
+            table.verres[8]["present"] = False
             #rechercheChemin.ajoute_obstacle_cercle(Point(0,700),400)
+            rechercheChemin.charge_obstacles()
             rechercheChemin.ajoute_obstacle_cercle(Point(-600,300),200)
         elif i==2:
             description = "usuel 2"

@@ -56,7 +56,12 @@ class Actionneurs :
             self.serie.communiquer("ascenseur",["asc_ar",hauteur],0)
 
     def actionneurs_ascenseur(self, avant, position):
-        if position == "fermé":
+        if position == "ferme_completement":
+            if avant:
+                self.serie.communiquer("capteurs_actionneurs",["asc_av",185],0)
+            else:
+                self.serie.communiquer("capteurs_actionneurs",["asc_arr",180],0)
+        elif position == "ferme":
             if avant:
                 self.serie.communiquer("capteurs_actionneurs",["asc_av",155],0)
             else:
