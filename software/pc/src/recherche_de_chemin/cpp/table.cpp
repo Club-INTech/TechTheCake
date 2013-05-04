@@ -77,10 +77,10 @@ vector<VisiLibity::Polygon> Table::get_obstacles()
 
     // Conversion au format Visilibity
     VisiLibity::Polygon table;
-    table.push_back(VisiLibity::Point(0, 0));
-    table.push_back(VisiLibity::Point(_width, 0));
-    table.push_back(VisiLibity::Point(_width, _height));
-    table.push_back(VisiLibity::Point(0, _height));
+    table.push_back(VisiLibity::Point(-_width/2, 0));
+    table.push_back(VisiLibity::Point(_width/2, 0));
+    table.push_back(VisiLibity::Point(_width/2, _height));
+    table.push_back(VisiLibity::Point(-_width/2, _height));
 
     // 1er obstacle: contours de la table
     obstacles.push_back(table);
