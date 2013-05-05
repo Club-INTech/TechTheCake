@@ -273,7 +273,8 @@ class Table:
             self.bougies[12]["couleur"] = Table.COULEUR_BOUGIE_BLANC
             compteur[Table.COULEUR_BOUGIE_BLANC] += 2
         
-        # On vérifie qu'on a le bon nombre de couleur. Si on a des bougies de couleur inconnue et qu'on a par contre toutes les bougies d'une couleur, alors forcément elles sont de l'autre couleur
+        # On vérifie qu'on a le bon nombre de couleur. Si on a des bougies de couleur inconnue 
+        # et qu'on a par contre toutes les bougies d'une couleur, alors forcément elles sont de l'autre couleur
         if not nb_rouge_normal==compteur[Table.COULEUR_BOUGIE_ROUGE]:
             self.log.warning("Erreur détection bougies rouges! (vues: "+str(compteur[Table.COULEUR_BOUGIE_ROUGE])+")")
         elif compteur[Table.COULEUR_BOUGIE_INCONNUE] != 0:

@@ -77,6 +77,7 @@ ISR(INT2_vect)
  */
 ISR(PCINT2_vect)
 {
+    // TODO: intégrer la lib codeuse
 	static uint8_t canal_a;
 	static uint8_t canal_b;
 	static uint8_t previous_canal_a;
