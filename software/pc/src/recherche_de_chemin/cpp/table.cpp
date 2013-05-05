@@ -79,7 +79,10 @@ vector<VisiLibity::Polygon> Table::get_obstacles()
 #endif
 
     vector<VisiLibity::Polygon> obstacles;
-
+    
+    // Détection du contour de la table
+    cv::bitwise_xor(_image, cv::Scalar(255), _image_xor);
+    
     // Conversion au format Visilibity
     VisiLibity::Polygon table;
     table.push_back(VisiLibity::Point(-_width/2, 0));
@@ -113,10 +116,12 @@ void Table::display()
     cv::namedWindow("Table", CV_WINDOW_AUTOSIZE);
     cv::namedWindow("Contours", CV_WINDOW_AUTOSIZE);
     cv::namedWindow("Polygons", CV_WINDOW_AUTOSIZE);
+    cv::namedWindow("XOR", CV_WINDOW_AUTOSIZE);
 
     imshow("Table", _image);
     imshow("Contours", _image_contours);
     imshow("Polygons", _image_polygons);
+    imshow("XOR", _image_xor);
     cvvWaitKey(0);
 #endif
 }
