@@ -48,7 +48,8 @@ class Strategie:
         self.son.jouer("debut")
         self.log.debug("stratégie lancée")
         
-        # Avec la balise laser, récupérer la position des ennemis. Sur la ou les cases occupées seront probablement les verres. Mettre à jour position_verres_1 et position_verres_2
+        # Avec la balise laser, récupérer la position des ennemis. Sur la ou les cases occupées seront probablement les verres.
+        # Mettre à jour position_verres_1 et position_verres_2
 #        self.scripts["ScriptRenverserVerres"].cases_verres=[1,2]
         try:
             self.robot.set_vitesse_translation(2)
