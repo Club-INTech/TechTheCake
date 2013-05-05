@@ -167,7 +167,7 @@ class Container:
         self.assembler.register("son", son.Son, requires=["config", "log"])
 
         #enregistrement du service timer
-        self.assembler.register("threads.timer", threads.ThreadTimer, requires=["log","config","robot","table","capteurs","son"])
+        self.assembler.register("threads.timer", threads.ThreadTimer, requires=["container"])
         self.assembler.register("threads.position", threads.ThreadPosition, requires=["container"])
         self.assembler.register("threads.capteurs", threads.ThreadCapteurs, requires=["container"])
         self.assembler.register("threads.laser", threads.ThreadLaser, requires=["container"])
