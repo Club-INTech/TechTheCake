@@ -14,10 +14,9 @@ public:
     };
 
 public:
-    VisilibityWrapper(int width, int height, float ratio);
+    VisilibityWrapper(int width, int height, int ratio);
     void tolerance_cv(double t);
     void epsilon_vis(double e);
-    void define_map_dimensions(int width, int height, float ratio);
     void add_rectangle(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4);
     void add_circle(int x, int y, int radius);
     int nb_obstacles();

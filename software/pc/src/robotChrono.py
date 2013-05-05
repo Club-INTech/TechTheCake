@@ -34,11 +34,11 @@ class RobotInterface(metaclass=abc.ABCMeta):
         pass
         
     @abc.abstractmethod
-    def set_vitesse_translation(self, valeur):
+    def set_vitesse_translation(self, vitesse):
         pass
     
     @abc.abstractmethod
-    def set_vitesse_rotation(self, valeur):
+    def set_vitesse_rotation(self, vitesse, rayon=None):
         pass
         
     @abc.abstractmethod
@@ -61,6 +61,63 @@ class RobotInterface(metaclass=abc.ABCMeta):
     def altitude_ascenseur(self, avant, hauteur):
         pass
 
+    def conventions_vitesse_translation(vitesse):
+        """
+        Retourne un pwm_max en fonction d'une convention de vitesse.
+        """
+        if vitesse == "entre_scripts":
+            return 100
+        elif vitesse == "recherche_verre":
+            return 85
+        elif vitesse == "depot_verre":
+            return 60
+        elif vitesse == "proche_gateau":
+            return 100
+        elif vitesse == "arc_de_cercle":
+            return 38
+        elif vitesse == "cadeaux":
+            return 90
+        elif vitesse == "recal_faible":
+            return 60
+        elif vitesse == "recal_forte":
+            return 100
+        else:
+            raise Exception("string de vitesse translation inconnu ! (cf RobotInterface.conventions_vitesse_translation)")
+        
+    def conventions_vitesse_rotation(vitesse, rayon=None):
+        """
+        Retourne un pwm_max en fonction d'une convention de vitesse.
+        """
+        
+          # les scripts utilisent des vitesses prédéfinies ici
+        if vitesse == 1:
+            vitesse = 80
+        elif vitesse == 2:
+            vitesse = 100
+        elif vitesse == 3:
+            vitesse = 200
+            
+        if vitesse == "entre_scripts":
+            return 100
+        elif vitesse == "recherche_verre":
+            return 80
+        elif vitesse == "depot_verre":
+            return 80
+        elif vitesse == "proche_gateau":
+            return 100
+        elif vitesse == "arc_de_cercle":
+            return int(max(118-0.21*(rayon-478), 30))
+        elif vitesse == "fin_arc":
+            return 20
+        elif vitesse == "cadeaux":
+            return 100
+        elif vitesse == "recal_faible":
+            return 80
+        elif vitesse == "recal_forte":
+            return 100
+        else:
+            raise Exception("string de vitesse rotation inconnu ! (cf RobotInterface.conventions_vitesse_rotation)")
+        
     def places_disponibles(self, avant):
         """
         Renvoie le nombre de places disponibles sur un ascenceur
@@ -136,11 +193,6 @@ class RobotChrono(RobotInterface):
         
         self.duree = 0
         
-        #tableau des 3 vitesses de translation 1,2,3 , en mm/sec
-        self.vitesses_translation = [138,358,446]
-        #tableau des 3 vitesses de rotation 1,2,3 , en radian/sec
-        self.vitesses_rotation = [0.7,1.5,3.0]
-        
         self.vitesse_translation = 2
         self.vitesse_rotation = 2
         
@@ -174,10 +226,7 @@ class RobotChrono(RobotInterface):
         """
         Fonction analogue à celle de robot. Avance. Si, si.
         """
-        if self.vitesse_translation < 5:
-            self.duree += abs (distance / self.vitesses_translation[self.vitesse_translation-1])
-        else:
-            self.duree += abs (distance / (self.vitesse_translation*(self.vitesses_translation[1]/100)))
+        self.duree += abs(distance / self.vitesse_translation)
         self.x += distance*math.cos(self.orientation)
         self.y += distance*math.sin(self.orientation)
         
@@ -189,10 +238,7 @@ class RobotChrono(RobotInterface):
             if self.config["couleur"] == "bleu":
                 angle = math.pi - angle
                 
-        if self.vitesse_rotation < 5:
-            self.duree += abs(angle / self.vitesses_rotation[self.vitesse_rotation-1])
-        else:
-            self.duree += abs(angle / self.vitesse_rotation*(self.vitesses_rotation[1]/100))
+        self.duree += abs(angle / self.vitesse_rotation)
         
         self.orientation = angle
         
@@ -244,20 +290,51 @@ class RobotChrono(RobotInterface):
         self.avancer(distance)
     
     def arc_de_cercle(self,xM,yM,hooks=[]):
-        #TODO
-        pass
+        """
+        La durée de l'arc de cercle est calculée à partir du parcourt d'une abscisse curviligne.
+        """
         
-    def set_vitesse_translation(self, valeur):
+        delta_rx = 0-self.x
+        delta_ry = 2000-self.y
+        rayon = math.sqrt(delta_rx**2 + delta_ry**2)
+        theta_r = math.atan2(delta_ry,delta_rx)
+        
+        delta_mx = 0-xM
+        delta_my = 2000-yM
+        theta_m = math.atan2(delta_my,delta_mx)
+        
+        abscisse_curv = rayon * abs(theta_m - theta_r)
+        
+        #calcul de durée totale
+        self.set_vitesse_translation("arc_de_cercle")
+        self.avancer(abscisse_curv)
+        
+        #nouvelle position
+        self.x =    0 + rayon*math.cos(theta_m)
+        self.y = 2000 + rayon*math.sin(theta_m)
+        
+        
+    def set_vitesse_translation(self, vitesse):
         """
-        Fonction analogue à celle de robot. modifie la vitesse de translation du robot et adapte les constantes d'asservissement
+        Spécifie une vitesse de translation en metres par seconde, suivant les conventions choisies dans l'interface.
         """
-        self.vitesse_translation = int(valeur)
+        pwm_max = RobotInterface.conventions_vitesse_translation(vitesse)
+        
+        #TODO : à étalonner !
+        vitesse_mps = pwm_max/100
+        
+        self.vitesse_translation = vitesse_mps
     
-    def set_vitesse_rotation(self, valeur):
+    def set_vitesse_rotation(self, vitesse, rayon=None):
         """
-        Fonction analogue à celle de robot. modifie la vitesse de rotation du robot et adapte les constantes d'asservissement
+        Spécifie une vitesse de rotation en radians par seconde, suivant les conventions choisies dans l'interface.
         """
-        self.vitesse_rotation = int(valeur)
+        pwm_max = RobotInterface.conventions_vitesse_rotation(vitesse,rayon)
+        
+        #TODO : à étalonner !
+        vitesse_rps = pwm_max/30
+        
+        self.vitesse_rotation = vitesse_rps
         
     def actionneurs_bougie(self, en_haut, angle):
         pass

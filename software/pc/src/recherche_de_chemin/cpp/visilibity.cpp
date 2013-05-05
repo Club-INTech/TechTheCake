@@ -52,16 +52,16 @@ namespace
 namespace VisiLibity
 {
 
-  float uniform_random_sample(float lower_bound, float upper_bound)
+  double uniform_random_sample(double lower_bound, double upper_bound)
   {
     assert( lower_bound <= upper_bound );
     if( lower_bound == upper_bound )
       return lower_bound;
-    float sample_point;
-    float span = upper_bound - lower_bound;
+    double sample_point;
+    double span = upper_bound - lower_bound;
     sample_point = lower_bound 
-                   + span * static_cast<float>( std::rand() )
-                   / static_cast<float>( RAND_MAX );
+                   + span * static_cast<double>( std::rand() )
+                   / static_cast<double>( RAND_MAX );
     return sample_point;
   }
 
@@ -83,7 +83,7 @@ namespace VisiLibity
     //(1.0-theta)*line_segment_temp.second.  if theta is outside
     //the interval [0,1], then one of the Line_Segment's endpoints
     //must be closest to calling Point.
-    float theta = 
+    double theta = 
       ( (line_segment_temp.second().x()-x())
 	*(line_segment_temp.second().x()
 	  -line_segment_temp.first().x()) 
@@ -116,7 +116,7 @@ namespace VisiLibity
     //that the projection of the the calling Point onto that
     //Line_Segment must be the same as the projection of the calling
     //Point onto the Ray.
-    float R = distance( *this , ray_temp.base_point() );
+    double R = distance( *this , ray_temp.base_point() );
     Line_Segment seg_approx =
       Line_Segment(  ray_temp.base_point(), ray_temp.base_point() +
 		     Point( R*std::cos(ray_temp.bearing().get()),
@@ -131,7 +131,7 @@ namespace VisiLibity
 	    and polyline_temp.size() > 0 );
 
     Point running_projection = polyline_temp[0];
-    float running_min = distance(*this, running_projection);    
+    double running_min = distance(*this, running_projection);    
     Point point_temp;
     for(unsigned i=0; i<=polyline_temp.size()-1; i++){
       point_temp = projection_onto( Line_Segment(polyline_temp[i],
@@ -151,7 +151,7 @@ namespace VisiLibity
 	   and polygon_temp.vertices_.size() > 0 );
 
     Point running_projection = polygon_temp[0];
-    float running_min = distance(*this, running_projection);
+    double running_min = distance(*this, running_projection);
     for(unsigned i=1; i<=polygon_temp.n()-1; i++){
       if( distance(*this, polygon_temp[i]) < running_min ){
 	running_projection = polygon_temp[i];
@@ -170,7 +170,7 @@ namespace VisiLibity
 
     Point running_projection 
       = projection_onto_vertices_of(environment_temp.outer_boundary_);
-    float running_min = distance(*this, running_projection);   
+    double running_min = distance(*this, running_projection);   
     Point point_temp;
     for(unsigned i=0; i<environment_temp.h(); i++){
       point_temp = projection_onto_vertices_of(environment_temp.holes_[i]);
@@ -189,7 +189,7 @@ namespace VisiLibity
 	    and polygon_temp.n() > 0 );
 
     Point running_projection = polygon_temp[0];
-    float running_min = distance(*this, running_projection);    
+    double running_min = distance(*this, running_projection);    
     Point point_temp;
     for(unsigned i=0; i<=polygon_temp.n()-1; i++){
       point_temp = projection_onto( Line_Segment(polygon_temp[i],
@@ -211,7 +211,7 @@ namespace VisiLibity
 
     Point running_projection 
       = projection_onto_boundary_of(environment_temp.outer_boundary_);
-    float running_min = distance(*this, running_projection);
+    double running_min = distance(*this, running_projection);
     Point point_temp;
     for(unsigned i=0; i<environment_temp.h(); i++){
       point_temp = projection_onto_boundary_of(environment_temp.holes_[i]);
@@ -225,7 +225,7 @@ namespace VisiLibity
 
   
   bool Point::on_boundary_of(const Polygon& polygon_temp,
-			     float epsilon) const
+			     double epsilon) const
   {
     assert( *this == *this
 	    and polygon_temp.vertices_.size() > 0 );
@@ -239,7 +239,7 @@ namespace VisiLibity
  
 
   bool Point::on_boundary_of(const Environment& environment_temp,
-			     float epsilon) const
+			     double epsilon) const
   {
     assert( *this == *this
 	    and environment_temp.outer_boundary_.n() > 0 );
@@ -253,7 +253,7 @@ namespace VisiLibity
 
 
   bool Point::in(const Line_Segment& line_segment_temp,
-		 float epsilon) const
+		 double epsilon) const
   {
     assert( *this == *this
 	    and line_segment_temp.size() > 0 );
@@ -265,7 +265,7 @@ namespace VisiLibity
 
 
   bool Point::in_relative_interior_of(const Line_Segment& line_segment_temp,
-				      float epsilon) const
+				      double epsilon) const
   {
     assert( *this == *this
 	    and line_segment_temp.size() > 0 );
@@ -277,7 +277,7 @@ namespace VisiLibity
 
 
   bool Point::in(const Polygon& polygon_temp,
-		 float epsilon) const
+		 double epsilon) const
   {
     assert( *this == *this
 	    and polygon_temp.vertices_.size() > 0 );
@@ -308,7 +308,7 @@ namespace VisiLibity
   }
  
 
-  bool Point::in(const Environment& environment_temp, float epsilon) const
+  bool Point::in(const Environment& environment_temp, double epsilon) const
   {
     assert( *this == *this
 	    and environment_temp.outer_boundary_.n() > 0 );
@@ -329,7 +329,7 @@ namespace VisiLibity
 
 
   bool Point::is_endpoint_of(const Line_Segment& line_segment_temp,
-			     float epsilon) const
+			     double epsilon) const
   {
     assert( *this == *this
 	    and line_segment_temp.size() > 0 );
@@ -342,7 +342,7 @@ namespace VisiLibity
 
 
   void Point::snap_to_vertices_of(const Polygon& polygon_temp,
-				  float epsilon)
+				  double epsilon)
   {
     assert( *this == *this
 	    and polygon_temp.n() > 0 );
@@ -352,7 +352,7 @@ namespace VisiLibity
       *this = point_temp;
   }
   void Point::snap_to_vertices_of(const Environment& environment_temp,
-				  float epsilon)
+				  double epsilon)
   {
     assert( *this == *this
 	    and environment_temp.n() > 0 );
@@ -364,7 +364,7 @@ namespace VisiLibity
 
 
   void Point::snap_to_boundary_of(const Polygon& polygon_temp,
-				  float epsilon)
+				  double epsilon)
   {
     assert( *this == *this
 	    and polygon_temp.n() > 0 );
@@ -374,7 +374,7 @@ namespace VisiLibity
       *this = point_temp;
   }
   void Point::snap_to_boundary_of(const Environment& environment_temp,
-				  float epsilon)
+				  double epsilon)
   {
     assert( *this == *this
 	    and environment_temp.n() > 0 );
@@ -447,19 +447,19 @@ namespace VisiLibity
   }
 
 
-  Point operator * (float scalar, const Point& point2)
+  Point operator * (double scalar, const Point& point2)
   {
     return Point( scalar*point2.x(),
 		  scalar*point2.y()); 
   }
-  Point operator * (const Point& point1, float scalar)
+  Point operator * (const Point& point1, double scalar)
   {
     return Point( scalar*point1.x(),
 		  scalar*point1.y()); 
   }
 
 
-  float cross(const Point& point1, const Point& point2)
+  double cross(const Point& point1, const Point& point2)
   {
     assert( point1 == point1
 	    and point2 == point2 );
@@ -469,7 +469,7 @@ namespace VisiLibity
   }
 
 
-  float distance(const Point& point1, const Point& point2)
+  double distance(const Point& point1, const Point& point2)
   {
     assert( point1 == point1
 	    and point2 == point2 );
@@ -479,7 +479,7 @@ namespace VisiLibity
   }
 
 
-  float distance(const Point& point_temp,
+  double distance(const Point& point_temp,
 		  const Line_Segment& line_segment_temp)
   {
     assert( point_temp == point_temp
@@ -488,7 +488,7 @@ namespace VisiLibity
     return distance( point_temp, 
 		     point_temp.projection_onto(line_segment_temp) );
   }
-  float distance(const Line_Segment& line_segment_temp,
+  double distance(const Line_Segment& line_segment_temp,
 		  const Point& point_temp)
   {
     return distance( point_temp,
@@ -496,7 +496,7 @@ namespace VisiLibity
   }
 
 
-  float distance(const Point& point_temp,
+  double distance(const Point& point_temp,
 		  const Ray& ray_temp)
   {
     assert( point_temp == point_temp
@@ -504,7 +504,7 @@ namespace VisiLibity
     return distance( point_temp, 
 		     point_temp.projection_onto(ray_temp) );
   }
-  float distance(const Ray& ray_temp,
+  double distance(const Ray& ray_temp,
 		  const Point& point_temp)
   {
     return distance( point_temp,
@@ -512,14 +512,14 @@ namespace VisiLibity
   }
 
 
-  float distance(const Point& point_temp,
+  double distance(const Point& point_temp,
 		  const Polyline& polyline_temp)
   {
     assert( point_temp == point_temp
 	    and polyline_temp.size() > 0 );
 
-    float running_min = distance(point_temp, polyline_temp[0]);
-    float distance_temp;
+    double running_min = distance(point_temp, polyline_temp[0]);
+    double distance_temp;
     for(unsigned i=0; i<polyline_temp.size()-1; i++){
       distance_temp = distance(point_temp, Line_Segment(polyline_temp[i],
 							polyline_temp[i+1]) );
@@ -528,21 +528,21 @@ namespace VisiLibity
     }
     return running_min;
   }
-  float distance(const Polyline& polyline_temp,
+  double distance(const Polyline& polyline_temp,
 		  const Point& point_temp)
   {
     return distance(point_temp, polyline_temp);
   }
 
 
-  float boundary_distance(const Point& point_temp,
+  double boundary_distance(const Point& point_temp,
 			   const Polygon& polygon_temp)
   {
     assert( point_temp == point_temp
 	    and polygon_temp.n() > 0);
 
-    float running_min = distance(point_temp, polygon_temp[0]);
-    float distance_temp;
+    double running_min = distance(point_temp, polygon_temp[0]);
+    double distance_temp;
     for(unsigned i=0; i<=polygon_temp.n(); i++){
       distance_temp = distance(point_temp, Line_Segment(polygon_temp[i],
 							polygon_temp[i+1]) );
@@ -551,20 +551,20 @@ namespace VisiLibity
     }
     return running_min;
   }
-  float boundary_distance(const Polygon& polygon_temp, const Point& point_temp)
+  double boundary_distance(const Polygon& polygon_temp, const Point& point_temp)
   {
     return boundary_distance(point_temp, polygon_temp);
   } 
 
  
-  float boundary_distance(const Point& point_temp,
+  double boundary_distance(const Point& point_temp,
 			   const Environment& environment_temp)
   {
     assert( point_temp == point_temp
 	    and environment_temp.n() > 0 );
 
-    float running_min = distance(point_temp, environment_temp[0][0]);
-    float distance_temp;
+    double running_min = distance(point_temp, environment_temp[0][0]);
+    double distance_temp;
     for(unsigned i=0; i <= environment_temp.h(); i++){
       distance_temp = boundary_distance(point_temp, environment_temp[i]);
       if(distance_temp < running_min)
@@ -572,7 +572,7 @@ namespace VisiLibity
     }
     return running_min;
   }  
-  float boundary_distance(const Environment& environment_temp,
+  double boundary_distance(const Environment& environment_temp,
 			   const Point& point_temp)
   {
     return boundary_distance(point_temp, environment_temp);
@@ -626,7 +626,7 @@ namespace VisiLibity
 
 
   Line_Segment::Line_Segment(const Point& first_point_temp,
-			     const Point& second_point_temp, float epsilon)
+			     const Point& second_point_temp, double epsilon)
   {
     if( distance(first_point_temp, second_point_temp) <= epsilon ){
       endpoints_ = new Point[1];
@@ -669,7 +669,7 @@ namespace VisiLibity
   }
 
 
-  float Line_Segment::length() const
+  double Line_Segment::length() const
   {
     assert( size_ > 0 );
 
@@ -713,7 +713,7 @@ namespace VisiLibity
   }
 
 
-  void Line_Segment::set_first(const Point& point_temp, float epsilon)
+  void Line_Segment::set_first(const Point& point_temp, double epsilon)
   {
     Point second_point_temp;
     switch(size_){
@@ -743,7 +743,7 @@ namespace VisiLibity
   }
 
 
-  void Line_Segment::set_second(const Point& point_temp, float epsilon)
+  void Line_Segment::set_second(const Point& point_temp, double epsilon)
   {
     Point first_point_temp;
     switch(size_){
@@ -827,7 +827,7 @@ namespace VisiLibity
 
 
   bool equivalent(Line_Segment line_segment1, 
-		  Line_Segment line_segment2, float epsilon)
+		  Line_Segment line_segment2, double epsilon)
   {
     if( line_segment1.size() != line_segment2.size()
 	or line_segment1.size() == 0
@@ -847,7 +847,7 @@ namespace VisiLibity
   }
 
 
-  float distance(const Line_Segment& line_segment1,
+  double distance(const Line_Segment& line_segment1,
 		  const Line_Segment& line_segment2)
   {
     assert( line_segment1.size() > 0  and  line_segment2.size() > 0 );
@@ -858,7 +858,7 @@ namespace VisiLibity
     //between them is equal to the minimum of the distances between
     //all 4 endpoints_ and their respective projections onto the line
     //segment they don't belong to.
-    float running_min, distance_temp;
+    double running_min, distance_temp;
     running_min = distance(line_segment1.first(), line_segment2);
     distance_temp = distance(line_segment1.second(), line_segment2);
     if(distance_temp<running_min)
@@ -873,28 +873,28 @@ namespace VisiLibity
   }
 
 
-  float boundary_distance(const Line_Segment& line_segment,
+  double boundary_distance(const Line_Segment& line_segment,
 			   const Polygon& polygon)
   {
     assert( line_segment.size() > 0 and polygon.n() > 0 );
 
-    float running_min = distance( line_segment , polygon[0] );
+    double running_min = distance( line_segment , polygon[0] );
     if( polygon.n() > 1 )
       for(unsigned i=0; i<polygon.n(); i++){
-	float d = distance(  line_segment, 
+	double d = distance(  line_segment, 
 			      Line_Segment( polygon[i] , polygon[i+1] )  );
 	if( running_min > d )
 	  running_min = d;
       }
     return running_min;
   }
-  float boundary_distance(const Polygon& polygon,
+  double boundary_distance(const Polygon& polygon,
 			   const Line_Segment& line_segment)
   { return boundary_distance( line_segment , polygon ); }
 
 
   bool intersect(const Line_Segment& line_segment1,
-		 const Line_Segment& line_segment2, float epsilon)
+		 const Line_Segment& line_segment2, double epsilon)
   {
     if( line_segment1.size() == 0
 	or line_segment2.size() == 0 )
@@ -906,7 +906,7 @@ namespace VisiLibity
 
   
   bool intersect_proper(const Line_Segment& line_segment1,
-			const Line_Segment& line_segment2, float epsilon)
+			const Line_Segment& line_segment2, double epsilon)
   {
     if( line_segment1.size() == 0
 	or line_segment2.size() == 0 )
@@ -919,7 +919,7 @@ namespace VisiLibity
     Point d( line_segment2.second() );
     //First find the minimum of the distances between all 4 endpoints_
     //and their respective projections onto the opposite line segment.
-    float running_min, distance_temp;
+    double running_min, distance_temp;
     running_min = distance(a, line_segment2);
     distance_temp = distance(b, line_segment2);
     if(distance_temp<running_min)
@@ -944,7 +944,7 @@ namespace VisiLibity
 
   
   Line_Segment intersection(const Line_Segment& line_segment1,
-			    const Line_Segment& line_segment2, float epsilon)
+			    const Line_Segment& line_segment2, double epsilon)
   {
     //Initially empty.
     Line_Segment line_segment_temp;
@@ -964,21 +964,21 @@ namespace VisiLibity
     if( intersect_proper(line_segment1, line_segment2, epsilon) ){
       //Use formula from O'Rourke's "Computational Geometry in C", p. 221.
       //Note D=0 iff the line segments are parallel.
-      float D = a.x()*( d.y() - c.y() ) 
+      double D = a.x()*( d.y() - c.y() ) 
 	+ b.x()*( c.y() - d.y() ) 
 	+ d.x()*( b.y() - a.y() ) 
 	+ c.x()*( a.y() - b.y() );
-      float s = (  a.x()*( d.y() - c.y() ) 
+      double s = (  a.x()*( d.y() - c.y() ) 
 		    + c.x()*( a.y() - d.y() ) 
 		    + d.x()*( c.y() - a.y() )  ) / D;
       line_segment_temp.set_first( a + s * ( b - a ) );
       return line_segment_temp;
       }
     //Otherwise if improper...
-    float distance_temp_a = distance(a,  line_segment2);
-    float distance_temp_b = distance(b, line_segment2);
-    float distance_temp_c = distance(c,  line_segment1);
-    float distance_temp_d = distance(d, line_segment1);
+    double distance_temp_a = distance(a,  line_segment2);
+    double distance_temp_b = distance(b, line_segment2);
+    double distance_temp_c = distance(c,  line_segment1);
+    double distance_temp_d = distance(d, line_segment1);
     //Check if the intersection is nondegenerate segment.
     if( distance_temp_a <= epsilon  and  distance_temp_b <= epsilon ){
       line_segment_temp.set_first(a, epsilon);
@@ -1055,7 +1055,7 @@ namespace VisiLibity
   //Angle
 
 
-  Angle::Angle(float data_temp)
+  Angle::Angle(double data_temp)
   {
     if(data_temp >= 0)
       angle_radians_ = fmod(data_temp, 2*M_PI);
@@ -1067,7 +1067,7 @@ namespace VisiLibity
   }
 
 
-  Angle::Angle(float rise_temp, float run_temp)
+  Angle::Angle(double rise_temp, double run_temp)
   {
     if( rise_temp == 0 and run_temp == 0 )
       angle_radians_ = 0;
@@ -1079,7 +1079,7 @@ namespace VisiLibity
   }
 
 
-  void Angle::set(float data_temp)
+  void Angle::set(double data_temp)
   { 
     *this = Angle(data_temp);
   }
@@ -1129,28 +1129,28 @@ namespace VisiLibity
   }
 
 
-  float geodesic_distance(const Angle& angle1, const Angle& angle2)
+  double geodesic_distance(const Angle& angle1, const Angle& angle2)
   {
     assert( angle1.get() == angle1.get()
 	    and angle2.get() == angle2.get() );
 
-    float distance1 = std::fabs( angle1.get() 
+    double distance1 = std::fabs( angle1.get() 
 				  - angle2.get() );
-    float distance2 = 2*M_PI - distance1;
+    double distance2 = 2*M_PI - distance1;
     if(distance1 < distance2)
       return distance1;
     return distance2;
   }
 
 
-  float geodesic_direction(const Angle& angle1, const Angle& angle2)
+  double geodesic_direction(const Angle& angle1, const Angle& angle2)
   {
     assert( angle1.get() == angle1.get()
 	    and angle2.get() == angle2.get() );
 
-    float distance1 = std::fabs( angle1.get() 
+    double distance1 = std::fabs( angle1.get() 
 				  - angle2.get() );
-    float distance2 = 2*M_PI - distance1;
+    double distance2 = 2*M_PI - distance1;
     if(angle1 <= angle2){
       if(distance1 < distance2)
 	return 1.0;
@@ -1175,7 +1175,7 @@ namespace VisiLibity
 
   Polar_Point::Polar_Point(const Point& polar_origin_temp,
 			   const Point& point_temp,
-			   float epsilon) : Point(point_temp)
+			   double epsilon) : Point(point_temp)
   {
     polar_origin_ = polar_origin_temp;
     if( polar_origin_==polar_origin_
@@ -1199,19 +1199,19 @@ namespace VisiLibity
   }
 
 
-  void Polar_Point::set_x(float x_temp)
+  void Polar_Point::set_x(double x_temp)
   {
     *this = Polar_Point( polar_origin_, Point(x_temp, y()) );
   }
 
 
-  void Polar_Point::set_y(float y_temp)
+  void Polar_Point::set_y(double y_temp)
   {
     *this = Polar_Point( polar_origin_, Point(x(), y_temp) );
   }
 
 
-  void Polar_Point::set_range(float range_temp)
+  void Polar_Point::set_range(double range_temp)
   {
     range_ = range_temp;
     x_ = polar_origin_.x() 
@@ -1357,7 +1357,7 @@ namespace VisiLibity
 
   Line_Segment intersection(const Ray ray_temp,
 			    const Line_Segment& line_segment_temp,
-			    float epsilon)
+			    double epsilon)
   {
     assert( ray_temp == ray_temp
 	    and line_segment_temp.size() > 0 );
@@ -1365,7 +1365,7 @@ namespace VisiLibity
     //First construct a Line_Segment parallel with the Ray which is so
     //long, that it's intersection with line_segment_temp will be
     //equal to the intersection of ray_temp with line_segment_temp.
-    float R = distance(ray_temp.base_point(), line_segment_temp) 
+    double R = distance(ray_temp.base_point(), line_segment_temp) 
                + line_segment_temp.length();
     Line_Segment seg_approx =
       Line_Segment(  ray_temp.base_point(), ray_temp.base_point() +
@@ -1386,7 +1386,7 @@ namespace VisiLibity
 
   Line_Segment intersection(const Line_Segment& line_segment_temp,
 			    const Ray& ray_temp,
-			    float epsilon)
+			    double epsilon)
   {
     return intersection( ray_temp , line_segment_temp , epsilon );
   }
@@ -1395,21 +1395,21 @@ namespace VisiLibity
   //Polyline
 
 
-  float Polyline::length() const
+  double Polyline::length() const
   {
-    float length_temp = 0;
+    double length_temp = 0;
     for(unsigned i=1; i <= vertices_.size()-1; i++)
       length_temp += distance( vertices_[i-1] , vertices_[i] );
     return length_temp;
   }
 
 
-  float Polyline::diameter() const
+  double Polyline::diameter() const
   {
     //Precondition:  nonempty Polyline.
     assert( size() > 0 );
 
-    float running_max=0;
+    double running_max=0;
     for(unsigned i=0; i<size()-1; i++){
     for(unsigned j=i+1; j<size(); j++){
       if( distance( (*this)[i] , (*this)[j] ) > running_max )
@@ -1425,7 +1425,7 @@ namespace VisiLibity
     assert( vertices_.size() > 0 );
 
     Bounding_Box bounding_box;
-    float x_min=vertices_[0].x(), x_max=vertices_[0].x(),
+    double x_min=vertices_[0].x(), x_max=vertices_[0].x(),
       y_min=vertices_[0].y(), y_max=vertices_[0].y();
     for(unsigned i = 1; i <  vertices_.size(); i++){
       if(x_min > vertices_[i].x())  { x_min=vertices_[i].x(); }
@@ -1439,7 +1439,7 @@ namespace VisiLibity
   }
 
 
-  void Polyline::eliminate_redundant_vertices(float epsilon)
+  void Polyline::eliminate_redundant_vertices(double epsilon)
   {
     //Trivial case
     if(vertices_.size() < 3)
@@ -1519,7 +1519,7 @@ namespace VisiLibity
     assert( !fin.fail() );
 
     Point point_temp;
-    float x_temp, y_temp;
+    double x_temp, y_temp;
     while (fin >> x_temp and fin >> y_temp){
       point_temp.set_x(x_temp);
       point_temp.set_y(y_temp);
@@ -1564,7 +1564,7 @@ namespace VisiLibity
   }
 
 
-  bool Polygon::is_simple(float epsilon) const
+  bool Polygon::is_simple(double epsilon) const
   {
     
     if(n()==0 or n()==1 or n()==2)
@@ -1599,9 +1599,9 @@ namespace VisiLibity
   }
 
 
-  float Polygon::boundary_length() const
+  double Polygon::boundary_length() const
   {
-    float length_temp=0;
+    double length_temp=0;
     if(n()==0 or n()==1)
       return 0;
     for(unsigned i=0; i<n()-1; i++)
@@ -1612,9 +1612,9 @@ namespace VisiLibity
   }
 
 
-  float Polygon::area() const
+  double Polygon::area() const
   {
-    float area_temp = 0;
+    double area_temp = 0;
     if(n()==0)
       return 0;
     for(unsigned i=0; i<=n()-1; i++)
@@ -1628,17 +1628,17 @@ namespace VisiLibity
   {
     assert( vertices_.size() > 0 );
 
-    float area_temp=area();
+    double area_temp=area();
     if(area_temp==0)
       { std::cerr << "\x1b[5;31m" 
 	 << "Warning:  tried to compute centoid of polygon with zero area!" 
 	 << "\x1b[0m\n" << "\a \n"; exit(1); } 
-    float x_temp=0;
+    double x_temp=0;
     for(unsigned i=0; i<=n()-1; i++)
       x_temp += ( (*this)[i].x() + (*this)[i+1].x() ) 
 	* ( (*this)[i].x()*(*this)[i+1].y() 
 	    - (*this)[i+1].x()*(*this)[i].y() );
-    float y_temp=0;
+    double y_temp=0;
     for(unsigned i=0; i<=n()-1; i++)
       y_temp += ( (*this)[i].y() + (*this)[i+1].y() ) 
 	* ( (*this)[i].x()*(*this)[i+1].y() 
@@ -1647,12 +1647,12 @@ namespace VisiLibity
   }
 
 
-  float Polygon::diameter() const
+  double Polygon::diameter() const
   {
     //Precondition:  nonempty Polygon.
     assert( n() > 0 );
 
-    float running_max=0;
+    double running_max=0;
     for(unsigned i=0; i<n()-1; i++){
     for(unsigned j=i+1; j<n(); j++){
       if( distance( (*this)[i] , (*this)[j] ) > running_max )
@@ -1668,7 +1668,7 @@ namespace VisiLibity
     assert( vertices_.size() > 0 );
 
     Bounding_Box bounding_box;
-    float x_min=vertices_[0].x(), x_max=vertices_[0].x(),
+    double x_min=vertices_[0].x(), x_max=vertices_[0].x(),
       y_min=vertices_[0].y(), y_max=vertices_[0].y();
     for(unsigned i = 1; i <  vertices_.size(); i++){
       if(x_min > vertices_[i].x())  { x_min=vertices_[i].x(); }
@@ -1683,7 +1683,7 @@ namespace VisiLibity
 
 
   std::vector<Point> Polygon::random_points(const unsigned& count,
-					    float epsilon) const
+					    double epsilon) const
   {
     //Precondition:  nonempty Polygon.
     assert( vertices_.size() > 0 );
@@ -1750,7 +1750,7 @@ namespace VisiLibity
   }
 
 
-  void Polygon::eliminate_redundant_vertices(float epsilon)
+  void Polygon::eliminate_redundant_vertices(double epsilon)
   {
     //Degenerate case.
     if( vertices_.size() < 4 )
@@ -1819,7 +1819,7 @@ namespace VisiLibity
   {
     return !( polygon1 == polygon2 );
   }
-  bool equivalent(Polygon polygon1, Polygon polygon2, float epsilon)
+  bool equivalent(Polygon polygon1, Polygon polygon2, double epsilon)
   {
     if( polygon1.n() == 0 or polygon2.n() == 0 )
       return false;
@@ -1840,7 +1840,7 @@ namespace VisiLibity
   }
 
 
-  float boundary_distance(const Polygon& polygon1, const Polygon& polygon2)
+  double boundary_distance(const Polygon& polygon1, const Polygon& polygon2)
   {
     assert( polygon1.n() > 0  and  polygon2.n() > 0 );
 
@@ -1851,8 +1851,8 @@ namespace VisiLibity
       return boundary_distance(polygon2[0], polygon1);
     //Handle cases where each polygon has at least 2 points.
     //Initialize to an upper bound.
-    float running_min = boundary_distance(polygon1[0], polygon2);
-    float distance_temp;
+    double running_min = boundary_distance(polygon1[0], polygon2);
+    double distance_temp;
     //Loop over all possible pairs of line segments.
     for(unsigned i=0; i<=polygon1.n()-1; i++){
     for(unsigned j=0; j<=polygon2.n()-1; j++){
@@ -1892,7 +1892,7 @@ namespace VisiLibity
     assert( !fin.fail() );
 
     //Temporary vars for numbers to be read from file.
-    float x_temp, y_temp;  
+    double x_temp, y_temp;  
     std::vector<Point> vertices_temp;
 
     //Skip comments
@@ -1988,7 +1988,7 @@ namespace VisiLibity
   }
 
   
-  bool Environment::is_valid(float epsilon) const
+  bool Environment::is_valid(double epsilon) const
   {
     if( n() <= 2 )
       return false;
@@ -2071,21 +2071,21 @@ namespace VisiLibity
   } 
 
 
-  float Environment::boundary_length() const
+  double Environment::boundary_length() const
   {
     //Precondition:  nonempty Environment.
     assert( outer_boundary_.n() > 0 );
 
-    float length_temp = outer_boundary_.boundary_length();
+    double length_temp = outer_boundary_.boundary_length();
     for(unsigned i=0; i<h(); i++)
       length_temp += holes_[i].boundary_length();
     return length_temp;
   }
 
 
-  float Environment::area() const
+  double Environment::area() const
   {
-    float area_temp = outer_boundary_.area();
+    double area_temp = outer_boundary_.area();
     for(unsigned i=0; i<h(); i++)
       area_temp += holes_[i].area();
     return area_temp;
@@ -2093,7 +2093,7 @@ namespace VisiLibity
 
 
   std::vector<Point> Environment::random_points(const unsigned& count,
-						float epsilon) const
+						double epsilon) const
   {
     assert( area() > 0 );
 
@@ -2124,7 +2124,7 @@ namespace VisiLibity
   Polyline Environment::shortest_path(const Point& start,
 				      const Point& finish,
 				      const Visibility_Graph& visibility_graph,
-				      float epsilon)
+				      double epsilon)
   {
     //true  => data printed to terminal
     //false => silent
@@ -2436,7 +2436,7 @@ namespace VisiLibity
   }
   Polyline Environment::shortest_path(const Point& start,
 				      const Point& finish,
-				      float epsilon)
+				      double epsilon)
   {
     return shortest_path( start,
 			  finish,
@@ -2488,7 +2488,7 @@ namespace VisiLibity
   }
 
 
-  void Environment::eliminate_redundant_vertices(float epsilon)
+  void Environment::eliminate_redundant_vertices(double epsilon)
   {
     outer_boundary_.eliminate_redundant_vertices(epsilon);
     for(unsigned i=0; i<holes_.size(); i++)
@@ -2564,7 +2564,7 @@ namespace VisiLibity
     assert( !fin.fail() );
 
     //Temp vars for numbers to be read from file.
-    float x_temp, y_temp;  
+    double x_temp, y_temp;  
     
     //Skip comments
     while( fin.peek() == '/' ) 
@@ -2596,7 +2596,7 @@ namespace VisiLibity
   }
 
 
-  bool Guards::noncolocated(float epsilon) const
+  bool Guards::noncolocated(double epsilon) const
   {
     for(unsigned i=0; i<positions_.size(); i++)
       for(unsigned j=i+1; j<positions_.size(); j++)
@@ -2606,7 +2606,7 @@ namespace VisiLibity
   }
 
 
-  bool Guards::in(const Polygon& polygon_temp, float epsilon) const
+  bool Guards::in(const Polygon& polygon_temp, double epsilon) const
   {
     for(unsigned i=0; i<positions_.size(); i++)
       if(!positions_[i].in(polygon_temp, epsilon))
@@ -2615,7 +2615,7 @@ namespace VisiLibity
   }
 
 
-  bool Guards::in(const Environment& environment_temp, float epsilon) const
+  bool Guards::in(const Environment& environment_temp, double epsilon) const
   {
     for(unsigned i=0; i<positions_.size(); i++)
       if(!positions_[i].in(environment_temp, epsilon))
@@ -2624,12 +2624,12 @@ namespace VisiLibity
   }
 
 
-  float Guards::diameter() const
+  double Guards::diameter() const
   {
     //Precondition:  more than 0 guards
     assert( N() > 0 );
 
-    float running_max=0;
+    double running_max=0;
     for(unsigned i=0; i<N()-1; i++){
     for(unsigned j=i+1; j<N(); j++){
       if( distance( (*this)[i] , (*this)[j] ) > running_max )
@@ -2645,7 +2645,7 @@ namespace VisiLibity
     assert( positions_.size() > 0 );
 
     Bounding_Box bounding_box;
-    float x_min=positions_[0].x(), x_max=positions_[0].x(),
+    double x_min=positions_[0].x(), x_max=positions_[0].x(),
       y_min=positions_[0].y(), y_max=positions_[0].y();
     for(unsigned i = 1; i <  positions_.size(); i++){
       if(x_min > positions_[i].x())  { x_min=positions_[i].x(); }
@@ -2692,7 +2692,7 @@ namespace VisiLibity
 
 
   void Guards::snap_to_vertices_of(const Environment& environment_temp,
-				   float epsilon)
+				   double epsilon)
   {
     for(unsigned i=0; i<positions_.size(); i++)
       positions_[i].snap_to_vertices_of(environment_temp);
@@ -2700,7 +2700,7 @@ namespace VisiLibity
 
 
   void Guards::snap_to_vertices_of(const Polygon& polygon_temp,
-				   float epsilon)
+				   double epsilon)
   {
     for(unsigned i=0; i<positions_.size(); i++)
       positions_[i].snap_to_vertices_of(polygon_temp);
@@ -2708,7 +2708,7 @@ namespace VisiLibity
 
 
   void Guards::snap_to_boundary_of(const Environment& environment_temp,
-				   float epsilon)
+				   double epsilon)
   {
     for(unsigned i=0; i<positions_.size(); i++)
       positions_[i].snap_to_boundary_of(environment_temp);
@@ -2716,7 +2716,7 @@ namespace VisiLibity
 
 
   void Guards::snap_to_boundary_of(const Polygon& polygon_temp,
-				   float epsilon)
+				   double epsilon)
   {
     for(unsigned i=0; i<positions_.size(); i++)
       positions_[i].snap_to_boundary_of(polygon_temp);
@@ -2740,7 +2740,7 @@ namespace VisiLibity
 				     const Point& point1,
 				     const Point& point2,
 				     const Point& point3, 
-				     float epsilon) const
+				     double epsilon) const
   {
 
     return(  
@@ -2768,7 +2768,7 @@ namespace VisiLibity
 
   
   void Visibility_Polygon::chop_spikes_at_back(const Point& observer,
-					       float epsilon)
+					       double epsilon)
   {
     //Eliminate "special case" vertices of the visibility polygon.
     //While the top three vertices form a spike.
@@ -2784,7 +2784,7 @@ namespace VisiLibity
 
 
   void Visibility_Polygon::chop_spikes_at_wrap_around(const Point& observer,
-						      float epsilon)
+						      double epsilon)
   {
     //Eliminate "special case" vertices of the visibility polygon at
     //wrap-around.  While the there's a spike at the wrap-around,
@@ -2800,7 +2800,7 @@ namespace VisiLibity
 
 
   void Visibility_Polygon::chop_spikes(const Point& observer,
-				       float epsilon)
+				       double epsilon)
   {    
     std::set<Point> spike_tips;
     std::vector<Point> vertices_temp;
@@ -2860,7 +2860,7 @@ namespace VisiLibity
 
   Visibility_Polygon::Visibility_Polygon(const Point& observer,
 					 const Environment& environment_temp,
-					 float epsilon)
+					 double epsilon)
     : observer_(observer)
   {
     //Visibility polygon algorithm for environments with holes 
@@ -2923,7 +2923,7 @@ namespace VisiLibity
     std::list<Polar_Edge> elp;
     Polar_Point ppoint1, ppoint2;
     Polar_Point split_bottom, split_top;
-    float t;
+    double t;
     //If the observer is standing on the Enviroment boundary with its
     //back to the wall, these will be the bearings of the next vertex
     //to the right and to the left, respectively.
@@ -3113,7 +3113,7 @@ namespace VisiLibity
     std::list<Polar_Edge>::iterator active_edge, e;
     //More aux vars for computing k-points.
     Polar_Point k;
-    float k_range;
+    double k_range;
     Line_Segment xing;
 
     //Priority queue of edges, where higher priority indicates closer
@@ -3454,7 +3454,7 @@ namespace VisiLibity
   }
   Visibility_Polygon::Visibility_Polygon(const Point& observer,
 					 const Polygon& polygon_temp,
-					 float epsilon)
+					 double epsilon)
   {
     *this = Visibility_Polygon( observer, Environment(polygon_temp), epsilon );
   }
@@ -3484,7 +3484,7 @@ namespace VisiLibity
 
 
   Visibility_Graph::Visibility_Graph(const Environment& environment,
-				     float epsilon)
+				     double epsilon)
   {
     n_ = environment.n();
 
@@ -3520,7 +3520,7 @@ namespace VisiLibity
 
   Visibility_Graph::Visibility_Graph(const std::vector<Point> points,
 				     const Environment& environment,
-				     float epsilon)
+				     double epsilon)
   {
     n_ = points.size();
 
@@ -3554,7 +3554,7 @@ namespace VisiLibity
   
   Visibility_Graph::Visibility_Graph(const Guards& guards,
 				     const Environment& environment, 
-				     float epsilon)
+				     double epsilon)
   {
     *this = Visibility_Graph( guards.positions_,
 			      environment, 

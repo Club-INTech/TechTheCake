@@ -6,7 +6,7 @@
 
 using namespace std;
 
-VisilibityWrapper::VisilibityWrapper(int width, int height, float ratio):
+VisilibityWrapper::VisilibityWrapper(int width, int height, int ratio):
     _table(width, height, ratio)
 {
 }
@@ -19,17 +19,7 @@ void VisilibityWrapper::tolerance_cv(double t)
 void VisilibityWrapper::epsilon_vis(double e)
 {
     _epsilon_vis = e;
-}
-
-void VisilibityWrapper::define_map_dimensions(int width, int height, float ratio)
-{
-    // Construction du polygone
-    vector<VisiLibity::Point> points;
-    points.push_back(VisiLibity::Point(0, 0));
-    points.push_back(VisiLibity::Point(width, 0));
-    points.push_back(VisiLibity::Point(width, height));
-    points.push_back(VisiLibity::Point(0, height));
-    VisiLibity::Polygon polygon = VisiLibity::Polygon(points);
+    _table.epsilon_vis(e);
 }
 
 void VisilibityWrapper::add_rectangle(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)
@@ -99,7 +89,7 @@ VisilibityWrapper::Exception VisilibityWrapper::build_environment()
     {
         return VisilibityWrapper::ENVIRONMENT_IS_NOT_VALID;
     }
-
+    
     // Construction du graphe de visibilité
     _visibility_graph = VisiLibity::Visibility_Graph(_environment, _epsilon_vis);
 
