@@ -1,7 +1,7 @@
 #ifndef DEFINE_H
 #define DEFINE_H
 
-#define MODE_XBEE_S8            1
+#define MODE_XBEE_S8            0
 #define BALISE_BAUDRATE   		115200
 #define ROBOT_BAUDRATE    		38400
 #define PING_ID           		4
@@ -10,7 +10,7 @@
 #define PI                      3.14159265359
 #define ANGLE_ORIGIN_OFFSET     1.35
 
-#define BALISE_NUMBER     		1
+#define BALISE_NUMBER     		2
 
 #define OFFSET_FACTOR 	  		0.5
 
@@ -23,7 +23,8 @@ typedef uint64_t xbee_address;
 #else
 
 // Adresses des balises (Xbee)
-static uint16_t balise_address[BALISE_NUMBER] = {0x1234};
+// PAN ID: 7378
+static uint16_t balise_address[BALISE_NUMBER] = {0x0001, 0x0002};
 typedef uint16_t xbee_address;
 
 #endif
