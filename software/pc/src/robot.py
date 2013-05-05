@@ -54,10 +54,6 @@ class Robot(RobotInterface):
         else:
             self._consigne_orientation = math.pi
         
-        #sauvegarde des vitesses courantes du robot
-        self.vitesse_translation = 2
-        self.vitesse_rotation = 2
-        
         #disque de tolérance pour la mise à jour du point consigne
         self.disque_tolerance_consigne = self.config["disque_tolerance_maj"]
         
@@ -416,7 +412,7 @@ class Robot(RobotInterface):
         tA = math.atan2(self.y-yO,self.x-xO)
         
         #vitesse de rotation pour atteindre la tangente
-        self.set_vitesse_rotation(2)
+        self.set_vitesse_rotation("entre_scripts")
         
         #ou exclusif entre le sens de parcours de l'abscisse curviligne (ie le sens de pas) et le mode marche arrière
         #afin de s'orienter perpendiculairement au rayon du cercle, dans la bonne direction
@@ -431,12 +427,9 @@ class Robot(RobotInterface):
         self.maj_ancien_angle = angle
         
         #vitesses pour le parcours de l'arc de cercle
-        #TODO : passer ca dans déplacements ?
-        self.set_vitesse_translation(38)
+        self.set_vitesse_translation("arc_de_cercle")
         if "asservissement" in self.config["cartes_serie"]:
-            #ATTENTION : cette vitesse est ajustée pour un rayon donné ! (celui utilisé pour enfoncer les bougies)
-            #self.set_vitesse_rotation(int(self.config["vitesse_rot_arc_cercle"]))
-            self.set_vitesse_rotation(int(max(118-0.21*(r-478), 30)))
+            self.set_vitesse_rotation("arc_de_cercle", r)
         
         while 1:
             #calcul de l'angle de A (point de départ)
@@ -467,7 +460,7 @@ class Robot(RobotInterface):
                 #disque de tolérance atteint : on fixe la consigne au point d'arrivée
                 
                 #vitesse de rotation classique
-                self.set_vitesse_rotation(20)
+                self.set_vitesse_rotation("fin_arc")
                 
                 #dernière mise à jour du point virtuel 
                 self.consigne_x = xB
@@ -701,14 +694,14 @@ class Robot(RobotInterface):
         self.log.debug("début du recalage")
         
         #on recule lentement jusqu'à bloquer sur le bord
-        self.set_vitesse_translation(1)
-        self.set_vitesse_rotation(1)
+        self.set_vitesse_translation("recal_faible")
+        self.set_vitesse_rotation("recal_faible")
         self.marche_arriere = True
         self.avancer(-1000, retenter_si_blocage = False, sans_lever_exception = True)
         
         #on désactive l'asservissement en rotation pour se mettre parallèle au bord
         self.deplacements.desactiver_asservissement_rotation()
-        self.set_vitesse_translation(2)
+        self.set_vitesse_translation("recal_forte")
         self.avancer(-300, retenter_si_blocage = False, sans_lever_exception = True)
         
         #initialisation de la coordonnée x et de l'orientation
@@ -725,7 +718,7 @@ class Robot(RobotInterface):
         #on avance doucement, en réactivant l'asservissement en rotation
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
-        self.set_vitesse_translation(1)
+        self.set_vitesse_translation("recal_faible")
         self.avancer(500, retenter_si_blocage = False, sans_lever_exception = True)
 
         #on se tourne pour le deuxième recalage
@@ -739,15 +732,15 @@ class Robot(RobotInterface):
         
         #on recule lentement jusqu'à bloquer sur le bord
         self.marche_arriere = True
-        self.set_vitesse_translation(1)
+        self.set_vitesse_translation("recal_faible")
         self.avancer(-abs(400*(self.config["case_depart_principal"]-0.5)), retenter_si_blocage = False, sans_lever_exception = True)
 
-        self.set_vitesse_translation(2)
+        self.set_vitesse_translation("recal_forte")
         self.avancer(-300, retenter_si_blocage = False, sans_lever_exception = True)
         
         #on désactive l'asservissement en rotation pour se mettre parallèle au bord
         self.deplacements.desactiver_asservissement_rotation()
-        self.set_vitesse_translation(2)
+        self.set_vitesse_translation("recal_forte")
         self.avancer(-300, retenter_si_blocage = False, sans_lever_exception = True)
         
         #initialisation de la coordonnée y et de l'orientation
@@ -762,20 +755,20 @@ class Robot(RobotInterface):
         #on avance doucement, en réactivant l'asservissement en rotation
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
-        self.set_vitesse_translation(1)
+        self.set_vitesse_translation("recal_faible")
         self.avancer(abs(self.y-400*(self.config["case_depart_principal"]-0.5)), retenter_si_blocage = False, sans_lever_exception = True)
         
         #on prend l'orientation initiale pour le match (la symétrie est automatique pour les déplacements)
         self.tourner(math.pi, sans_lever_exception = True)
 
         #on recule lentement jusqu'à bloquer sur le bord
-        self.set_vitesse_rotation(1)
+        self.set_vitesse_rotation("recal_faible")
         self.marche_arriere = True
         self.avancer(-700, retenter_si_blocage = False, sans_lever_exception = True)
         
         #on désactive l'asservissement en rotation pour se mettre parallèle au bord
         self.deplacements.desactiver_asservissement_rotation()
-        self.set_vitesse_translation(2)
+        self.set_vitesse_translation("recal_forte")
         self.avancer(-300, retenter_si_blocage = False, sans_lever_exception = True)
         
         if self.config["couleur"] == "bleu":
@@ -791,25 +784,27 @@ class Robot(RobotInterface):
         self.marche_arriere = False
         self.deplacements.activer_asservissement_rotation()
 
-        #vitesse initiales pour le match
-        self.set_vitesse_translation(2)
-        self.set_vitesse_rotation(2)
-       
         self.log.debug("recalage terminé")
         
-    def set_vitesse_translation(self, valeur):
+    def set_vitesse_translation(self, vitesse):
         """
-        modifie la vitesse de translation du robot et adapte les constantes d'asservissement
+        Spécifie une vitesse en translation, suivant les conventions choisies dans l'interface.
         """
-        self.deplacements.set_vitesse_translation(valeur)
-        self.vitesse_translation = int(valeur)
         
-    def set_vitesse_rotation(self, valeur):
+        self.log.debug("modification vitesse translation : "+str(vitesse))
+        
+        pwm_max = RobotInterface.conventions_vitesse_translation(vitesse)
+        self.deplacements.set_vitesse_translation(pwm_max)
+        
+    def set_vitesse_rotation(self, vitesse, rayon=None):
         """
-        modifie la vitesse de rotation du robot et adapte les constantes d'asservissement
+        Spécifie une vitesse en rotation, suivant les conventions choisies dans l'interface
         """
-        self.deplacements.set_vitesse_rotation(valeur)
-        self.vitesse_rotation = int(valeur)
+        
+        self.log.debug("modification vitesse rotation : "+str(vitesse))
+        
+        pwm_max = RobotInterface.conventions_vitesse_rotation(vitesse, rayon)
+        self.deplacements.set_vitesse_rotation(pwm_max)
 
     def actionneurs_bougie(self, en_haut, angle) : 
         """

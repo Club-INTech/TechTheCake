@@ -94,9 +94,6 @@ class HookCapteurVerres(Hook):
         
     def evaluate(self, **useless):
         if self.robot.capteurs.verre_present(self.avant):
-            self.robot.deplacements.stopper()
-            self.robot.set_vitesse_translation(1)
-            self.robot.set_vitesse_rotation(1)
             self.declencher()
 
 

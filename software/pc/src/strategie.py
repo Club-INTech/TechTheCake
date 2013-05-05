@@ -47,8 +47,8 @@ class Strategie:
         # Avec la balise laser, récupérer la position des ennemis. Sur la ou les cases occupées seront probablement les verres. Mettre à jour position_verres_1 et position_verres_2
 #        self.scripts["ScriptRenverserVerres"].cases_verres=[1,2]
         try:
-            self.robot.set_vitesse_translation(2)
-            self.robot.set_vitesse_rotation(2)
+            self.robot.set_vitesse_translation("entre_scripts")
+            self.robot.set_vitesse_rotation("entre_scripts")
             self.robot.avancer(300, retenter_si_blocage = False, sans_lever_exception = True)
         except:
             pass
