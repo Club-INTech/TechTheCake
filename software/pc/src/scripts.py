@@ -191,8 +191,8 @@ class ScriptBougies(Script):
         
     def _execute(self, version):
 
-        self.robot.set_vitesse_translation(1)
-        self.robot.set_vitesse_rotation(1)
+        self.robot.set_vitesse_translation("entre_scripts")
+        self.robot.set_vitesse_rotation("entre_scripts")
         # Il n'y a aucune symétrie sur la couleur dans les déplacements
         self.robot.marche_arriere = False
         self.robot.effectuer_symetrie = False
@@ -211,6 +211,8 @@ class ScriptBougies(Script):
         self.robot.actionneurs_bougie(False, "haut")
         
         # Déplacement au point d'entrée
+        self.robot.set_vitesse_translation("proche_gateau")
+        self.robot.set_vitesse_rotation("proche_gateau")
         orientation_tangente = self.info_versions[version]["angle_entree"] + math.pi/2
         self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne=entree, orientation_finale_voulue=orientation_tangente)
         self.robot.va_au_point(entree)
@@ -256,11 +258,11 @@ class ScriptBougies(Script):
             hooks.append(hook_lever_bras)
         
         #on enfonce les bougies extremales si possible (l'actionneur du haut pour celle des x petits, celui du bas pour x grands)
-        if self.table.bougies_entrees(self.couleur_a_traiter)[version]["id"] == 2:
+        if self.table.bougies_entrees(self.couleur_a_traiter)[version]["id"] == 2 and self.table.bougies[1]["couleur"] == self.couleur_a_traiter:
             self.robot.actionneurs_bougie(True, "moyen")
             sleep(0.5)
             self.robot.actionneurs_bougie(True, "haut")
-        elif self.table.bougies_entrees(self.couleur_a_traiter)[version]["id"] == 17:
+        elif self.table.bougies_entrees(self.couleur_a_traiter)[version]["id"] == 17 and self.table.bougies[19]["couleur"] == self.couleur_a_traiter:
             self.robot.actionneurs_bougie(False, "moyen")
             sleep(0.5)
             self.robot.actionneurs_bougie(False, "haut")
@@ -276,8 +278,8 @@ class ScriptBougies(Script):
         orientation_normale = math.atan2(self.robot.y - 2000, self.robot.x - 0)
         distance_degagement = 2*self.config["rayon_robot"]
         
-        self.robot.set_vitesse_translation(1)
-        self.robot.set_vitesse_rotation(1)
+        self.robot.set_vitesse_translation("proche_gateau")
+        self.robot.set_vitesse_rotation("proche_gateau")
         
         if self.robot.actionneur_bougies_sorti():
             self.log.debug("Fin du script bougies : repli des actionneurs bougies.")
@@ -323,8 +325,8 @@ class ScriptCadeaux(Script):
         
         # Déplacement proche du point d'entrée avec recherche de chemin
         self.robot.marche_arriere = False
-        self.robot.set_vitesse_translation(2)
-        self.robot.set_vitesse_rotation(2)
+        self.robot.set_vitesse_translation("entre_scripts")
+        self.robot.set_vitesse_rotation("entre_scripts")
         self.robot.recherche_de_chemin(self.info_versions[version]["point_entree_recherche_chemin"], recharger_table=False)
         
         # Déplacement au point d'entrée
@@ -359,7 +361,8 @@ class ScriptCadeaux(Script):
             hooks.append(hook_fermeture)
 
         # Déplacement le long de la table (peut être un peu trop loin ?)
-        self.robot.set_vitesse_translation(90)
+        self.robot.set_vitesse_translation("cadeaux")
+        self.robot.set_vitesse_rotation("cadeaux")
         point_sortie = Point(self.info_versions[1-version]["point_entree"].x, self.info_versions[version]["point_entree"].y)
         
         """
@@ -457,8 +460,8 @@ class ScriptRecupererVerres(Script):
         nouvelle_destination = self._point_devant_verre(premier_verre, self.marge_apres_chemin, chemin_avec_depart[-1])
         chemin_vers_entree.append(nouvelle_destination)
         
-        self.robot.set_vitesse_translation(2)
-        self.robot.set_vitesse_rotation(2)
+        self.robot.set_vitesse_translation("entre_scripts")
+        self.robot.set_vitesse_rotation("entre_scripts")
         self.robot.suit_chemin(chemin_vers_entree, symetrie_effectuee=True)
         
         # Récupération du premier verre
@@ -499,11 +502,13 @@ class ScriptRecupererVerres(Script):
         hooks = []
 
         hook_verre = self.hookGenerator.hook_capteur_verres(self.robot, not self.robot.marche_arriere)
+        hook_verre += self.hookGenerator.callback(self.robot.stopper)
         hook_verre += self.hookGenerator.callback(self.robot.recuperer_verre, (not self.robot.marche_arriere, ))
+        
         hooks.append(hook_verre)
         
-        self.robot.set_vitesse_translation(85)
-        self.robot.set_vitesse_rotation(2)
+        self.robot.set_vitesse_translation("recherche_verre")
+        self.robot.set_vitesse_rotation("recherche_verre")
 
         self.robot.altitude_ascenseur(not self.robot.marche_arriere, "haut")
 
@@ -678,8 +683,8 @@ class ScriptDeposerVerres(Script):
         
         # Point d'entrée du script par recherche de chemin
         point_proche_case = self.info_versions[version]["point_entree_recherche_chemin"]
-        self.robot.set_vitesse_translation(2)
-        self.robot.set_vitesse_rotation(2)
+        self.robot.set_vitesse_translation("entre_scripts")
+        self.robot.set_vitesse_rotation("entre_scripts")
         self.robot.recherche_de_chemin(point_proche_case, recharger_table=False)
         
         # On doit poser les verres contre le bord (x extremal) de la table au début, et revenir vers le centre si on est déjà passé
@@ -689,8 +694,8 @@ class ScriptDeposerVerres(Script):
         point_depot = self.info_versions[version]["point_entree"]
         self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne = point_depot)
 
-        self.robot.set_vitesse_translation(1)
-        self.robot.set_vitesse_rotation(1)
+        self.robot.set_vitesse_translation("depot_verre")
+        self.robot.set_vitesse_rotation("depot_verre")
         self.robot.va_au_point(point_depot)
 
         def deposer_avant(combo, sens_arriere):

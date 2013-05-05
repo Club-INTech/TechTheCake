@@ -126,14 +126,8 @@ class ThreadTimer(AbstractThread):
     Deux variables globales sont très utilisées: timer.fin_match et timer.match_demarre. 
     Supprime les obstacles périssables du service de table.
     """
-    def __init__(self, log, config, robot, table, capteurs, son):
-        AbstractThread.__init__(self, None)
-        self.log = log
-        self.config = config
-        self.robot = robot
-        self.table = table
-        self.capteurs = capteurs
-        self.son = son
+    def __init__(self, container):
+        AbstractThread.__init__(self, container)
         self.match_demarre = False
         self.fin_match = False
         self.mutex = Mutex()
@@ -148,7 +142,14 @@ class ThreadTimer(AbstractThread):
                 self.log.debug("Stoppage du thread timer")
                 return None
             sleep(.5)
-        self.log.debug("Le match a commencé!")
+            
+        self.log.debug("Le match a commencé !")
+        
+        # Lancement du chrono sur simulateur
+        if self.config["cartes_simulation"] != ['']:
+            simulateur = self.container.get_service("simulateur")
+            simulateur.startTimer()
+            
         with self.mutex:
             self.date_debut = time()
             self.match_demarre = True
@@ -157,8 +158,18 @@ class ThreadTimer(AbstractThread):
         """
         Le thread timer, qui supprime les obstacles périssables et arrête le robot à la fin du match.
         """
+        
+        self.log = self.container.get_service("log")
+        self.config = self.container.get_service("config")
+        self.robot = self.container.get_service("robot")
+        self.table = self.container.get_service("table")
+        self.capteurs = self.container.get_service("capteurs")
+        self.son = self.container.get_service("son")
+        
         self.log.debug("Lancement du thread timer")
         self.initialisation()
+        
+        #attente de la fin du match
         while time() - self.get_date_debut() < self.config["temps_match"]:
             if AbstractThread.stop_threads:
                 self.log.debug("Stoppage du thread timer")
@@ -175,8 +186,10 @@ class ThreadTimer(AbstractThread):
                 self.compte_rebours = False
 
             sleep(.5)
+            
         with self.mutex:
             self.fin_match = True
+            
         self.robot.stopper()
         sleep(.500) #afin d'être sûr que le robot a eu le temps de s'arrêter
         self.robot.deplacements.desactiver_asservissement_translation()
@@ -330,7 +343,9 @@ class ThreadCouleurBougies(AbstractThread):
                 table.definir_couleurs_bougies(rcv)
                 log.debug("Résultats android: " + str(rcv))
             except:
-                # Si on n'a pas d'information de l'appli android, il vaut mieux stratégiquement ne pas faire les bougies, sauf s'il faut toutes les faire. En effet, si on fait toutes les bougies, la différence des points ne changera pas. Et comme on manque de temps pour tout faire, autant ne pas les faire.
+                # Si on n'a pas d'information de l'appli android, il vaut mieux stratégiquement ne pas faire les bougies, 
+                # sauf s'il faut toutes les faire. En effet, si on fait toutes les bougies, la différence des points ne changera pas.
+                # Et comme on manque de temps pour tout faire, autant ne pas les faire.
                 if config["ennemi_fait_ses_bougies"]:
                     log.warning("Aucune réponse de l'appli android. On fait toutes les bougies car l'ennemi fait les siennes.")
                 else:
