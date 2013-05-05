@@ -81,7 +81,20 @@ vector<VisiLibity::Polygon> Table::get_obstacles()
     vector<VisiLibity::Polygon> obstacles;
     
     // Détection du contour de la table
+    
+    // XOR
     cv::bitwise_xor(_image, cv::Scalar(255), _image_xor);
+    
+    // Détection des contours du XOR
+    image_copy = _image_xor.clone();
+    vector<Contour> contours_xor;
+    findContours(image_copy, contours_xor, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+    
+    // Affichage des contours
+    drawContours(image_contours, contours_xor, -1, Scalar(255), -1);
+    
+    // Affichages des obstacles intérieurs
+    bitwise_and(_image, image_contours, _image_holes);
     
     // Conversion au format Visilibity
     VisiLibity::Polygon table;
