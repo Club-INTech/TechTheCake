@@ -11,25 +11,30 @@ using namespace std;
 typedef vector<cv::Point> Contour;
 typedef vector<cv::Point> Polygon;
 
-Table::Table(int width, int height, float ratio):
+Table::Table(int width, int height, int ratio):
     _width(width),
     _height(height),
     _ratio(ratio),
-    _image(height*ratio, width*ratio, CV_8U),
-    _image_contours(height*ratio, width*ratio, CV_8U),
-    _image_polygons(height*ratio, width*ratio, CV_8U)
+    _image(height/ratio, width/ratio, CV_8U),
+    _image_contours(height/ratio, width/ratio, CV_8U),
+    _image_polygons(height/ratio, width/ratio, CV_8U)
 {
     reset();
 }
 
 void Table::reset()
 {
-    _image = cv::Mat(_height*_ratio, _width*_ratio, CV_8U);
+    _image = cv::Mat(_height/_ratio, _width/_ratio, CV_8U);
 }
 
 void Table::tolerance_cv(double t)
 {
     _tolerance_cv = t;
+}
+
+void Table::epsilon_vis(double e)
+{
+    _epsilon_vis = e;
 }
 
 void Table::add_polygon(vector<cv::Point> polygon)
@@ -124,15 +129,49 @@ void Table::print(VisiLibity::Polygon polygon)
 cv::Point Table::to_opencv_coordinates(cv::Point point)
 {
     //Changement de repère pour traiter avec opencv
-    int cv_x = (point.x + _width/2) * _ratio;
-    int cv_y = - (point.y - _height) * _ratio;
+    int cv_x = (point.x + _width/2) / _ratio;
+    int cv_y = - (point.y - _height) /  _ratio;
     return cv::Point(cv_x, cv_y);
 }
 
+
 VisiLibity::Point Table::to_table_coordinates(cv::Point cv)
 {
-    //Changement de repère pour traiter avec visilibity
-    int vis_x = (cv.x / _ratio) - _width/2;
-    int vis_y = - (cv.y / _ratio) + _height;
+    /*
+    Changement de repère pour traiter avec visilibity
+    avec vérification de l'étanchéité des obstacles qui touchent les bords
+    */
+    
+    float vis_x, vis_y;
+    
+    cout.precision(15);
+    float ecart = _epsilon_vis;
+    
+    if (cv.x == 1)
+    {
+        vis_x = -_width/2 + ecart;
+        cout << "x : " << cv.x << " -> " << vis_x << endl;
+    }
+    else if (cv.x == _width/_ratio - 2)
+    {
+        vis_x = _width/2 - ecart;
+        cout << "x : " << cv.x << " -> " << vis_x << endl;
+    }
+    else
+        vis_x = (cv.x * _ratio) - _width/2;
+    
+    if (cv.y == 1)
+    {
+        vis_y = _height - ecart;
+        cout << "y : " << cv.y << " -> " << vis_y << endl;
+    }
+    else if (cv.y == _height/_ratio - 2)
+    {
+        vis_y = ecart;
+        cout << "y : " << cv.y << " -> " << vis_y << endl;
+    }
+    else
+        vis_y = - (cv.y * _ratio) + _height;
+    
     return VisiLibity::Point(vis_x, vis_y);
 }

@@ -95,8 +95,9 @@ class RechercheChemin:
         self.log = log
         
         #instanciation du wrapper vers openCV et visibility
-        self.vis = VisilibityWrapper(self.config["table_x"], self.config["table_y"], 0.2)
-        self.vis.epsilon_vis(0.001)
+        self.vis = VisilibityWrapper(self.config["table_x"], self.config["table_y"], 5)
+        #self.vis.epsilon_vis(0.001)
+        self.vis.epsilon_vis(0.00000001)
         self.vis.tolerance_cv(10)
         
         #prise en compte du rayon du robot
@@ -108,6 +109,7 @@ class RechercheChemin:
         """
         # environnement initial : contient les obstacles fixes de la carte
         self.environnement_complet = Environnement(self.rayonRobot, self.vis)
+        self.vis.reset_environment()
         
         # Définition des polygones des obstacles fixes. Ils doivent être non croisés et définis dans le sens des aiguilles d'une montre.
         #gâteau

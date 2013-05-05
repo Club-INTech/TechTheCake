@@ -81,7 +81,6 @@ class VisilibityWrapper(_object):
         except: self.this = this
     def tolerance_cv(self, *args) -> "void" : return _recherche_chemin.VisilibityWrapper_tolerance_cv(self, *args)
     def epsilon_vis(self, *args) -> "void" : return _recherche_chemin.VisilibityWrapper_epsilon_vis(self, *args)
-    def define_map_dimensions(self, *args) -> "void" : return _recherche_chemin.VisilibityWrapper_define_map_dimensions(self, *args)
     def add_rectangle(self, *args) -> "void" : return _recherche_chemin.VisilibityWrapper_add_rectangle(self, *args)
     def add_circle(self, *args) -> "void" : return _recherche_chemin.VisilibityWrapper_add_circle(self, *args)
     def nb_obstacles(self) -> "int" : return _recherche_chemin.VisilibityWrapper_nb_obstacles(self)
@@ -96,7 +95,7 @@ VisilibityWrapper_swigregister = _recherche_chemin.VisilibityWrapper_swigregiste
 VisilibityWrapper_swigregister(VisilibityWrapper)
 
 
-def uniform_random_sample(*args) -> "float" :
+def uniform_random_sample(*args) -> "double" :
   return _recherche_chemin.uniform_random_sample(*args)
 uniform_random_sample = _recherche_chemin.uniform_random_sample
 class Bounding_Box(_object):
@@ -138,8 +137,8 @@ class Point(_object):
         this = _recherche_chemin.new_Point(*args)
         try: self.this.append(this)
         except: self.this = this
-    def x(self) -> "float" : return _recherche_chemin.Point_x(self)
-    def y(self) -> "float" : return _recherche_chemin.Point_y(self)
+    def x(self) -> "double" : return _recherche_chemin.Point_x(self)
+    def y(self) -> "double" : return _recherche_chemin.Point_y(self)
     def projection_onto(self, *args) -> "VisiLibity::Point" : return _recherche_chemin.Point_projection_onto(self, *args)
     def projection_onto_vertices_of(self, *args) -> "VisiLibity::Point" : return _recherche_chemin.Point_projection_onto_vertices_of(self, *args)
     def projection_onto_boundary_of(self, *args) -> "VisiLibity::Point" : return _recherche_chemin.Point_projection_onto_boundary_of(self, *args)
@@ -157,7 +156,7 @@ Point_swigregister = _recherche_chemin.Point_swigregister
 Point_swigregister(Point)
 
 
-def cross(*args) -> "float" :
+def cross(*args) -> "double" :
   return _recherche_chemin.cross(*args)
 cross = _recherche_chemin.cross
 class Line_Segment(_object):
@@ -174,7 +173,7 @@ class Line_Segment(_object):
     def second(self) -> "VisiLibity::Point" : return _recherche_chemin.Line_Segment_second(self)
     def size(self) -> "unsigned int" : return _recherche_chemin.Line_Segment_size(self)
     def midpoint(self) -> "VisiLibity::Point" : return _recherche_chemin.Line_Segment_midpoint(self)
-    def length(self) -> "float" : return _recherche_chemin.Line_Segment_length(self)
+    def length(self) -> "double" : return _recherche_chemin.Line_Segment_length(self)
     def is_in_standard_form(self) -> "bool" : return _recherche_chemin.Line_Segment_is_in_standard_form(self)
     def set_first(self, *args) -> "void" : return _recherche_chemin.Line_Segment_set_first(self, *args)
     def set_second(self, *args) -> "void" : return _recherche_chemin.Line_Segment_set_second(self, *args)
@@ -200,7 +199,7 @@ class Angle(_object):
         this = _recherche_chemin.new_Angle(*args)
         try: self.this.append(this)
         except: self.this = this
-    def get(self) -> "float" : return _recherche_chemin.Angle_get(self)
+    def get(self) -> "double" : return _recherche_chemin.Angle_get(self)
     def set(self, *args) -> "void" : return _recherche_chemin.Angle_set(self, *args)
     def set_to_2pi(self) -> "void" : return _recherche_chemin.Angle_set_to_2pi(self)
     def randomize(self) -> "void" : return _recherche_chemin.Angle_randomize(self)
@@ -209,7 +208,7 @@ class Angle(_object):
 Angle_swigregister = _recherche_chemin.Angle_swigregister
 Angle_swigregister(Angle)
 
-def distance(*args) -> "float" :
+def distance(*args) -> "double" :
   return _recherche_chemin.distance(*args)
 distance = _recherche_chemin.distance
 
@@ -222,11 +221,11 @@ def intersect_proper(*args) -> "bool" :
 intersect_proper = _recherche_chemin.intersect_proper
 
 
-def geodesic_distance(*args) -> "float" :
+def geodesic_distance(*args) -> "double" :
   return _recherche_chemin.geodesic_distance(*args)
 geodesic_distance = _recherche_chemin.geodesic_distance
 
-def geodesic_direction(*args) -> "float" :
+def geodesic_direction(*args) -> "double" :
   return _recherche_chemin.geodesic_direction(*args)
 geodesic_direction = _recherche_chemin.geodesic_direction
 class Polar_Point(Point):
@@ -242,7 +241,7 @@ class Polar_Point(Point):
         try: self.this.append(this)
         except: self.this = this
     def polar_origin(self) -> "VisiLibity::Point" : return _recherche_chemin.Polar_Point_polar_origin(self)
-    def range(self) -> "float" : return _recherche_chemin.Polar_Point_range(self)
+    def range(self) -> "double" : return _recherche_chemin.Polar_Point_range(self)
     def bearing(self) -> "VisiLibity::Angle" : return _recherche_chemin.Polar_Point_bearing(self)
     def set_polar_origin(self, *args) -> "void" : return _recherche_chemin.Polar_Point_set_polar_origin(self, *args)
     def set_x(self, *args) -> "void" : return _recherche_chemin.Polar_Point_set_x(self, *args)
@@ -308,16 +307,15 @@ class Polyline(_object):
         this = _recherche_chemin.new_Polyline(*args)
         try: self.this.append(this)
         except: self.this = this
-    def get_Point(self, *args) -> "VisiLibity::Point" : return _recherche_chemin.Polyline_get_Point(self, *args)
     def size(self) -> "unsigned int" : return _recherche_chemin.Polyline_size(self)
-    def length(self) -> "float" : return _recherche_chemin.Polyline_length(self)
-    def diameter(self) -> "float" : return _recherche_chemin.Polyline_diameter(self)
+    def length(self) -> "double" : return _recherche_chemin.Polyline_length(self)
+    def diameter(self) -> "double" : return _recherche_chemin.Polyline_diameter(self)
     def bbox(self) -> "VisiLibity::Bounding_Box" : return _recherche_chemin.Polyline_bbox(self)
     def clear(self) -> "void" : return _recherche_chemin.Polyline_clear(self)
     def push_back(self, *args) -> "void" : return _recherche_chemin.Polyline_push_back(self, *args)
     def pop_back(self) -> "void" : return _recherche_chemin.Polyline_pop_back(self)
     def set_vertices(self, *args) -> "void" : return _recherche_chemin.Polyline_set_vertices(self, *args)
-    def eliminate_redundant_vertices(self, epsilon : 'float' = 0.0) -> "void" : return _recherche_chemin.Polyline_eliminate_redundant_vertices(self, epsilon)
+    def eliminate_redundant_vertices(self, epsilon : 'double' = 0.0) -> "void" : return _recherche_chemin.Polyline_eliminate_redundant_vertices(self, epsilon)
     def reverse(self) -> "void" : return _recherche_chemin.Polyline_reverse(self)
     def append(self, *args) -> "void" : return _recherche_chemin.Polyline_append(self, *args)
     __swig_destroy__ = _recherche_chemin.delete_Polyline
@@ -341,12 +339,12 @@ class Polygon(_object):
         except: self.this = this
     def n(self) -> "unsigned int" : return _recherche_chemin.Polygon_n(self)
     def r(self) -> "unsigned int" : return _recherche_chemin.Polygon_r(self)
-    def is_simple(self, epsilon : 'float' = 0.0) -> "bool" : return _recherche_chemin.Polygon_is_simple(self, epsilon)
+    def is_simple(self, epsilon : 'double' = 0.0) -> "bool" : return _recherche_chemin.Polygon_is_simple(self, epsilon)
     def is_in_standard_form(self) -> "bool" : return _recherche_chemin.Polygon_is_in_standard_form(self)
-    def boundary_length(self) -> "float" : return _recherche_chemin.Polygon_boundary_length(self)
-    def area(self) -> "float" : return _recherche_chemin.Polygon_area(self)
+    def boundary_length(self) -> "double" : return _recherche_chemin.Polygon_boundary_length(self)
+    def area(self) -> "double" : return _recherche_chemin.Polygon_area(self)
     def centroid(self) -> "VisiLibity::Point" : return _recherche_chemin.Polygon_centroid(self)
-    def diameter(self) -> "float" : return _recherche_chemin.Polygon_diameter(self)
+    def diameter(self) -> "double" : return _recherche_chemin.Polygon_diameter(self)
     def bbox(self) -> "VisiLibity::Bounding_Box" : return _recherche_chemin.Polygon_bbox(self)
     def random_points(self, *args) -> "std::vector< VisiLibity::Point >" : return _recherche_chemin.Polygon_random_points(self, *args)
     def write_to_file(self, *args) -> "void" : return _recherche_chemin.Polygon_write_to_file(self, *args)
@@ -354,7 +352,7 @@ class Polygon(_object):
     def push_back(self, *args) -> "void" : return _recherche_chemin.Polygon_push_back(self, *args)
     def clear(self) -> "void" : return _recherche_chemin.Polygon_clear(self)
     def enforce_standard_form(self) -> "void" : return _recherche_chemin.Polygon_enforce_standard_form(self)
-    def eliminate_redundant_vertices(self, epsilon : 'float' = 0.0) -> "void" : return _recherche_chemin.Polygon_eliminate_redundant_vertices(self, epsilon)
+    def eliminate_redundant_vertices(self, epsilon : 'double' = 0.0) -> "void" : return _recherche_chemin.Polygon_eliminate_redundant_vertices(self, epsilon)
     def reverse(self) -> "void" : return _recherche_chemin.Polygon_reverse(self)
     __swig_destroy__ = _recherche_chemin.delete_Polygon
     __del__ = lambda self : None;
@@ -375,10 +373,10 @@ class Environment(_object):
     def n(self) -> "unsigned int" : return _recherche_chemin.Environment_n(self)
     def r(self) -> "unsigned int" : return _recherche_chemin.Environment_r(self)
     def is_in_standard_form(self) -> "bool" : return _recherche_chemin.Environment_is_in_standard_form(self)
-    def is_valid(self, epsilon : 'float' = 0.0) -> "bool" : return _recherche_chemin.Environment_is_valid(self, epsilon)
-    def boundary_length(self) -> "float" : return _recherche_chemin.Environment_boundary_length(self)
-    def area(self) -> "float" : return _recherche_chemin.Environment_area(self)
-    def diameter(self) -> "float" : return _recherche_chemin.Environment_diameter(self)
+    def is_valid(self, epsilon : 'double' = 0.0) -> "bool" : return _recherche_chemin.Environment_is_valid(self, epsilon)
+    def boundary_length(self) -> "double" : return _recherche_chemin.Environment_boundary_length(self)
+    def area(self) -> "double" : return _recherche_chemin.Environment_area(self)
+    def diameter(self) -> "double" : return _recherche_chemin.Environment_diameter(self)
     def bbox(self) -> "VisiLibity::Bounding_Box" : return _recherche_chemin.Environment_bbox(self)
     def random_points(self, *args) -> "std::vector< VisiLibity::Point >" : return _recherche_chemin.Environment_random_points(self, *args)
     def shortest_path(self, *args) -> "VisiLibity::Polyline" : return _recherche_chemin.Environment_shortest_path(self, *args)
@@ -388,7 +386,7 @@ class Environment(_object):
     def set_outer_boundary(self, *args) -> "void" : return _recherche_chemin.Environment_set_outer_boundary(self, *args)
     def add_hole(self, *args) -> "void" : return _recherche_chemin.Environment_add_hole(self, *args)
     def enforce_standard_form(self) -> "void" : return _recherche_chemin.Environment_enforce_standard_form(self)
-    def eliminate_redundant_vertices(self, epsilon : 'float' = 0.0) -> "void" : return _recherche_chemin.Environment_eliminate_redundant_vertices(self, epsilon)
+    def eliminate_redundant_vertices(self, epsilon : 'double' = 0.0) -> "void" : return _recherche_chemin.Environment_eliminate_redundant_vertices(self, epsilon)
     def reverse_holes(self) -> "void" : return _recherche_chemin.Environment_reverse_holes(self)
     __swig_destroy__ = _recherche_chemin.delete_Environment
     __del__ = lambda self : None;
@@ -407,7 +405,7 @@ def equivalent(*args) -> "bool" :
   return _recherche_chemin.equivalent(*args)
 equivalent = _recherche_chemin.equivalent
 
-def boundary_distance(*args) -> "float" :
+def boundary_distance(*args) -> "double" :
   return _recherche_chemin.boundary_distance(*args)
 boundary_distance = _recherche_chemin.boundary_distance
 
@@ -423,9 +421,9 @@ class Guards(_object):
         except: self.this = this
     def N(self) -> "unsigned int" : return _recherche_chemin.Guards_N(self)
     def are_lex_ordered(self) -> "bool" : return _recherche_chemin.Guards_are_lex_ordered(self)
-    def noncolocated(self, epsilon : 'float' = 0.0) -> "bool" : return _recherche_chemin.Guards_noncolocated(self, epsilon)
+    def noncolocated(self, epsilon : 'double' = 0.0) -> "bool" : return _recherche_chemin.Guards_noncolocated(self, epsilon)
     def _in(self, *args) -> "bool" : return _recherche_chemin.Guards__in(self, *args)
-    def diameter(self) -> "float" : return _recherche_chemin.Guards_diameter(self)
+    def diameter(self) -> "double" : return _recherche_chemin.Guards_diameter(self)
     def bbox(self) -> "VisiLibity::Bounding_Box" : return _recherche_chemin.Guards_bbox(self)
     def write_to_file(self, *args) -> "void" : return _recherche_chemin.Guards_write_to_file(self, *args)
     def push_back(self, *args) -> "void" : return _recherche_chemin.Guards_push_back(self, *args)
