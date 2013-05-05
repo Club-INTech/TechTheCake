@@ -78,7 +78,7 @@ Balise::Balise():
     // Diode debug
     // -----------------------
 
-    sbi(DDRA,DDA0);
+    sbi(DDRD,PORTD7);
 
     // -----------------------
     // Interruptions
@@ -468,12 +468,12 @@ void Balise::control(int32_t current_speed)
 
 void Balise::diode_on()
 {
-    sbi(PORTA,PORTA0);
+    sbi(PORTD,PORTD7);
 }
 
 void Balise::diode_off()
 {
-    cbi(PORTA,PORTA0);
+    cbi(PORTD,PORTD7);
 }
 
 void Balise::diode_blink()

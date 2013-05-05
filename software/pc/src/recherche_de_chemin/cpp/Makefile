@@ -1,5 +1,5 @@
 CC=g++
-DISPLAY_DEBUG_WINDOWS=0
+DISPLAY_DEBUG_WINDOWS=1
 CXXFLAGS=-fPIC -O2 -I/usr/include/python3.2mu/ -DDISPLAY_DEBUG_WINDOWS=${DISPLAY_DEBUG_WINDOWS}
 LIBS=-lopencv_core -lopencv_imgproc -lopencv_highgui
 

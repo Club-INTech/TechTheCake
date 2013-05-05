@@ -57,7 +57,6 @@ class Capteurs():
             return not int(self.serie.communiquer("capteurs_actionneurs",["j"], 1)[0])==1
         except:
             self.log.warning("Erreur de lecture du jumper")
-
         
     def verre_present(self, avant):
         try:

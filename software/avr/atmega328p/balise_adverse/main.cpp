@@ -14,9 +14,10 @@ int main()
     
     while(1)
     {
-        char order[10];
-        Balise::xbee::read(order);
-        balise.execute(order);
+        //~ char order[10];
+        //~ Balise::xbee::read(order);
+        //~ balise.execute(order);
+        Balise::xbee::send(0x5001, "?");
     }
 }
 

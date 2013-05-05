@@ -30,6 +30,7 @@ private:
     cv::Mat _image;
     cv::Mat _image_contours;
     cv::Mat _image_polygons;
+    cv::Mat _image_xor;
 };
 
 #endif // TABLE_H
