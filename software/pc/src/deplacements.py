@@ -109,54 +109,84 @@ class Deplacements():
     def desactiver_asservissement_rotation(self):
         self.serie.communiquer("asservissement","cr0", 0)
         
-    def set_vitesse_translation(self, valeur):
+    def set_vitesse_translation(self, vitesse):
         """
-        spécifie une vitesse prédéfinie en translation
-        une valeur 1,2,3 est attendue
+        spécifie une vitesse en translation, entre 50 et 200
+        une vitesse 1,2,3 prédéfinie peut etre entrée
         1 : vitesse "prudente"
         2 : vitesse normale
         3 : vitesse pour forcer
         """
-        
-        envoi = ["ctv"]
-        if valeur < 5:
-            #definition des constantes d'asservissement en fonction de la vitesse
-            kp_translation = [1.0,2.0,2.5,1.8]
-            kd_translation = [4.0,30.0,50.0,35.0]
-            vb_translation = [40,80,100,120]
+          
+        # garde-fou
+        if vitesse < 1 or vitesse > 255:
+            vitesse = 2
             
-            envoi.append(float(kp_translation[valeur-1]))
-            envoi.append(float(kd_translation[valeur-1]))
-            envoi.append(int(vb_translation[valeur-1]))
+        # les scripts utilisent des vitesses prédéfinies ici
+        if vitesse == 1:
+            vitesse = 60
+        elif vitesse == 2:
+            vitesse = 100
+        elif vitesse == 3:
+            vitesse = 140
+          
+        # les constantes d'asservissement sont valables dans des plages de vitesses
+        if vitesse > 120:
+            kp = 0.8
+            kd = 22.0
+        elif vitesse > 55:
+            kp = 0.8
+            kd = 16.0
         else:
-            envoi.append(2.0)
-            envoi.append(30.0)
-            envoi.append(int(valeur))
+            kp = 0.6
+            kd = 10.0
+        
+        #envoi des nouvelles constantes à la couche d'asservissement
+        envoi = ["ctv"]
+        envoi.append(float(kp))
+        envoi.append(float(kd))
+        envoi.append(int(vitesse))
+        
         self.serie.communiquer("asservissement",envoi, 0)
         
-    def set_vitesse_rotation(self, valeur):
+    def set_vitesse_rotation(self, vitesse):
         """
-        spécifie une vitesse prédéfinie en rotation
-        une valeur 1,2,3 est attendue
+        spécifie une vitesse en rotation, entre 80 et 240
+        une vitesse 1,2,3 prédéfinie peut etre entrée
         1 : vitesse "prudente"
         2 : vitesse normale
         3 : vitesse pour forcer
         """
         
-        envoi = ["crv"]
-        if valeur < 5:
-            #definition des constantes d'asservissement en fonction de la vitesse
-            kp_rotation = [1.5,1.7,1.7]
-            kd_rotation = [20.0,22.0,21.0]
-            vb_rotation = [80,100,130]
-        
-            envoi.append(float(kp_rotation[valeur-1]))
-            envoi.append(float(kd_rotation[valeur-1]))
-            envoi.append(int(vb_rotation[valeur-1]))
+        # garde-fou
+        if vitesse < 1 or vitesse > 255:
+            vitesse = 2
+            
+        # les scripts utilisent des vitesses prédéfinies ici
+        if vitesse == 1:
+            vitesse = 80
+        elif vitesse == 2:
+            vitesse = 100
+        elif vitesse == 3:
+            vitesse = 200
+          
+        # les constantes d'asservissement sont valables dans des plages de vitesses
+        if vitesse > 155:
+            kp = 1.0
+            kd = 23.0
+        elif vitesse > 90:
+            kp = 1.0
+            kd = 19.0
         else:
-            envoi.append(1.7)
-            envoi.append(22.0)
-            envoi.append(int(valeur))
+            kp = 0.8
+            kd = 15.0
+        
+        #envoi des nouvelles constantes à la couche d'asservissement
+        envoi = ["crv"]
+        envoi.append(float(kp))
+        envoi.append(float(kd))
+        envoi.append(int(vitesse))
+        
         self.serie.communiquer("asservissement",envoi, 0)
         
     def get_infos_stoppage_enMouvement(self):

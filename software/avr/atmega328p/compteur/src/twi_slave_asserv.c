@@ -1,11 +1,11 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include "twi_slave.h"
+#include "twi_slave_asserv.h"
 #include "compteur.h"
 
 //déclaration des ports des codeuses, attention à modifier aussi le twi_slave.h
-Codeuse< AVR_PORTB <PORTB0>,AVR_PORTB <PORTB1> > codeuse1;
-Codeuse< AVR_PORTD <PORTD7>,AVR_PORTD <PORTD6> > codeuse2;
+Codeuse< AVR_PORTB <PORTB0>,AVR_PORTB <PORTB1>, true > codeuse1;
+Codeuse< AVR_PORTD <PORTD7>,AVR_PORTD <PORTD6>, true > codeuse2;
 
 union TWI_statusReg_t
 {

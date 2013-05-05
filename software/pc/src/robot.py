@@ -11,7 +11,7 @@ class Robot(RobotInterface):
     """
     classe implémentant le robot.
     """
-    def __init__(self,capteurs,actionneurs,deplacements,rechercheChemin,table,son,config,log):
+    def __init__(self,capteurs,actionneurs,deplacements,rechercheChemin,hookGenerator,table,son,config,log):
         self.mutex = Mutex()
         
         #instances des dépendances
@@ -19,6 +19,7 @@ class Robot(RobotInterface):
         self.actionneurs = actionneurs
         self.deplacements = deplacements
         self.rechercheChemin = rechercheChemin
+        self.hookGenerator = hookGenerator
         self.table = table
         self.config = config
         self.log = log
@@ -69,7 +70,9 @@ class Robot(RobotInterface):
         #le nombre de verres dans l'ascenseur avant ou arrière
         self._nb_verres_avant = 0
         self._nb_verres_arriere = 0
-        
+        self.deposer_verre_avant = False
+        self.deposer_verre_arriere = False
+
         #le robot n'est pas prêt tant qu'il n'a pas recu ses coordonnées initiales par le thread de mise à jour
         self.pret = False
         
@@ -222,8 +225,9 @@ class Robot(RobotInterface):
             sleep(self.sleep_milieu_boucle_acquittement)
 
         if time()-date_debut_boucle >= duree_max:
-            self.log.critical("Boucle infinie durant l'acquittement!")
-        
+            self.log.critical("Boucle infinie durant l'acquittement de tourner!")
+            self.log.critical(str(self.deplacements.get_infos_stoppage_enMouvement()))#@
+    
     def _va_au_point(self, x, y, hooks=[], trajectoire_courbe=False, sans_lever_exception = False):
         """
         Méthode pour parcourir un segment : le robot se rend en (x,y) en corrigeant dynamiquement ses consignes en rotation et translation.
@@ -264,7 +268,10 @@ class Robot(RobotInterface):
             self._detecter_collisions() #on n'avance pas si un obstacle est devant
             self.deplacements.avancer(distance)
 
-        while not self._acquittement(sans_lever_exception = sans_lever_exception):
+        date_debut_boucle = time()
+        duree_max = 10
+        #pas de détection de collision dans les rotations
+        while time()-date_debut_boucle < duree_max and not self._acquittement(sans_lever_exception = sans_lever_exception):
             #vérification des hooks
             infosRobot = {"robotX": self.x, "robotY": self.y, "robotOrientation": self.orientation}
             for hook in hooks:
@@ -276,6 +283,10 @@ class Robot(RobotInterface):
             #self._mise_a_jour_consignes()#@
             
             sleep(self.sleep_milieu_boucle_acquittement)
+
+        if time()-date_debut_boucle >= duree_max:
+            self.log.critical("Boucle infinie durant l'acquittement de _va_au_point!")
+            self.log.critical(str(self.deplacements.get_infos_stoppage_enMouvement()))#@
     
     def _mise_a_jour_consignes(self, arc_de_cercle=False):
         """
@@ -421,11 +432,11 @@ class Robot(RobotInterface):
         
         #vitesses pour le parcours de l'arc de cercle
         #TODO : passer ca dans déplacements ?
-        self.set_vitesse_translation(1)
+        self.set_vitesse_translation(38)
         if "asservissement" in self.config["cartes_serie"]:
             #ATTENTION : cette vitesse est ajustée pour un rayon donné ! (celui utilisé pour enfoncer les bougies)
             #self.set_vitesse_rotation(int(self.config["vitesse_rot_arc_cercle"]))
-            self.set_vitesse_rotation(int(max(110-0.21*(r-478), 30)))
+            self.set_vitesse_rotation(int(max(118-0.21*(r-478), 30)))
         
         while 1:
             #calcul de l'angle de A (point de départ)
@@ -576,6 +587,7 @@ class Robot(RobotInterface):
             return chemin
             
         self.suit_chemin(chemin, symetrie_effectuee=True)
+
     
     def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, retenter_si_blocage=True, symetrie_effectuee=False, sans_lever_exception=False):
         """
@@ -610,7 +622,7 @@ class Robot(RobotInterface):
                                 self.avancer(self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
                             else:
                                 self.avancer(-self.config["distance_degagement_robot"], nombre_tentatives=nombre_tentatives-1)
-                except:
+                finally:
                     if not sans_lever_exception:
                         raise ExceptionMouvementImpossible(self)
 
@@ -651,7 +663,7 @@ class Robot(RobotInterface):
             self.stopper()
             if nombre_tentatives > 0:
                 self.log.warning("attente avant nouvelle tentative... reste {0} tentative(s)".format(nombre_tentatives))
-                sleep(1)
+                sleep(2)
                 self.arc_de_cercle(point_destination, hooks, nombre_tentatives-1)
             else:
                 raise ExceptionMouvementImpossible(self)
@@ -662,15 +674,24 @@ class Robot(RobotInterface):
         
     def initialiser_actionneurs(self):
         """
-        Fonction appelée en début de match qui rentre les actionneurs et monte les ascenseurs
+        Fonction appelée en début de match qui asservit le robot, rentre les actionneurs et monte les ascenseurs et les ferme
         """
+        self.log.debug("Initialisation mécanique")
+        self.capteurs.activer_capteurs_prox()
+        self.deplacements.activer_asservissement_rotation()
+        self.deplacements.activer_asservissement_translation()
         self.actionneurs.actionneurs_bougie(True, "bas")        
         self.actionneurs.actionneurs_bougie(False, "bas")        
         self.actionneurs.actionneur_cadeau("bas")
-        self.actionneurs.actionneurs_ascenseur(True, "ouvert")
-        self.actionneurs.actionneurs_ascenseur(False, "ouvert")
-        self.actionneurs.altitude_ascenseur(True, "bas")
-        self.actionneurs.altitude_ascenseur(False, "haut")
+        self.actionneurs_ascenseur(True, "ferme_completement")
+        self.actionneurs_ascenseur(False, "ferme_completement")
+        self.altitude_ascenseur(True, "bas")
+        self.altitude_ascenseur(False, "bas")
+        # le temps que l'ascenseur détecte le blocage
+        sleep(5)
+        self.altitude_ascenseur(True, "haut")
+        self.altitude_ascenseur(False, "haut")
+        self.log.debug("Initialisation terminée")
 
     def recaler(self):
         """
@@ -680,7 +701,7 @@ class Robot(RobotInterface):
         self.log.debug("début du recalage")
         
         #on recule lentement jusqu'à bloquer sur le bord
-        self.set_vitesse_translation(2)
+        self.set_vitesse_translation(1)
         self.set_vitesse_rotation(1)
         self.marche_arriere = True
         self.avancer(-1000, retenter_si_blocage = False, sans_lever_exception = True)
@@ -709,7 +730,7 @@ class Robot(RobotInterface):
 
         #on se tourne pour le deuxième recalage
         #on se dirige vers le côté le plus proche
-        if self.y < self.config["table_y"]/2:
+        if self.config["case_depart_principal"] <= 3:
             cote_bas = True
             self.tourner(math.pi/2, sans_lever_exception = True)
         else:
@@ -718,8 +739,11 @@ class Robot(RobotInterface):
         
         #on recule lentement jusqu'à bloquer sur le bord
         self.marche_arriere = True
+        self.set_vitesse_translation(1)
+        self.avancer(-abs(400*(self.config["case_depart_principal"]-0.5)), retenter_si_blocage = False, sans_lever_exception = True)
+
         self.set_vitesse_translation(2)
-        self.avancer(-1300, retenter_si_blocage = False, sans_lever_exception = True)
+        self.avancer(-300, retenter_si_blocage = False, sans_lever_exception = True)
         
         #on désactive l'asservissement en rotation pour se mettre parallèle au bord
         self.deplacements.desactiver_asservissement_rotation()
@@ -745,10 +769,9 @@ class Robot(RobotInterface):
         self.tourner(math.pi, sans_lever_exception = True)
 
         #on recule lentement jusqu'à bloquer sur le bord
-        self.set_vitesse_translation(2)
         self.set_vitesse_rotation(1)
         self.marche_arriere = True
-        self.avancer(-1000, retenter_si_blocage = False, sans_lever_exception = True)
+        self.avancer(-700, retenter_si_blocage = False, sans_lever_exception = True)
         
         #on désactive l'asservissement en rotation pour se mettre parallèle au bord
         self.deplacements.desactiver_asservissement_rotation()
@@ -762,7 +785,7 @@ class Robot(RobotInterface):
             self.orientation = math.pi+self.config["epsilon_angle"]
             self.x = self.config["table_x"]/2. - self.config["largeur_robot"]/2.
 
-        # néessaire, cf plus haut
+        # nécessaire, cf plus haut
         sleep(1)
 
         self.marche_arriere = False
@@ -819,6 +842,15 @@ class Robot(RobotInterface):
         """
         Commande l'altitude de l'ascenseur
         """
+        # Si l'ascenseur est plein, on ne le lève pas complètement
+        if hauteur == "haut" and self.places_disponibles(avant) == 0:
+            hauteur = "plein"
+        if hauteur == "haut":
+            self.log.debug("Capteurs de proximité désactivés")
+            self.capteurs.desactiver_capteurs_prox()
+        else:
+            self.log.debug("Capteurs de proximité activés")
+            self.capteurs.activer_capteurs_prox()
         if avant:
             self.log.debug("Ascenseur avant en position: "+hauteur)
         else:
@@ -827,40 +859,100 @@ class Robot(RobotInterface):
 
     def recuperer_verre(self, avant):
         """
-        Lance la procédure de récupération d'un verre
+        Lance la procédure de récupération d'un verre, sachant qu'il est présent
         """
         # Vérification de la capacité
         if self.places_disponibles(avant) == 0:
             if avant:
-                self.log.critical("le robot ne peut pas porter plus de verres à l'avant")
+                self.log.critical("Verre détecté, mais le robot ne peut pas porter plus de verres à l'avant")
             else:
-                self.log.critical("le robot ne peut pas porter plus de verres à l'arrière")
+                self.log.critical("Verre détecté, mais le robot ne peut pas porter plus de verres à l'arrière")
             raise ExceptionMouvementImpossible(self)
         
-        # Vérification de la présence du verre
-        if not self.capteurs.verre_present(avant):
-            self.log.critical("Verre absent!")
-            raise ExceptionVerreAbsent
-        # Lancement des actionneurs
+        # Lancement des actionneurs (on sait déjà que le verre est présent)
+        if avant:
+            self.deplacements.avancer(80)
         else:
-            if avant:
-                self.avancer(-10)
-            else:
-                self.avancer(10)
-            self.actionneurs.actionneur_ascenseur(avant, "ouvert")
-            self.actionneurs.ascenseur_aller_en_bas(avant)
-            self.actionneurs.actionneur_ascenseur(avant, "fermé")
-            self.lever_ascenseur(avant)
-        
-            # Mise à jour du total de verres portés
-            super().recuperer_verre(avant)
-            
-            if avant:
-                self.log.debug("saisie d'un verre à l'avant")
-            else:
-                self.log.debug("saisie d'un verre à l'arrière")
+            self.deplacements.avancer(-80)
+        sleep(.2)
+        if avant:
+            self.deplacements.avancer(-20)
+        else:
+            self.deplacements.avancer(20)
+        sleep(.1)
+        self.actionneurs.actionneurs_ascenseur(avant, "ouvert")
+        sleep(.1)
+        if avant:
+            self.deplacements.avancer(-40)
+        else:
+            self.deplacements.avancer(40)
+        sleep(.2)
+        self.altitude_ascenseur(avant, "bas")
+        sleep(.2)
+        self.capteurs.activer_capteurs_prox()
+        if avant:
+            self.deplacements.avancer(80)
+        else:
+            self.deplacements.avancer(-80)
+        sleep(.2)
+        self.actionneurs.actionneurs_ascenseur(avant, "ferme")
+        sleep(.1)
+
+        # Mise à jour du total de verres portés
+        super().recuperer_verre(avant)
+
+        if avant:
+            self.log.debug("saisie d'un verre à l'avant")
+        else:
+            self.log.debug("saisie d'un verre à l'arrière")
         self.log.debug("le robot a {0} verre(s) à l'avant, {1} à l'arrière".format(self.nb_verres_avant, self.nb_verres_arriere))
         
+    def deposer_pile_combo(self, avant):
+        """
+        Combo!
+        """
+        if avant:
+            self.log.debug("Dépot de la pile de verres à l'avant.")
+        else:
+            self.log.debug("Dépot de la pile de verres à l'arrière.")
+                
+        # Lancement des actionneurs
+        if avant:
+            self.deplacements.avancer(20)
+        else:
+            self.deplacements.avancer(-20)
+        self.actionneurs.actionneurs_ascenseur(avant, "petit ouvert")
+        sleep(.5)
+        self.actionneurs.actionneurs_ascenseur(avant, "ouvert")
+        sleep(.5)
+        if avant:
+            self.deplacements.avancer(-20)
+        else:
+            self.deplacements.avancer(20)
+        sleep(.5)
+        self.altitude_ascenseur(avant, "bas")
+        sleep(.5)
+        if avant:
+            self.deplacements.avancer(30)
+        else:
+            self.deplacements.avancer(-30)
+        sleep(.5)
+        self.actionneurs.actionneurs_ascenseur(avant, "ferme")
+        sleep(.5)
+        self.actionneurs.actionneurs_ascenseur(avant, "petit ouvert")
+        sleep(.5)
+        self.actionneurs.actionneurs_ascenseur(avant, "ouvert")
+        sleep(.5)
+
+        if avant:
+            self.deplacements.avancer(-10)
+        else:
+            self.deplacements.avancer(10)
+        
+        # Mise à jour du total de verres portés
+        super().deposer_pile(avant)
+        
+
     def deposer_pile(self, avant):
         """
         Dépose l'ensemble des verres d'un ascenseur.
@@ -872,6 +964,17 @@ class Robot(RobotInterface):
             self.log.debug("Dépot de la pile de verres à l'arrière.")
                 
         # Lancement des actionneurs
+        self.altitude_ascenseur(avant, "bas")
+        sleep(.5)
+        self.actionneurs.actionneurs_ascenseur(avant, "petit ouvert")
+        sleep(.5)
+        if avant:
+            self.deplacements.avancer(-20)
+        else:
+            self.deplacements.avancer(20)
+        self.actionneurs.actionneurs_ascenseur(avant, "ouvert")
+        sleep(.5)
+        self.altitude_ascenseur(avant, "haut")
         
         # Mise à jour du total de verres portés
         super().deposer_pile(avant)
@@ -883,8 +986,8 @@ class Robot(RobotInterface):
         self.actionneurs.gonfler_ballon()
         
 class RobotSimulation(Robot):
-    def __init__(self, simulateur, capteurs, actionneurs, deplacements, rechercheChemin, table, son, config, log):
-        super().__init__(capteurs, actionneurs, deplacements, rechercheChemin, table, son, config, log)
+    def __init__(self, simulateur, capteurs, actionneurs, deplacements, rechercheChemin, hookGenerator, table, son, config, log):
+        super().__init__(capteurs, actionneurs, deplacements, rechercheChemin, hookGenerator, table, son, config, log)
         self.simulateur = simulateur
         
     def tourner(self, angle_consigne, hooks=[], nombre_tentatives=2, sans_lever_exception=False):

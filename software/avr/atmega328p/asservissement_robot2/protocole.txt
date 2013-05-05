@@ -1,0 +1,51 @@
+!! se référer au code source de robot.cpp (section protocole) pour les retours à la ligne !!
+
+Ordres :
+ '?' Ping de la liaison série (renvoi 0)
+ 'c' Changer les constantes
+     'c' Couleur
+         'r' Rouge
+         'v' Violet
+     'r' Rotation
+         'd' Dérivée à [float]
+         'i' Intégration à [float]
+         'p' Proportionnel à [float]
+	 'm' Mettre le Max du PWM
+     't' Translation
+         'd' Dérivée à [float]
+         'i' Intégration à [float]
+         'p' Proportionnel à [float]
+	 'm' Mettre le Max du PWM
+     'x' Change x (abscisse) en mm
+     'y' Change y (ordonnée) en mm
+     'o' Change l'orientation en radian
+ 'e' Afficher la valeur de
+     'c' Couleur
+     'x' position en abscisse du robot (mm)
+     'y' position en ordonnée du robot(mm)
+     'o' orientation absolue du robot (en millième de radian)
+ 'ct0' Désactiver asservissement en translation
+ 'cr0' Désactiver asservissement en rotation
+ 'ct1' Démarrer asservissement en translation
+ 'cr1' Démarrer asservissement en rotation
+
+ 't' Tourner : [float]
+    >0 : Sens trigo positif ( anti-horaire )
+    <0 : Sens trigo négatif
+ 'd' Avancer/Reculer : [float]
+     >0 : Avancer
+     <0 : Reculer
+ 'stop' s'immobilise sur place
+ 'recal' initialise la position du robot par recalage
+ 'acq' demande d'acquittement (renvoi "EN_MVT", "FIN_MVT" ou "STOPPE")
+ 'pos' equivalent à 'x' puis 'y' : coordonnées du robot séparées d'un retour à la ligne
+ 'ctv' suivi de 1,2,3 : changer la vitesse de translation
+ 'crv' suivi de 1,2,3 : changer la vitesse de rotation
+
+Position des variables dans l'EEPROM :
+    0  -> translation.kp    (float)
+    1  -> translation.kd    (float)
+    2  -> rotation.kp       (float)
+    3  -> rotation.kd       (float)
+    4  -> translation.valeur_bridage (uint32_t)
+    5  -> rotation.valeur_bridage    (uint32_t)

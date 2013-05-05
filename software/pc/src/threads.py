@@ -91,6 +91,7 @@ class ThreadCapteurs(AbstractThread):
         # Attention: le match doit être démarré pour utiliser date_debut         
         dernier_ajout = 0
 
+        log.debug("Activation des capteurs")
         while not timer.get_fin_match():
             if AbstractThread.stop_threads:
                 log.debug("Stoppage du thread capteurs")
@@ -180,8 +181,10 @@ class ThreadTimer(AbstractThread):
         sleep(.500) #afin d'être sûr que le robot a eu le temps de s'arrêter
         self.robot.deplacements.desactiver_asservissement_translation()
         self.robot.deplacements.desactiver_asservissement_rotation()
+        sleep(2)
         self.robot.gonflage_ballon()
-        self.robot.deplacements.arret_final()
+        sleep(1)
+        self.robot.deplacements.arret_final() #désactive la série
         self.son.jouer("generique", force=True, enBoucle=True)
         self.log.debug("Fin du thread timer")
         
@@ -327,8 +330,13 @@ class ThreadCouleurBougies(AbstractThread):
                 table.definir_couleurs_bougies(rcv)
                 log.debug("Résultats android: " + str(rcv))
             except:
-                # Si on n'a pas d'information de l'appli android, le mieux est de faire toutes les bougies (ce qui permet de gagner le plus de points possible). Pour cela, on contourne la complétion antisymétrique effectuée dans définir_couleur_bougies
-                log.warning("Aucune réponse de l'appli android. On fait toutes les bougies.")
+                # Si on n'a pas d'information de l'appli android, il vaut mieux stratégiquement ne pas faire les bougies, sauf s'il faut toutes les faire. En effet, si on fait toutes les bougies, la différence des points ne changera pas. Et comme on manque de temps pour tout faire, autant ne pas les faire.
+                if config["ennemi_fait_ses_bougies"]:
+                    log.warning("Aucune réponse de l'appli android. On fait toutes les bougies car l'ennemi fait les siennes.")
+                else:
+                    log.warning("Aucune réponse de l'appli android. Abandon des bougies.")
+                # Exactement, on ne supprime pas le script mais on lui met un malus
+                    scripts["ScriptBougies"].malus = -20
                 couleur_bougies = table.COULEUR_BOUGIE_BLEU if config["couleur"]=="bleu" else table.COULEUR_BOUGIE_ROUGE
                 for i in range (20):
                     table.bougies[i]["couleur"] = couleur_bougies
@@ -337,6 +345,8 @@ class ThreadCouleurBougies(AbstractThread):
                     scripts["ScriptBougies"].en_aveugle = True
             finally:
                 client_socket.close()
-           
+
+        table.definir_couleurs_bougies("rbrbwwrbrb") # test
+
         log.debug("Fin du thread de détection des couleurs des bougies")
         

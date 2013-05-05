@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <util/delay.h>
 
-#include "twi_slave_asserv.h"
+#include "twi_slave_asserv2.h"
 
 int main( void ){
 	
@@ -25,12 +25,13 @@ int main( void ){
 
 
 // Interruption codeur 1
-ISR (PCINT0_vect)
+ISR (PCINT2_vect)
 {
     codeuse1.interruption();
 }
+
 // Interruption codeur 2
-ISR (PCINT2_vect)
+ISR (PCINT1_vect)
 {
     codeuse2.interruption();
 }

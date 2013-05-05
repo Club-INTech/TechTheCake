@@ -9,8 +9,8 @@
 
 #include <libintech/codeuse.hpp>
 //déclaration des ports des codeuses, attention à modifier aussi le twi_slave.c
-extern Codeuse< AVR_PORTB <PORTB0>,AVR_PORTB <PORTB1> > codeuse1;
-extern Codeuse< AVR_PORTD <PORTD7>,AVR_PORTD <PORTD6> > codeuse2;
+extern Codeuse< AVR_PORTD <PORTD2>,AVR_PORTD <PORTD3>, false > codeuse1;
+extern Codeuse< AVR_PORTC <PORTC1>,AVR_PORTC <PORTC0>, false > codeuse2;
 
 
 extern unsigned char messageBuf[];

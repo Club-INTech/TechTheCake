@@ -177,7 +177,7 @@ class RobotChrono(RobotInterface):
         if self.vitesse_translation < 5:
             self.duree += abs (distance / self.vitesses_translation[self.vitesse_translation-1])
         else:
-            self.duree += abs (distance / self.vitesse_translation*(self.vitesses_translation[1]/100))
+            self.duree += abs (distance / (self.vitesse_translation*(self.vitesses_translation[1]/100)))
         self.x += distance*math.cos(self.orientation)
         self.y += distance*math.sin(self.orientation)
         
@@ -282,3 +282,7 @@ class RobotChrono(RobotInterface):
 
     def deposer_pile(self, avant):
         pass
+
+    def deposer_pile_combo(self, avant):
+        pass
+

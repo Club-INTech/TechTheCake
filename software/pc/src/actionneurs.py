@@ -50,25 +50,32 @@ class Actionneurs :
                 self.actionneur_bougies_actif = True
 
     def altitude_ascenseur(self, avant, hauteur):
-    #TODO compléter le protocole
         if avant:
-            self.log.debug("ascenseur avant levé")
-            self.serie.communiquer("ascenseur",["ascenseur_avant",hauteur],0)
+            self.serie.communiquer("ascenseur",["asc_av",hauteur],0)
         else:
-            self.log.debug("ascenseur arrière levé")
-            self.serie.communiquer("ascenseur",["ascenseur_arriere",hauteur],0)
+            self.serie.communiquer("ascenseur",["asc_ar",hauteur],0)
 
     def actionneurs_ascenseur(self, avant, position):
-        if position == "fermé":
+        if position == "ferme_completement":
             if avant:
-                self.serie.communiquer("capteurs_actionneurs",["asc_av",120],0)
+                self.serie.communiquer("capteurs_actionneurs",["asc_av",185],0)
             else:
-                self.serie.communiquer("capteurs_actionneurs",["asc_arr",120],0)
+                self.serie.communiquer("capteurs_actionneurs",["asc_arr",180],0)
+        elif position == "ferme":
+            if avant:
+                self.serie.communiquer("capteurs_actionneurs",["asc_av",155],0)
+            else:
+                self.serie.communiquer("capteurs_actionneurs",["asc_arr",148],0)
+        elif position == "petit ouvert":
+            if avant:
+                self.serie.communiquer("capteurs_actionneurs",["asc_av",140],0)
+            else:
+                self.serie.communiquer("capteurs_actionneurs",["asc_arr",140],0)
         elif position == "ouvert":
             if avant:
-                self.serie.communiquer("capteurs_actionneurs",["asc_av",95],0)
+                self.serie.communiquer("capteurs_actionneurs",["asc_av",123],0)
             else:
-                self.serie.communiquer("capteurs_actionneurs",["asc_arr",95],0)
+                self.serie.communiquer("capteurs_actionneurs",["asc_arr",123],0)
 
 
     def ascenseur_modifier_constantes(self, valeur):
