@@ -124,6 +124,18 @@ class RechercheChemin:
         (pour affichage de debug) Renvoie la liste des cercles représentant les obstacles (initiaux et dynamiques)
         """
         return [obstacle.cercle() for obstacle in self.environnement_complet.obstacles]
+        
+    def get_obstacles(self):
+        """
+        (pour affichage de debug) Renvoie la liste des polygones représentant les obstacles
+        """
+        obstacles = []
+        for i in range(self.vis.nb_obstacles()):
+            obstacle = []
+            for j in range(self.vis.nb_vertices(i)):
+                obstacle.append(Point(self.vis.get_obstacle_vertice(i,j).x(), self.vis.get_obstacle_vertice(i,j).y()))
+            obstacles.append(obstacle)
+        return obstacles
     
     def _lisser_chemin(self, chemin):
         """

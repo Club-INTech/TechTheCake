@@ -66,6 +66,23 @@ void VisilibityWrapper::add_circle(int x, int y, int radius)
     _table.add_polygon(points);
 }
 
+int VisilibityWrapper::nb_obstacles()
+{
+    //le premier obstacle est là pour représenter les bords de la table
+    return _environment.h();
+}
+
+int VisilibityWrapper::nb_vertices(int id_polygon)
+{
+    //le premier obstacle est là pour représenter les bords de la table
+    return _environment[id_polygon + 1].n();
+}
+
+VisiLibity::Point VisilibityWrapper::get_obstacle_vertice(int id_polygon, int id_vertice)
+{
+    return _environment[id_polygon + 1][id_vertice];
+}
+
 VisilibityWrapper::Exception VisilibityWrapper::build_environment()
 {
     // Récupération des obstacles de la table
