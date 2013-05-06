@@ -57,7 +57,8 @@ class Deplacements():
         """
         rotation_stoppe = abs(erreur_rotation) < 105
         translation_stoppe = abs(erreur_translation) < 100
-        bouge_pas = derivee_erreur_rotation == 0 and derivee_erreur_translation == 0
+        #bouge_pas = derivee_erreur_rotation == 0 and derivee_erreur_translation == 0
+        bouge_pas = abs(derivee_erreur_rotation) < 100 and abs(derivee_erreur_translation) < 100
         
         return not(rotation_stoppe and translation_stoppe and bouge_pas)
         

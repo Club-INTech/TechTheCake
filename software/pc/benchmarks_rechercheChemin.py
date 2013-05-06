@@ -16,8 +16,6 @@ affichage = True
 ##############
 #nombre d'itération pour moyenner le benchmark en mode non affichage
 nbIterations = 50.
-#recherche de chemin avec astar ou avec visilibity
-aStar = False
 ##############
 
 if affichage:
@@ -34,98 +32,111 @@ if affichage:
         simulateur.drawPoint(depart.x,depart.y, color)
         if chemin:
             simulateur.drawVector(depart.x,depart.y,chemin[0].x,chemin[0].y,color,True)
-            print("chemin : ")
+            #print("chemin : ")
             for i in range(len(chemin)):
-                print(chemin[i])
+                #print(chemin[i])
                 try:simulateur.drawVector(chemin[i].x,chemin[i].y,chemin[i+1].x,chemin[i+1].y,color,True)
                 except:pass
+        #else:
+            #print("chemin : "+str(chemin))
         simulateur.drawPoint(arrivee.x,arrivee.y, color)
     
 ##############################################################################
-depart1 = Point(-1000,1300)
-arrivee1 = Point(1000,800)
+depart1 = Point(-1200,1500)
+arrivee1 = Point(1000,1250)
 
 depart2 = Point(-800,1950)
-arrivee2 = Point(1050,1350)
+arrivee2 = Point(1050,800)
 
 depart3 = Point(-1300,400)
 arrivee3 = Point(900,300)
 ##############################################################################
 
-if not affichage:
-    print("[moyennes sur "+str(int(nbIterations))+" itérations]")
-
 #nombre d'environnements différents
-nbEnvironnements = 3
+nbEnvironnements = 4
 for i in range(nbEnvironnements):
     if affichage:
         nbIterations = 1.
+        nbRecherches = 1
+    else:
+        nbRecherches = 10
     
     description = ""
     tempsConception = 0
     tempsChargement = 0
-    tempsMoyen3Recherche = 0
+    tempsRecherches1 = 0
+    tempsRecherches2 = 0
+    tempsRecherches3 = 0
+    
+    nb_reel_iterations = 0
     
     for k in range(int(nbIterations)):
         debut_conception = time()
         rechercheChemin.retirer_obstacles_dynamiques()
         if i==0:
             description = "vide"
-            rechercheChemin.charge_obstacles()
         elif i==1:
-            description = "usuel"
+            description = "avec verres"
             rechercheChemin.charge_obstacles()
         elif i==2:
-            description = "usuel 2"
-            try:
-                table.verres[1]["present"] = False
-                table.verres[9]["present"] = False
-                table.verres[8]["present"] = False
-                rechercheChemin.charge_obstacles()
-            except:
-                aStar = True
+            description = "verres et robot contre bord"
+            rechercheChemin.charge_obstacles()
+            rechercheChemin.ajoute_cercle(Point(1200,700), 150)
+        elif i==3:
+            description = "verres et 2 robots faisant une fat soirée"
+            rechercheChemin.ajoute_cercle(Point(1200,700), 150)
+            rechercheChemin.ajoute_cercle(Point(-800,1100), 200)
+            rechercheChemin.charge_obstacles()
         debut_chargement = time()
-        if aStar: rechercheChemin.prepare_environnement_pour_a_star()
-        else: rechercheChemin.prepare_environnement_pour_visilibity()
-        debut_recherche_1 = time()
         try:
-            if aStar: chemin1 = rechercheChemin.cherche_chemin_avec_a_star(depart1, arrivee1)
-            else: chemin1 = rechercheChemin.cherche_chemin_avec_visilibity(depart1, arrivee1)
-        except libRechercheChemin.ExceptionAucunChemin as e:
-            print(e)
-            chemin1 = []
-        debut_recherche_2 = time()
-        try:
-            if aStar: chemin2 = rechercheChemin.cherche_chemin_avec_a_star(depart2, arrivee2)
-            else: chemin2 = rechercheChemin.cherche_chemin_avec_visilibity(depart2, arrivee2)
+            rechercheChemin.prepare_environnement_pour_visilibity()
+            debut_recherche_1 = time()
+            try:
+                for k in range(nbRecherches):
+                    chemin1 = rechercheChemin.cherche_chemin_avec_visilibity(depart1, arrivee1)
+            except libRechercheChemin.ExceptionAucunChemin as e:
+                #print(e)
+                chemin1 = []
+            debut_recherche_2 = time()
+            try:
+                for k in range(nbRecherches):
+                    chemin2 = rechercheChemin.cherche_chemin_avec_visilibity(depart2, arrivee2)
+            except Exception as e:
+                #print(e)
+                chemin2 = []
+            debut_recherche_3 = time()
+            try:
+                for k in range(nbRecherches):
+                    chemin3 = rechercheChemin.cherche_chemin_avec_visilibity(depart3, arrivee3)
+            except Exception as e:
+                #print(e)
+                chemin3 = []
+            fin = time()
+            tempsConception += round(debut_chargement-debut_conception,3)
+            tempsChargement += round(debut_recherche_1-debut_chargement,3)
+            tempsRecherches1 += round(debut_recherche_2-debut_recherche_1,3)
+            tempsRecherches2 += round(debut_recherche_3-debut_recherche_2,3)
+            tempsRecherches3 += round(fin-debut_recherche_3,3)
+            nb_reel_iterations += 1
         except Exception as e:
             print(e)
-            chemin2 = []
-        debut_recherche_3 = time()
-        try:
-            if aStar: chemin3 = rechercheChemin.cherche_chemin_avec_a_star(depart3, arrivee3)
-            else: chemin3 = rechercheChemin.cherche_chemin_avec_visilibity(depart3, arrivee3)
-        except Exception as e:
-            print(e)
-            chemin3 = []
-        fin = time()
-        tempsConception += round(debut_chargement-debut_conception,3)
-        tempsChargement += round(debut_recherche_1-debut_chargement,3)
-        tempsMoyen3Recherche += (round(debut_recherche_2-debut_recherche_1,3) + round(debut_recherche_3-debut_recherche_2,3) + round(fin-debut_recherche_3,3))/3
         
         sleep(0.01)
-    
-    print("environnement "+description+" :\n concu en "+str(round(tempsConception/nbIterations,3))+"\n chargé en "+str(round(tempsChargement/nbIterations,3))+"\n calculé en "+str(round(tempsMoyen3Recherche/nbIterations,3)))
-    
+        
+    if not affichage:
+        print("[moyennes sur "+str(int(nb_reel_iterations))+" itérations ("+str(int(nbIterations) - nb_reel_iterations)+" fails)]")
+    print("environnement "+description+" :\n ajout des obstacles : "+str(round(tempsConception/nb_reel_iterations,3))+"\n établissement du graphe : "+str(round(tempsChargement/nb_reel_iterations,3))+"\n "+str(nbRecherches)+" recherches de chemin : \n\t chemin 1: "+str(round(tempsRecherches1/nb_reel_iterations,3))+"\n\t chemin 2: "+str(round(tempsRecherches2/nb_reel_iterations,3))+"\n\t chemin 3: "+str(round(tempsRecherches3/nb_reel_iterations,3)))
     
     if affichage:
         redraw()#@
         draw_path(depart1, arrivee1,chemin1, "red")#@
         draw_path(depart2, arrivee2,chemin2, "black")#@
         draw_path(depart3, arrivee3,chemin3, "blue")#@
-    input()
+        
     if affichage:
+        input()
         simulateur.clearEntities()#@
+        
     rechercheChemin.retirer_obstacles_dynamiques()
     
-input("--fin--")
+print("--fin--")

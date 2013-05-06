@@ -73,7 +73,7 @@ class Strategie:
                 #initialisation de la recherche de chemin pour le calcul de temps
                 self.rechercheChemin.retirer_obstacles_dynamiques()
                 self.rechercheChemin.charge_obstacles(avec_verres_entrees=False)
-                self.rechercheChemin.prepare_environnement_pour_a_star()
+                self.rechercheChemin.prepare_environnement_pour_visilibity()
                 
                 # Notation des scripts
                 for script in self.scripts:
@@ -96,7 +96,7 @@ class Strategie:
                 #ajout d'obstacles pour les verres d'entrées, sauf si on execute un script de récupération des verres
                 if not isinstance(self.scripts[script_a_faire], ScriptRecupererVerres):
                     for verre in self.table.verres_entrees():
-                        self.rechercheChemin.ajoute_obstacle_cercle(verre["position"], self.config["rayon_verre"])
+                        self.rechercheChemin.ajoute_cercle(verre["position"], self.config["rayon_verre"])
 
             premier_tour = False;
 
@@ -141,11 +141,8 @@ class Strategie:
         except libRechercheChemin.ExceptionAucunChemin:
             self.log.critical("Epic fail de {0}! ExceptionAucunChemin".format((script,version)))
             return -1000
-        except libRechercheChemin.ExceptionArriveeDansObstacle:
-            self.log.critical("Epic fail de {0}! ExceptionArriveeDansObstacle".format((script,version)))
-            return -1000
-        except libRechercheChemin.ExceptionArriveeHorsTable:
-            self.log.critical("Epic fail de {0}! ExceptionArriveeHorsTable".format((script,version)))
+        except libRechercheChemin.ExceptionEnvironnementMauvais:
+            self.log.critical("Epic fail de {0}! ExceptionEnvironnementMauvais".format((script,version)))
             return -1000
             
         # Erreur dans la durée script, script ignoré

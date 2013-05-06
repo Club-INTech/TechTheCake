@@ -105,7 +105,7 @@ class Table:
         ]
         
         # Bougies ignorées car impossible à atteindre
-        self.bougies_ignorees = [0, 1, 18, 19]
+        self.bougies_ignorees = [0, 18]
         
         # Le premier correspond à celui le plus en haut à gauche et le dernier le plus en bas à droite.
         self.verres = [

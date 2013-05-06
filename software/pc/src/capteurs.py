@@ -40,7 +40,7 @@ class Capteurs():
                 return sorted(capteur_values, reverse=True)[0]
             except:
                 # En cas d'erreur, on renvoie l'infini
-                self.log.warning("Erreur de lecture des capteurs de proximité")
+                #self.log.warning("Erreur de lecture des capteurs de proximité")
                 return 3000
         # Capteurs désactivés, on renvoie l'infini
         else:
