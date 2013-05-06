@@ -37,19 +37,6 @@ void Table::reset()
 #if DISPLAY_DEBUG_WINDOWS
     _image_obstacles_polygons = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
 #endif
-    
-    /*
-    _image = cv::Mat(_height/_ratio, _width/_ratio, CV_8U);
-    _image_xor = cv::Mat(_height/_ratio, _width/_ratio, CV_8U);
-    _image_bords_contours = cv::Mat(_height/_ratio, _width/_ratio, CV_8U);
-#if DISPLAY_DEBUG_WINDOWS
-    _image_bords_polygon = cv::Mat(_height/_ratio, _width/_ratio, CV_8U);
-#endif
-    _image_obstacles = cv::Mat(_height/_ratio, _width/_ratio, CV_8U);
-#if DISPLAY_DEBUG_WINDOWS
-    _image_obstacles_polygons = cv::Mat(_height/_ratio, _width/_ratio, CV_8U);
-#endif
-*/
 }
 
 void Table::add_polygon(vector<cv::Point> polygon)
@@ -77,7 +64,12 @@ vector<VisiLibity::Polygon> Table::get_obstacles()
     
     // Détection des contours du XOR
     vector<Contour> contours_xor;
+#if DISPLAY_DEBUG_WINDOWS
+    cv::Mat image_copy = _image_xor.clone(); // Et _image_xor garde la pose pour la photo...
+    cv::findContours(image_copy, contours_xor, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+#else
     cv::findContours(_image_xor, contours_xor, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+#endif
     
     // Approximation polygonale des bords de la carte
     vector<Polygon> bords_contours(1);
@@ -98,7 +90,12 @@ vector<VisiLibity::Polygon> Table::get_obstacles()
     
     // Détection des contours des obstacles
     vector<Contour> contours_obstacles;
+#if DISPLAY_DEBUG_WINDOWS
+    image_copy = _image_obstacles.clone();
+    cv::findContours(image_copy, contours_obstacles, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+#else
     cv::findContours(_image_obstacles, contours_obstacles, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+#endif
     
     // Liste des polygones, un polygone par contour détecté
     vector<Polygon> polygones_obstacles(contours_obstacles.size());
