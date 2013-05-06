@@ -518,6 +518,15 @@ class Robot(RobotInterface):
             #rétablissement des paramètres de trajectoire
             self.marche_arriere, self.effectuer_symetrie = mem_marche_arriere, mem_effectuer_symetrie
         
+    def correction_angle(self, angle):
+        """
+        Transmet directement une consigne d'orientation, de facon non blocante. 
+        """
+        
+        #l'attribut self._consigne_orientation doit etre mis à jour à chaque deplacements.tourner() pour le fonctionnement de self._avancer()
+        self._consigne_orientation = angle
+        self.deplacements.tourner(angle)
+        
     def tourner(self, angle, hooks=[], nombre_tentatives=2, sans_lever_exception=False):
         """
         Cette méthode est une surcouche intelligente sur les déplacements.

@@ -18,6 +18,10 @@ class RobotInterface(metaclass=abc.ABCMeta):
         pass
         
     @abc.abstractmethod
+    def correction_angle(self, angle):
+        pass
+    
+    @abc.abstractmethod
     def tourner(self, angle, forcer = False,hooks=[]):
         pass
         
@@ -66,9 +70,9 @@ class RobotInterface(metaclass=abc.ABCMeta):
         Retourne un pwm_max en fonction d'une convention de vitesse.
         """
         if vitesse == "entre_scripts":
-            return 100
+            return 140#120
         elif vitesse == "recherche_verre":
-            return 85
+            return 70
         elif vitesse == "depot_verre":
             return 60
         elif vitesse == "proche_gateau":
@@ -98,7 +102,7 @@ class RobotInterface(metaclass=abc.ABCMeta):
             vitesse = 200
             
         if vitesse == "entre_scripts":
-            return 100
+            return 130#100
         elif vitesse == "recherche_verre":
             return 80
         elif vitesse == "depot_verre":
@@ -230,6 +234,9 @@ class RobotChrono(RobotInterface):
         self.x += distance*math.cos(self.orientation)
         self.y += distance*math.sin(self.orientation)
         
+    def correction_angle(self, angle):
+        pass
+    
     def tourner(self, angle, **useless):
         """
         Fonction analogue à celle de robot. Bah... ça tourne quoi. Il vous faut un desmath.sin? # J'ai pas compris lol.
