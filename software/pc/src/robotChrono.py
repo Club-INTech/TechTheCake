@@ -269,12 +269,12 @@ class RobotChrono(RobotInterface):
         if recharger_table:
             self.rechercheChemin.retirer_obstacles_dynamiques()
             self.rechercheChemin.charge_obstacles(avec_verres_entrees=True)
-            self.rechercheChemin.prepare_environnement_pour_a_star()
+            self.rechercheChemin.prepare_environnement_pour_visilibity()
         
         depart = Point(self.x,self.y)
         if self.effectuer_symetrie and self.config["couleur"] == "bleu":
             arrivee.x *= -1
-        chemin = self.rechercheChemin.cherche_chemin_avec_a_star(depart, arrivee)
+        chemin = self.rechercheChemin.cherche_chemin_avec_visilibity(depart, arrivee)
         
         if renvoie_juste_chemin:
             return chemin

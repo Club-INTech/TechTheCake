@@ -98,7 +98,7 @@ class RechercheChemin:
             raise ExceptionEnvironnementMauvais 
         
     def cherche_chemin_avec_visilibity(self, depart, arrivee):
-        cheminVis = self.wrapper.path(depart.x, depart.y, arrivee.x, arrivee.y)
+        cheminVis = self.wrapper.path(int(depart.x), int(depart.y), int(arrivee.x), int(arrivee.y))
         if cheminVis.size():
             return [Point(cheminVis.get_Point(i).x(),cheminVis.get_Point(i).y()) for i in range(1,cheminVis.size())]
         else:
@@ -123,6 +123,16 @@ class RechercheCheminSimulation(RechercheChemin):
     def __init__(self, simulateur, table, config, log):
         self.simulateur = simulateur
         super().__init__(table, config, log)
+        
+    def prepare_environnement_pour_visilibity(self):
+        RechercheChemin.prepare_environnement_pour_visilibity(self)
+        
+        self.simulateur.clearEntity("rc_obst")
+            
+        for obstacle in RechercheChemin.get_obstacles(self):
+            for i in range(1,len(obstacle)):
+                self.simulateur.drawLine(obstacle[i-1].x,obstacle[i-1].y,obstacle[i].x,obstacle[i].y,"green","rc_obst")
+            self.simulateur.drawLine(obstacle[len(obstacle)-1].x,obstacle[len(obstacle)-1].y,obstacle[0].x,obstacle[0].y,"green","rc_obst")
             
     def cherche_chemin_avec_visilibity(self, depart, arrivee):
         chemin = RechercheChemin.cherche_chemin_avec_visilibity(self, depart, arrivee)
