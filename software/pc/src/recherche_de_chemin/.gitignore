@@ -1,3 +1,4 @@
 _*.so
 *.o
 *.cxx
+recherche_chemin.py
