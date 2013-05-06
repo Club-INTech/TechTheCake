@@ -11,10 +11,11 @@ using namespace std;
 typedef vector<cv::Point> Contour;
 typedef vector<cv::Point> Polygon;
 
-Table::Table(int width, int height, int ratio):
+Table::Table(int width, int height, int ratio, double tolerance_cv):
     _width(width),
     _height(height),
     _ratio(ratio),
+    _tolerance_cv(tolerance_cv),
     _image(height/ratio, width/ratio, CV_8U),
     _image_xor(height/ratio, width/ratio, CV_8U),
     _image_bords_contours(height/ratio, width/ratio, CV_8U),
@@ -22,17 +23,33 @@ Table::Table(int width, int height, int ratio):
     _image_obstacles(height/ratio, width/ratio, CV_8U),
     _image_obstacles_polygons(height/ratio, width/ratio, CV_8U)
 {
-    reset();
 }
 
 void Table::reset()
 {
+    _image = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
+    _image_xor = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
+    _image_bords_contours = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
+#if DISPLAY_DEBUG_WINDOWS
+    _image_bords_polygon = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
+#endif
+    _image_obstacles = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
+#if DISPLAY_DEBUG_WINDOWS
+    _image_obstacles_polygons = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
+#endif
+    
+    /*
     _image = cv::Mat(_height/_ratio, _width/_ratio, CV_8U);
-}
-
-void Table::tolerance_cv(double t)
-{
-    _tolerance_cv = t;
+    _image_xor = cv::Mat(_height/_ratio, _width/_ratio, CV_8U);
+    _image_bords_contours = cv::Mat(_height/_ratio, _width/_ratio, CV_8U);
+#if DISPLAY_DEBUG_WINDOWS
+    _image_bords_polygon = cv::Mat(_height/_ratio, _width/_ratio, CV_8U);
+#endif
+    _image_obstacles = cv::Mat(_height/_ratio, _width/_ratio, CV_8U);
+#if DISPLAY_DEBUG_WINDOWS
+    _image_obstacles_polygons = cv::Mat(_height/_ratio, _width/_ratio, CV_8U);
+#endif
+*/
 }
 
 void Table::add_polygon(vector<cv::Point> polygon)

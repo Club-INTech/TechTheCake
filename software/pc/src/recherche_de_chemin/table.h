@@ -9,9 +9,8 @@
 class Table
 {
 public:
-    Table(int width, int height, int ratio);
+    Table(int width, int height, int ratio, double tolerance_cv);
     void reset();
-    void tolerance_cv(double t);
     void add_polygon(std::vector<cv::Point> polygon);
     std::vector<VisiLibity::Polygon> get_obstacles();
     void display();
