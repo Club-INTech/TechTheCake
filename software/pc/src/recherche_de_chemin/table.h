@@ -25,12 +25,12 @@ private:
     int _width, _height;
     int _ratio;
     double _tolerance_cv;
-    cv::Mat _image;
-    cv::Mat _image_xor;
-    cv::Mat _image_bords_contours;
-    cv::Mat _image_bords_polygons;
-    cv::Mat _image_obstacles;
-    cv::Mat _image_obstacles_polygons;
+    cv::Mat _image;                    // accumule les obstacles
+    cv::Mat _image_xor;                // XOR pour le contour des bords
+    cv::Mat _image_bords_contours;     // remplissage du XOR permettant un ET logique
+    cv::Mat _image_bords_polygon;      // seulement pour débug
+    cv::Mat _image_obstacles;          // ET logique pour retirer les bords
+    cv::Mat _image_obstacles_polygons; // seulement pour débug
 };
 
 #endif // TABLE_H
