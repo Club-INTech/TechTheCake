@@ -34,7 +34,7 @@ class RobotInterface(metaclass=abc.ABCMeta):
         pass
     
     @abc.abstractmethod
-    def arc_de_cercle(self, point_destination, hooks=[]):
+    def arc_de_cercle(self, point_destination, hooks=[], nombre_tentatives=2):
         pass
         
     @abc.abstractmethod
@@ -288,18 +288,18 @@ class RobotChrono(RobotInterface):
         self.tourner(angle)
         self.avancer(distance)
     
-    def arc_de_cercle(self,xM,yM,hooks=[]):
+    def arc_de_cercle(self, point_destination, hooks=[], nombre_tentatives=2):
         """
         La durée de l'arc de cercle est calculée à partir du parcourt d'une abscisse curviligne.
         """
         
-        delta_rx = 0-self.x
-        delta_ry = 2000-self.y
+        delta_rx = 0 - self.x
+        delta_ry = 2000 - self.y
         rayon = math.sqrt(delta_rx**2 + delta_ry**2)
         theta_r = math.atan2(delta_ry,delta_rx)
         
-        delta_mx = 0-xM
-        delta_my = 2000-yM
+        delta_mx = 0 - point_destination.x
+        delta_my = 2000 - point_destination.y
         theta_m = math.atan2(delta_my,delta_mx)
         
         abscisse_curv = rayon * abs(theta_m - theta_r)
@@ -344,9 +344,6 @@ class RobotChrono(RobotInterface):
     def gonflage_ballon(self):
         pass
         
-    def places_disponibles(self, avant):
-        pass
-
     def actionneurs_ascenseur(self, avant, position):
         pass
 

@@ -38,7 +38,7 @@ class ThreadPosition(AbstractThread):
                 robot.update_x_y_orientation()
                 robot_pret = True
             except Exception as e:
-                print(e)
+                log.warning(e)
             sleep(0.1)
             
         robot.pret = True
@@ -52,7 +52,7 @@ class ThreadPosition(AbstractThread):
             try:
                 robot.update_x_y_orientation()
             except Exception as e:
-                print(e)
+                log.warning(e)
             sleep(0.1)
             
         log.debug("Fin du thread de mise à jour")
