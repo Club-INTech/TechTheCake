@@ -95,10 +95,8 @@ class RechercheChemin:
         self.log = log
         
         #instanciation du wrapper vers openCV et visibility
-        self.vis = VisilibityWrapper(self.config["table_x"], self.config["table_y"], 5)
-        #self.vis.epsilon_vis(0.001)
-        self.vis.epsilon_vis(0.00000001)
-        self.vis.tolerance_cv(10)
+        #VisilibityWrapper(int width, int height, int ratio, double tolerance_cv, double epsilon_vis, int rayon_tolerance)
+        self.vis = VisilibityWrapper(self.config["table_x"], self.config["table_y"], 5, 10.0, 0.0001, self.config["disque_tolerance_consigne"])
         
         #prise en compte du rayon du robot
         self.rayonRobot = self.config["rayon_robot"]
@@ -133,12 +131,10 @@ class RechercheChemin:
         """
         obstacles = []
         for i in range(self.vis.nb_obstacles()):
-            obstacle = []
-            for j in range(self.vis.nb_vertices(i)):
-                obstacle.append(Point(self.vis.get_obstacle_vertice(i,j).x(), self.vis.get_obstacle_vertice(i,j).y()))
-            obstacles.append(obstacle)
+            obstacle = self.vis.get_obstacle(i)
+            obstacles.append([Point(obstacle.get_Point(j).x(),obstacle.get_Point(j).y()) for j in range(obstacle.n())])
         return obstacles
-    
+        
     def _lisser_chemin(self, chemin):
         """
         Supprime des noeuds inutiles sur un chemin (formant un angle plat).
@@ -157,8 +153,6 @@ class RechercheChemin:
         ##ajout des obstacles vus par les capteurs et la balise
         #for obstacle in self.table.obstacles():
             #self.environnement_complet.ajoute_cercle(Cercle(obstacle.position, obstacle.rayon))
-            
-        self.environnement_complet.ajoute_cercle(Cercle(Point(-500,1200), 100))
         
         #ajout des obstacles vus par les capteurs (seulement)
         for obstacle in self.table.obstacles_capteurs:
@@ -289,11 +283,11 @@ class RechercheCheminSimulation(RechercheChemin):
     
     def cherche_chemin_avec_visilibity(self, depart, arrivee):
         chemin = RechercheChemin.cherche_chemin_avec_visilibity(self, depart, arrivee)
-        
-        self.simulateur.clearEntity("rc_chemin")
-        for p1,p2 in zip([depart]+chemin[:-1],chemin):
-            self.simulateur.drawPoint(p1.x,p1.y,"red","rc_chemin")
-            self.simulateur.drawLine(p1.x,p1.y,p2.x,p2.y,"red","rc_chemin")
-        self.simulateur.drawPoint(chemin[-1].x,chemin[-1].y,"red","rc_chemin")
+        if chemin:
+            self.simulateur.clearEntity("rc_chemin")
+            for p1,p2 in zip([depart]+chemin[:-1],chemin):
+                self.simulateur.drawPoint(p1.x,p1.y,"red","rc_chemin")
+                self.simulateur.drawLine(p1.x,p1.y,p2.x,p2.y,"red","rc_chemin")
+            self.simulateur.drawPoint(chemin[-1].x,chemin[-1].y,"red","rc_chemin")
             
         return chemin
