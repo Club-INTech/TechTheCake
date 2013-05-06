@@ -97,7 +97,7 @@ class ThreadCapteurs(AbstractThread):
                 log.debug("Stoppage du thread capteurs")
                 return None
             distance = capteurs.mesurer(robot.marche_arriere)
-            if distance >= 0 and distance <= 1000:
+            if distance >= 0 and distance <= config["horizon_capteurs"]:
                 #distance : entre le capteur situé à l'extrémité du robot et la facade du robot adverse
                 distance_inter_robots = distance + config["rayon_robot_adverse"] + config["largeur_robot"]/2
                 if robot.marche_arriere:

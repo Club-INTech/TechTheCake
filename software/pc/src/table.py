@@ -415,7 +415,7 @@ class Table:
         """
         with self.mutex:
             obstacle = ObstacleCapteur(position, self.config["rayon_robot_adverse"])
-            self.obstacles_capteurs.append(obstacle)
+            self.obstacles_capteurs = [obstacle]
             self._detection_collision_verre(position)
             return obstacle.id
             
@@ -509,7 +509,8 @@ class TableSimulation(Table):
     def creer_obstacle(self, position):
         id = Table.creer_obstacle(self, position)
         if not self.desactiver_dessin:
-            self.simulateur.drawCircle(position.x, position.y, self.config["rayon_robot_adverse"], False, "black", "obstacle_" + str(id))
+            self.simulateur.clearEntity("obstacle_capteur")
+            self.simulateur.drawCircle(position.x, position.y, self.config["rayon_robot_adverse"], False, "black", "obstacle_capteur")
         
     def deplacer_robot_adverse(self, i, position, vitesse=None):
         Table.deplacer_robot_adverse(self, i, position, vitesse)
@@ -527,7 +528,7 @@ class TableSimulation(Table):
         
     def _supprimer_obstacle(self, i):
         if not self.desactiver_dessin:
-            self.simulateur.clearEntity("obstacle_" + str(self.obstacles_capteurs[i].id))
+            self.simulateur.clearEntity("obstacle_capteur")
         Table._supprimer_obstacle(self, i)
         
     def _dessiner_bougies(self):
