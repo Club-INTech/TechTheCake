@@ -55,7 +55,7 @@ class SerieReelle:
             print("liste des pings pour le baudrate "+str(baudrate)+" :")
             for source in sources:
                 try:
-                    instanceSerie = Serial(source, baudrate, timeout=1.0)
+                    instanceSerie = Serial(source, baudrate, timeout=0.1)
                     
                     #vide le buffer série coté pc
                     instanceSerie.flushInput()
