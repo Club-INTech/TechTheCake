@@ -14,7 +14,7 @@
 #if MODE_XBEE_S8 == 1
 #define SERVER_ADDRESS 0x0013A2004096049E
 #else
-#define SERVER_ADDRESS 0x5001
+#define SERVER_ADDRESS 0x4001
 #endif
 
 #endif
