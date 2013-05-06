@@ -294,7 +294,7 @@ class ThreadLaser(AbstractThread):
                 table.deplacer_robot_adverse(0, p_filtre, vitesse)
 
                 # Affichage des points sur le simulateur
-                if config["cartes_simulation"] != ['']:
+                if config["cartes_simulation"] != [''] or config["simulation_table"]:
                     simulateur = self.container.get_service("simulateur")
                     if config["lasers_afficher_valeurs_brutes"]:
                         simulateur.drawPoint(p_bruit.x, p_bruit.y, "gris")

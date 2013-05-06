@@ -112,7 +112,7 @@ class Container:
             self.assembler.register("serieReelle", None, requires=[], factory=make_none)
             
         #service de la série simulée si besoin :
-        if not self.config["cartes_simulation"] == ['']:
+        if not self.config["cartes_simulation"] == [''] or self.config["simulation_table"]:
             
             #service du simulateur
             def make_simulateur(config):
