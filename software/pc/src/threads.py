@@ -181,9 +181,22 @@ class ThreadTimer(AbstractThread):
                 self.son.jouer("random")
 
             #son compte-à-rebours
-            if time() - self.get_date_debut() > self.config["temps_match"] - 4 and self.compte_rebours:
-                self.son.jouer("compte_rebours", force=True)
-                self.compte_rebours = False
+            if time() - self.get_date_debut() > self.config["temps_match"] - 4 :
+                
+                if self.compte_rebours:
+                    self.son.jouer("compte_rebours", force=True)
+                    self.compte_rebours = False
+                
+            #descente des ascenceurs
+            if time() - self.get_date_debut() > self.config["temps_match"] - 2:
+                self.robot.stopper()
+                self.robot.actionneurs.altitude_ascenseur(True, "bas")
+                self.robot.actionneurs.altitude_ascenseur(False, "bas")
+                
+            #ouverture des ascenceurs
+            if time() - self.get_date_debut() > self.config["temps_match"] - 1:
+                self.robot.actionneurs.actionneurs_ascenseur(True, "ouvert")
+                self.robot.actionneurs.actionneurs_ascenseur(False, "ouvert")
 
             sleep(.5)
             
