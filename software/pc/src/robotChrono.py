@@ -93,14 +93,6 @@ class RobotInterface(metaclass=abc.ABCMeta):
         Retourne un pwm_max en fonction d'une convention de vitesse.
         """
         
-          # les scripts utilisent des vitesses prédéfinies ici
-        if vitesse == 1:
-            vitesse = 80
-        elif vitesse == 2:
-            vitesse = 100
-        elif vitesse == 3:
-            vitesse = 200
-            
         if vitesse == "entre_scripts":
             return 130#100
         elif vitesse == "recherche_verre":
