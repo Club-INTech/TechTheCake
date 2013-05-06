@@ -28,12 +28,12 @@ Table::Table(int width, int height, int ratio, double tolerance_cv):
 void Table::reset()
 {
     _image = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
-    _image_xor = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
+//     _image_xor = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
     _image_bords_contours = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
 #if DISPLAY_DEBUG_WINDOWS
     _image_bords_polygon = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
 #endif
-    _image_obstacles = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
+//     _image_obstacles = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
 #if DISPLAY_DEBUG_WINDOWS
     _image_obstacles_polygons = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
 #endif
