@@ -73,7 +73,12 @@ class Strategie:
                 #initialisation de la recherche de chemin pour le calcul de temps
                 self.rechercheChemin.retirer_obstacles_dynamiques()
                 self.rechercheChemin.charge_obstacles(avec_verres_entrees=False)
-                self.rechercheChemin.prepare_environnement_pour_visilibity()
+                
+                try: self.rechercheChemin.prepare_environnement_pour_visilibity()
+                except libRechercheChemin.ExceptionEnvironnementMauvais as e:
+                    self.log.critical(e)
+                    sleep(0.1)
+                    continue
                 
                 # Notation des scripts
                 for script in self.scripts:
@@ -91,13 +96,22 @@ class Strategie:
 #                script_a_faire = "ScriptBougies"
 #                version_a_faire = 0
                 self.log.debug("Stratégie ordonne: ({0}, version n°{1}, entrée en {2})".format(script_a_faire, version_a_faire, self.scripts[script_a_faire].point_entree(version_a_faire)))
-
-            
+                
+                """
+                input()
+                
                 #ajout d'obstacles pour les verres d'entrées, sauf si on execute un script de récupération des verres
                 if not isinstance(self.scripts[script_a_faire], ScriptRecupererVerres):
-                    for verre in self.table.verres_entrees():
-                        self.rechercheChemin.ajoute_cercle(verre["position"], self.config["rayon_verre"])
-
+                    self.rechercheChemin.retirer_obstacles_dynamiques()
+                    self.rechercheChemin.charge_obstacles(avec_verres_entrees=True)
+                    
+                    try: self.rechercheChemin.prepare_environnement_pour_visilibity()
+                    except libRechercheChemin.ExceptionEnvironnementMauvais as e:
+                        self.log.critical(e)
+                        sleep(0.1)
+                        continue
+                """
+            
             premier_tour = False;
 
             # Lancement du script si le match n'est pas terminé
@@ -140,9 +154,6 @@ class Strategie:
         #chemin impossible
         except libRechercheChemin.ExceptionAucunChemin:
             self.log.critical("Epic fail de {0}! ExceptionAucunChemin".format((script,version)))
-            return -1000
-        except libRechercheChemin.ExceptionEnvironnementMauvais:
-            self.log.critical("Epic fail de {0}! ExceptionEnvironnementMauvais".format((script,version)))
             return -1000
             
         # Erreur dans la durée script, script ignoré
