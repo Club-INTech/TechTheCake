@@ -24,7 +24,7 @@ typedef uint64_t xbee_address;
 
 // Adresses des balises (Xbee)
 // PAN ID: 7378
-static uint16_t balise_address[BALISE_NUMBER] = {0x1234, 0x5003};
+static uint16_t balise_address[BALISE_NUMBER] = {0x5001, 0x5002};
 typedef uint16_t xbee_address;
 
 #endif

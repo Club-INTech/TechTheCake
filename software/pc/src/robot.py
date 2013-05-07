@@ -483,12 +483,13 @@ class Robot(RobotInterface):
     ### MÉTHODES PUBLIQUES DE DÉPLACEMENTS DE HAUT NIVEAU (TROUVÉES DANS LES SCRIPTS), AVEC RELANCES EN CAS DE PROBLÈME ###
     #######################################################################################################################
     
-    def stopper(self):
+    def stopper(self, avec_blocage =  True):
         """
         Stoppe le robot en l'asservissant sur place
         """
         self.log.debug("stoppage du robot")
-        self.blocage = True
+        if avec_blocage:
+            self.blocage = True
         self.deplacements.stopper()
 
     def avancer(self, distance, hooks=[], nombre_tentatives=2, retenter_si_blocage=True, sans_lever_exception=False):
@@ -517,6 +518,15 @@ class Robot(RobotInterface):
         finally:
             #rétablissement des paramètres de trajectoire
             self.marche_arriere, self.effectuer_symetrie = mem_marche_arriere, mem_effectuer_symetrie
+        
+    def correction_angle(self, angle):
+        """
+        Transmet directement une consigne d'orientation, de facon non blocante. 
+        """
+        
+        #l'attribut self._consigne_orientation doit etre mis à jour à chaque deplacements.tourner() pour le fonctionnement de self._avancer()
+        self._consigne_orientation = angle
+        self.deplacements.tourner(angle)
         
     def tourner(self, angle, hooks=[], nombre_tentatives=2, sans_lever_exception=False):
         """
@@ -987,7 +997,7 @@ class RobotSimulation(Robot):
         
     def tourner(self, angle_consigne, hooks=[], nombre_tentatives=2, sans_lever_exception=False):
         self._afficher_hooks(hooks)
-        super().tourner(angle_consigne, hooks, sans_lever_exception=sans_lever_exception)
+        super().tourner(angle_consigne, hooks, nombre_tentatives=nombre_tentatives, sans_lever_exception=sans_lever_exception)
         
     def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, retenter_si_blocage=True, symetrie_effectuee=False, sans_lever_exception=False):
         self._afficher_hooks(hooks)

@@ -18,6 +18,10 @@ class RobotInterface(metaclass=abc.ABCMeta):
         pass
         
     @abc.abstractmethod
+    def correction_angle(self, angle):
+        pass
+    
+    @abc.abstractmethod
     def tourner(self, angle, forcer = False,hooks=[]):
         pass
         
@@ -30,7 +34,7 @@ class RobotInterface(metaclass=abc.ABCMeta):
         pass
     
     @abc.abstractmethod
-    def arc_de_cercle(self, point_destination, hooks=[]):
+    def arc_de_cercle(self, point_destination, hooks=[], nombre_tentatives=2):
         pass
         
     @abc.abstractmethod
@@ -66,9 +70,9 @@ class RobotInterface(metaclass=abc.ABCMeta):
         Retourne un pwm_max en fonction d'une convention de vitesse.
         """
         if vitesse == "entre_scripts":
-            return 100
+            return 140#120
         elif vitesse == "recherche_verre":
-            return 85
+            return 70
         elif vitesse == "depot_verre":
             return 60
         elif vitesse == "proche_gateau":
@@ -89,16 +93,8 @@ class RobotInterface(metaclass=abc.ABCMeta):
         Retourne un pwm_max en fonction d'une convention de vitesse.
         """
         
-          # les scripts utilisent des vitesses prédéfinies ici
-        if vitesse == 1:
-            vitesse = 80
-        elif vitesse == 2:
-            vitesse = 100
-        elif vitesse == 3:
-            vitesse = 200
-            
         if vitesse == "entre_scripts":
-            return 100
+            return 130#100
         elif vitesse == "recherche_verre":
             return 80
         elif vitesse == "depot_verre":
@@ -230,6 +226,9 @@ class RobotChrono(RobotInterface):
         self.x += distance*math.cos(self.orientation)
         self.y += distance*math.sin(self.orientation)
         
+    def correction_angle(self, angle):
+        pass
+    
     def tourner(self, angle, **useless):
         """
         Fonction analogue à celle de robot. Bah... ça tourne quoi. Il vous faut un desmath.sin? # J'ai pas compris lol.
@@ -262,12 +261,12 @@ class RobotChrono(RobotInterface):
         if recharger_table:
             self.rechercheChemin.retirer_obstacles_dynamiques()
             self.rechercheChemin.charge_obstacles(avec_verres_entrees=True)
-            self.rechercheChemin.prepare_environnement_pour_a_star()
+            self.rechercheChemin.prepare_environnement_pour_visilibity()
         
         depart = Point(self.x,self.y)
         if self.effectuer_symetrie and self.config["couleur"] == "bleu":
             arrivee.x *= -1
-        chemin = self.rechercheChemin.cherche_chemin_avec_a_star(depart, arrivee)
+        chemin = self.rechercheChemin.cherche_chemin_avec_visilibity(depart, arrivee)
         
         if renvoie_juste_chemin:
             return chemin
@@ -289,18 +288,18 @@ class RobotChrono(RobotInterface):
         self.tourner(angle)
         self.avancer(distance)
     
-    def arc_de_cercle(self,xM,yM,hooks=[]):
+    def arc_de_cercle(self, point_destination, hooks=[], nombre_tentatives=2):
         """
         La durée de l'arc de cercle est calculée à partir du parcourt d'une abscisse curviligne.
         """
         
-        delta_rx = 0-self.x
-        delta_ry = 2000-self.y
+        delta_rx = 0 - self.x
+        delta_ry = 2000 - self.y
         rayon = math.sqrt(delta_rx**2 + delta_ry**2)
         theta_r = math.atan2(delta_ry,delta_rx)
         
-        delta_mx = 0-xM
-        delta_my = 2000-yM
+        delta_mx = 0 - point_destination.x
+        delta_my = 2000 - point_destination.y
         theta_m = math.atan2(delta_my,delta_mx)
         
         abscisse_curv = rayon * abs(theta_m - theta_r)
@@ -321,7 +320,7 @@ class RobotChrono(RobotInterface):
         pwm_max = RobotInterface.conventions_vitesse_translation(vitesse)
         
         #TODO : à étalonner !
-        vitesse_mps = pwm_max/100
+        vitesse_mps = 2500/(34.3*pwm_max + 13.3)
         
         self.vitesse_translation = vitesse_mps
     
@@ -332,7 +331,7 @@ class RobotChrono(RobotInterface):
         pwm_max = RobotInterface.conventions_vitesse_rotation(vitesse,rayon)
         
         #TODO : à étalonner !
-        vitesse_rps = pwm_max/30
+        vitesse_rps = math.pi/(27*pwm_max + 50)
         
         self.vitesse_rotation = vitesse_rps
         
@@ -345,9 +344,6 @@ class RobotChrono(RobotInterface):
     def gonflage_ballon(self):
         pass
         
-    def places_disponibles(self, avant):
-        pass
-
     def actionneurs_ascenseur(self, avant, position):
         pass
 

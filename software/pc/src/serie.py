@@ -15,7 +15,7 @@ class Serie:
         self.dico_infos_peripheriques = {
             "asservissement": ((0,9600),"deplacements"),
             "capteurs_actionneurs" : ((3,9600),"capteurs_actionneurs"),
-#            "laser" : ((4,38400),"laser"),
+            "laser" : ((4,38400),"laser"),
             "ascenseur": ((2,9600),"ascenseur")
         }
         
@@ -41,10 +41,11 @@ class Serie:
             
             try:
                 reponse = serie.communiquer(destinataire, messages, nb_lignes_reponse)
+                assert reponse is not None
                 assert len(reponse) == nb_lignes_reponse
                 return reponse
             except AssertionError:
-                self.log.warning("La taille de la trame réponse de "+str(destinataire)+" est mauvaise ! Renvoi...")
+                self.log.warning("La trame réponse de "+str(destinataire)+" est mauvaise ! Renvoi...")
                 time.sleep(0.01)
                 return self.communiquer(destinataire, messages, nb_lignes_reponse)
             except:

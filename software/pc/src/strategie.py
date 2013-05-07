@@ -73,7 +73,12 @@ class Strategie:
                 #initialisation de la recherche de chemin pour le calcul de temps
                 self.rechercheChemin.retirer_obstacles_dynamiques()
                 self.rechercheChemin.charge_obstacles(avec_verres_entrees=False)
-                self.rechercheChemin.prepare_environnement_pour_a_star()
+                
+                try: self.rechercheChemin.prepare_environnement_pour_visilibity()
+                except libRechercheChemin.ExceptionEnvironnementMauvais as e:
+                    self.log.critical(e)
+                    sleep(0.1)
+                    continue
                 
                 # Notation des scripts
                 for script in self.scripts:
@@ -91,13 +96,21 @@ class Strategie:
 #                script_a_faire = "ScriptBougies"
 #                version_a_faire = 0
                 self.log.debug("Stratégie ordonne: ({0}, version n°{1}, entrée en {2})".format(script_a_faire, version_a_faire, self.scripts[script_a_faire].point_entree(version_a_faire)))
-
-            
+                
+                input()
+                """
                 #ajout d'obstacles pour les verres d'entrées, sauf si on execute un script de récupération des verres
                 if not isinstance(self.scripts[script_a_faire], ScriptRecupererVerres):
-                    for verre in self.table.verres_entrees():
-                        self.rechercheChemin.ajoute_obstacle_cercle(verre["position"], self.config["rayon_verre"])
-
+                    self.rechercheChemin.retirer_obstacles_dynamiques()
+                    self.rechercheChemin.charge_obstacles(avec_verres_entrees=True)
+                    
+                    try: self.rechercheChemin.prepare_environnement_pour_visilibity()
+                    except libRechercheChemin.ExceptionEnvironnementMauvais as e:
+                        self.log.critical(e)
+                        sleep(0.1)
+                        continue
+                """
+            
             premier_tour = False;
 
             # Lancement du script si le match n'est pas terminé
@@ -141,12 +154,6 @@ class Strategie:
         except libRechercheChemin.ExceptionAucunChemin:
             self.log.critical("Epic fail de {0}! ExceptionAucunChemin".format((script,version)))
             return -1000
-        except libRechercheChemin.ExceptionArriveeDansObstacle:
-            self.log.critical("Epic fail de {0}! ExceptionArriveeDansObstacle".format((script,version)))
-            return -1000
-        except libRechercheChemin.ExceptionArriveeHorsTable:
-            self.log.critical("Epic fail de {0}! ExceptionArriveeHorsTable".format((script,version)))
-            return -1000
             
         # Erreur dans la durée script, script ignoré
         if duree_script <= 0:
@@ -178,13 +185,13 @@ class Strategie:
 
         note = [
             # Densité de points
-            5*score/duree_script,
+            1000 * score/duree_script,
 
             # On évite l'ennemi s'il est proche de l'objectif (gaussienne)
             -10*math.exp(-(distance_ennemi**4)/(5*10**11)),
             
             # Echecs précédents
-            5*note_echecs,
+            2*note_echecs,
     
             # Fonction du temps
             poids,
@@ -208,7 +215,7 @@ class Strategie:
         #obstacles avec vitesse
         positions = [point_entree.distance(obstacle.position)+duree_du_trajet*obstacle.vitesse.norme() for obstacle in self.table.obstacles() if hasattr(obstacle, "vitesse") and obstacle.vitesse is not None]
         #obstacles sans vitesse
-        positions += [point_entree.distance(obstacle.position) for obstacle in self.table.obstacles() if not hasattr(obstacle, "vitesse")]
+        positions += [point_entree.distance(obstacle.position) for obstacle in self.table.obstacles() if not hasattr(obstacle, "vitesse") or obstacle.vitesse is None]
 
         # S'il n'y a aucun ennemi, on considère qu'il est à l'infini
         if positions == []:

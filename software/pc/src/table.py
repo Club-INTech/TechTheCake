@@ -117,10 +117,10 @@ class Table:
             {"id": 5, "position": Point(600,550), "present":True},
             {"id": 6, "position": Point(-600,1050), "present":True},
             {"id": 7, "position": Point(-300,1050), "present":True},
-            {"id": 8, "position": Point(-150,800), "present":True},
-            {"id": 9, "position": Point(-450,800), "present":True},
-            {"id": 10, "position": Point(-600,550), "present":True},
-            {"id": 11, "position": Point(-300,550), "present":True}
+            {"id": 8, "position": Point(-450,800), "present":True},
+            {"id": 9, "position": Point(-150,800), "present":True},
+            {"id": 10, "position": Point(-300,550), "present":True},
+            {"id": 11, "position": Point(-600,550), "present":True}
         ]
         
         # Positions des centres des cases de départ des robots (ids spécifiés dans la config). Pour le robot rouge (symétrie dans les scripts)
@@ -390,11 +390,12 @@ class Table:
         Détecte s'il y a collision entre un robot adverse et un verre sur la table.
         A appeler dès qu'il y a une mise à jour des obstacles.
         """
-        for i, verre in enumerate(self.verres):
-            if verre["present"]:
-                distance = verre["position"].distance(position)
-                if distance < self.config["rayon_robot_adverse"] + self.config["table_tolerance_verre_actif"]:
-                    self.verre_recupere(verre)
+        pass
+        #for i, verre in enumerate(self.verres):
+            #if verre["present"]:
+                #distance = verre["position"].distance(position)
+                #if distance < self.config["rayon_robot_adverse"] + self.config["table_tolerance_verre_actif"]:
+                    #self.verre_recupere(verre)
                     
     
     ###############################################
@@ -415,7 +416,7 @@ class Table:
         """
         with self.mutex:
             obstacle = ObstacleCapteur(position, self.config["rayon_robot_adverse"])
-            self.obstacles_capteurs.append(obstacle)
+            self.obstacles_capteurs = [obstacle]
             self._detection_collision_verre(position)
             return obstacle.id
             
@@ -432,7 +433,8 @@ class Table:
         Mise à jour de la position d'un robot ennemi sur la table
         """
         self.robots_adverses[i].positionner(position,vitesse)
-        self._detection_collision_verre(position)
+        if position is not None:
+            self._detection_collision_verre(position)
             
     def _supprimer_obstacle(self, i):
         """
@@ -509,16 +511,18 @@ class TableSimulation(Table):
     def creer_obstacle(self, position):
         id = Table.creer_obstacle(self, position)
         if not self.desactiver_dessin:
-            self.simulateur.drawCircle(position.x, position.y, self.config["rayon_robot_adverse"], False, "black", "obstacle_" + str(id))
+            self.simulateur.clearEntity("obstacle_capteur")
+            self.simulateur.drawCircle(position.x, position.y, self.config["rayon_robot_adverse"], False, "black", "obstacle_capteur")
         
     def deplacer_robot_adverse(self, i, position, vitesse=None):
         Table.deplacer_robot_adverse(self, i, position, vitesse)
         
-        # Mise à jour de la position du robot
-        ennemi = self.robots_adverses[i]
-        couleur = "red" if self.config["couleur"] == "bleu" else "blue"
         self.simulateur.clearEntity("ennemi_" + str(i))
-        self.simulateur.drawCircle(ennemi.position.x, ennemi.position.y, ennemi.rayon, False, couleur, "ennemi_" + str(i))
+        # Mise à jour de la position du robot
+        if position is not None:
+            ennemi = self.robots_adverses[i]
+            couleur = "red" if self.config["couleur"] == "bleu" else "blue"
+            self.simulateur.drawCircle(ennemi.position.x, ennemi.position.y, ennemi.rayon, False, couleur, "ennemi_" + str(i))
         
         # Affichage du vecteur vitesse
         if vitesse != None and self.config["lasers_afficher_vecteur_vitesse"]:
@@ -527,7 +531,7 @@ class TableSimulation(Table):
         
     def _supprimer_obstacle(self, i):
         if not self.desactiver_dessin:
-            self.simulateur.clearEntity("obstacle_" + str(self.obstacles_capteurs[i].id))
+            self.simulateur.clearEntity("obstacle_capteur")
         Table._supprimer_obstacle(self, i)
         
     def _dessiner_bougies(self):

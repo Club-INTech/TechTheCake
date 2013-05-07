@@ -20,7 +20,7 @@ class Actionneurs :
             self.serie.communiquer("capteurs_actionneurs",["cadeau",85],0)
             self.actionneur_cadeaux_actif = True
         elif angle == "haut":
-            self.serie.communiquer("capteurs_actionneurs",["cadeau",110],0)
+            self.serie.communiquer("capteurs_actionneurs",["cadeau",120],0)
             self.actionneur_cadeaux_actif = True
 
     def gonfler_ballon(self) :

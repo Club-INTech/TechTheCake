@@ -38,7 +38,7 @@ class ThreadPosition(AbstractThread):
                 robot.update_x_y_orientation()
                 robot_pret = True
             except Exception as e:
-                print(e)
+                log.warning(e)
             sleep(0.1)
             
         robot.pret = True
@@ -52,7 +52,7 @@ class ThreadPosition(AbstractThread):
             try:
                 robot.update_x_y_orientation()
             except Exception as e:
-                print(e)
+                log.warning(e)
             sleep(0.1)
             
         log.debug("Fin du thread de mise à jour")
@@ -97,7 +97,7 @@ class ThreadCapteurs(AbstractThread):
                 log.debug("Stoppage du thread capteurs")
                 return None
             distance = capteurs.mesurer(robot.marche_arriere)
-            if distance >= 0 and distance <= 1000:
+            if distance >= 0 and distance <= config["horizon_capteurs"]:
                 #distance : entre le capteur situé à l'extrémité du robot et la facade du robot adverse
                 distance_inter_robots = distance + config["rayon_robot_adverse"] + config["largeur_robot"]/2
                 if robot.marche_arriere:
@@ -181,9 +181,22 @@ class ThreadTimer(AbstractThread):
                 self.son.jouer("random")
 
             #son compte-à-rebours
-            if time() - self.get_date_debut() > self.config["temps_match"] - 4 and self.compte_rebours:
-                self.son.jouer("compte_rebours", force=True)
-                self.compte_rebours = False
+            if time() - self.get_date_debut() > self.config["temps_match"] - 4 :
+                
+                if self.compte_rebours:
+                    self.son.jouer("compte_rebours", force=True)
+                    self.compte_rebours = False
+                
+            #descente des ascenceurs
+            if time() - self.get_date_debut() > self.config["temps_match"] - 2:
+                self.robot.stopper()
+                self.robot.actionneurs.altitude_ascenseur(True, "bas")
+                self.robot.actionneurs.altitude_ascenseur(False, "bas")
+                
+            #ouverture des ascenceurs
+            if time() - self.get_date_debut() > self.config["temps_match"] - 1:
+                self.robot.actionneurs.actionneurs_ascenseur(True, "ouvert")
+                self.robot.actionneurs.actionneurs_ascenseur(False, "ouvert")
 
             sleep(.5)
             
@@ -275,13 +288,14 @@ class ThreadLaser(AbstractThread):
                 
                 # Récupération des valeurs filtrées
                 p_filtre = filtrage.position()
-                vitesse = filtrage.vitesse()
+                #vitesse = filtrage.vitesse()
                 
                 # Mise à jour de la table
-                table.deplacer_robot_adverse(0, p_filtre, vitesse)
+                #table.deplacer_robot_adverse(0, p_bruit, vitesse)
+                table.deplacer_robot_adverse(0, p_filtre, None)
 
                 # Affichage des points sur le simulateur
-                if config["cartes_simulation"] != ['']:
+                if config["cartes_simulation"] != [''] or config["simulation_table"]:
                     simulateur = self.container.get_service("simulateur")
                     if config["lasers_afficher_valeurs_brutes"]:
                         simulateur.drawPoint(p_bruit.x, p_bruit.y, "gris")

@@ -11,28 +11,32 @@ using namespace std;
 typedef vector<cv::Point> Contour;
 typedef vector<cv::Point> Polygon;
 
-Table::Table(int width, int height, int ratio):
+Table::Table(int width, int height, int ratio, double tolerance_cv):
     _width(width),
     _height(height),
     _ratio(ratio),
+    _tolerance_cv(tolerance_cv),
     _image(height/ratio, width/ratio, CV_8U),
     _image_xor(height/ratio, width/ratio, CV_8U),
     _image_bords_contours(height/ratio, width/ratio, CV_8U),
-    _image_bords_polygons(height/ratio, width/ratio, CV_8U),
+    _image_bords_polygon(height/ratio, width/ratio, CV_8U),
     _image_obstacles(height/ratio, width/ratio, CV_8U),
     _image_obstacles_polygons(height/ratio, width/ratio, CV_8U)
 {
-    reset();
 }
 
 void Table::reset()
 {
-    _image = cv::Mat(_height/_ratio, _width/_ratio, CV_8U);
-}
-
-void Table::tolerance_cv(double t)
-{
-    _tolerance_cv = t;
+    _image = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
+//     _image_xor = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
+    _image_bords_contours = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
+#if DISPLAY_DEBUG_WINDOWS
+    _image_bords_polygon = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
+#endif
+//     _image_obstacles = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
+#if DISPLAY_DEBUG_WINDOWS
+    _image_obstacles_polygons = cv::Mat::zeros(_height/_ratio, _width/_ratio, CV_8U);
+#endif
 }
 
 void Table::add_polygon(vector<cv::Point> polygon)
@@ -59,20 +63,34 @@ vector<VisiLibity::Polygon> Table::get_obstacles()
     cv::bitwise_xor(_image, cv::Scalar(255), _image_xor);
     
     // Détection des contours du XOR
-    cv::Mat image_copy = _image_xor.clone();
     vector<Contour> contours_xor;
+#if DISPLAY_DEBUG_WINDOWS
+    cv::Mat image_copy = _image_xor.clone(); // Et _image_xor garde la pose pour la photo...
     cv::findContours(image_copy, contours_xor, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+#else
+    cv::findContours(_image_xor, contours_xor, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+#endif
     
     // Approximation polygonale des bords de la carte
-//     Polygon bords_contours;
+    double longueur_max = 0;
+    int i_max = 0;
+    for (int i = 0; i < contours_xor.size(); i++)
+    {
+        double longueur = cv::arcLength(contours_xor[i], true);
+        if(longueur > longueur_max)
+        {
+            i_max = i;
+            longueur_max = longueur;
+        }
+    }
     vector<Polygon> bords_contours(1);
-    cv::approxPolyDP(cv::Mat(contours_xor[0]), bords_contours[0], _tolerance_cv, true);
+    // Détermine le polygone englobant assez proche
+    cv::approxPolyDP(cv::Mat(contours_xor[i_max]), bords_contours[0], _tolerance_cv, true);
     
-//     #if DISPLAY_DEBUG_WINDOWS
-    // Affichage des polygones finaux
-    drawContours(_image_bords_polygons, bords_contours, -1, cv::Scalar(255));
-// #endif
-    
+#if DISPLAY_DEBUG_WINDOWS
+    // Affichage du polygone final pour les bords
+    drawContours(_image_bords_polygon, bords_contours, -1, cv::Scalar(255));
+#endif
     
     /** recherche des obstacles intérieurs **/
     
@@ -83,9 +101,13 @@ vector<VisiLibity::Polygon> Table::get_obstacles()
     cv::bitwise_and(_image, _image_bords_contours, _image_obstacles);
     
     // Détection des contours des obstacles
-    image_copy = _image_obstacles.clone();
     vector<Contour> contours_obstacles;
+#if DISPLAY_DEBUG_WINDOWS
+    image_copy = _image_obstacles.clone();
     cv::findContours(image_copy, contours_obstacles, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+#else
+    cv::findContours(_image_obstacles, contours_obstacles, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+#endif
     
     // Liste des polygones, un polygone par contour détecté
     vector<Polygon> polygones_obstacles(contours_obstacles.size());
@@ -96,10 +118,9 @@ vector<VisiLibity::Polygon> Table::get_obstacles()
     }
 
 #if DISPLAY_DEBUG_WINDOWS
-    // Affichage des polygones finaux
+    // Affichage des polygones finaux pour les obstacles
     drawContours(_image_obstacles_polygons, polygones_obstacles, -1, cv::Scalar(255));
 #endif
-    
     
     
     /** conversion en polygones Visilibity 
@@ -110,10 +131,10 @@ vector<VisiLibity::Polygon> Table::get_obstacles()
      
     **/
     
-    //liste des polygones renvoyée
+    //liste des polygones (sera renvoyée)
     vector<VisiLibity::Polygon> obstacles;
     
-    // Polygone des bords de la table
+    // Polygone des bords de la table (sens anti-horaire)
     VisiLibity::Polygon bords;
     //dans le sens anti-horaire : to_table_coordinates() inverse le sens de définition
     for (int i = 0; i<bords_contours[0].size(); i++)
@@ -122,14 +143,8 @@ vector<VisiLibity::Polygon> Table::get_obstacles()
         bords.push_back(to_table_coordinates(point));
     }
     obstacles.push_back(bords);
-    
-    /*
-    bords.push_back(VisiLibity::Point(-_width/2, 0));
-    bords.push_back(VisiLibity::Point(_width/2, 0));
-    bords.push_back(VisiLibity::Point(_width/2, _height));
-    bords.push_back(VisiLibity::Point(-_width/2, _height));
-    */
 
+    
     // Polygones des obstacles (sens horaire)
     for (vector<Polygon>::iterator polygon = polygones_obstacles.begin(); polygon != polygones_obstacles.end(); polygon++)
     {
@@ -141,7 +156,6 @@ vector<VisiLibity::Polygon> Table::get_obstacles()
             cv::Point point = (*polygon)[i];
             visilibity_polygon.push_back(to_table_coordinates(point));
         }
-
         obstacles.push_back(visilibity_polygon);
     }
 
@@ -161,7 +175,7 @@ void Table::display()
     imshow("Table", _image);
     imshow("XOR", _image_xor);
     imshow("Bords contours", _image_bords_contours);
-    imshow("Bords polygons", _image_bords_polygons);
+    imshow("Bords polygons", _image_bords_polygon);
     imshow("holes", _image_obstacles);
     imshow("holes polygons", _image_obstacles_polygons);
     

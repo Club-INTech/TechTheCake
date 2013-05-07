@@ -7,11 +7,10 @@
 using namespace std;
 
 VisilibityWrapper::VisilibityWrapper(int width, int height, int ratio, double tolerance_cv, double epsilon_vis, int rayon_tolerance):
-    _table(width, height, ratio),
+    _table(width, height, ratio, tolerance_cv),
     _epsilon_vis(epsilon_vis),
     _rayon_tolerance(rayon_tolerance)
 {
-    _table.tolerance_cv(tolerance_cv);
 }
 
 void VisilibityWrapper::add_rectangle(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)

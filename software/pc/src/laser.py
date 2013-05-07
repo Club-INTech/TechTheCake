@@ -78,7 +78,13 @@ class Laser:
         if "NO_RESPONSE" in reponse:
             return None
             
-        if "NO_VALUE" in reponse:
+        #if "NO_VALUE" in reponse:
+            #return None
+            
+        if "OLD_VALUE" in reponse:
+            return None
+            
+        if "UNVISIBLE" in reponse:
             return None
            
         # Fréquence actuelle du moteur
@@ -93,6 +99,10 @@ class Laser:
         # Calcul de la distance (en mm)
         ecart_laser = 35
         theta = delai * freq * 2 * math.pi
+        if theta == 0: 
+            self.log.warning("Division par zéro dans le calcul d'angle : freq = {0}, delai = {1}".format(freq, delai))
+            return None
+            
         distance = ecart_laser / math.sin(theta / 2)
         
         # Angle

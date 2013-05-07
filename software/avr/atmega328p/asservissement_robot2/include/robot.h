@@ -17,11 +17,11 @@
 #include <libintech/register.hpp>
 #include <libintech/singleton.hpp>
 
-#define CONVERSION_TIC_MM 0.013692065
-#define CONVERSION_TIC_RADIAN 0.000151441
+#define CONVERSION_TIC_MM 0.013253469
+#define CONVERSION_TIC_RADIAN 0.000149236
 
 #define PI 3.14159265
-#define PI_TIC 20745//( PI / CONVERSION_TIC_RADIAN)
+#define PI_TIC 21051//(int)( PI / CONVERSION_TIC_RADIAN)
 
 #define EEPROM_KP_TRA   0
 #define EEPROM_KD_TRA   4

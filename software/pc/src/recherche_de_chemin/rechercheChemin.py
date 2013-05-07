@@ -27,7 +27,7 @@ class RechercheChemin:
         
         #instanciation du wrapper vers openCV et visibility
         #VisilibityWrapper(int width, int height, int ratio, double tolerance_cv, double epsilon_vis, int rayon_tolerance)
-        self.wrapper = VisilibityWrapper(self.config["table_x"], self.config["table_y"], 5, 10.0, 0.0001, self.config["disque_tolerance_consigne"])
+        self.wrapper = VisilibityWrapper(self.config["table_x"], self.config["table_y"], 5, 10.0, 0.001, self.config["disque_tolerance_consigne"])
         
         #prise en compte du rayon du robot
         self.rayonRobot = self.config["rayon_robot"]
@@ -37,19 +37,19 @@ class RechercheChemin:
         Ajoute un obstacle circulaire à l'environnement. 
         """
         if dilatationAuto:
-            self.wrapper.add_circle(centre.x, centre.y, rayon + self.rayonRobot)
+            self.wrapper.add_circle(int(centre.x), int(centre.y), int(rayon + self.rayonRobot))
         else:
-            self.wrapper.add_circle(centre.x, centre.y, rayon)
+            self.wrapper.add_circle(int(centre.x), int(centre.y), int(rayon))
     
     def ajoute_rectangle(self, rectangle, dilatationAuto = True):
         """
         Ajoute un obstacle rectangulaire à l'environnement.  
         """
         #TODO : dilatationAuto
-        self.wrapper.add_rectangle(rectangle[0].x, rectangle[0].y, 
-                               rectangle[1].x, rectangle[1].y,
-                               rectangle[2].x, rectangle[2].y,
-                               rectangle[3].x, rectangle[3].y)
+        self.wrapper.add_rectangle(int(rectangle[0].x), int(rectangle[0].y), 
+                               int(rectangle[1].x), int(rectangle[1].y),
+                               int(rectangle[2].x), int(rectangle[2].y),
+                               int(rectangle[3].x), int(rectangle[3].y))
                                
     def retirer_obstacles_dynamiques(self):
         """
@@ -80,13 +80,13 @@ class RechercheChemin:
         return obstacles
         
     def charge_obstacles(self, avec_verres_entrees=True):
-        ##ajout des obstacles vus par les capteurs et la balise
-        #for obstacle in self.table.obstacles():
-            #self.ajoute_cercle(obstacle.position, obstacle.rayon)
-        
-        #ajout des obstacles vus par les capteurs (seulement)
-        for obstacle in self.table.obstacles_capteurs:
+        #ajout des obstacles vus par les capteurs et la balise
+        for obstacle in self.table.obstacles():
             self.ajoute_cercle(obstacle.position, obstacle.rayon)
+        
+        ##ajout des obstacles vus par les capteurs (seulement)
+        #for obstacle in self.table.obstacles_capteurs:
+            #self.ajoute_cercle(obstacle.position, obstacle.rayon)
             
         #ajout des verres encore présents sur la table
         for verre in self.table.verres_restants():
@@ -98,7 +98,7 @@ class RechercheChemin:
             raise ExceptionEnvironnementMauvais 
         
     def cherche_chemin_avec_visilibity(self, depart, arrivee):
-        cheminVis = self.wrapper.path(depart.x, depart.y, arrivee.x, arrivee.y)
+        cheminVis = self.wrapper.path(int(depart.x), int(depart.y), int(arrivee.x), int(arrivee.y))
         if cheminVis.size():
             return [Point(cheminVis.get_Point(i).x(),cheminVis.get_Point(i).y()) for i in range(1,cheminVis.size())]
         else:
@@ -123,6 +123,16 @@ class RechercheCheminSimulation(RechercheChemin):
     def __init__(self, simulateur, table, config, log):
         self.simulateur = simulateur
         super().__init__(table, config, log)
+        
+    def prepare_environnement_pour_visilibity(self):
+        RechercheChemin.prepare_environnement_pour_visilibity(self)
+        
+        self.simulateur.clearEntity("rc_obst")
+            
+        for obstacle in RechercheChemin.get_obstacles(self):
+            for i in range(1,len(obstacle)):
+                self.simulateur.drawLine(obstacle[i-1].x,obstacle[i-1].y,obstacle[i].x,obstacle[i].y,"green","rc_obst")
+            self.simulateur.drawLine(obstacle[len(obstacle)-1].x,obstacle[len(obstacle)-1].y,obstacle[0].x,obstacle[0].y,"green","rc_obst")
             
     def cherche_chemin_avec_visilibity(self, depart, arrivee):
         chemin = RechercheChemin.cherche_chemin_avec_visilibity(self, depart, arrivee)

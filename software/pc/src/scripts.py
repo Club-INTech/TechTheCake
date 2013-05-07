@@ -108,7 +108,7 @@ class ScriptBougies(Script):
         # Vrai si on n'a reçu aucune information de l'application android (sert au calcul des points)
         self.en_aveugle = False
         self.malus = 0
-
+        
         self.couleur_a_traiter = self.table.COULEUR_BOUGIE_ROUGE | self.table.COULEUR_BOUGIE_BLANC if self.config["couleur"] == "rouge" else self.table.COULEUR_BOUGIE_BLEU | self.table.COULEUR_BOUGIE_BLANC
         
         # pour calculer simplement les delta_angle
@@ -173,6 +173,7 @@ class ScriptBougies(Script):
         self.info_versions = [
             {
                 "angle_entree": angles_entree[0],
+                "bougie_entree": bougies[0],
                 "point_entree": self._point_polaire(angles_entree[0], self.distance_entree),
                 "point_entree_recherche_chemin": self._point_polaire(angles_entree[0] + deltas_angle_rc[0], self.distance_entree_rc),
                 "marche_arriere": False,
@@ -180,6 +181,7 @@ class ScriptBougies(Script):
             },               
             {
                 "angle_entree": angles_entree[1],
+                "bougie_entree": bougies[1],
                 "point_entree": self._point_polaire(angles_entree[1], self.distance_entree),
                 "point_entree_recherche_chemin": self._point_polaire(angles_entree[1] + deltas_angle_rc[1], self.distance_entree_rc),
                 "marche_arriere": True,
@@ -190,7 +192,7 @@ class ScriptBougies(Script):
         return [0, 1]
         
     def _execute(self, version):
-
+        
         self.robot.set_vitesse_translation("entre_scripts")
         self.robot.set_vitesse_rotation("entre_scripts")
         # Il n'y a aucune symétrie sur la couleur dans les déplacements
@@ -257,20 +259,30 @@ class ScriptBougies(Script):
             hook_lever_bras += self.hookGenerator.callback(self.robot.actionneurs_bougie, (bougie["enHaut"],"haut"))
             hooks.append(hook_lever_bras)
         
-        #on enfonce les bougies extremales si possible (l'actionneur du haut pour celle des x petits, celui du bas pour x grands)
-        if self.table.bougies_entrees(self.couleur_a_traiter)[version]["id"] == 2 and self.table.bougies[1]["couleur"] == self.couleur_a_traiter:
-            self.robot.actionneurs_bougie(True, "moyen")
-            sleep(0.5)
-            self.robot.actionneurs_bougie(True, "haut")
-        elif self.table.bougies_entrees(self.couleur_a_traiter)[version]["id"] == 17 and self.table.bougies[19]["couleur"] == self.couleur_a_traiter:
-            self.robot.actionneurs_bougie(False, "moyen")
-            sleep(0.5)
-            self.robot.actionneurs_bougie(False, "haut")
+        self.bougies_extremales(self.info_versions[version]["bougie_entree"])
             
         # Lancement de l'arc de cercle
         self.robot.marche_arriere = self.info_versions[version]["marche_arriere"]
         self.robot.arc_de_cercle(sortie, hooks)
         
+        self.bougies_extremales(self.info_versions[1-version]["bougie_entree"])
+        
+    def bougies_extremales(self, bougie_entree):
+                
+        #on enfonce les bougies extremales si possible (l'actionneur du haut pour celle des x petits, celui du bas pour x grands)
+        if bougie_entree["id"] == 1 and self.table.bougies[1]["couleur"] & self.couleur_a_traiter:
+            self.robot.tourner(-0.8)
+            self.robot.actionneurs_bougie(True, "moyen")
+            sleep(0.3)
+            self.robot.actionneurs_bougie(True, "haut")
+        elif bougie_entree["id"] == 19 and self.table.bougies[19]["couleur"] & self.couleur_a_traiter:
+            self.robot.tourner(1.2)
+            self.robot.actionneurs_bougie(False, "moyen")
+            self.robot.actionneurs_bougie(True, "moyen")
+            sleep(0.3)
+            self.robot.actionneurs_bougie(False, "haut")
+            self.robot.actionneurs_bougie(True, "haut")
+            
     def _termine(self):
         # Fermeture des actionneurs bougies : il faut enchainer ces actions pour se dégager du gateau.
         #TODO : trouver autre chose que les finally embriqués...
@@ -343,6 +355,9 @@ class ScriptCadeaux(Script):
         # Création des hooks pour tous les cadeaux à activer
         hooks = []
         
+        #pour se réorienter
+        avance_vers_x_croissant = not (1-version == self.robot.marche_arriere)
+        
         # Ouverture du bras en face du cadeau
         for cadeau in self.table.cadeaux_restants():
             # Le premier cadeau à une anticipation en x plus faible du fait de la plus faible vitesse du robot
@@ -358,6 +373,7 @@ class ScriptCadeaux(Script):
         for trou in self.table.trous_cadeaux:
             hook_fermeture = self.hookGenerator.hook_droite_verticale(trou.x + sens * self.decalage_x_ferme, vers_x_croissant=1-version)
             hook_fermeture += self.hookGenerator.callback(self.robot.actionneur_cadeau, ("moyen", ))
+            hook_fermeture += self.hookGenerator.callback(self.robot.correction_angle, (0 if avance_vers_x_croissant else math.pi, ))
             hooks.append(hook_fermeture)
 
         # Déplacement le long de la table (peut être un peu trop loin ?)
@@ -365,12 +381,6 @@ class ScriptCadeaux(Script):
         self.robot.set_vitesse_rotation("cadeaux")
         point_sortie = Point(self.info_versions[1-version]["point_entree"].x, self.info_versions[version]["point_entree"].y)
         
-        """
-        #HACK on fait en 2 segments pour se ré-orienter (pas de correction de trajectoire)
-        if abs(point_sortie.x - self.robot.x) > 1000:
-            point_milieu = Point((point_sortie.x + self.robot.x)/2, (point_sortie.y + self.robot.y)/2)
-            self.robot.va_au_point(point_milieu, hooks)
-        """
         self.robot.va_au_point(point_sortie, hooks)
         
  
@@ -393,7 +403,7 @@ class ScriptCadeaux(Script):
     def versions(self):
         self.decalage_x_ouvre = -190
         self.decalage_x_ferme = -230#350
-        self.decalage_y_bord = self.config["rayon_robot"] + 90
+        self.decalage_y_bord = self.config["rayon_robot"] + 60#90
         self.decalage_x_pour_reglette_blanche = 100
         
         cadeaux = self.table.cadeaux_entrees()
@@ -502,7 +512,7 @@ class ScriptRecupererVerres(Script):
         hooks = []
 
         hook_verre = self.hookGenerator.hook_capteur_verres(self.robot, not self.robot.marche_arriere)
-        hook_verre += self.hookGenerator.callback(self.robot.stopper)
+        hook_verre += self.hookGenerator.callback(self.robot.stopper, (False,))
         hook_verre += self.hookGenerator.callback(self.robot.recuperer_verre, (not self.robot.marche_arriere, ))
         
         hooks.append(hook_verre)
@@ -775,43 +785,41 @@ class ScriptDeposerVerres(Script):
         return 4 * ( sum(range(1,self.robotVrai.nb_verres_avant+1)) + sum(range(1,self.robotVrai.nb_verres_arriere+1)) )
 
     def poids(self):
-        # S'il n'y a plus de verre sur le terrain (ou qu'on est plein), on fonce déposer ceux qu'on a!
-        if len(self.table.verres_entrees()) == 0 or (self.robotVrai.places_disponibles(True) == 0 and self.robotVrai.places_disponibles(False) == 0):
-            return 20
+        # Ne pas oublier de déposer nos verres 
+        if not (self.robotVrai.places_disponibles(True) == self.config["nb_max_verre"] and self.robotVrai.places_disponibles(False) == self.config["nb_max_verre"]):
+            return 0.2*(time() - self.timer.get_date_debut())
         else:
             return 0
-
-
-class ScriptRenverserVerres(Script):
-
-    def _constructeur(self):
-	# Position des verres ennemis, mis à jour par la stratégie (0: pas de position)
-        self.cases_verres = [0,0]
-
-    def versions(self):
-	#Autant de versions que de cases (le "list(set())" retire les doublons de la liste)
-        return [i for i in list(set(self.cases_verres)) if i!=0]
-
-    def _execute(self, version):
-        """
-        On suppose connaître les emplacements de départ des autres robots (là où ils poseront leur verres).
-        """
-        pass
-
-    def _termine(self):
-        pass
             
-    def point_entree(self, id_version):
-        entree = Point(900, 400*(id_version-0.5))
-        if self.config["rouge"]:
-            entree.x = -entree.x
-        return entree
+#class ScriptRenverserVerres(Script):
 
-    def score(self):
-        # estimation
-        return 10
+    #def _constructeur(self):
+	## Position des verres ennemis, mis à jour par la stratégie (0: pas de position)
+        #self.cases_verres = [0,0]
 
-    def poids(self):
-        # on le fera vers la fin
-        return 0.1*(time() - self.timer.get_date_debut())
+    #def versions(self):
+	##Autant de versions que de cases (le "list(set())" retire les doublons de la liste)
+        #return [i for i in list(set(self.cases_verres)) if i!=0]
 
+    #def _execute(self, version):
+        #"""
+        #On suppose connaître les emplacements de départ des autres robots (là où ils poseront leur verres).
+        #"""
+        #pass
+
+    #def _termine(self):
+        #pass
+            
+    #def point_entree(self, id_version):
+        #entree = Point(900, 400*(id_version-0.5))
+        #if self.config["rouge"]:
+            #entree.x = -entree.x
+        #return entree
+
+    #def score(self):
+        ## estimation
+        #return 10
+
+    #def poids(self):
+        ## on le fera vers la fin
+        #return 0.1*(time() - self.timer.get_date_debut())
