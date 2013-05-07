@@ -997,7 +997,7 @@ class RobotSimulation(Robot):
         
     def tourner(self, angle_consigne, hooks=[], nombre_tentatives=2, sans_lever_exception=False):
         self._afficher_hooks(hooks)
-        super().tourner(angle_consigne, hooks, sans_lever_exception=sans_lever_exception)
+        super().tourner(angle_consigne, hooks, nombre_tentatives=nombre_tentatives, sans_lever_exception=sans_lever_exception)
         
     def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, retenter_si_blocage=True, symetrie_effectuee=False, sans_lever_exception=False):
         self._afficher_hooks(hooks)
