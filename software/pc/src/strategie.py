@@ -97,9 +97,8 @@ class Strategie:
 #                version_a_faire = 0
                 self.log.debug("Stratégie ordonne: ({0}, version n°{1}, entrée en {2})".format(script_a_faire, version_a_faire, self.scripts[script_a_faire].point_entree(version_a_faire)))
                 
-                """
                 input()
-                
+                """
                 #ajout d'obstacles pour les verres d'entrées, sauf si on execute un script de récupération des verres
                 if not isinstance(self.scripts[script_a_faire], ScriptRecupererVerres):
                     self.rechercheChemin.retirer_obstacles_dynamiques()
@@ -186,13 +185,13 @@ class Strategie:
 
         note = [
             # Densité de points
-            5*score/duree_script,
+            1000 * score/duree_script,
 
             # On évite l'ennemi s'il est proche de l'objectif (gaussienne)
             -10*math.exp(-(distance_ennemi**4)/(5*10**11)),
             
             # Echecs précédents
-            5*note_echecs,
+            2*note_echecs,
     
             # Fonction du temps
             poids,
@@ -216,7 +215,7 @@ class Strategie:
         #obstacles avec vitesse
         positions = [point_entree.distance(obstacle.position)+duree_du_trajet*obstacle.vitesse.norme() for obstacle in self.table.obstacles() if hasattr(obstacle, "vitesse") and obstacle.vitesse is not None]
         #obstacles sans vitesse
-        positions += [point_entree.distance(obstacle.position) for obstacle in self.table.obstacles() if not hasattr(obstacle, "vitesse")]
+        positions += [point_entree.distance(obstacle.position) for obstacle in self.table.obstacles() if not hasattr(obstacle, "vitesse") or obstacle.vitesse is None]
 
         # S'il n'y a aucun ennemi, on considère qu'il est à l'infini
         if positions == []:

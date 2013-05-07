@@ -320,7 +320,7 @@ class RobotChrono(RobotInterface):
         pwm_max = RobotInterface.conventions_vitesse_translation(vitesse)
         
         #TODO : à étalonner !
-        vitesse_mps = pwm_max/100
+        vitesse_mps = 2500/(34.3*pwm_max + 13.3)
         
         self.vitesse_translation = vitesse_mps
     
@@ -331,7 +331,7 @@ class RobotChrono(RobotInterface):
         pwm_max = RobotInterface.conventions_vitesse_rotation(vitesse,rayon)
         
         #TODO : à étalonner !
-        vitesse_rps = pwm_max/30
+        vitesse_rps = math.pi/(27*pwm_max + 50)
         
         self.vitesse_rotation = vitesse_rps
         

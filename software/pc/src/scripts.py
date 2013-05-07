@@ -785,43 +785,41 @@ class ScriptDeposerVerres(Script):
         return 4 * ( sum(range(1,self.robotVrai.nb_verres_avant+1)) + sum(range(1,self.robotVrai.nb_verres_arriere+1)) )
 
     def poids(self):
-        # S'il n'y a plus de verre sur le terrain (ou qu'on est plein), on fonce déposer ceux qu'on a!
-        if len(self.table.verres_entrees()) == 0 or (self.robotVrai.places_disponibles(True) == 0 and self.robotVrai.places_disponibles(False) == 0):
-            return 20
+        # Ne pas oublier de déposer nos verres 
+        if not (self.robotVrai.places_disponibles(True) == self.config["nb_max_verre"] and self.robotVrai.places_disponibles(False) == self.config["nb_max_verre"]):
+            return 0.2*(time() - self.timer.get_date_debut())
         else:
             return 0
-
-
-class ScriptRenverserVerres(Script):
-
-    def _constructeur(self):
-	# Position des verres ennemis, mis à jour par la stratégie (0: pas de position)
-        self.cases_verres = [0,0]
-
-    def versions(self):
-	#Autant de versions que de cases (le "list(set())" retire les doublons de la liste)
-        return [i for i in list(set(self.cases_verres)) if i!=0]
-
-    def _execute(self, version):
-        """
-        On suppose connaître les emplacements de départ des autres robots (là où ils poseront leur verres).
-        """
-        pass
-
-    def _termine(self):
-        pass
             
-    def point_entree(self, id_version):
-        entree = Point(900, 400*(id_version-0.5))
-        if self.config["rouge"]:
-            entree.x = -entree.x
-        return entree
+#class ScriptRenverserVerres(Script):
 
-    def score(self):
-        # estimation
-        return 10
+    #def _constructeur(self):
+	## Position des verres ennemis, mis à jour par la stratégie (0: pas de position)
+        #self.cases_verres = [0,0]
 
-    def poids(self):
-        # on le fera vers la fin
-        return 0.1*(time() - self.timer.get_date_debut())
+    #def versions(self):
+	##Autant de versions que de cases (le "list(set())" retire les doublons de la liste)
+        #return [i for i in list(set(self.cases_verres)) if i!=0]
 
+    #def _execute(self, version):
+        #"""
+        #On suppose connaître les emplacements de départ des autres robots (là où ils poseront leur verres).
+        #"""
+        #pass
+
+    #def _termine(self):
+        #pass
+            
+    #def point_entree(self, id_version):
+        #entree = Point(900, 400*(id_version-0.5))
+        #if self.config["rouge"]:
+            #entree.x = -entree.x
+        #return entree
+
+    #def score(self):
+        ## estimation
+        #return 10
+
+    #def poids(self):
+        ## on le fera vers la fin
+        #return 0.1*(time() - self.timer.get_date_debut())
