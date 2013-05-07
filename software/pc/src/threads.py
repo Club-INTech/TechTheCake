@@ -288,10 +288,11 @@ class ThreadLaser(AbstractThread):
                 
                 # Récupération des valeurs filtrées
                 p_filtre = filtrage.position()
-                vitesse = filtrage.vitesse()
+                #vitesse = filtrage.vitesse()
                 
                 # Mise à jour de la table
-                table.deplacer_robot_adverse(0, p_filtre, vitesse)
+                #table.deplacer_robot_adverse(0, p_bruit, vitesse)
+                table.deplacer_robot_adverse(0, p_filtre, None)
 
                 # Affichage des points sur le simulateur
                 if config["cartes_simulation"] != [''] or config["simulation_table"]:
