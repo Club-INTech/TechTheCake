@@ -432,7 +432,8 @@ class Table:
         Mise à jour de la position d'un robot ennemi sur la table
         """
         self.robots_adverses[i].positionner(position,vitesse)
-        self._detection_collision_verre(position)
+        if position is not None:
+            self._detection_collision_verre(position)
             
     def _supprimer_obstacle(self, i):
         """
@@ -515,11 +516,12 @@ class TableSimulation(Table):
     def deplacer_robot_adverse(self, i, position, vitesse=None):
         Table.deplacer_robot_adverse(self, i, position, vitesse)
         
-        # Mise à jour de la position du robot
-        ennemi = self.robots_adverses[i]
-        couleur = "red" if self.config["couleur"] == "bleu" else "blue"
         self.simulateur.clearEntity("ennemi_" + str(i))
-        self.simulateur.drawCircle(ennemi.position.x, ennemi.position.y, ennemi.rayon, False, couleur, "ennemi_" + str(i))
+        # Mise à jour de la position du robot
+        if position is not None:
+            ennemi = self.robots_adverses[i]
+            couleur = "red" if self.config["couleur"] == "bleu" else "blue"
+            self.simulateur.drawCircle(ennemi.position.x, ennemi.position.y, ennemi.rayon, False, couleur, "ennemi_" + str(i))
         
         # Affichage du vecteur vitesse
         if vitesse != None and self.config["lasers_afficher_vecteur_vitesse"]:
