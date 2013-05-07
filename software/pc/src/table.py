@@ -117,10 +117,10 @@ class Table:
             {"id": 5, "position": Point(600,550), "present":True},
             {"id": 6, "position": Point(-600,1050), "present":True},
             {"id": 7, "position": Point(-300,1050), "present":True},
-            {"id": 8, "position": Point(-150,800), "present":True},
-            {"id": 9, "position": Point(-450,800), "present":True},
-            {"id": 10, "position": Point(-600,550), "present":True},
-            {"id": 11, "position": Point(-300,550), "present":True}
+            {"id": 8, "position": Point(-450,800), "present":True},
+            {"id": 9, "position": Point(-150,800), "present":True},
+            {"id": 10, "position": Point(-300,550), "present":True},
+            {"id": 11, "position": Point(-600,550), "present":True}
         ]
         
         # Positions des centres des cases de départ des robots (ids spécifiés dans la config). Pour le robot rouge (symétrie dans les scripts)
