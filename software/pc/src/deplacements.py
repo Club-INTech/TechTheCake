@@ -31,7 +31,7 @@ class Deplacements():
         """
         blocage = False
         
-        moteur_force = abs(PWMmoteurGauche) > 45 or abs(PWMmoteurDroit) > 45
+        moteur_force = abs(PWMmoteurGauche) > 40 or abs(PWMmoteurDroit) > 40
         bouge_pas = derivee_erreur_rotation==0 and derivee_erreur_translation==0
             
         if (bouge_pas and moteur_force):
