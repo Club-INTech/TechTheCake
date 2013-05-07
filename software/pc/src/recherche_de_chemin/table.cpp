@@ -72,8 +72,20 @@ vector<VisiLibity::Polygon> Table::get_obstacles()
 #endif
     
     // Approximation polygonale des bords de la carte
+    double longueur_max = 0;
+    int i_max = 0;
+    for (int i = 0; i < contours_xor.size(); i++)
+    {
+        double longueur = cv::arcLength(contours_xor[i], true);
+        if(longueur > longueur_max)
+        {
+            i_max = i;
+            longueur_max = longueur;
+        }
+    }
     vector<Polygon> bords_contours(1);
-    cv::approxPolyDP(cv::Mat(contours_xor[0]), bords_contours[0], _tolerance_cv, true);
+    // Détermine le polygone englobant assez proche
+    cv::approxPolyDP(cv::Mat(contours_xor[i_max]), bords_contours[0], _tolerance_cv, true);
     
 #if DISPLAY_DEBUG_WINDOWS
     // Affichage du polygone final pour les bords
