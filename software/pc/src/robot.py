@@ -483,12 +483,13 @@ class Robot(RobotInterface):
     ### MÉTHODES PUBLIQUES DE DÉPLACEMENTS DE HAUT NIVEAU (TROUVÉES DANS LES SCRIPTS), AVEC RELANCES EN CAS DE PROBLÈME ###
     #######################################################################################################################
     
-    def stopper(self):
+    def stopper(self, avec_blocage =  True):
         """
         Stoppe le robot en l'asservissant sur place
         """
         self.log.debug("stoppage du robot")
-        self.blocage = True
+        if avec_blocage:
+            self.blocage = True
         self.deplacements.stopper()
 
     def avancer(self, distance, hooks=[], nombre_tentatives=2, retenter_si_blocage=True, sans_lever_exception=False):

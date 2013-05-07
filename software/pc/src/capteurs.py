@@ -60,9 +60,9 @@ class Capteurs():
 
     def demarrage_match(self):
         try:
-            return not int(self.serie.communiquer("capteurs_actionneurs",["j"], 1)[0])==1
-        except:
-            self.log.warning("Erreur de lecture du jumper")
+            return not self.serie.communiquer("capteurs_actionneurs",["j"], 1)[0] == "1"
+        except Exception as e:
+            self.log.warning("Erreur de lecture du jumper : "+str(e))
         
     def verre_present(self, avant):
         try:

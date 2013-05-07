@@ -512,7 +512,7 @@ class ScriptRecupererVerres(Script):
         hooks = []
 
         hook_verre = self.hookGenerator.hook_capteur_verres(self.robot, not self.robot.marche_arriere)
-        hook_verre += self.hookGenerator.callback(self.robot.stopper)
+        hook_verre += self.hookGenerator.callback(self.robot.stopper, (False,))
         hook_verre += self.hookGenerator.callback(self.robot.recuperer_verre, (not self.robot.marche_arriere, ))
         
         hooks.append(hook_verre)
