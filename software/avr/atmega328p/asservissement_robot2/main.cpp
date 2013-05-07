@@ -34,8 +34,7 @@ ISR(TIMER1_OVF_vect, ISR_NOBLOCK){
 	int32_t infos[2];
 	get_all(infos);
     
-    //dites merci à NIEALSS pour l'inversion des canaux...
-    robot.mesure_distance(-(infos[0] + infos[1]));
+    robot.mesure_distance(infos[0] + infos[1]);
     robot.mesure_angle(infos[0] - infos[1]);
     
 	//mise à jour du pwm envoyé aux moteurs pour l'asservissement
