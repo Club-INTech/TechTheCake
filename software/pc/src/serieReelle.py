@@ -53,9 +53,10 @@ class SerieReelle:
         pings = {}
         for baudrate in baudrates:
             print("liste des pings pour le baudrate "+str(baudrate)+" :")
-            for source in sources:
+            k=0
+            while k < len(sources):
                 try:
-                    instanceSerie = Serial(source, baudrate, timeout=0.1)
+                    instanceSerie = Serial(sources[k], baudrate, timeout=0.1)
                     
                     #vide le buffer série coté pc
                     instanceSerie.flushInput()
@@ -75,12 +76,14 @@ class SerieReelle:
                     #tentative de cast pour extraire un id
                     try:
                         id = int(rep)
-                        pings[id]=source
-                        print(" * "+str(id)+" sur "+source)
-                    except:
-                        pass
+                        pings[id]=sources[k]
+                        print(" * "+str(id)+" sur "+sources[k])
+                        #sources.remove(source)
+                    finally:
+                        k += 1
                 except Exception as e:
-                    self.log.warning("exception durant la détection des périphériques série: {0}".format(e))
+                    pass
+                    #self.log.warning("exception durant la détection des périphériques série: {0}".format(e))
                     
         #attribue les instances de série pour les périphériques ayant le bon ping
         for destinataire in (self.peripheriques):
@@ -122,6 +125,8 @@ class SerieReelle:
                         "exception lors de la tentative d'envoi du message {0} à la carte {1}: {2}"
                         .format(message, destinataire, e)
                     )
+                    return None
+                    
                 #chaque envoi est acquité par le destinataire, pour permettre d'émettre en continu sans flooder la série
                 try:
                     acquittement = ""
@@ -137,6 +142,7 @@ class SerieReelle:
                         "exception lors de la lecture de la réponse au message {0} à la carte {1}: {2}"
                         .format(message, destinataire, e)
                     )
+                    return None
                     
             #liste des réponses
             reponses = []
