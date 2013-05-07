@@ -390,11 +390,12 @@ class Table:
         Détecte s'il y a collision entre un robot adverse et un verre sur la table.
         A appeler dès qu'il y a une mise à jour des obstacles.
         """
-        for i, verre in enumerate(self.verres):
-            if verre["present"]:
-                distance = verre["position"].distance(position)
-                if distance < self.config["rayon_robot_adverse"] + self.config["table_tolerance_verre_actif"]:
-                    self.verre_recupere(verre)
+        pass
+        #for i, verre in enumerate(self.verres):
+            #if verre["present"]:
+                #distance = verre["position"].distance(position)
+                #if distance < self.config["rayon_robot_adverse"] + self.config["table_tolerance_verre_actif"]:
+                    #self.verre_recupere(verre)
                     
     
     ###############################################
