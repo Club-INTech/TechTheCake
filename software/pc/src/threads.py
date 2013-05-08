@@ -276,6 +276,9 @@ class ThreadLaser(AbstractThread):
         for balise in laser.balises_ignorees():
             log.warning("balise n°" + str(balise["id"]) + " ignorée pendant le match, pas de réponses aux ping")
 
+        # Vérification de la cohérence des données des balises
+        laser.verifier_coherence_balise()
+        
         # Liste des balises prises en compte
         balises = laser.balises_actives()
         
@@ -321,6 +324,7 @@ class ThreadLaser(AbstractThread):
             end = time()
             filtrage.update_dt(end-start)
             
+        laser.eteindre()
         log.debug("Fin du thread des lasers")
         
         
