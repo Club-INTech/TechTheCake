@@ -53,7 +53,10 @@ class Serie:
             except:
                 self.log.critical("La carte '"+destinataire+"' n'est ni en simulation ni sur la série !")
                 raise Exception
-            
+
+    def serie_prete(self):
+        return self.serieReelle is None or self.serieReelle.serie_prete()
+    
     def set_arret_serie(self):
         """
         Méthode pour arrêter le service série, appelée par le service timer à la fin du match.

@@ -1,6 +1,7 @@
 from serial import Serial
 from mutex import Mutex
 import os
+import time
         
 class Peripherique:
     """
@@ -27,6 +28,9 @@ class SerieReelle:
         
         #mutex évitant les écritures/lectures simultanées sur la série
         self.mutex = Mutex()
+
+        #les threads attendent la serie
+        self.prete = False
         
     def definir_peripheriques(self, dico_infos_peripheriques):
         #dictionnaire des périphériques recherchés : recrée les objets périphériques à partir des données fournies
@@ -94,6 +98,9 @@ class SerieReelle:
                 self.peripheriques[destinataire].serie = Serial(source, self.peripheriques[destinataire].baudrate, timeout=1.0)
             else:
                 self.log.warning(destinataire+" non trouvé !")
+
+        time.sleep(1)
+        self.prete= True
         
     def _clean_string(self, chaine):
         """
@@ -151,3 +158,6 @@ class SerieReelle:
                 #print("\t r>"+destinataire+reponse)
                 reponses.append(self._clean_string(reponse))
         return reponses
+
+    def serie_prete(self):
+        return self.prete
