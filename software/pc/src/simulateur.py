@@ -24,12 +24,28 @@ class Simulateur:
             couleur = "red"
             ennemi = "blue"
             
-        # Définition du robot
+        ## Définition d'un robot carré
+        #client.service.defineRobot({"list":[
+            #{"float":[-config["longueur_robot"]/2,-config["largeur_robot"]/2]},
+            #{"float":[-config["longueur_robot"]/2,config["largeur_robot"]/2]},
+            #{"float":[config["longueur_robot"]/2,config["largeur_robot"]/2]},
+            #{"float":[config["longueur_robot"]/2,-config["largeur_robot"]/2]}
+            #]},couleur)
+            
+        # Définition du robot réel
         client.service.defineRobot({"list":[
-            {"float":[-config["longueur_robot"]/2,-config["largeur_robot"]/2]},
-            {"float":[-config["longueur_robot"]/2,config["largeur_robot"]/2]},
-            {"float":[config["longueur_robot"]/2,config["largeur_robot"]/2]},
-            {"float":[config["longueur_robot"]/2,-config["largeur_robot"]/2]}
+            {"float":[-147.5,-120.]},
+            {"float":[-147.5,-75.]},
+            {"float":[-192.5,-75.]},
+            {"float":[-192.5,75.]},
+            {"float":[-147.5,75.]},
+            {"float":[-147.5,120.]},
+            {"float":[147.5,120.]},
+            {"float":[147.5,75.]},
+            {"float":[192.5,75.]},
+            {"float":[192.5,-75.]},
+            {"float":[147.5,-75.]},
+            {"float":[147.5,-120.]},
             ]},couleur)
             
         # Definition des zones des capteurs
@@ -56,6 +72,7 @@ class Simulateur:
         # Déclaration d'un robot adverse
         if config["activer_ennemi_principal"]:
             client.service.addEnemy(0, 80, ennemi)
+            client.service.addEnemy(1, 80, ennemi)
         
         # Enregistrement du service SOAP
         self.soap = client.service

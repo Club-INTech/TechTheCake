@@ -1,3 +1,5 @@
+import time
+
 class Serie:
     """
     Redirige les requêtes au service `serie` vers la série réelle (communication robot) ou la série de simulation.

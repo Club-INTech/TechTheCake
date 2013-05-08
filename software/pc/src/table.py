@@ -229,21 +229,20 @@ class Table:
                 Table.COULEUR_BOUGIE_BLEU : 0
         }
 
-        for i, couleur in enumerate(list(code)):
-            
-            conversion = {
+        
+        conversion = {
                 "?": Table.COULEUR_BOUGIE_INCONNUE,
                 "w": Table.COULEUR_BOUGIE_BLANC,
                 "r": Table.COULEUR_BOUGIE_ROUGE,
                 "b": Table.COULEUR_BOUGIE_BLEU
             }
-            symetrie = {
+        symetrie = {
                 "?": Table.COULEUR_BOUGIE_INCONNUE,
                 "w": Table.COULEUR_BOUGIE_BLANC,
                 "r": Table.COULEUR_BOUGIE_BLEU,
                 "b": Table.COULEUR_BOUGIE_ROUGE
             }
-                 
+        for i, couleur in enumerate(list(code)):
             # Inversion si on est rouge
             indice = conversionIndice[i]
             if self.config["couleur"] == "rouge":
@@ -299,19 +298,13 @@ class Table:
 
         if compteur[Table.COULEUR_BOUGIE_INCONNUE] != 0:
             self.log.warning("Les bougies inconnues sont supposées de la couleur adverse")
-
             for i in range(10):
-                if self.bougies[i]["couleur"] == Table.COULEUR_BOUGIE_INCONNUE and self.config["couleur"] == "bleu":
-                    self.bougies[i]["couleur"] == Table.COULEUR_BOUGIE_ROUGE
-                    self.bougies[19-i]["couleur"] == Table.COULEUR_BOUGIE_ROUGE
+                couleur_adverse = Table.COULEUR_BOUGIE_BLEU if self.config["couleur"] == "rouge" else Table.COULEUR_BOUGIE_ROUGE
+                if self.bougies[i]["couleur"] == Table.COULEUR_BOUGIE_INCONNUE:
+                    self.bougies[i]["couleur"] == couleur_adverse
+                    self.bougies[19-i]["couleur"] == couleur_adverse
                     compteur[Table.COULEUR_BOUGIE_INCONNUE] -= 1
-                    compteur[Table.COULEUR_BOUGIE_ROUGE] += 1
-                elif self.bougies[i]["couleur"] == Table.COULEUR_BOUGIE_INCONNUE and self.config["couleur"] == "rouge":
-                    self.bougies[i]["couleur"] == Table.COULEUR_BOUGIE_BLEU
-                    self.bougies[19-i]["couleur"] == Table.COULEUR_BOUGIE_BLEU
-                    compteur[Table.COULEUR_BOUGIE_INCONNUE] -= 1
-                    compteur[Table.COULEUR_BOUGIE_ROUGE] += 1
-
+                    compteur[couleur_adverse] += 1
 
     ###############################################
     ### GESTION DES VERRES
@@ -416,8 +409,8 @@ class Table:
         """
         with self.mutex:
             obstacle = ObstacleCapteur(position, self.config["rayon_robot_adverse"])
-            self.obstacles_capteurs = [obstacle]
-            self._detection_collision_verre(position)
+            self.obstacles_capteurs.append(obstacle)
+            #self._detection_collision_verre(position)
             return obstacle.id
             
     def supprimer_obstacles_perimes(self):
@@ -433,8 +426,8 @@ class Table:
         Mise à jour de la position d'un robot ennemi sur la table
         """
         self.robots_adverses[i].positionner(position,vitesse)
-        if position is not None:
-            self._detection_collision_verre(position)
+        #if position is not None:
+            #self._detection_collision_verre(position)
             
     def _supprimer_obstacle(self, i):
         """
@@ -511,8 +504,7 @@ class TableSimulation(Table):
     def creer_obstacle(self, position):
         id = Table.creer_obstacle(self, position)
         if not self.desactiver_dessin:
-            self.simulateur.clearEntity("obstacle_capteur")
-            self.simulateur.drawCircle(position.x, position.y, self.config["rayon_robot_adverse"], False, "black", "obstacle_capteur")
+            self.simulateur.drawCircle(position.x, position.y, self.config["rayon_robot_adverse"], False, "black", "obstacle_capteur_"+str(id))
         
     def deplacer_robot_adverse(self, i, position, vitesse=None):
         Table.deplacer_robot_adverse(self, i, position, vitesse)
@@ -531,7 +523,7 @@ class TableSimulation(Table):
         
     def _supprimer_obstacle(self, i):
         if not self.desactiver_dessin:
-            self.simulateur.clearEntity("obstacle_capteur")
+            self.simulateur.clearEntity("obstacle_capteur_"+str(self.obstacles_capteurs[i].id))
         Table._supprimer_obstacle(self, i)
         
     def _dessiner_bougies(self):
@@ -558,4 +550,4 @@ class TableSimulation(Table):
             self.simulateur.clearEntity("bougie_" + str(i))
             if not bougie["traitee"]:
                 self.simulateur.drawCircle(x, y, 32, True, "jaune", "bougie_" + str(i))
-                
+            

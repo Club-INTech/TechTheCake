@@ -342,17 +342,22 @@ class ScriptCadeaux(Script):
         self.robot.recherche_de_chemin(self.info_versions[version]["point_entree_recherche_chemin"], recharger_table=False)
         
         # Déplacement au point d'entrée
+        self.robot.set_vitesse_translation("prudence_reglette")
+        self.robot.set_vitesse_rotation("prudence_reglette")
         point_entree = self.info_versions[version]["point_entree"]
         self.robot.marche_arriere = self.robot.marche_arriere_est_plus_rapide(point_consigne=point_entree, orientation_finale_voulue=0)
-# Pourquoi ne pas retenter en cas de blocage?
-#        self.robot.va_au_point(point_entree, retenter_si_blocage=False, sans_lever_exception=True)
         self.robot.va_au_point(point_entree)
 
         # Orientation du robot
         sens = self.info_versions[version]["sens"]
         self.robot.marche_arriere = self.info_versions[version]["marche_arriere"]
         
-        # Création des hooks pour tous les cadeaux à activer
+        #ouverture du premier cadeau
+        self.robot.actionneur_cadeau("haut")
+        if self.robot is self.robotVrai: self.table.cadeau_recupere(self.table.cadeaux_entrees()[version])
+        sleep(0.3)
+        
+        # Création des hooks pour tous les autres cadeaux à activer
         hooks = []
         
         #pour se réorienter
@@ -360,11 +365,7 @@ class ScriptCadeaux(Script):
         
         # Ouverture du bras en face du cadeau
         for cadeau in self.table.cadeaux_restants():
-            # Le premier cadeau à une anticipation en x plus faible du fait de la plus faible vitesse du robot
-            if cadeau["id"] == self.table.cadeaux_entrees()[version]["id"]:
-                hook_ouverture = self.hookGenerator.hook_droite_verticale(cadeau["position"].x + sens * self.decalage_x_ouvre/2, vers_x_croissant=1-version)
-            else:
-                hook_ouverture = self.hookGenerator.hook_droite_verticale(cadeau["position"].x + sens * self.decalage_x_ouvre, vers_x_croissant=1-version)
+            hook_ouverture = self.hookGenerator.hook_droite_verticale(cadeau["position"].x + sens * self.decalage_x_ouvre, vers_x_croissant=1-version)
             hook_ouverture += self.hookGenerator.callback(self.robot.actionneur_cadeau, ("haut",))
             hook_ouverture += self.hookGenerator.callback(self.table.cadeau_recupere, (cadeau,))
             hooks.append(hook_ouverture)
@@ -425,12 +426,12 @@ class ScriptCadeaux(Script):
         # Le coefficient 1/2 devant self.decalage_x_ouvre vient du fait qu'au début du script, la vitesse est encore faible et donc on doit moins anticiper les mouvements
         self.info_versions = [
             {   "point_entree_recherche_chemin": point_entree_recherche_chemin[cadeaux[0]["id"]], 
-                "point_entree": cadeaux[0]["position"] + Point(1 * self.decalage_x_ouvre/2,self.decalage_y_bord), 
+                "point_entree": cadeaux[0]["position"] + Point(0,self.decalage_y_bord), 
                 "sens": 1, 
                 "marche_arriere": False
             },               
             {   "point_entree_recherche_chemin": point_entree_recherche_chemin[cadeaux[1]["id"]], 
-                "point_entree": cadeaux[1]["position"] + Point(-1 * self.decalage_x_ouvre/2,self.decalage_y_bord), 
+                "point_entree": cadeaux[1]["position"] + Point(0,self.decalage_y_bord), 
                 "sens": -1, 
                 "marche_arriere": True
             }]
@@ -580,35 +581,40 @@ class ScriptRecupererVerres(Script):
     def point_entree(self, id_version):
         return self.info_versions[id_version]["point_entree"]
 
+    def _nb_points(self, nb_verres_avant, nb_verres_arriere):
+        return 4 * ( sum(range(1,nb_verres_avant+1)) + sum(range(1,nb_verres_arriere+1)) )
+        
     def score(self):
         nb_verres_restants = len(self.table.verres_restants(self.zone))
         verres_stockable_avant = self.robotVrai.places_disponibles(True)
         verres_stockable_arriere = self.robotVrai.places_disponibles(False)
         
-        # On calcule le nombre de verre qu'on pourra mettre à l'avant
-        if nb_verres_restants > verres_stockable_avant:
-            nb_verres_avant = verres_stockable_avant
-        else:
-            nb_verres_avant = nb_verres_restants
+        # On calcule le nombre de verre qu'on gagnerait
+        nb_en_plus_avant = min(verres_stockable_avant, nb_verres_restants)
+        nb_en_plus_arriere = min(verres_stockable_arriere, nb_verres_restants - nb_en_plus_avant)
 
-        # Puis le nombre qu'on pourra mettre à l'arrière
-        if nb_verres_restants - nb_verres_avant > verres_stockable_arriere:
-            nb_verres_arriere = verres_stockable_arriere
-        else:
-            nb_verres_arriere = nb_verres_restants - nb_verres_avant
-
-        # Le nombre de points gagnés en remplissant l'ascenseur avant
-        points_avant = 4*((self.robotVrai.nb_verres_avant + nb_verres_avant) * (self.robotVrai.nb_verres_avant + nb_verres_avant + 1) / 2 - (self.robotVrai.nb_verres_avant) * (self.robotVrai.nb_verres_avant + 1) / 2)
-
-        # Le nombre de points gagnés en remplissant l'ascenseur arrière
-        points_arriere = 4*((self.robotVrai.nb_verres_arriere + nb_verres_arriere) * (self.robotVrai.nb_verres_arriere + nb_verres_arriere + 1) / 2 - (self.robotVrai.nb_verres_arriere) * (self.robotVrai.nb_verres_arriere + 1) / 2)
-
-        return points_avant + points_arriere
+        points_avant_script = self._nb_points(self.robotVrai.nb_verres_avant, self.robotVrai.nb_verres_arriere)
+        points_total = self._nb_points(self.robotVrai.nb_verres_avant + nb_en_plus_avant, self.robotVrai.nb_verres_arriere + nb_en_plus_arriere)
+        
+        return points_total - points_avant_script
 
     def poids(self):
-        # Au début de la partie, prendre les verres est important. A la fin, on évite.
-        return max(0,5-0.1*(time() - self.timer.get_date_debut()))
-
+        #ce calcul n'a pas de sens si aucune place n'est disponible
+        if not (self.robotVrai.places_disponibles(True) or self.robotVrai.places_disponibles(False)):
+            return 0
+        
+        #on calcule ici une valuation supplémentaire en fonction de l'avancée du match
+        t = time() - self.timer.get_date_debut()
+        
+        if self.config["ennemi_prend_ses_verres"]:
+            #formule fortement dégressive, qui pousse à prendre les verres au début, et décourage passé 20 sec 
+            if t<45: return 0.0256*t**2 - 2.447*t + 40
+            else: return -20 #attention à la parabole qui remonte...
+            
+        else:
+            #formule faiblement décroissante, et linéaire (l'adverse peut foncer dans ses verres de facon aléatoire, donc indépendant de t)
+            return max(0, 30 - 0.5*t)
+        
 class ScriptRecupererVerresZoneRouge(ScriptRecupererVerres):
     
     def __init__(self):
@@ -635,7 +641,7 @@ class ScriptDeposerVerres(Script):
         self.decalage_recherche_chemin = Point(-400,0)
         
         #recul à chaque nouveau dépot, pour éviter de dégommer les anciennes piles
-        self.largeur_recul_piles = 150
+        self.largeur_recul_piles = 170
         
         #distance entre le point d'entree et l'endroit où on dépose une pile
         self.distance_entree_depot = 120
@@ -685,8 +691,6 @@ class ScriptDeposerVerres(Script):
             return [0]
             
     def _execute(self, version):
-        
-        #TODO : gérer les vitesses !
         
         # Activation de la symétrie
         self.robot.effectuer_symetrie = True
@@ -785,9 +789,11 @@ class ScriptDeposerVerres(Script):
         return 4 * ( sum(range(1,self.robotVrai.nb_verres_avant+1)) + sum(range(1,self.robotVrai.nb_verres_arriere+1)) )
 
     def poids(self):
-        # Ne pas oublier de déposer nos verres 
+        # Ne pas oublier de déposer nos verres si on en a
         if not (self.robotVrai.places_disponibles(True) == self.config["nb_max_verre"] and self.robotVrai.places_disponibles(False) == self.config["nb_max_verre"]):
-            return 0.2*(time() - self.timer.get_date_debut())
+            #on calcule ici une valuation supplémentaire en fonction de l'avancée du match
+            t = time() - self.timer.get_date_debut()
+            return 0.9347 * math.exp(0.053*t) - 20
         else:
             return 0
             
