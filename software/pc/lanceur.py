@@ -65,14 +65,6 @@ else:
 #Toujours mettre un sleep après avoir affecté les variables robot.x ou robot.y
 sleep(1)
 
-robot.set_vitesse_translation(2)
-robot.set_vitesse_rotation(2)
-
-robot.x = 1220
-robot.y = 545
-
-sleep(1)
-
 if config["cartes_simulation"]==[]:
     simulateur = container.get_service("simulateur")
     simulateur.setRobotPosition(robot.x, robot.y)

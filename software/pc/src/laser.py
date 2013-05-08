@@ -9,7 +9,8 @@ class Laser:
         self.config = config
         self.log = log
         self.balises = [
-            {"id": 0, "active": False}
+            {"id": 0, "active": False},
+            {"id": 1, "active": False}
         ]
         
     def balises_actives(self):
@@ -113,3 +114,44 @@ class Laser:
         y = float(self.robot.y) + distance * math.sin(angle + self.robot.orientation)
         
         return Point(x, y)
+        
+    def verifier_coherence_balise(self):
+        """
+        Vérifie si les données des balises actives sont cohérentes en début de match
+        """
+        # Nombre d'essais pour les calculs
+        essais = 10
+        
+        for balise in self.balises_actives():
+            moyenne = 0.
+            valeurs = []
+            ecart_type = 0.
+            n = 0
+            
+            for i in range(essais):
+                reponse = self.serie.communiquer("laser", ["value", balise["id"]], 2)
+                if type(reponse) is list:
+                    angle = float(reponse[1])
+                    n += 1
+                    moyenne += angle
+                    valeurs.append(angle)
+                    
+            # La moitié des essais n'ont pas renvoyé de valeurs
+            if n < essais / 2:
+                return False
+                
+            # Calcul de la moyenne
+            moyenne /= float(n)
+            
+            # Calcul de l'écart type
+            for v in valeurs:
+                ecart_type += (v - moyenne) ** 2
+            ecart_type /= float(n)
+            
+            # Vérification de la cohérence
+            if ecart_type > 1:
+                self.log.warning("balise n°{0} ignorée pendant le match, valeurs renvoyées incohérentes (angle moyen = {1}, écart-type = {2})".format(balise["id"], moyenne, ecart_type))
+                self.balises[balise["id"]]["active"] = False
+            else:
+                self.log.debug("la balise n°{0} renvoie des valeurs cohérentes (angle moyen = {1}, écart-type = {2})".format(balise["id"], moyenne, ecart_type))
+        

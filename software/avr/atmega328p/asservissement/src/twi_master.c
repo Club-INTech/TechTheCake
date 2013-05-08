@@ -1,7 +1,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
-#include "twi_master_robot2.h"
+#include "twi_master.h"
 
 union TWI_statusReg
 {
