@@ -273,6 +273,15 @@ class Table:
             self.bougies[12]["couleur"] = Table.COULEUR_BOUGIE_BLANC
             compteur[Table.COULEUR_BOUGIE_BLANC] += 2
         
+        # Ainsi que les bougies extremales de couleurs fixes
+            compteur[self.bougies[0]["couleur"]] -= 1
+            compteur[self.bougies[1]["couleur"]] -= 1
+            self.bougies[0]["couleur"] = Table.COULEUR_BOUGIE_BLEU
+            self.bougies[1]["couleur"] = Table.COULEUR_BOUGIE_BLEU
+            self.bougies[18]["couleur"] = Table.COULEUR_BOUGIE_ROUGE
+            self.bougies[19]["couleur"] = Table.COULEUR_BOUGIE_ROUGE
+            compteur[Table.COULEUR_BOUGIE_BLEU] += 2
+
         # On vérifie qu'on a le bon nombre de couleur. Si on a des bougies de couleur inconnue et qu'on a par contre toutes les bougies d'une couleur, alors forcément elles sont de l'autre couleur
         if not nb_rouge_normal==compteur[Table.COULEUR_BOUGIE_ROUGE]:
             self.log.warning("Erreur détection bougies rouges! (vues: "+str(compteur[Table.COULEUR_BOUGIE_ROUGE])+")")
@@ -296,21 +305,7 @@ class Table:
                     self.bougies[19-i]["couleur"] == Table.COULEUR_BOUGIE_ROUGE
                     compteur[Table.COULEUR_BOUGIE_ROUGE] += 1
 
-        if compteur[Table.COULEUR_BOUGIE_INCONNUE] != 0:
-            self.log.warning("Les bougies inconnues sont supposées de la couleur adverse")
-
-            for i in range(10):
-                if self.bougies[i]["couleur"] == Table.COULEUR_BOUGIE_INCONNUE and self.config["couleur"] == "bleu":
-                    self.bougies[i]["couleur"] == Table.COULEUR_BOUGIE_ROUGE
-                    self.bougies[19-i]["couleur"] == Table.COULEUR_BOUGIE_ROUGE
-                    compteur[Table.COULEUR_BOUGIE_INCONNUE] -= 1
-                    compteur[Table.COULEUR_BOUGIE_ROUGE] += 1
-                elif self.bougies[i]["couleur"] == Table.COULEUR_BOUGIE_INCONNUE and self.config["couleur"] == "rouge":
-                    self.bougies[i]["couleur"] == Table.COULEUR_BOUGIE_BLEU
-                    self.bougies[19-i]["couleur"] == Table.COULEUR_BOUGIE_BLEU
-                    compteur[Table.COULEUR_BOUGIE_INCONNUE] -= 1
-                    compteur[Table.COULEUR_BOUGIE_ROUGE] += 1
-
+            # S'il reste des bougies de couleur inconnue, elles ne seront pas faites
 
     ###############################################
     ### GESTION DES VERRES
