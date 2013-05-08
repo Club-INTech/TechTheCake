@@ -7,16 +7,14 @@ class Robot:
     """
     classe implémentant le robot secondaire
     """
-    def __init__(self,capteurs,actionneurs,deplacements,rechercheChemin,hookGenerator,table,config,log):
+    def __init__(self,capteurs,actionneurs,deplacements,hookGenerator,config,log):
         self.mutex = Mutex()
         
         #instances des dépendances
         self.capteurs = capteurs
         self.actionneurs = actionneurs
         self.deplacements = deplacements
-        self.rechercheChemin = rechercheChemin
         self.hookGenerator = hookGenerator
-        self.table = table
         self.config = config
         self.log = log
         
@@ -289,14 +287,9 @@ class Robot:
             self.deplacements.avancer(distance)
     
     def _detecter_collisions(self):
-        signe = -1 if self.marche_arriere else 1
-        rayon_detection = self.config["R2_largeur_robot"] + self.config["distance_detection"]/2
-        centre_detection = Point(self.x, self.y) + Point(signe * rayon_detection * math.cos(self.orientation), signe * rayon_detection * math.sin(self.orientation))
-        for obstacle in self.table.obstacles():
-            if obstacle.position.distance(centre_detection) < self.config["distance_detection"]/2:
-                self.log.warning("ennemi détecté")
-                self.son.jouer("detection")
-                raise ExceptionCollision
+        if self.capteurs.adverse_devant():
+            self.log.warning("ennemi détecté")
+            raise ExceptionCollision
     
     def _acquittement(self, detection_collision=True, sans_lever_exception=False):
         """
@@ -402,30 +395,6 @@ class Robot:
             if marche_arriere_auto:
                 self.marche_arriere = self.marche_arriere_est_plus_rapide(position)
             self.va_au_point(position, hooks, symetrie_effectuee=symetrie_effectuee)
-    
-    def recherche_de_chemin(self, arrivee, recharger_table=True, renvoie_juste_chemin=False):
-        """
-        Méthode pour atteindre un point de la carte après avoir effectué une recherche de chemin.
-        """
-        
-        arrivee = arrivee.copy() #appliquer la symétrie ne doit pas modifier ce point !
-        
-        if recharger_table:
-            self.rechercheChemin.retirer_obstacles_dynamiques()
-            self.rechercheChemin.charge_obstacles(avec_verres_entrees=True)
-            
-        self.rechercheChemin.prepare_environnement_pour_visilibity()
-        
-        depart = Point(self.x,self.y)
-        if self.effectuer_symetrie and self.config["couleur"] == "bleu":
-            arrivee.x *= -1
-        chemin = self.rechercheChemin.cherche_chemin_avec_visilibity(depart, arrivee)
-        
-        if renvoie_juste_chemin:
-            return chemin
-            
-        self.suit_chemin(chemin, symetrie_effectuee=True)
-
     
     def va_au_point(self, point, hooks=[], trajectoire_courbe=False, nombre_tentatives=2, retenter_si_blocage=True, symetrie_effectuee=False, sans_lever_exception=False):
         """
@@ -600,8 +569,8 @@ class Robot:
         self.actionneurs.actionneur_balai(position)
         
 class RobotSimulation(Robot):
-    def __init__(self, simulateur, capteurs, actionneurs, deplacements, rechercheChemin, hookGenerator, table, son, config, log):
-        super().__init__(capteurs, actionneurs, deplacements, rechercheChemin, hookGenerator, table, son, config, log)
+    def __init__(self, simulateur, capteurs, actionneurs, deplacements, hookGenerator, config, log):
+        super().__init__(capteurs, actionneurs, deplacements, hookGenerator, config, log)
         self.simulateur = simulateur
         
     def tourner(self, angle_consigne, hooks=[], nombre_tentatives=2, sans_lever_exception=False):
@@ -628,5 +597,4 @@ class ExceptionMouvementImpossible(Exception):
     Exception levée lorsque le robot ne peut pas accomplir le mouvement
     """
     def __init__(self, robot):
-        robot.son.jouer("blocage")
         robot._consigne_orientation = robot.orientation

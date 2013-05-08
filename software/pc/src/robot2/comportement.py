@@ -7,9 +7,8 @@ class Comportement:
     """
     Classe gérant l'intelligence artificielle du robot secondaire. 
     """
-    def __init__(self, rechercheChemin, timer, config, log, robot):
+    def __init__(self, timer, config, log, robot):
 
-        self.rechercheChemin = rechercheChemin
         self.timer = timer
         self.config = config
         self.log = log

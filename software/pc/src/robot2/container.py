@@ -22,7 +22,6 @@ import deplacements
 import serie 
 import serieReelle
 import serieSimulation
-import recherche_de_chemin.rechercheChemin as rechercheChemin
 import log
 import hooks
 import simulateur
@@ -113,16 +112,14 @@ class Container:
             self.assembler.register("simulateur", simulateur.Simulateur, requires=["config"], factory=make_simulateur)
             
             #visualisation sur le simulateur pour le robot et la recherche de chemin
-            self.assembler.register("robot", robot.RobotSimulation, requires=["simulateur","capteurs","actionneurs","deplacements","rechercheChemin","hookGenerator","table","config","log"])
-            self.assembler.register("rechercheChemin", rechercheChemin.RechercheCheminSimulation, requires=["simulateur", "table","config","log"])
+            self.assembler.register("robot", robot.RobotSimulation, requires=["simulateur","capteurs","actionneurs","deplacements","hookGenerator","config","log"])
         
             #série virtuelle, qui redirige vers le simulateur
             self.assembler.register("serieSimulation", serieSimulation.SerieSimulation, requires=["simulateur", "log"])
         else:
             
             #pas de visualisation sur le simulateur pour le robot et la recherche de chemin
-            self.assembler.register("robot", robot.Robot, requires=["capteurs","actionneurs","deplacements","rechercheChemin","hookGenerator","table","config","log"])
-            self.assembler.register("rechercheChemin", rechercheChemin.RechercheChemin, requires=["table","config","log"])
+            self.assembler.register("robot", robot.Robot, requires=["capteurs","actionneurs","deplacements","hookGenerator","config","log"])
             
             def make_none():
                 return None
@@ -147,12 +144,12 @@ class Container:
         self.assembler.register("hookGenerator", hooks.HookGenerator, requires=["config","log"])
         
         #enregistrement du service timer
-        self.assembler.register("threads.timer", threads.ThreadTimer, requires=["log","config","robot","table","capteurs"])
+        self.assembler.register("threads.timer", threads.ThreadTimer, requires=["log","config","robot","capteurs"])
         self.assembler.register("threads.position", threads.ThreadPosition, requires=["container"])
         self.assembler.register("threads.capteurs", threads.ThreadCapteurs, requires=["container"])
         
         #enregistrement du service de comportement du robot secondaire
-        self.assembler.register("comportement", comportement.Comportement, requires=["rechercheChemin", "table", "threads.timer", "config", "log", "robot"])
+        self.assembler.register("comportement", comportement.Comportement, requires=["threads.timer", "config", "log", "robot"])
         
     def start_threads(self):
         """

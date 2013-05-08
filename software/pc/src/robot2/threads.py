@@ -126,14 +126,13 @@ class ThreadTimer(AbstractThread):
     Deux variables globales sont très utilisées: timer.fin_match et timer.match_demarre. 
     Supprime les obstacles périssables du service de table.
     """
-    def __init__(self, log, config, robot, table, capteurs, son):
+    def __init__(self, log, config, robot, capteurs):
         AbstractThread.__init__(self, None)
         self.log = log
         self.config = config
         self.robot = robot
         self.table = table
         self.capteurs = capteurs
-        self.son = son
         self.match_demarre = False
         self.fin_match = False
         self.mutex = Mutex()
