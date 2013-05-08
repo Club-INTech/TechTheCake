@@ -680,7 +680,6 @@ class Robot(RobotInterface):
         Fonction appelée en début de match qui asservit le robot, rentre les actionneurs et monte les ascenseurs et les ferme
         """
         self.log.debug("Initialisation mécanique")
-        self.capteurs.activer_capteurs_prox()
         self.deplacements.activer_asservissement_rotation()
         self.deplacements.activer_asservissement_translation()
         self.actionneurs.actionneurs_bougie(True, "bas")        
@@ -850,18 +849,21 @@ class Robot(RobotInterface):
         # Si l'ascenseur est plein, on ne le lève pas complètement
         if hauteur == "haut" and self.places_disponibles(avant) == 0:
             hauteur = "plein"
+            
         if hauteur == "haut":
-            self.log.debug("Capteurs de proximité désactivés")
-            self.capteurs.desactiver_capteurs_prox()
+            if avant: self.capteurs.desactiver_capteurs_avant()
+            else: self.capteurs.desactiver_capteurs_arriere()
         else:
-            self.log.debug("Capteurs de proximité activés")
-            self.capteurs.activer_capteurs_prox()
+            if avant: self.capteurs.activer_capteurs_avant()
+            else: self.capteurs.activer_capteurs_arriere()
+            
         if avant:
             self.log.debug("Ascenseur avant en position: "+hauteur)
         else:
             self.log.debug("Ascenseur arrière en position: "+hauteur)
+            
         self.actionneurs.altitude_ascenseur(avant, hauteur)
-
+        
     def recuperer_verre(self, avant):
         """
         Lance la procédure de récupération d'un verre, sachant qu'il est présent
@@ -894,7 +896,6 @@ class Robot(RobotInterface):
         sleep(.2)
         self.altitude_ascenseur(avant, "bas")
         sleep(.2)
-        self.capteurs.activer_capteurs_prox()
         if avant:
             self.deplacements.avancer(80)
         else:
@@ -1054,5 +1055,3 @@ class ExceptionMouvementImpossible(Exception):
     def __init__(self, robot):
         robot.son.jouer("blocage")
         robot._consigne_orientation = robot.orientation
-
-

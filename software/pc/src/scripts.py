@@ -352,6 +352,9 @@ class ScriptCadeaux(Script):
         sens = self.info_versions[version]["sens"]
         self.robot.marche_arriere = self.info_versions[version]["marche_arriere"]
         
+        #pour se réorienter
+        avance_vers_x_croissant = not (1-version == self.robot.marche_arriere)
+        
         #ouverture du premier cadeau
         self.robot.actionneur_cadeau("haut")
         if self.robot is self.robotVrai: self.table.cadeau_recupere(self.table.cadeaux_entrees()[version])
@@ -359,9 +362,6 @@ class ScriptCadeaux(Script):
         
         # Création des hooks pour tous les autres cadeaux à activer
         hooks = []
-        
-        #pour se réorienter
-        avance_vers_x_croissant = not (1-version == self.robot.marche_arriere)
         
         # Ouverture du bras en face du cadeau
         for cadeau in self.table.cadeaux_restants():
