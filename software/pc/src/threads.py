@@ -302,9 +302,10 @@ class ThreadLaser(AbstractThread):
                 p_filtre = filtrage.position()
                 #vitesse = filtrage.vitesse()
                 
-                # Mise à jour de la table
-                #table.deplacer_robot_adverse(0, p_bruit, vitesse)
-                table.deplacer_robot_adverse(0, p_filtre, None)
+                # Vérification si l'obstacle est sur la table 
+                if p_filtre.x > (-config["table_x"]/2) and p_filtre.y > 0 and p_filtre.x < config["table_x"]/2 and p_filtre.y < config["table_y"]:                
+                    # Mise à jour de la table
+                    table.deplacer_robot_adverse(balise["id"], p_filtre, None)
 
                 # Affichage des points sur le simulateur
                 if config["cartes_simulation"] != [''] or config["simulation_table"]:

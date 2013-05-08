@@ -18,11 +18,13 @@ class RobotAdverseBalise(Obstacle):
     
     def __init__(self, rayon):
         Obstacle.__init__(self, None, rayon)
+        self.derniere_actualisation = time()
         self.vitesse = None
        
     def positionner(self, position, vitesse=None):
         self.position = position
         self.vitesse = vitesse
+        self.derniere_actualisation = time()
        
 class ObstacleCapteur(Obstacle):
     
@@ -77,7 +79,6 @@ class Table:
         self.points_entree_cadeaux = []
         #initialisation
         self._rafraichir_entree_cadeaux()
-        
         
         # La position des bougies est codée en pôlaire depuis le centre du gâteau
         # L'origine de l'angle est l'axe x habituel
@@ -229,7 +230,6 @@ class Table:
                 Table.COULEUR_BOUGIE_BLEU : 0
         }
 
-        
         conversion = {
                 "?": Table.COULEUR_BOUGIE_INCONNUE,
                 "w": Table.COULEUR_BOUGIE_BLANC,
@@ -424,11 +424,17 @@ class Table:
             
     def supprimer_obstacles_perimes(self):
         """
-        Mise à jour de la liste des obstacles temporaires sur la table
+        Mise à jour de la liste des obstacles sur la table
         """
+        # Retrait des obstacles des capteurs
         for i, obstacle in enumerate(self.obstacles_capteurs):
             if time() - obstacle.naissance > self.config["duree_peremption_obstacles"]:
                 self._supprimer_obstacle(i)
+                
+        # Retrait des ennemis lasers plus mis à jour
+        for i, ennemi in enumerate(self.robots_adverses):
+            if time() - ennemi.derniere_actualisation > self.config["duree_peremption_obstacles"]:
+                self._supprimer_ennemi(i)
                 
     def deplacer_robot_adverse(self, i, position, vitesse=None):
         """
@@ -444,6 +450,13 @@ class Table:
         """
         with self.mutex:
             self.obstacles_capteurs.pop(i)
+            
+    def _supprimer_ennemi(self, i):
+        """
+        Suppression d'un ennemi (laser)
+        """
+        with self.mutex:
+            self.robots_adverses[i].positionner(None)
         
     def get_obstaclesCapteur(self):
         raise Exception("deprecated, utiliser plutôt obstacles()")
@@ -534,6 +547,11 @@ class TableSimulation(Table):
         if not self.desactiver_dessin:
             self.simulateur.clearEntity("obstacle_capteur_"+str(self.obstacles_capteurs[i].id))
         Table._supprimer_obstacle(self, i)
+        
+    def _supprimer_ennemi(self, i):
+        if not self.desactiver_dessin:
+            self.simulateur.clearEntity("ennemi_" + str(i))
+        Table._supprimer_ennemi(self, i)
         
     def _dessiner_bougies(self):
         # Suppressions des anciens dessins

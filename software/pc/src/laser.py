@@ -9,7 +9,8 @@ class Laser:
         self.config = config
         self.log = log
         self.balises = [
-            {"id": 0, "active": False}
+            {"id": 0, "active": False},
+            {"id": 1, "active": False}
         ]
         
     def balises_actives(self):

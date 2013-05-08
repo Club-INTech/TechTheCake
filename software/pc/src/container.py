@@ -80,7 +80,7 @@ class Container:
             if len(sys.argv) >= 2:
                 conf["couleur"] = sys.argv[1]
             if len(sys.argv) >= 3:
-                conf["case_depart_principal"] = sys.argv[2]
+                conf["case_depart_principal"] = int(sys.argv[2])
             return conf
         self.assembler.register("config",read_ini.Config,factory=make_conf)
         
