@@ -457,7 +457,10 @@ class ScriptRecupererVerres(Script):
         
         # Désactivation de la symétrie
         self.robot.effectuer_symetrie = False
-        
+
+        # On prend le premier verre dans le bon sens
+        self.change = False
+
         # Point d'entrée du script par recherche de chemin
         premier_verre = self.info_versions[version]["point_entree"]
         chemin_vers_entree = self.robot.recherche_de_chemin(premier_verre, recharger_table=False, renvoie_juste_chemin=True)
@@ -499,10 +502,14 @@ class ScriptRecupererVerres(Script):
         """
         destination = self._point_devant_verre(verre["position"], self.marge_recuperation)
 
-        # Les ascenseurs étant fiables, il vaut mieux remplir un côté puis l'autre
+        # On remplit un ascenseur puis l'autre si tout se passe bien. Mais si un verre est absent, on change de côté (un ascenseur peut s'être bloqué trop bas)
         self.robot.marche_arriere = not self.robot.places_disponibles(True)
+        if self.change:
+            self.robot.marche_arriere = not self.robot.marche_arriere
+
 #        self.robot.marche_arriere = self.robot.places_disponibles(False)
 
+        # Code pour aller au plus rapide; alterne intelligement ascenseur avant et arrière
 #        mieux_en_arriere = self.robot.marche_arriere_est_plus_rapide(destination)
 #        if self.robot.places_disponibles(not mieux_en_arriere):
 #            self.robot.marche_arriere = mieux_en_arriere
@@ -523,7 +530,19 @@ class ScriptRecupererVerres(Script):
 
         self.robot.altitude_ascenseur(not self.robot.marche_arriere, "haut")
 
+        # Sauvegarde de la place disponible afin de savoir si le verre a été pris ou non
+        place_dispo_sauv = self.robotVrai.places_disponibles(not self.robot.marche_arriere)
+
         self.robot.va_au_point(destination, hooks)
+
+        # Si le nombre de verre n'a pas changé c'est qu'on en a pas pris. On réagit donc en changeant d'ascenseur
+        if self.robotVrai.places_disponibles(not self.robot.marche_arriere) == place_dispo_sauv and self.robot == self.robotVrai:
+            # On ne change de côté que si c'est possible bien sûr, c'est-à-dire s'il y a de la place dans l'autre
+            if self.robotVrai.places_disponibles(self.robot.marche_arriere) != 0:
+                self.log.warning("Verre absent: on change d'ascenseur.")
+                self.change = not self.change # BASCUUUULE !!!
+            else:
+                self.log.warning("Verre absent: pas de changement d'ascenseur possible.")
 
         # Dans tous les cas, que le verre ait été là ou non, on retire le verre de la table
         self.table.verre_recupere(verre)

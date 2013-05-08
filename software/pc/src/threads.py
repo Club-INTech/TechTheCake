@@ -276,6 +276,9 @@ class ThreadLaser(AbstractThread):
         for balise in laser.balises_ignorees():
             log.warning("balise n°" + str(balise["id"]) + " ignorée pendant le match, pas de réponses aux ping")
 
+        # Vérification de la cohérence des données des balises
+        laser.verifier_coherence_balise()
+        
         # Liste des balises prises en compte
         balises = laser.balises_actives()
         
@@ -302,9 +305,10 @@ class ThreadLaser(AbstractThread):
                 p_filtre = filtrage.position()
                 #vitesse = filtrage.vitesse()
                 
-                # Mise à jour de la table
-                #table.deplacer_robot_adverse(0, p_bruit, vitesse)
-                table.deplacer_robot_adverse(0, p_filtre, None)
+                # Vérification si l'obstacle est sur la table 
+                if p_filtre.x > (-config["table_x"]/2) and p_filtre.y > 0 and p_filtre.x < config["table_x"]/2 and p_filtre.y < config["table_y"]:                
+                    # Mise à jour de la table
+                    table.deplacer_robot_adverse(balise["id"], p_filtre, None)
 
                 # Affichage des points sur le simulateur
                 if config["cartes_simulation"] != [''] or config["simulation_table"]:
@@ -320,6 +324,7 @@ class ThreadLaser(AbstractThread):
             end = time()
             filtrage.update_dt(end-start)
             
+        laser.eteindre()
         log.debug("Fin du thread des lasers")
         
         
@@ -386,13 +391,10 @@ class ThreadCouleurBougies(AbstractThread):
                 log.debug("Résultats android: " + str(rcv))
             except:
                 # Si on n'a pas d'information de l'appli android, il vaut mieux stratégiquement ne pas faire les bougies, sauf s'il faut toutes les faire. En effet, si on fait toutes les bougies, la différence des points ne changera pas. Et comme on manque de temps pour tout faire, autant ne pas les faire.
-                if config["ennemi_fait_ses_bougies"]:
-                    log.warning("Aucune réponse de l'appli android. On fait toutes les bougies car l'ennemi fait les siennes.")
-                else:
-                    log.warning("Aucune réponse de l'appli android. Abandon des bougies.")
+                log.warning("Aucune réponse de l'appli android. On fera toutes les bougies.")
                 # Exactement, on ne supprime pas le script mais on lui met un malus (seulement en phases finales, sinon on cherche les points)
-                    if config["phases_finales"]:
-                        scripts["ScriptBougies"].malus = -20
+                if config["phases_finales"]:
+                    scripts["ScriptBougies"].malus = -20
                 couleur_bougies = table.COULEUR_BOUGIE_BLEU if config["couleur"]=="bleu" else table.COULEUR_BOUGIE_ROUGE
                 for i in range (20):
                     table.bougies[i]["couleur"] = couleur_bougies
@@ -401,7 +403,5 @@ class ThreadCouleurBougies(AbstractThread):
                     scripts["ScriptBougies"].en_aveugle = True
             finally:
                 client_socket.close()
-
-        table.definir_couleurs_bougies("rbrbwwrbrb") # test
 
         log.debug("Fin du thread de détection des couleurs des bougies")

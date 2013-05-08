@@ -39,11 +39,6 @@ else:
 #Toujours mettre un sleep après avoir affecté les variables robot.x ou robot.y (?)
 time.sleep(1)
 
-robot.set_vitesse_translation(2)
-robot.set_vitesse_rotation(2)
-
-time.sleep(1) # (?)
-
 robot.initialiser_actionneurs()
 robot.recaler()
 

@@ -75,8 +75,8 @@ class FiltrageLaser:
             #self.filtre_kalman.prediction()
             #self.filtre_kalman.measurement(numpy.array([x,y])[:, numpy.newaxis])
             #self.historique.append(self.position())
-        else:
-            self.last_point = None
+        #else:
+            #self.last_point = None
             #self.filtre_kalman.prediction()
         
     def _filtrage_acceleration(self, pointm0):

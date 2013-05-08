@@ -78,9 +78,9 @@ class Container:
             conf["cartes_serie"] = conf["cartes_serie"].split(",")
             conf["cartes_simulation"] = conf["cartes_simulation"].split(",")
             if len(sys.argv) >= 2:
-                conf["couleur"] = sys.argv[1]
+                conf["couleur"] = "rouge" if sys.argv[1] == "r" else "bleu"
             if len(sys.argv) >= 3:
-                conf["case_depart_principal"] = sys.argv[2]
+                conf["case_depart_principal"] = int(sys.argv[2])
             return conf
         self.assembler.register("config",read_ini.Config,factory=make_conf)
         
