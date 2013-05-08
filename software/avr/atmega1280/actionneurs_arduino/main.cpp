@@ -76,8 +76,11 @@ int main(int argc, char const *argv[])
  
     AX12 AX4(4, 0, 0x3ff);
     AX12 AX0(0, 0, 0x3ff);
+    AX12 AX1(1, 0, 0x3ff);
+    AX12 AX2(2, 0, 0x3ff);
+    AX12 AX3(3, 0, 0x3ff);
 
-    AX12 Tableau_AX[] = {AX0, AX4};
+    AX12 Tableau_AX[] = {AX0, AX1, AX2, AX3, AX4};
 
     while(1){
             
@@ -119,7 +122,7 @@ int main(int argc, char const *argv[])
                 AX12::goToB(angle); //Angle d'entrée commandé
                 serial_PC_::print("Déplacement effectué\n");
             }
-            
+	            
             // Changement de vitesse
             else if(strcmp(buffer, "ch_vit") == 0)
             {

@@ -1,8 +1,8 @@
 #ifndef robot_h
 #define robot_h
 
-#include "Cos.h"
-#include "twi_master.h"
+#include "Cos2.h"
+#include "twi_master_robot2.h"
 
 #include <stdint.h>
 #include <avr/io.h>

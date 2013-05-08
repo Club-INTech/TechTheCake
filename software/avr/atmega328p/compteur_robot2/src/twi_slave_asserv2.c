@@ -4,8 +4,9 @@
 #include "compteur.h"
 
 //déclaration des ports des codeuses, attention à modifier aussi le twi_slave.h
-Codeuse< AVR_PORTD <PORTD2>,AVR_PORTD <PORTD3>, false > codeuse1;
-Codeuse< AVR_PORTC <PORTC1>,AVR_PORTC <PORTC0>, false > codeuse2;
+volatile int32_t codeuse1 = 0;
+volatile int32_t codeuse2 = 0;
+
 
 union TWI_statusReg_t
 {
@@ -56,21 +57,21 @@ void TWI_Loop( void )
         }
 
         if ( order == MASTER_CMD_RESET ) {
-            codeuse1.compteur(0);
-            codeuse2.compteur(0);
+            codeuse1 = 0;
+            codeuse2 = 0;
         }
 
 		if ( order == MASTER_CMD_ALL ) {
             
-            messageBuf[0] = (uint8_t) codeuse1.compteur();
-            messageBuf[1] = (uint8_t) (codeuse1.compteur() >> 8);
-            messageBuf[2] = (uint8_t) (codeuse1.compteur() >> 16);
-            messageBuf[3] = (uint8_t) (codeuse1.compteur() >> 24);
+            messageBuf[0] = (uint8_t) codeuse1;
+            messageBuf[1] = (uint8_t) (codeuse1 >> 8);
+            messageBuf[2] = (uint8_t) (codeuse1 >> 16);
+            messageBuf[3] = (uint8_t) (codeuse1 >> 24);
             
-            messageBuf[4] = (uint8_t) codeuse2.compteur();
-            messageBuf[5] = (uint8_t) (codeuse2.compteur() >> 8);
-            messageBuf[6] = (uint8_t) (codeuse2.compteur() >> 16);
-            messageBuf[7] = (uint8_t) (codeuse2.compteur() >> 24);
+            messageBuf[4] = (uint8_t) codeuse2;
+            messageBuf[5] = (uint8_t) (codeuse2 >> 8);
+            messageBuf[6] = (uint8_t) (codeuse2 >> 16);
+            messageBuf[7] = (uint8_t) (codeuse2 >> 24);
         }
         
         TWI_Start_Transceiver_With_Data(messageBuf, 8);

@@ -51,10 +51,14 @@ class ProtocoleVirtuelDeplacements:
     def cr0(self):
         return []
     
-    def ctv(self, *useless):
+    def ctv(self, kp, kd, pwm):
+        vitesse_mmps = 2500/(613.52 * pwm**(-1.034))
+        self.simulateur.setTranslationSpeed(vitesse_mmps)
         return []
     
-    def crv(self, *useless):
+    def crv(self, kp, kd, pwm):
+        vitesse_rps = math.pi/(277.85 * pwm**(-1.222))
+        self.simulateur.setRotationSpeed(vitesse_rps)
         return []
     
     def infos(self):

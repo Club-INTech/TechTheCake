@@ -79,6 +79,8 @@ class RobotInterface(metaclass=abc.ABCMeta):
             return 100
         elif vitesse == "arc_de_cercle":
             return 38
+        elif vitesse == "prudence_reglette":
+            return 70
         elif vitesse == "cadeaux":
             return 90
         elif vitesse == "recal_faible":
@@ -107,6 +109,8 @@ class RobotInterface(metaclass=abc.ABCMeta):
             return 20
         elif vitesse == "cadeaux":
             return 100
+        elif vitesse == "prudence_reglette":
+            return 70
         elif vitesse == "recal_faible":
             return 80
         elif vitesse == "recal_forte":
@@ -222,6 +226,8 @@ class RobotChrono(RobotInterface):
         """
         Fonction analogue à celle de robot. Avance. Si, si.
         """
+        #self.log.warning("avancer de "+str(distance)+" à "+str(round(self.vitesse_translation,2))+"mm/s prend "+str(round(abs(distance / self.vitesse_translation),2))+" sec.")
+        
         self.duree += abs(distance / self.vitesse_translation)
         self.x += distance*math.cos(self.orientation)
         self.y += distance*math.sin(self.orientation)
@@ -233,6 +239,8 @@ class RobotChrono(RobotInterface):
         """
         Fonction analogue à celle de robot. Bah... ça tourne quoi. Il vous faut un desmath.sin? # J'ai pas compris lol.
         """
+        #self.log.warning("tourner à "+str(angle)+" à "+str(round(self.vitesse_rotation,2))+"rad/s prend "+str(round(abs(angle / self.vitesse_rotation),2))+" sec.")
+        
         if self.effectuer_symetrie:
             if self.config["couleur"] == "bleu":
                 angle = math.pi - angle
@@ -318,21 +326,15 @@ class RobotChrono(RobotInterface):
         Spécifie une vitesse de translation en metres par seconde, suivant les conventions choisies dans l'interface.
         """
         pwm_max = RobotInterface.conventions_vitesse_translation(vitesse)
-        
-        #TODO : à étalonner !
-        vitesse_mps = pwm_max/100
-        
-        self.vitesse_translation = vitesse_mps
+        vitesse_mmps = 2500/(613.52 * pwm_max**(-1.034))
+        self.vitesse_translation = vitesse_mmps
     
     def set_vitesse_rotation(self, vitesse, rayon=None):
         """
         Spécifie une vitesse de rotation en radians par seconde, suivant les conventions choisies dans l'interface.
         """
         pwm_max = RobotInterface.conventions_vitesse_rotation(vitesse,rayon)
-        
-        #TODO : à étalonner !
-        vitesse_rps = pwm_max/30
-        
+        vitesse_rps = math.pi/(277.85 * pwm_max**(-1.222))
         self.vitesse_rotation = vitesse_rps
         
     def actionneurs_bougie(self, en_haut, angle):
