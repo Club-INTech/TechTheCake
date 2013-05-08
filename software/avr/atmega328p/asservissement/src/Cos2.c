@@ -1,4 +1,4 @@
-#include "Cos.h"
+#include "Cos2.h"
 
 /* fonctions de conversion de flottants permettant d'utiliser les calculs 
  * d'interpolations sur la table, se faisant exclusivement sur des entiers
