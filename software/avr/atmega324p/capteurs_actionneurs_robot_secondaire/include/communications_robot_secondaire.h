@@ -3,6 +3,7 @@
 
 #include <libintech/serial/serial_0.hpp>
 
+#include "actionneurs_robot_secondaire.h"
 #include "capteurs_robot_secondaire.h"
 
 class Communications
@@ -13,6 +14,7 @@ class Communications
 
     public:
 		typedef Serial<0> serie_robot;
+        Actionneurs actionneurs;
         Capteurs capteurs;
 
 };

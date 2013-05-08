@@ -31,6 +31,27 @@ void Communications::execute(char ordre[])
         {
             serie_robot::print(3);
         }
+
+        else if(strcmp(ordre, "gauche") == 0)
+        {
+          uint16_t angle;
+          serie_robot::read(angle);
+          actionneurs.verre_gauche.goTo(angle);
+        }
+
+        else if(strcmp(ordre, "droit") == 0)
+        {
+          uint16_t angle;
+          serie_robot::read(angle);
+          actionneurs.verre_droit.goTo(angle);
+        }
+
+        else if(strcmp(ordre, "casse") == 0)
+        {
+          uint16_t angle;
+          serie_robot::read(angle);
+          actionneurs.casse_pile.goTo(angle);
+        }
 }
 
 
