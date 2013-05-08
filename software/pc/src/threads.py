@@ -335,8 +335,9 @@ class ThreadCouleurBougies(AbstractThread):
                     log.warning("Aucune réponse de l'appli android. On fait toutes les bougies car l'ennemi fait les siennes.")
                 else:
                     log.warning("Aucune réponse de l'appli android. Abandon des bougies.")
-                # Exactement, on ne supprime pas le script mais on lui met un malus
-                    scripts["ScriptBougies"].malus = -20
+                # Exactement, on ne supprime pas le script mais on lui met un malus (seulement en phases finales, sinon on cherche les points)
+                    if config["phases_finales"]:
+                        scripts["ScriptBougies"].malus = -20
                 couleur_bougies = table.COULEUR_BOUGIE_BLEU if config["couleur"]=="bleu" else table.COULEUR_BOUGIE_ROUGE
                 for i in range (20):
                     table.bougies[i]["couleur"] = couleur_bougies
