@@ -77,8 +77,10 @@ class Container:
             conf.set_chemin(chemin+"/config")
             conf["cartes_serie"] = conf["cartes_serie"].split(",")
             conf["cartes_simulation"] = conf["cartes_simulation"].split(",")
-            if hasattr(builtins, "couleur_robot"):
-                conf["couleur"] = builtins.couleur_robot
+            if len(sys.argv) >= 2:
+                conf["couleur"] = sys.argv[1]
+            if len(sys.argv) >= 3:
+                conf["case_depart_principal"] = sys.argv[2]
             return conf
         self.assembler.register("config",read_ini.Config,factory=make_conf)
         
@@ -110,7 +112,7 @@ class Container:
             self.assembler.register("serieReelle", None, requires=[], factory=make_none)
             
         #service de la série simulée si besoin :
-        if not self.config["cartes_simulation"] == ['']:
+        if not self.config["cartes_simulation"] == [''] or self.config["simulation_table"]:
             
             #service du simulateur
             def make_simulateur(config):
@@ -124,7 +126,7 @@ class Container:
             self.assembler.register("rechercheChemin", rechercheChemin.RechercheCheminSimulation, requires=["simulateur", "table","config","log"])
         
             #série virtuelle, qui redirige vers le simulateur
-            self.assembler.register("serieSimulation", serieSimulation.SerieSimulation, requires=["simulateur", "log"])
+            self.assembler.register("serieSimulation", serieSimulation.SerieSimulation, requires=["simulateur", "table", "log"])
         else:
             
             #pas de visualisation sur le simulateur pour la table, le robot et la recherche de chemin
@@ -167,7 +169,7 @@ class Container:
         self.assembler.register("son", son.Son, requires=["config", "log"])
 
         #enregistrement du service timer
-        self.assembler.register("threads.timer", threads.ThreadTimer, requires=["log","config","robot","table","capteurs","son"])
+        self.assembler.register("threads.timer", threads.ThreadTimer, requires=["container"])
         self.assembler.register("threads.position", threads.ThreadPosition, requires=["container"])
         self.assembler.register("threads.capteurs", threads.ThreadCapteurs, requires=["container"])
         self.assembler.register("threads.laser", threads.ThreadLaser, requires=["container"])

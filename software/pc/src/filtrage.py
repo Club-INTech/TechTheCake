@@ -61,8 +61,9 @@ class FiltrageLaser:
         self.filtre_kalman.F[1,3] = new_dt
     
     def position(self):
-        state = self.filtre_kalman.x
-        return Point(int(state[0]), int(state[1]))
+        #state = self.filtre_kalman.x
+        #return Point(int(state[0]), int(state[1]))
+        return self.last_point
     
     def vitesse(self):
         state = self.filtre_kalman.x
@@ -70,11 +71,13 @@ class FiltrageLaser:
                 
     def update(self, x, y):
         if self._filtrage_acceleration(Point(x, y)):
-            self.filtre_kalman.prediction()
-            self.filtre_kalman.measurement(numpy.array([x,y])[:, numpy.newaxis])
-            self.historique.append(self.position())
+            self.last_point = Point(x, y)
+            #self.filtre_kalman.prediction()
+            #self.filtre_kalman.measurement(numpy.array([x,y])[:, numpy.newaxis])
+            #self.historique.append(self.position())
         else:
-            self.filtre_kalman.prediction()
+            self.last_point = None
+            #self.filtre_kalman.prediction()
         
     def _filtrage_acceleration(self, pointm0):
         """

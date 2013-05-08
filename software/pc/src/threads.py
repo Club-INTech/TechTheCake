@@ -24,6 +24,9 @@ class ThreadPosition(AbstractThread):
         log = self.container.get_service("log")
         robot = self.container.get_service("robot")
         timer = self.container.get_service("threads.timer")
+        config = self.container.get_service("config")
+        if config["simulation_table"]:
+            simulateur = self.container.get_service("simulateur")
         
         log.debug("lancement du thread de mise à jour")
         
@@ -38,7 +41,7 @@ class ThreadPosition(AbstractThread):
                 robot.update_x_y_orientation()
                 robot_pret = True
             except Exception as e:
-                print(e)
+                log.warning("La série n'est pas prête pour relever la position du robot. Nouvelle tentative...")
             sleep(0.1)
             
         robot.pret = True
@@ -51,8 +54,11 @@ class ThreadPosition(AbstractThread):
             #mise à jour des coordonnées dans robot
             try:
                 robot.update_x_y_orientation()
+                if config["simulation_table"]:
+                    simulateur.setRobotPosition(robot.x, robot.y)
+                    simulateur.setRobotAngle(robot.orientation)
             except Exception as e:
-                print(e)
+                log.warning(e)
             sleep(0.1)
             
         log.debug("Fin du thread de mise à jour")
@@ -92,20 +98,26 @@ class ThreadCapteurs(AbstractThread):
         dernier_ajout = 0
 
         log.debug("Activation des capteurs")
+        marche_arriere = False
+        
         while not timer.get_fin_match():
             if AbstractThread.stop_threads:
                 log.debug("Stoppage du thread capteurs")
                 return None
-            distance = capteurs.mesurer(robot.marche_arriere)
-            if distance >= 0 and distance <= 1000:
+                
+            #BASCUUUUULE !!! ~~ WHAT THE SHIT ~~
+            marche_arriere = not marche_arriere
+            
+            #on balaye alternativement les capteurs arrière et avant, pour mettre à jour les obstacles
+            distance = capteurs.mesurer(marche_arriere)
+            if distance >= 0 and distance <= config["horizon_capteurs"]:
                 #distance : entre le capteur situé à l'extrémité du robot et la facade du robot adverse
                 distance_inter_robots = distance + config["rayon_robot_adverse"] + config["largeur_robot"]/2
-                if robot.marche_arriere:
-                    x = robot.x - distance_inter_robots * cos(robot.orientation)
-                    y = robot.y - distance_inter_robots * sin(robot.orientation)
-                else:
-                    x = robot.x + distance_inter_robots * cos(robot.orientation)
-                    y = robot.y + distance_inter_robots * sin(robot.orientation)
+                theta = robot.orientation
+                if marche_arriere:
+                    theta += pi
+                x = robot.x + distance_inter_robots * cos(theta)
+                y = robot.y + distance_inter_robots * sin(theta)
 
                 # Vérifie que l'obstacle n'a pas déjà été ajouté récemment
                 if time() - dernier_ajout > tempo:
@@ -126,14 +138,8 @@ class ThreadTimer(AbstractThread):
     Deux variables globales sont très utilisées: timer.fin_match et timer.match_demarre. 
     Supprime les obstacles périssables du service de table.
     """
-    def __init__(self, log, config, robot, table, capteurs, son):
-        AbstractThread.__init__(self, None)
-        self.log = log
-        self.config = config
-        self.robot = robot
-        self.table = table
-        self.capteurs = capteurs
-        self.son = son
+    def __init__(self, container):
+        AbstractThread.__init__(self, container)
         self.match_demarre = False
         self.fin_match = False
         self.mutex = Mutex()
@@ -148,7 +154,14 @@ class ThreadTimer(AbstractThread):
                 self.log.debug("Stoppage du thread timer")
                 return None
             sleep(.5)
-        self.log.debug("Le match a commencé!")
+            
+        self.log.debug("Le match a commencé !")
+        
+        # Lancement du chrono sur simulateur
+        if self.config["cartes_simulation"] != ['']:
+            simulateur = self.container.get_service("simulateur")
+            simulateur.startTimer()
+            
         with self.mutex:
             self.date_debut = time()
             self.match_demarre = True
@@ -157,8 +170,18 @@ class ThreadTimer(AbstractThread):
         """
         Le thread timer, qui supprime les obstacles périssables et arrête le robot à la fin du match.
         """
+        
+        self.log = self.container.get_service("log")
+        self.config = self.container.get_service("config")
+        self.robot = self.container.get_service("robot")
+        self.table = self.container.get_service("table")
+        self.capteurs = self.container.get_service("capteurs")
+        self.son = self.container.get_service("son")
+        
         self.log.debug("Lancement du thread timer")
         self.initialisation()
+        
+        #attente de la fin du match
         while time() - self.get_date_debut() < self.config["temps_match"]:
             if AbstractThread.stop_threads:
                 self.log.debug("Stoppage du thread timer")
@@ -170,13 +193,28 @@ class ThreadTimer(AbstractThread):
                 self.son.jouer("random")
 
             #son compte-à-rebours
-            if time() - self.get_date_debut() > self.config["temps_match"] - 4 and self.compte_rebours:
-                self.son.jouer("compte_rebours", force=True)
-                self.compte_rebours = False
+            if time() - self.get_date_debut() > self.config["temps_match"] - 4 :
+                
+                if self.compte_rebours:
+                    self.son.jouer("compte_rebours", force=True)
+                    self.compte_rebours = False
+                
+            #descente des ascenceurs
+            if time() - self.get_date_debut() > self.config["temps_match"] - 2:
+                self.robot.stopper()
+                self.robot.actionneurs.altitude_ascenseur(True, "bas")
+                self.robot.actionneurs.altitude_ascenseur(False, "bas")
+                
+            #ouverture des ascenceurs
+            if time() - self.get_date_debut() > self.config["temps_match"] - 1:
+                self.robot.actionneurs.actionneurs_ascenseur(True, "ouvert")
+                self.robot.actionneurs.actionneurs_ascenseur(False, "ouvert")
 
             sleep(.5)
+            
         with self.mutex:
             self.fin_match = True
+            
         self.robot.stopper()
         sleep(.500) #afin d'être sûr que le robot a eu le temps de s'arrêter
         self.robot.deplacements.desactiver_asservissement_translation()
@@ -262,13 +300,14 @@ class ThreadLaser(AbstractThread):
                 
                 # Récupération des valeurs filtrées
                 p_filtre = filtrage.position()
-                vitesse = filtrage.vitesse()
+                #vitesse = filtrage.vitesse()
                 
                 # Mise à jour de la table
-                table.deplacer_robot_adverse(0, p_filtre, vitesse)
+                #table.deplacer_robot_adverse(0, p_bruit, vitesse)
+                table.deplacer_robot_adverse(0, p_filtre, None)
 
                 # Affichage des points sur le simulateur
-                if config["cartes_simulation"] != ['']:
+                if config["cartes_simulation"] != [''] or config["simulation_table"]:
                     simulateur = self.container.get_service("simulateur")
                     if config["lasers_afficher_valeurs_brutes"]:
                         simulateur.drawPoint(p_bruit.x, p_bruit.y, "gris")
@@ -309,10 +348,26 @@ class ThreadCouleurBougies(AbstractThread):
                 log.debug("Stoppage du thread de détection des couleurs des bougies")
                 return None
             sleep(0.1)
-
-        # Il y a un copier/coller, ce qui n'est pas beau du tout. Mais je ne m'y connais pas assez en try/except pour pouvoir factoriser... (PF)
-        if config["ennemi_fait_ses_bougies"] or config["ennemi_fait_toutes_bougies"]:
-            log.debug("Puisque l'ennemi fait les bougies, on n'a pas besoin de capteurs.")
+            
+        # Ouverture de la socket
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            client_socket.settimeout(config["timeout_android"])
+            client_socket.connect((config["ip_android"], 8080))
+            client_socket.send(bytes(config["couleur"][0]+"\n", 'UTF-8'))
+            rcv = str(client_socket.recv(11),"utf-8").replace("\n","")
+            table.definir_couleurs_bougies(rcv)
+            log.debug("Résultats android: " + str(rcv))
+        except:
+            # Si on n'a pas d'information de l'appli android, il vaut mieux stratégiquement ne pas faire les bougies, 
+            # sauf s'il faut toutes les faire. En effet, si on fait toutes les bougies, la différence des points ne changera pas.
+            # Et comme on manque de temps pour tout faire, autant ne pas les faire.
+            if config["ennemi_fait_ses_bougies"]:
+                log.warning("Aucune réponse de l'appli android. On fait toutes les bougies car l'ennemi fait les siennes.")
+            else:
+                log.warning("Aucune réponse de l'appli android. Abandon des bougies.")
+                # Exactement, on ne supprime pas le script mais on lui met un malus
+                scripts["ScriptBougies"].malus = -10
             couleur_bougies = table.COULEUR_BOUGIE_BLEU if config["couleur"]=="bleu" else table.COULEUR_BOUGIE_ROUGE
             for i in range (20):
                 table.bougies[i]["couleur"] = couleur_bougies
@@ -350,4 +405,3 @@ class ThreadCouleurBougies(AbstractThread):
         table.definir_couleurs_bougies("rbrbwwrbrb") # test
 
         log.debug("Fin du thread de détection des couleurs des bougies")
-        

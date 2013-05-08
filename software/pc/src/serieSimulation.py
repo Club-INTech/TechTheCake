@@ -1,4 +1,5 @@
 from mutex import Mutex
+from outils_maths.point import Point
 import random
 import math
 
@@ -50,10 +51,14 @@ class ProtocoleVirtuelDeplacements:
     def cr0(self):
         return []
     
-    def ctv(self, *useless):
+    def ctv(self, kp, kd, pwm):
+        vitesse_mmps = 2500/(613.52 * pwm**(-1.034))
+        self.simulateur.setTranslationSpeed(vitesse_mmps)
         return []
     
-    def crv(self, *useless):
+    def crv(self, kp, kd, pwm):
+        vitesse_rps = math.pi/(277.85 * pwm**(-1.222))
+        self.simulateur.setRotationSpeed(vitesse_rps)
         return []
     
     def infos(self):
@@ -78,9 +83,10 @@ class ProtocoleVirtuelDeplacements:
 ################################################################################
 class ProtocoleVirtuelCapteursActionneurs:
    
-    def __init__(self,simulateur, log):
+    def __init__(self, simulateur, table, log):
         self.simulateur = simulateur
         self.log = log
+        self.table = table
         
     def nbs(self):
         #nombre de capteurs ultrasons à l'arrière
@@ -119,12 +125,15 @@ class ProtocoleVirtuelCapteursActionneurs:
         return [1]
 
     def cap_asc_av(self):
-        #capteur de l'ascenseur avant (verre présent)
-        return [1]
+        position = Point(self.simulateur.getX(), self.simulateur.getY())
+        #vérifie si un verre est présent pas loin du robot
+        for verre in self.table.verres_restants():
+            if position.distance(verre["position"]) < 50: 
+                return [1]
+        return [0]
 
     def cap_asc_arr(self):
-        #capteur de l'ascenseur arrière (verre présent)
-        return [1]
+        return self.cap_asc_av()
 
     def asc_av(self,*useless) :
         return []
@@ -248,7 +257,7 @@ class SerieSimulation:
     Implémente la méthode communiquer de facon strictement identique (voir la classe Serie), avec memes appels et retours.
     """
     
-    def __init__(self, simulateur, log):
+    def __init__(self, simulateur, table, log):
         
         #instances des dépendances
         self.log = log
@@ -258,7 +267,7 @@ class SerieSimulation:
         
         self.deplacements = ProtocoleVirtuelDeplacements(simulateur, log)
         self.ascenseur = ProtocoleVirtuelAscenseur(simulateur, log)
-        self.capteurs_actionneurs = ProtocoleVirtuelCapteursActionneurs(simulateur, log)
+        self.capteurs_actionneurs = ProtocoleVirtuelCapteursActionneurs(simulateur, table, log)
         self.laser = ProtocoleVirtuelLaser(simulateur, log)
         
     def definir_peripheriques(self, dico_infos_peripheriques):

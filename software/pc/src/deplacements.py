@@ -31,7 +31,7 @@ class Deplacements():
         """
         blocage = False
         
-        moteur_force = abs(PWMmoteurGauche) > 45 or abs(PWMmoteurDroit) > 45
+        moteur_force = abs(PWMmoteurGauche) > 40 or abs(PWMmoteurDroit) > 40
         bouge_pas = derivee_erreur_rotation==0 and derivee_erreur_translation==0
             
         if (bouge_pas and moteur_force):
@@ -57,7 +57,8 @@ class Deplacements():
         """
         rotation_stoppe = abs(erreur_rotation) < 105
         translation_stoppe = abs(erreur_translation) < 100
-        bouge_pas = derivee_erreur_rotation == 0 and derivee_erreur_translation == 0
+        #bouge_pas = derivee_erreur_rotation == 0 and derivee_erreur_translation == 0
+        bouge_pas = abs(derivee_erreur_rotation) < 100 and abs(derivee_erreur_translation) < 100
         
         return not(rotation_stoppe and translation_stoppe and bouge_pas)
         
@@ -109,32 +110,16 @@ class Deplacements():
     def desactiver_asservissement_rotation(self):
         self.serie.communiquer("asservissement","cr0", 0)
         
-    def set_vitesse_translation(self, vitesse):
+    def set_vitesse_translation(self, pwm_max):
         """
-        spécifie une vitesse en translation, entre 50 et 200
-        une vitesse 1,2,3 prédéfinie peut etre entrée
-        1 : vitesse "prudente"
-        2 : vitesse normale
-        3 : vitesse pour forcer
+        modifie la vitesse de translation (pwm_max) du robot et adapte les constantes d'asservissement
         """
-          
-        # garde-fou
-        if vitesse < 1 or vitesse > 255:
-            vitesse = 2
-            
-        # les scripts utilisent des vitesses prédéfinies ici
-        if vitesse == 1:
-            vitesse = 60
-        elif vitesse == 2:
-            vitesse = 100
-        elif vitesse == 3:
-            vitesse = 140
           
         # les constantes d'asservissement sont valables dans des plages de vitesses
-        if vitesse > 120:
+        if pwm_max > 120:
             kp = 0.8
             kd = 22.0
-        elif vitesse > 55:
+        elif pwm_max > 55:
             kp = 0.8
             kd = 16.0
         else:
@@ -145,36 +130,20 @@ class Deplacements():
         envoi = ["ctv"]
         envoi.append(float(kp))
         envoi.append(float(kd))
-        envoi.append(int(vitesse))
+        envoi.append(int(pwm_max))
         
         self.serie.communiquer("asservissement",envoi, 0)
         
-    def set_vitesse_rotation(self, vitesse):
+    def set_vitesse_rotation(self, pwm_max):
         """
-        spécifie une vitesse en rotation, entre 80 et 240
-        une vitesse 1,2,3 prédéfinie peut etre entrée
-        1 : vitesse "prudente"
-        2 : vitesse normale
-        3 : vitesse pour forcer
+        modifie la vitesse de rotation (pwm_max) du robot et adapte les constantes d'asservissement
         """
-        
-        # garde-fou
-        if vitesse < 1 or vitesse > 255:
-            vitesse = 2
-            
-        # les scripts utilisent des vitesses prédéfinies ici
-        if vitesse == 1:
-            vitesse = 80
-        elif vitesse == 2:
-            vitesse = 100
-        elif vitesse == 3:
-            vitesse = 200
           
         # les constantes d'asservissement sont valables dans des plages de vitesses
-        if vitesse > 155:
+        if pwm_max > 155:
             kp = 1.0
             kd = 23.0
-        elif vitesse > 90:
+        elif pwm_max > 90:
             kp = 1.0
             kd = 19.0
         else:
@@ -185,7 +154,7 @@ class Deplacements():
         envoi = ["crv"]
         envoi.append(float(kp))
         envoi.append(float(kd))
-        envoi.append(int(vitesse))
+        envoi.append(int(pwm_max))
         
         self.serie.communiquer("asservissement",envoi, 0)
         

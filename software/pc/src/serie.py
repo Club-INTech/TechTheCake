@@ -1,3 +1,5 @@
+import time
+
 class Serie:
     """
     Redirige les requêtes au service `serie` vers la série réelle (communication robot) ou la série de simulation.
@@ -15,7 +17,7 @@ class Serie:
         self.dico_infos_peripheriques = {
             "asservissement": ((0,9600),"deplacements"),
             "capteurs_actionneurs" : ((3,9600),"capteurs_actionneurs"),
-#            "laser" : ((4,38400),"laser"),
+            "laser" : ((4,38400),"laser"),
             "ascenseur": ((2,9600),"ascenseur")
         }
         
@@ -40,7 +42,14 @@ class Serie:
                 serie = self.serieSimulation
             
             try:
-                return serie.communiquer(destinataire, messages, nb_lignes_reponse)
+                reponse = serie.communiquer(destinataire, messages, nb_lignes_reponse)
+                assert reponse is not None
+                assert len(reponse) == nb_lignes_reponse
+                return reponse
+            except AssertionError:
+                self.log.warning("La trame réponse de "+str(destinataire)+" est mauvaise ! Renvoi...")
+                time.sleep(0.01)
+                return self.communiquer(destinataire, messages, nb_lignes_reponse)
             except:
                 self.log.critical("La carte '"+destinataire+"' n'est ni en simulation ni sur la série !")
                 raise Exception

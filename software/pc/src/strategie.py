@@ -27,33 +27,23 @@ class Strategie:
         """
         Boucle qui gère la stratégie, en testant les différents scripts et en exécutant le plus avantageux
         """
-        # La première décision est scriptée
-        premier_tour = True
-
-        if self.config["couleur"] == "bleu":
-            script_a_faire = "ScriptRecupererVerresZoneBleu"
-        else:
-            script_a_faire = "ScriptRecupererVerresZoneRouge"
-        self.scripts[script_a_faire].versions()
-        if abs(self.scripts[script_a_faire].point_entree(0).y - self.robot.y) < abs(self.scripts[script_a_faire].point_entree(1).y - self.robot.y):
-            version_a_faire = 0
-        else:
-            version_a_faire = 1
+        self.log.debug("stratégie en attente du jumper...")
 
         while not self.timer.match_demarre:
             sleep(.5)
+            
         self.son.jouer("debut")
-        self.log.debug("Stratégie lancée")
-        # Avec la balise laser, récupérer la position des ennemis. Sur la ou les cases occupées seront probablement les verres. Mettre à jour position_verres_1 et position_verres_2
+        self.log.debug("stratégie lancée")
+        
+        # Avec la balise laser, récupérer la position des ennemis. Sur la ou les cases occupées seront probablement les verres.
+        # Mettre à jour position_verres_1 et position_verres_2
 #        self.scripts["ScriptRenverserVerres"].cases_verres=[1,2]
         try:
-            self.robot.set_vitesse_translation(2)
-            self.robot.set_vitesse_rotation(2)
+            self.robot.set_vitesse_translation("entre_scripts")
+            self.robot.set_vitesse_rotation("entre_scripts")
             self.robot.avancer(300, retenter_si_blocage = False, sans_lever_exception = True)
         except:
             pass
-        self.robot.actionneurs_ascenseur(True, "ouvert")
-        self.robot.actionneurs_ascenseur(False, "ouvert")
 
         # On ne le fait que maintenant car la config peut changer avant le début du match
         if self.config["ennemi_fait_toutes_bougies"]:
@@ -62,39 +52,49 @@ class Strategie:
 
         while not self.timer.get_fin_match():
 
-            if not premier_tour:
-                notes = {}
+            notes = {}
 
-                #initialisation de la recherche de chemin pour le calcul de temps
-                self.rechercheChemin.retirer_obstacles_dynamiques()
-                self.rechercheChemin.charge_obstacles(avec_verres_entrees=False)
-                self.rechercheChemin.prepare_environnement_pour_a_star()
-                
-                # Notation des scripts
-                for script in self.scripts:
-                    for version in self.scripts[script].versions():
-                        notes[(script,version)] = self._noter_script(script, version)
-                self.log.debug("Notes des scripts: " + str(notes))
+            #initialisation de la recherche de chemin pour le calcul de temps
+            self.rechercheChemin.retirer_obstacles_dynamiques()
+            self.rechercheChemin.charge_obstacles(avec_verres_entrees=False)
+            
+            try: self.rechercheChemin.prepare_environnement_pour_visilibity()
+            except libRechercheChemin.ExceptionEnvironnementMauvais as e:
+                self.log.critical(e)
+                sleep(0.1)
+                continue
+            
+            # Notation des scripts
+            self.log.debug("\t\t\t|interet\t|ennemi\t\t|echecs\t\t|timing("+str(int(time()-self.timer.get_date_debut()))+")\t|malus")
+            for script in self.scripts:
+                for version in self.scripts[script].versions():
+                    notes[(script,version)] = self._noter_script(script, version)
 
-                # S'il n'y a plus de script à exécuter (ce qui ne devrait jamais arriver), on interrompt la stratégie
-                if notes == {}:
-                    self.log.critical("Plus de scripts à exécuter! Temps restant: "+str(self.config["temps_match"] - time() + self.timer.get_date_debut()))
-                    break
+            # S'il n'y a plus de script à exécuter (ce qui ne devrait jamais arriver), on interrompt la stratégie
+            if notes == {}:
+                self.log.critical("Plus de scripts à exécuter! Temps restant: "+str(self.config["temps_match"] - time() + self.timer.get_date_debut()))
+                break
 
-                # Choix du script avec la meilleure note
-                (script_a_faire, version_a_faire) = max(notes, key=notes.get)  
+            # Choix du script avec la meilleure note
+            (script_a_faire, version_a_faire) = max(notes, key=notes.get)  
 #                script_a_faire = "ScriptBougies"
 #                version_a_faire = 0
-                self.log.debug("Stratégie ordonne: ({0}, version n°{1}, entrée en {2})".format(script_a_faire, version_a_faire, self.scripts[script_a_faire].point_entree(version_a_faire)))
-
+            self.log.debug("Stratégie ordonne: ({0}, version n°{1}, entrée en {2})".format(script_a_faire, version_a_faire, self.scripts[script_a_faire].point_entree(version_a_faire)))
             
-                #ajout d'obstacles pour les verres d'entrées, sauf si on execute un script de récupération des verres
-                if not isinstance(self.scripts[script_a_faire], ScriptRecupererVerres):
-                    for verre in self.table.verres_entrees():
-                        self.rechercheChemin.ajoute_obstacle_cercle(verre["position"], self.config["rayon_verre"])
-
-            premier_tour = False;
-
+            input()
+            """
+            #ajout d'obstacles pour les verres d'entrées, sauf si on execute un script de récupération des verres
+            if not isinstance(self.scripts[script_a_faire], ScriptRecupererVerres):
+                self.rechercheChemin.retirer_obstacles_dynamiques()
+                self.rechercheChemin.charge_obstacles(avec_verres_entrees=True)
+                
+                try: self.rechercheChemin.prepare_environnement_pour_visilibity()
+                except libRechercheChemin.ExceptionEnvironnementMauvais as e:
+                    self.log.critical(e)
+                    sleep(0.1)
+                    continue
+            """
+            
             # Lancement du script si le match n'est pas terminé
             if not self.timer.get_fin_match():
                 
@@ -134,13 +134,7 @@ class Strategie:
             
         #chemin impossible
         except libRechercheChemin.ExceptionAucunChemin:
-            self.log.critical("Epic fail de {0}! ExceptionAucunChemin".format((script,version)))
-            return -1000
-        except libRechercheChemin.ExceptionArriveeDansObstacle:
-            self.log.critical("Epic fail de {0}! ExceptionArriveeDansObstacle".format((script,version)))
-            return -1000
-        except libRechercheChemin.ExceptionArriveeHorsTable:
-            self.log.critical("Epic fail de {0}! ExceptionArriveeHorsTable".format((script,version)))
+            self.log.warning("Le point d'entrée de {0} n'est pas accessible.".format((script,version)))
             return -1000
             
         # Erreur dans la durée script, script ignoré
@@ -173,23 +167,23 @@ class Strategie:
 
         note = [
             # Densité de points
-            5*score/duree_script,
+            round(score/duree_script,2),
 
             # On évite l'ennemi s'il est proche de l'objectif (gaussienne)
-            -10*math.exp(-(distance_ennemi**4)/(5*10**11)),
+            round( -10*math.exp(-(distance_ennemi**4)/(5*10**11)) ,2),
             
             # Echecs précédents
-            5*note_echecs,
+            round(2*note_echecs,2),
     
             # Fonction du temps
-            poids,
+            round(poids,2),
 
             # Les scripts qu'on aurait pas le temps de finir ont un malus de points
-            malus
+            round(malus,2)
         ]
-        self.log.debug("Détail note "+str(script)+" en "+str(self.scripts[script].point_entree(version))+": "+str(note))
-#        self.log.debug("Score: "+str(score)+", durée: "+str(duree_script))
-        
+        #str(self.scripts[script].point_entree(version))
+        self.log.debug(str(script)[-15:]+", "+str(version)+" :\t|"+str('\t\t|'.join(str(x) for x in note)))
+        self.log.debug("\t\t"+str(score)+" points en "+str(round(duree_script,2))+" sec.")
         return sum(note)
 
     def _distance_ennemi(self, point_entree):
@@ -203,7 +197,7 @@ class Strategie:
         #obstacles avec vitesse
         positions = [point_entree.distance(obstacle.position)+duree_du_trajet*obstacle.vitesse.norme() for obstacle in self.table.obstacles() if hasattr(obstacle, "vitesse") and obstacle.vitesse is not None]
         #obstacles sans vitesse
-        positions += [point_entree.distance(obstacle.position) for obstacle in self.table.obstacles() if not hasattr(obstacle, "vitesse")]
+        positions += [point_entree.distance(obstacle.position) for obstacle in self.table.obstacles() if not hasattr(obstacle, "vitesse") or obstacle.vitesse is None]
 
         # S'il n'y a aucun ennemi, on considère qu'il est à l'infini
         if positions == []:
