@@ -8,7 +8,7 @@
 #define DEFAULT_SPEED_ORDER		15
 #define TIMEOUT			  		100
 #define PI                      3.14159265359
-#define ANGLE_ORIGIN_OFFSET     1.35
+#define ANGLE_ORIGIN_OFFSET     2.05
 
 #define BALISE_NUMBER     		2
 

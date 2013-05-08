@@ -279,21 +279,22 @@ void Balise::execute(char *order)
 			// Suppression des valeurs si pas assez récente
 			if (offset_ == 0 || offset_ >= last_period())
 			{
-				distance_ = 0;
-				angle_ = 0;
+				serial_pc::print("OLD_VALUE");
+                serial_pc::print("OLD_VALUE");
+                return;
 			}
             
+            // Lasers non vus par la balise
             if (distance_ == 0)
             {
-                serial_pc::print("NO_VALUE");
-                serial_pc::print("NO_VALUE");
+                serial_pc::print("UNVISIBLE");
+                serial_pc::print("UNVISIBLE");
+                return;
             }
-            else
-            {
-                // Affichage de la distance
-                serial_pc::print(distance_);
-                serial_pc::print(angle_, 3);
-            }
+            
+            // Affichage de la distance
+            serial_pc::print(distance_);
+            serial_pc::print(angle_, 3);
 		}
 		else
 		{
