@@ -29,27 +29,6 @@ class Strategie:
         """
         self.log.debug("stratégie en attente du jumper...")
 
-        while not self.timer.match_demarre:
-            sleep(.5)
-            
-        self.son.jouer("debut")
-        self.log.debug("stratégie lancée")
-        
-        # Avec la balise laser, récupérer la position des ennemis. Sur la ou les cases occupées seront probablement les verres.
-        # Mettre à jour position_verres_1 et position_verres_2
-#        self.scripts["ScriptRenverserVerres"].cases_verres=[1,2]
-        try:
-            self.robot.set_vitesse_translation("entre_scripts")
-            self.robot.set_vitesse_rotation("entre_scripts")
-            self.robot.avancer(300, retenter_si_blocage = False, sans_lever_exception = True)
-        except:
-            pass
-
-        # On ne le fait que maintenant car la config peut changer avant le début du match
-        if self.config["ennemi_fait_toutes_bougies"]:
-            self.log.warning("Comme l'ennemi fait toutes les bougies, on ne les fera pas.")
-            del self.scripts["ScriptBougies"]
-
         while not self.timer.get_fin_match():
 
             notes = {}
@@ -94,6 +73,22 @@ class Strategie:
                     sleep(0.1)
                     continue
             """
+
+            premier_tour = False
+            while not self.timer.match_demarre:
+                premier_tour = True
+                sleep(.5)
+
+            if premier_tour:
+                self.son.jouer("debut")
+                self.log.debug("stratégie lancée")
+                
+                try:
+                    self.robot.set_vitesse_translation("entre_scripts")
+                    self.robot.set_vitesse_rotation("entre_scripts")
+                    self.robot.avancer(300, retenter_si_blocage = False, sans_lever_exception = True)
+                except:
+                    pass
             
             # Lancement du script si le match n'est pas terminé
             if not self.timer.get_fin_match():
