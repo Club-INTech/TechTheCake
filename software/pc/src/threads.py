@@ -24,6 +24,9 @@ class ThreadPosition(AbstractThread):
         log = self.container.get_service("log")
         robot = self.container.get_service("robot")
         timer = self.container.get_service("threads.timer")
+        config = self.container.get_service("config")
+        if config["simulation_table"]:
+            simulateur = self.container.get_service("simulateur")
         
         log.debug("lancement du thread de mise à jour")
         
@@ -38,7 +41,7 @@ class ThreadPosition(AbstractThread):
                 robot.update_x_y_orientation()
                 robot_pret = True
             except Exception as e:
-                log.warning(e)
+                log.warning("La série n'est pas prête pour relever la position du robot. Nouvelle tentative...")
             sleep(0.1)
             
         robot.pret = True
@@ -51,6 +54,9 @@ class ThreadPosition(AbstractThread):
             #mise à jour des coordonnées dans robot
             try:
                 robot.update_x_y_orientation()
+                if config["simulation_table"]:
+                    simulateur.setRobotPosition(robot.x, robot.y)
+                    simulateur.setRobotAngle(robot.orientation)
             except Exception as e:
                 log.warning(e)
             sleep(0.1)
@@ -92,20 +98,26 @@ class ThreadCapteurs(AbstractThread):
         dernier_ajout = 0
 
         log.debug("Activation des capteurs")
+        marche_arriere = False
+        
         while not timer.get_fin_match():
             if AbstractThread.stop_threads:
                 log.debug("Stoppage du thread capteurs")
                 return None
-            distance = capteurs.mesurer(robot.marche_arriere)
+                
+            #BASCUUUUULE !!! ~~ WHAT THE SHIT ~~
+            marche_arriere = not marche_arriere
+            
+            #on balaye alternativement les capteurs arrière et avant, pour mettre à jour les obstacles
+            distance = capteurs.mesurer(marche_arriere)
             if distance >= 0 and distance <= config["horizon_capteurs"]:
                 #distance : entre le capteur situé à l'extrémité du robot et la facade du robot adverse
                 distance_inter_robots = distance + config["rayon_robot_adverse"] + config["largeur_robot"]/2
-                if robot.marche_arriere:
-                    x = robot.x - distance_inter_robots * cos(robot.orientation)
-                    y = robot.y - distance_inter_robots * sin(robot.orientation)
-                else:
-                    x = robot.x + distance_inter_robots * cos(robot.orientation)
-                    y = robot.y + distance_inter_robots * sin(robot.orientation)
+                theta = robot.orientation
+                if marche_arriere:
+                    theta += pi
+                x = robot.x + distance_inter_robots * cos(theta)
+                y = robot.y + distance_inter_robots * sin(theta)
 
                 # Vérifie que l'obstacle n'a pas déjà été ajouté récemment
                 if time() - dernier_ajout > tempo:
@@ -336,46 +348,37 @@ class ThreadCouleurBougies(AbstractThread):
                 log.debug("Stoppage du thread de détection des couleurs des bougies")
                 return None
             sleep(0.1)
-
-        # Il y a un copier/coller, ce qui n'est pas beau du tout. Mais je ne m'y connais pas assez en try/except pour pouvoir factoriser... (PF)
-        if config["ennemi_fait_ses_bougies"] or config["ennemi_fait_toutes_bougies"]:
-            log.debug("Puisque l'ennemi fait les bougies, on n'a pas besoin de capteurs.")
+            
+        # Ouverture de la socket
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            client_socket.settimeout(config["timeout_android"])
+            client_socket.connect((config["ip_android"], 8080))
+            client_socket.send(bytes(config["couleur"][0]+"\n", 'UTF-8'))
+            rcv = str(client_socket.recv(11),"utf-8").replace("\n","")
+            table.definir_couleurs_bougies(rcv)
+            log.debug("Résultats android: " + str(rcv))
+        except:
+            # Si on n'a pas d'information de l'appli android, il vaut mieux stratégiquement ne pas faire les bougies, 
+            # sauf s'il faut toutes les faire. En effet, si on fait toutes les bougies, la différence des points ne changera pas.
+            # Et comme on manque de temps pour tout faire, autant ne pas les faire.
+            if config["ennemi_fait_ses_bougies"]:
+                log.warning("Aucune réponse de l'appli android. On fait toutes les bougies car l'ennemi fait les siennes.")
+            else:
+                log.warning("Aucune réponse de l'appli android. Abandon des bougies.")
+                # Exactement, on ne supprime pas le script mais on lui met un malus
+                scripts["ScriptBougies"].malus = -10
             couleur_bougies = table.COULEUR_BOUGIE_BLEU if config["couleur"]=="bleu" else table.COULEUR_BOUGIE_ROUGE
             for i in range (20):
                 table.bougies[i]["couleur"] = couleur_bougies
             #le script tiendra compte de ce comportement dans le décompte des points
             if "ScriptBougies" in scripts:
                 scripts["ScriptBougies"].en_aveugle = True
-        else:
-            # Ouverture de la socket
-            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            try:
-                client_socket.settimeout(config["timeout_android"])
-                client_socket.connect((config["ip_android"], 8080))
-                client_socket.send(bytes(config["couleur"][0]+"\n", 'UTF-8'))
-                rcv = str(client_socket.recv(11),"utf-8").replace("\n","")
-                table.definir_couleurs_bougies(rcv)
-                log.debug("Résultats android: " + str(rcv))
-            except:
-                # Si on n'a pas d'information de l'appli android, il vaut mieux stratégiquement ne pas faire les bougies, 
-                # sauf s'il faut toutes les faire. En effet, si on fait toutes les bougies, la différence des points ne changera pas.
-                # Et comme on manque de temps pour tout faire, autant ne pas les faire.
-                if config["ennemi_fait_ses_bougies"]:
-                    log.warning("Aucune réponse de l'appli android. On fait toutes les bougies car l'ennemi fait les siennes.")
-                else:
-                    log.warning("Aucune réponse de l'appli android. Abandon des bougies.")
-                # Exactement, on ne supprime pas le script mais on lui met un malus
-                    scripts["ScriptBougies"].malus = -20
-                couleur_bougies = table.COULEUR_BOUGIE_BLEU if config["couleur"]=="bleu" else table.COULEUR_BOUGIE_ROUGE
-                for i in range (20):
-                    table.bougies[i]["couleur"] = couleur_bougies
-                #le script tiendra compte de ce comportement dans le décompte des points
-                if "ScriptBougies" in scripts:
-                    scripts["ScriptBougies"].en_aveugle = True
-            finally:
-                client_socket.close()
-
-        table.definir_couleurs_bougies("rbrbwwrbrb") # test
+        finally:
+            client_socket.close()
+            
+        if config["ennemi_fait_toutes_bougies"]:
+            #S'il fait le boulot à notre place, on n'est pas pressé
+            scripts["ScriptBougies"].malus -= 10
 
         log.debug("Fin du thread de détection des couleurs des bougies")
-        

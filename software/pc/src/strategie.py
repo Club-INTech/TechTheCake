@@ -81,10 +81,10 @@ class Strategie:
                     continue
                 
                 # Notation des scripts
+                self.log.debug("\t\t\t|interet\t|ennemi\t\t|echecs\t\t|timing("+str(int(time()-self.timer.get_date_debut()))+")\t|malus")
                 for script in self.scripts:
                     for version in self.scripts[script].versions():
                         notes[(script,version)] = self._noter_script(script, version)
-                self.log.debug("Notes des scripts: " + str(notes))
 
                 # S'il n'y a plus de script à exécuter (ce qui ne devrait jamais arriver), on interrompt la stratégie
                 if notes == {}:
@@ -152,7 +152,7 @@ class Strategie:
             
         #chemin impossible
         except libRechercheChemin.ExceptionAucunChemin:
-            self.log.critical("Epic fail de {0}! ExceptionAucunChemin".format((script,version)))
+            self.log.warning("Le point d'entrée de {0} n'est pas accessible.".format((script,version)))
             return -1000
             
         # Erreur dans la durée script, script ignoré
@@ -185,23 +185,23 @@ class Strategie:
 
         note = [
             # Densité de points
-            1000 * score/duree_script,
+            round(score/duree_script,2),
 
             # On évite l'ennemi s'il est proche de l'objectif (gaussienne)
-            -10*math.exp(-(distance_ennemi**4)/(5*10**11)),
+            round( -10*math.exp(-(distance_ennemi**4)/(5*10**11)) ,2),
             
             # Echecs précédents
-            2*note_echecs,
+            round(2*note_echecs,2),
     
             # Fonction du temps
-            poids,
+            round(poids,2),
 
             # Les scripts qu'on aurait pas le temps de finir ont un malus de points
-            malus
+            round(malus,2)
         ]
-        self.log.debug("Détail note "+str(script)+" en "+str(self.scripts[script].point_entree(version))+": "+str(note))
-#        self.log.debug("Score: "+str(score)+", durée: "+str(duree_script))
-        
+        #str(self.scripts[script].point_entree(version))
+        self.log.debug(str(script)[-15:]+", "+str(version)+" :\t|"+str('\t\t|'.join(str(x) for x in note)))
+        self.log.debug("\t\t"+str(score)+" points en "+str(round(duree_script,2))+" sec.")
         return sum(note)
 
     def _distance_ennemi(self, point_entree):
