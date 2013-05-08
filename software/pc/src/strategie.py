@@ -28,6 +28,10 @@ class Strategie:
         Boucle qui gère la stratégie, en testant les différents scripts et en exécutant le plus avantageux
         """
         self.log.debug("stratégie en attente du jumper...")
+        if "capteurs_actionneurs" in self.config["cartes_simulation"]:
+            premier_tour = True
+        else:
+            premier_tour = False
 
         while not self.timer.get_fin_match():
 
@@ -60,7 +64,6 @@ class Strategie:
 #                version_a_faire = 0
             self.log.debug("Stratégie ordonne: ({0}, version n°{1}, entrée en {2})".format(script_a_faire, version_a_faire, self.scripts[script_a_faire].point_entree(version_a_faire)))
             
-            input()
             """
             #ajout d'obstacles pour les verres d'entrées, sauf si on execute un script de récupération des verres
             if not isinstance(self.scripts[script_a_faire], ScriptRecupererVerres):
@@ -74,12 +77,12 @@ class Strategie:
                     continue
             """
 
-            premier_tour = False
             while not self.timer.match_demarre:
                 premier_tour = True
                 sleep(.5)
 
             if premier_tour:
+                premier_tour = False
                 self.son.jouer("debut")
                 self.log.debug("stratégie lancée")
                 
@@ -87,6 +90,8 @@ class Strategie:
                     self.robot.set_vitesse_translation("entre_scripts")
                     self.robot.set_vitesse_rotation("entre_scripts")
                     self.robot.avancer(300, retenter_si_blocage = False, sans_lever_exception = True)
+                    self.robot.altitude_ascenseur(True, "bas")
+                    self.robot.altitude_ascenseur(False, "bas")
                 except:
                     pass
             
