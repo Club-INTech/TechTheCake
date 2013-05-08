@@ -243,12 +243,14 @@ class AX
 
 			//init();
 			// Puis on le fait osciller lentement en boucle infinie
-			while (1)
+			int i = 0;
+			while ( i <= 2)
 			{
 				goTo(90);
 				_delay_ms(900);
 				goTo(100);
 				_delay_ms(900);
+				++i;
 			}
 		}
 
