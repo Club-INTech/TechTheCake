@@ -27,19 +27,6 @@ class Strategie:
         """
         Boucle qui gère la stratégie, en testant les différents scripts et en exécutant le plus avantageux
         """
-        # La première décision est scriptée
-        premier_tour = True
-
-        if self.config["couleur"] == "bleu":
-            script_a_faire = "ScriptRecupererVerresZoneBleu"
-        else:
-            script_a_faire = "ScriptRecupererVerresZoneRouge"
-        self.scripts[script_a_faire].versions()
-        if abs(self.scripts[script_a_faire].point_entree(0).y - self.robot.y) < abs(self.scripts[script_a_faire].point_entree(1).y - self.robot.y):
-            version_a_faire = 0
-        else:
-            version_a_faire = 1
-            
         self.log.debug("stratégie en attente du jumper...")
 
         while not self.timer.match_demarre:
@@ -57,8 +44,6 @@ class Strategie:
             self.robot.avancer(300, retenter_si_blocage = False, sans_lever_exception = True)
         except:
             pass
-        self.robot.actionneurs_ascenseur(True, "ouvert")
-        self.robot.actionneurs_ascenseur(False, "ouvert")
 
         # On ne le fait que maintenant car la config peut changer avant le début du match
         if self.config["ennemi_fait_toutes_bougies"]:
@@ -67,52 +52,49 @@ class Strategie:
 
         while not self.timer.get_fin_match():
 
-            if not premier_tour:
-                notes = {}
+            notes = {}
 
-                #initialisation de la recherche de chemin pour le calcul de temps
+            #initialisation de la recherche de chemin pour le calcul de temps
+            self.rechercheChemin.retirer_obstacles_dynamiques()
+            self.rechercheChemin.charge_obstacles(avec_verres_entrees=False)
+            
+            try: self.rechercheChemin.prepare_environnement_pour_visilibity()
+            except libRechercheChemin.ExceptionEnvironnementMauvais as e:
+                self.log.critical(e)
+                sleep(0.1)
+                continue
+            
+            # Notation des scripts
+            self.log.debug("\t\t\t|interet\t|ennemi\t\t|echecs\t\t|timing("+str(int(time()-self.timer.get_date_debut()))+")\t|malus")
+            for script in self.scripts:
+                for version in self.scripts[script].versions():
+                    notes[(script,version)] = self._noter_script(script, version)
+
+            # S'il n'y a plus de script à exécuter (ce qui ne devrait jamais arriver), on interrompt la stratégie
+            if notes == {}:
+                self.log.critical("Plus de scripts à exécuter! Temps restant: "+str(self.config["temps_match"] - time() + self.timer.get_date_debut()))
+                break
+
+            # Choix du script avec la meilleure note
+            (script_a_faire, version_a_faire) = max(notes, key=notes.get)  
+#                script_a_faire = "ScriptBougies"
+#                version_a_faire = 0
+            self.log.debug("Stratégie ordonne: ({0}, version n°{1}, entrée en {2})".format(script_a_faire, version_a_faire, self.scripts[script_a_faire].point_entree(version_a_faire)))
+            
+            input()
+            """
+            #ajout d'obstacles pour les verres d'entrées, sauf si on execute un script de récupération des verres
+            if not isinstance(self.scripts[script_a_faire], ScriptRecupererVerres):
                 self.rechercheChemin.retirer_obstacles_dynamiques()
-                self.rechercheChemin.charge_obstacles(avec_verres_entrees=False)
+                self.rechercheChemin.charge_obstacles(avec_verres_entrees=True)
                 
                 try: self.rechercheChemin.prepare_environnement_pour_visilibity()
                 except libRechercheChemin.ExceptionEnvironnementMauvais as e:
                     self.log.critical(e)
                     sleep(0.1)
                     continue
-                
-                # Notation des scripts
-                self.log.debug("\t\t\t|interet\t|ennemi\t\t|echecs\t\t|timing("+str(int(time()-self.timer.get_date_debut()))+")\t|malus")
-                for script in self.scripts:
-                    for version in self.scripts[script].versions():
-                        notes[(script,version)] = self._noter_script(script, version)
-
-                # S'il n'y a plus de script à exécuter (ce qui ne devrait jamais arriver), on interrompt la stratégie
-                if notes == {}:
-                    self.log.critical("Plus de scripts à exécuter! Temps restant: "+str(self.config["temps_match"] - time() + self.timer.get_date_debut()))
-                    break
-
-                # Choix du script avec la meilleure note
-                (script_a_faire, version_a_faire) = max(notes, key=notes.get)  
-#                script_a_faire = "ScriptBougies"
-#                version_a_faire = 0
-                self.log.debug("Stratégie ordonne: ({0}, version n°{1}, entrée en {2})".format(script_a_faire, version_a_faire, self.scripts[script_a_faire].point_entree(version_a_faire)))
-                
-                input()
-                """
-                #ajout d'obstacles pour les verres d'entrées, sauf si on execute un script de récupération des verres
-                if not isinstance(self.scripts[script_a_faire], ScriptRecupererVerres):
-                    self.rechercheChemin.retirer_obstacles_dynamiques()
-                    self.rechercheChemin.charge_obstacles(avec_verres_entrees=True)
-                    
-                    try: self.rechercheChemin.prepare_environnement_pour_visilibity()
-                    except libRechercheChemin.ExceptionEnvironnementMauvais as e:
-                        self.log.critical(e)
-                        sleep(0.1)
-                        continue
-                """
+            """
             
-            premier_tour = False;
-
             # Lancement du script si le match n'est pas terminé
             if not self.timer.get_fin_match():
                 
