@@ -66,7 +66,7 @@ class Capteurs():
 
     def demarrage_match(self):
         try:
-            return not self.serie.communiquer("capteurs_actionneurs",["j"], 1)[0] == "1"
+            return self.serie.communiquer("capteurs_actionneurs",["j"], 1)[0] == "0"
         except Exception as e:
             self.log.warning("Erreur de lecture du jumper : "+str(e))
         
