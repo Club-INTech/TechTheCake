@@ -27,11 +27,7 @@ class Strategie:
         """
         Boucle qui gère la stratégie, en testant les différents scripts et en exécutant le plus avantageux
         """
-        if "capteurs_actionneurs" in self.config["cartes_simulation"]:
-            premier_tour = True
-        else:
-            premier_tour = False
-
+        
         while not self.timer.get_fin_match():
 
             notes = {}
@@ -61,8 +57,6 @@ class Strategie:
 
             # Choix du script avec la meilleure note
             (script_a_faire, version_a_faire) = max(notes, key=notes.get)  
-#            script_a_faire = "ScriptCadeaux"
-#            version_a_faire = 0
             self.log.debug("Stratégie ordonne: ({0}, version n°{1}, entrée en {2})".format(script_a_faire, version_a_faire, self.scripts[script_a_faire].point_entree(version_a_faire)))
             
             """
@@ -79,18 +73,18 @@ class Strategie:
             """
             if not self.timer.match_demarre:
                 self.log.debug("stratégie en attente du jumper...")
-            while not self.timer.match_demarre:
-                premier_tour = True
-                sleep(.5)
+                    
+                while not self.timer.match_demarre:
+                    sleep(.5)
 
-            if premier_tour:
-                premier_tour = False
                 self.son.jouer("debut")
                 self.log.debug("stratégie lancée")
                 
                 try:
                     self.robot.set_vitesse_translation("entre_scripts")
                     self.robot.set_vitesse_rotation("entre_scripts")
+                    self.robot.actionneurs_ascenseur(True, "ferme")
+                    self.robot.actionneurs_ascenseur(False, "ferme")
                     self.robot.avancer(300, retenter_si_blocage = False, sans_lever_exception = True)
                     self.robot.altitude_ascenseur(True, "bas")
                     self.robot.altitude_ascenseur(False, "bas")

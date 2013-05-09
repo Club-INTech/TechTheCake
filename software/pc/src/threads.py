@@ -146,7 +146,6 @@ class ThreadTimer(AbstractThread):
         self.fin_match = False
         self.mutex = Mutex()
         self.compte_rebours = True
-        self.date_debut = time()
 
     def initialisation(self):
         """
@@ -232,12 +231,16 @@ class ThreadTimer(AbstractThread):
         self.son.jouer("generique", force=True, enBoucle=True)
         self.log.debug("Fin du thread timer")
         
+        
     def get_date_debut(self):
         """
         Getter de la variable date_debut
         """
         with self.mutex:
-            return self.date_debut
+            if hasattr(self, 'date_debut'):
+                return self.date_debut
+            else:
+                return time()
 
     def get_fin_match(self):
         """
