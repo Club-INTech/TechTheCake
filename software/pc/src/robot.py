@@ -659,7 +659,19 @@ class Robot(RobotInterface):
         
         #blocage durant le mouvement
         except ExceptionBlocage:
-            raise ExceptionMouvementImpossible(self)
+            self.stopper()
+            if nombre_tentatives > 0:
+                self.log.warning("attente avant nouvelle tentative... reste {0} tentative(s)".format(nombre_tentatives))
+#                self.set_vitesse_translation("entre_scripts")
+#                self.avancer(-30, hooks)
+#                self.avancer(30, hooks)
+                if nombre_tentatives == 2:
+                    self.set_vitesse_translation("arc_de_cercle_moyen")
+                if nombre_tentatives == 1:
+                    self.set_vitesse_translation("arc_de_cercle_fort")
+                self.arc_de_cercle(point_destination, hooks, nombre_tentatives-1)
+            else:
+                raise ExceptionMouvementImpossible(self)
         
         #détection d'un robot adverse
         except ExceptionCollision:

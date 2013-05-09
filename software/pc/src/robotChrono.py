@@ -70,17 +70,21 @@ class RobotInterface(metaclass=abc.ABCMeta):
         Retourne un pwm_max en fonction d'une convention de vitesse.
         """
         if vitesse == "entre_scripts":
-            return 140#120
+            return 150#120
         elif vitesse == "recherche_verre":
-            return 100#70
+            return 110#70
         elif vitesse == "depot_verre":
             return 90#60
         elif vitesse == "proche_gateau":
             return 100
-        elif vitesse == "arc_de_cercle":
-            return 50#38
         elif vitesse == "prudence_reglette":
             return 90#70
+        elif vitesse == "arc_de_cercle":
+            return 48#38
+        elif vitesse == "arc_de_cercle_moyen":
+            return 51#38
+        elif vitesse == "arc_de_cercle_fort":
+            return 54#38
         elif vitesse == "cadeaux":
             return 87
         elif vitesse == "recal_faible":
