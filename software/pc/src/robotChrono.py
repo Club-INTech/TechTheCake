@@ -82,7 +82,7 @@ class RobotInterface(metaclass=abc.ABCMeta):
         elif vitesse == "prudence_reglette":
             return 70
         elif vitesse == "cadeaux":
-            return 90
+            return 110
         elif vitesse == "recal_faible":
             return 60
         elif vitesse == "recal_forte":
@@ -94,27 +94,26 @@ class RobotInterface(metaclass=abc.ABCMeta):
         """
         Retourne un pwm_max en fonction d'une convention de vitesse.
         """
-        
         if vitesse == "entre_scripts":
-            return 130#100
+            return 160#100
         elif vitesse == "recherche_verre":
-            return 80
+            return 120
         elif vitesse == "depot_verre":
-            return 80
+            return 120
         elif vitesse == "proche_gateau":
-            return 100
+            return 140
         elif vitesse == "arc_de_cercle":
             return int(max(118-0.21*(rayon-478), 30))
         elif vitesse == "fin_arc":
-            return 20
+            return 50
         elif vitesse == "cadeaux":
-            return 100
+            return 140
         elif vitesse == "prudence_reglette":
-            return 70
+            return 110
         elif vitesse == "recal_faible":
-            return 80
+            return 120
         elif vitesse == "recal_forte":
-            return 100
+            return 130
         else:
             raise Exception("string de vitesse rotation inconnu ! (cf RobotInterface.conventions_vitesse_rotation)")
         
