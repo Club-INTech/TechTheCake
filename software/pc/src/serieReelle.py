@@ -54,40 +54,43 @@ class SerieReelle:
                 baudrates.append(self.peripheriques[destinataire].baudrate)
         
         #recherche les pings présents sur les chemins et baudrates listés
+        deja_attribues = []
+        
         pings = {}
         for baudrate in baudrates:
             print("liste des pings pour le baudrate "+str(baudrate)+" :")
             k=0
             while k < len(sources):
-                try:
-                    instanceSerie = Serial(sources[k], baudrate, timeout=0.1)
-                    
-                    #vide le buffer série coté pc
-                    instanceSerie.flushInput()
-                    
-                    #vide le buffer de l'avr
-                    instanceSerie.write(bytes(" \r","utf-8"))
-                    instanceSerie.readline()
-                    
-                    #ping
-                    instanceSerie.write(bytes("?\r","utf-8"))
-                    #évacuation de l'acquittement
-                    instanceSerie.readline()
-                    #réception de l'id de la carte
-                    rep = self._clean_string(str(instanceSerie.readline(),"utf-8"))
-                    #fermeture du périphérique
-                    instanceSerie.close()
-                    #tentative de cast pour extraire un id
+                if not k in deja_attribues:
                     try:
-                        id = int(rep)
-                        pings[id]=sources[k]
-                        print(" * "+str(id)+" sur "+sources[k])
-                        #sources.remove(source)
-                    finally:
-                        k += 1
-                except Exception as e:
-                    pass
-                    #self.log.warning("exception durant la détection des périphériques série: {0}".format(e))
+                        instanceSerie = Serial(sources[k], baudrate, timeout=0.1)
+                        
+                        #vide le buffer série coté pc
+                        instanceSerie.flushInput()
+                        
+                        #vide le buffer de l'avr
+                        instanceSerie.write(bytes(" \r","utf-8"))
+                        instanceSerie.readline()
+                        
+                        #ping
+                        instanceSerie.write(bytes("?\r","utf-8"))
+                        #évacuation de l'acquittement
+                        instanceSerie.readline()
+                        #réception de l'id de la carte
+                        rep = self._clean_string(str(instanceSerie.readline(),"utf-8"))
+                        #fermeture du périphérique
+                        instanceSerie.close()
+                        #tentative de cast pour extraire un id
+                        try:
+                            id = int(rep)
+                            pings[id]=sources[k]
+                            print(" * "+str(id)+" sur "+sources[k])
+                            deja_attribues.append(k)
+                        except:
+                            pass
+                    except Exception as e:
+                        self.log.warning("exception durant la détection des périphériques série: {0}".format(e))
+                k += 1
                     
         #attribue les instances de série pour les périphériques ayant le bon ping
         for destinataire in (self.peripheriques):
