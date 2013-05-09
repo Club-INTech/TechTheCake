@@ -78,7 +78,7 @@ class Script(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def poids(self, date_actuelle):
+    def poids(self, t):
         pass
 
              
@@ -325,7 +325,7 @@ class ScriptBougies(Script):
         else:
             return 4 * len([element for element in self.table.bougies_restantes(self.couleur_a_traiter)])
     
-    def poids(self, date_actuelle):
+    def poids(self, t):
         return self.malus
 
 class ScriptCadeaux(Script):
@@ -444,7 +444,7 @@ class ScriptCadeaux(Script):
     def score(self):
         return 4 * len(self.table.cadeaux_restants())
 
-    def poids(self, date_actuelle):
+    def poids(self, t):
         return 0
 
 class ScriptRecupererVerres(Script):
@@ -618,14 +618,12 @@ class ScriptRecupererVerres(Script):
         
         return points_total - points_avant_script
 
-    def poids(self, date_actuelle):
+    def poids(self, t):
         #ce calcul n'a pas de sens si aucune place n'est disponible
         if not (self.robotVrai.places_disponibles(True) or self.robotVrai.places_disponibles(False)):
             return 0
         
-        #on calcule ici une valuation supplémentaire en fonction de l'avancée du match
-        t = date_actuelle - self.timer.get_date_debut()
-        
+        #on calcule ici une valuation supplémentaire en fonction de l'avancée du match        
         if self.config["ennemi_prend_ses_verres"]:
             #formule fortement dégressive, qui pousse à prendre les verres au début, et décourage passé 20 sec 
             if t<45: return 0.0256*t**2 - 2.447*t + 40
@@ -808,11 +806,10 @@ class ScriptDeposerVerres(Script):
         #on considère qu'on dépose une pile pour l'avant, une pile pour l'arrière
         return 4 * ( sum(range(1,self.robotVrai.nb_verres_avant+1)) + sum(range(1,self.robotVrai.nb_verres_arriere+1)) )
 
-    def poids(self, date_actuelle):
+    def poids(self, t):
         # Ne pas oublier de déposer nos verres si on en a
         if not (self.robotVrai.places_disponibles(True) == self.config["nb_max_verre"] and self.robotVrai.places_disponibles(False) == self.config["nb_max_verre"]):
             #on calcule ici une valuation supplémentaire en fonction de l'avancée du match
-            t = date_actuelle - self.timer.get_date_debut()
             return 0.9347 * math.exp(0.053*t) - 20
         else:
             return 0

@@ -230,7 +230,12 @@ class ThreadTimer(AbstractThread):
         self.robot.deplacements.arret_final() #désactive la série
         self.son.jouer("generique", force=True, enBoucle=True)
         self.log.debug("Fin du thread timer")
-        
+       
+    def temps_depuis_debut(self):
+        if hasattr(self, 'date_debut'):
+            return time() - self.date_debut
+        else:
+            return 0
         
     def get_date_debut(self):
         """

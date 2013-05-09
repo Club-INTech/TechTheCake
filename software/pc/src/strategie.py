@@ -42,7 +42,7 @@ class Strategie:
                 sleep(0.1)
                 continue
             
-            self.date_actuelle = time()
+            self.temps_debut = self.timer.temps_depuis_debut()
 
             # Notation des scripts
             self.log.debug("\t\t\t|interet\t|ennemi\t\t|echecs\t\t|timing("+str(int(time()-self.timer.get_date_debut()))+")\t|malus")
@@ -57,6 +57,8 @@ class Strategie:
 
             # Choix du script avec la meilleure note
             (script_a_faire, version_a_faire) = max(notes, key=notes.get)  
+#            script_a_faire = "ScriptBougies"
+#            version_a_faire = 0
             self.log.debug("Stratégie ordonne: ({0}, version n°{1}, entrée en {2})".format(script_a_faire, version_a_faire, self.scripts[script_a_faire].point_entree(version_a_faire)))
             
             """
@@ -153,7 +155,7 @@ class Strategie:
 
         distance_ennemi = self._distance_ennemi(self.scripts[script].point_entree(version))
         score = self.scripts[script].score()
-        poids = self.scripts[script].poids(self.date_actuelle)
+        poids = self.scripts[script].poids(self.temps_debut)
         
         # Echecs précédents sur le même script
         if (script, version) in self.echecs:
