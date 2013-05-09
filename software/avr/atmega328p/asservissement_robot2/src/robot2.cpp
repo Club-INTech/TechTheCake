@@ -1,4 +1,4 @@
-#include "robot.h"
+#include "robot2.h"
 #include <avr/eeprom.h>
 
 
@@ -10,10 +10,9 @@ Robot::Robot() :
 			,angle_origine_(0.0)
 			,etat_rot_(true)
 			,etat_tra_(true)
-			,translation(0.25,9.0,0.0)//0.75,2.5,0.0)
-			,rotation(0.8,15.0,0.0)//1.2,3.5,0.0)
+			,translation(0.1,0,0.0)//0.75,2.5,0.0)
+			,rotation(0,0,0.0)//1.2,3.5,0.0)
 {
-	TWI_init();
 	serial_t_::init();
 	TimerCounter_t::init();
 	serial_t_::change_baudrate(9600);

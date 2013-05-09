@@ -1,8 +1,7 @@
-#ifndef robot_h
-#define robot_h
+#ifndef robot2_h
+#define robot2_h
 
 #include "Cos.h"
-#include "twi_master.h"
 
 #include <stdint.h>
 #include <avr/io.h>
@@ -17,11 +16,11 @@
 #include <libintech/register.hpp>
 #include <libintech/singleton.hpp>
 
-#define CONVERSION_TIC_MM 0.013253469
-#define CONVERSION_TIC_RADIAN 0.000149236
+#define CONVERSION_TIC_MM 0.00000030133
+#define CONVERSION_TIC_RADIAN 0.000295038
 
 #define PI 3.14159265
-#define PI_TIC 21051//(int)( PI / CONVERSION_TIC_RADIAN)
+#define PI_TIC 10649//(int)( PI / CONVERSION_TIC_RADIAN)
 
 #define EEPROM_KP_TRA   0
 #define EEPROM_KD_TRA   4
@@ -45,7 +44,7 @@ private:
     Moteur< pwmDroit, AVR_PORTB<PORTB0> > moteurDroit;
     
     //Timer 1 en mode compteur, Prescaler de 1
-    typedef Timer<1,1> TimerCounter_t;
+    typedef Timer<1,8> TimerCounter_t;
     TimerCounter_t compteur;
     
     typedef Serial<0> serial_t_;
