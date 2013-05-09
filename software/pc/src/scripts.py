@@ -271,7 +271,7 @@ class ScriptBougies(Script):
                 
         #on enfonce les bougies extremales si possible (l'actionneur du haut pour celle des x petits, celui du bas pour x grands)
         if bougie_entree["id"] == 1 and self.table.bougies[1]["couleur"] & self.couleur_a_traiter:
-            self.robot.tourner(-0.8)
+            self.robot.tourner(-1.4)
             self.robot.actionneurs_bougie(True, "moyen")
             sleep(0.3)
             self.robot.actionneurs_bougie(True, "haut")
