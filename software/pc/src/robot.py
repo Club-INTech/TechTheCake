@@ -752,9 +752,6 @@ class Robot(RobotInterface):
         self.set_vitesse_translation("recal_faible")
         self.avancer(-abs(400*(self.config["case_depart_principal"]-0.5)), retenter_si_blocage = False, sans_lever_exception = True)
 
-        self.set_vitesse_translation("recal_forte")
-        self.avancer(-300, retenter_si_blocage = False, sans_lever_exception = True)
-        
         #on désactive l'asservissement en rotation pour se mettre parallèle au bord
         self.deplacements.desactiver_asservissement_rotation()
         self.set_vitesse_translation("recal_forte")
