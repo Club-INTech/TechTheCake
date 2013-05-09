@@ -97,6 +97,9 @@ class Container:
             return instanceLog
         self.assembler.register("log", log.Log, requires = ["config"], factory=make_log)
         
+        #demande éventuelle de sudo avant de lancer les threads
+        self.get_service("log")
+        
         
         #### SERVICES POUR LA SÉRIE ####
         #service de la série réelle si besoin :

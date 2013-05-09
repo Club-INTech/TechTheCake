@@ -229,6 +229,8 @@ class ThreadTimer(AbstractThread):
         sleep(1)
         self.robot.deplacements.arret_final() #désactive la série
         self.son.jouer("generique", force=True, enBoucle=True)
+        self.log.debug("Enregistrement des logs")
+        self.log.flush()
         self.log.debug("Fin du thread timer")
        
     def temps_depuis_debut(self):
