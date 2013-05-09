@@ -697,7 +697,6 @@ class Robot(RobotInterface):
         sleep(3)
         
         self.altitude_ascenseur(False, "haut")
-        self.altitude_ascenseur(True, "haut")
         sleep(0.2)
         self.actionneurs_ascenseur(True, "ferme_completement")
         self.actionneurs_ascenseur(False, "ferme_completement")
