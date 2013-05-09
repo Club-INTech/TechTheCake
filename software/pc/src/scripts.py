@@ -402,9 +402,9 @@ class ScriptCadeaux(Script):
             self.log.debug("Fin du script cadeau : l'actionneur cadeaux est déjà rentré.")
 
     def versions(self):
-        self.decalage_x_ouvre = -190
+        self.decalage_x_ouvre = -160
         self.decalage_x_ferme = -230#350
-        self.decalage_y_bord = self.config["rayon_robot"] + 60#90
+        self.decalage_y_bord = self.config["rayon_robot"] + 65#90
         self.decalage_x_pour_reglette_blanche = 100
         
         cadeaux = self.table.cadeaux_entrees()
