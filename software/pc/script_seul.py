@@ -7,6 +7,7 @@ import math
 import time
 from src.outils_maths.point import Point
 
+config = container.get_service("config")
 scripts = container.get_service("scripts")
 strategie = container.get_service("strategie")
 robot = container.get_service("robot")
@@ -17,11 +18,11 @@ timer = container.get_service("threads.timer")
 time.sleep(2)
 if config["couleur"] == "bleu":
     robot.orientation = 0
-    robot.x = -1377
+    robot.x = -1373
+    robot.y = 1450
 else:
     robot.orientation = math.pi
     robot.x = 1377
-robot.y = 945
 time.sleep(3)
 
 robot.marche_arriere = False
@@ -29,10 +30,8 @@ robot.set_vitesse_translation("entre_scripts")
 robot.set_vitesse_rotation("entre_scripts")
 
 robot.avancer(300)
-robot.initialiser_actionneurs()
 
 time.sleep(2)
-input("go ?")
 
 #strategie.boucle_strategie()
     
@@ -47,8 +46,8 @@ rechercheChemin.prepare_environnement_pour_visilibity()
 #scripts["ScriptRecupererVerresZoneBleu"].agit(0)
 
 #table.definir_couleurs_bougies("brbrbrbrbr")
-#scripts["ScriptBougies"].versions()
-#scripts["ScriptBougies"].agit(0)
+scripts["ScriptBougies"].versions()
+scripts["ScriptBougies"].agit(0)
 
-scripts["ScriptCadeaux"].versions()
-scripts["ScriptCadeaux"].agit(0)
+#scripts["ScriptCadeaux"].versions()
+#scripts["ScriptCadeaux"].agit(0)
