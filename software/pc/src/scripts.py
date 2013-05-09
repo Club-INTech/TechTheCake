@@ -354,6 +354,7 @@ class ScriptCadeaux(Script):
         
         #pour se réorienter
         avance_vers_x_croissant = not (1-version == self.robot.marche_arriere)
+        self.robot.tourner(0 if avance_vers_x_croissant else math.pi)
         
         #ouverture du premier cadeau
         self.robot.actionneur_cadeau("haut")
