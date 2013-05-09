@@ -123,7 +123,10 @@ class Container:
             #visualisation sur le simulateur pour la table, le robot et la recherche de chemin
             self.assembler.register("table", table.TableSimulation, requires=["simulateur","config","log"])
             self.assembler.register("robot", robot.RobotSimulation, requires=["simulateur","capteurs","actionneurs","deplacements","rechercheChemin","hookGenerator","table","son","config","log"])
-            self.assembler.register("rechercheChemin", rechercheChemin.RechercheCheminSimulation, requires=["simulateur", "table","config","log"])
+            if self.config["affichage_segments"]:
+                self.assembler.register("rechercheChemin", rechercheChemin.RechercheCheminSimulation, requires=["simulateur", "table","config","log"])
+            else:
+                self.assembler.register("rechercheChemin", rechercheChemin.RechercheChemin, requires=["table","config","log"])
         
             #série virtuelle, qui redirige vers le simulateur
             self.assembler.register("serieSimulation", serieSimulation.SerieSimulation, requires=["simulateur", "table", "log"])
