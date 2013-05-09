@@ -33,15 +33,13 @@ class Capteurs():
 
         try:
             if marche_arriere:
-                if not self.capteurs_arriere_actifs:
-                    return 3000
                 capteur_values = self.serie.communiquer("capteurs_actionneurs",["us_arr"], self.nb_capteurs_ultrason_arriere)
-                capteur_values += self.serie.communiquer("capteurs_actionneurs",["ir_arr"], self.nb_capteurs_infrarouge_arriere)
+                if self.capteurs_arriere_actifs:
+                    capteur_values += self.serie.communiquer("capteurs_actionneurs",["ir_arr"], self.nb_capteurs_infrarouge_arriere)
             else:
-                if not self.capteurs_avant_actifs:
-                    return 3000
                 capteur_values = self.serie.communiquer("capteurs_actionneurs",["us_av"], self.nb_capteurs_ultrason_avant)
-                capteur_values += self.serie.communiquer("capteurs_actionneurs",["ir_av"], self.nb_capteurs_infrarouge_avant)
+                if self.capteurs_avant_actifs:
+                    capteur_values += self.serie.communiquer("capteurs_actionneurs",["ir_av"], self.nb_capteurs_infrarouge_avant)
 
             capteur_values = [int(i) for i in capteur_values]
             
@@ -52,16 +50,16 @@ class Capteurs():
             return 3000
                 
     def desactiver_capteurs_avant(self):
-        self.log.debug("Capteurs avant désactivés")
+        self.log.debug("Capteurs Sharp avant désactivés")
         self.capteurs_avant_actifs = False
     def activer_capteurs_avant(self):
-        self.log.debug("Capteurs avant activés")
+        self.log.debug("Capteurs Sharp avant activés")
         self.capteurs_avant_actifs = True
     def desactiver_capteurs_arriere(self):
-        self.log.debug("Capteurs arrière désactivés")
+        self.log.debug("Capteurs Sharp arrière désactivés")
         self.capteurs_arriere_actifs = False
     def activer_capteurs_arriere(self):
-        self.log.debug("Capteurs arrière activés")
+        self.log.debug("Capteurs Sharp arrière activés")
         self.capteurs_arriere_actifs = True
 
     def demarrage_match(self):
