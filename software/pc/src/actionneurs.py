@@ -23,7 +23,7 @@ class Actionneurs :
             self.serie.communiquer("capteurs_actionneurs",["cadeau",120],0)
             self.actionneur_cadeaux_actif = True
 
-    def gonfler_ballon(self, pwm = True) :
+    def gonfler_ballon(self, pwm = False) :
         if(pwm) :
             for i in range(self.config["ballon_iteration"]) :
                 self.serie.communiquer("capteurs_actionneurs",["dist",self.config["ballon_delai_pwm"]], 0)
