@@ -34,18 +34,14 @@ class Simulateur:
             
         # Définition du robot réel
         client.service.defineRobot({"list":[
-            {"float":[-147.5,-120.]},
-            {"float":[-147.5,-75.]},
-            {"float":[-192.5,-75.]},
-            {"float":[-192.5,75.]},
-            {"float":[-147.5,75.]},
-            {"float":[-147.5,120.]},
-            {"float":[147.5,120.]},
-            {"float":[147.5,75.]},
-            {"float":[192.5,75.]},
-            {"float":[192.5,-75.]},
-            {"float":[147.5,-75.]},
-            {"float":[147.5,-120.]},
+            {"float":[-105.,-120.]},
+            {"float":[-150.,-75.]},
+            {"float":[-150.,75.]},
+            {"float":[-105.,120.]},
+            {"float":[105.,120.]},
+            {"float":[150.,75.]},
+            {"float":[150.,-75.]},
+            {"float":[105.,-120.]},
             ]},couleur)
             
         # Definition des zones des capteurs
@@ -71,8 +67,8 @@ class Simulateur:
                     
         # Déclaration d'un robot adverse
         if config["activer_ennemi_principal"]:
-            client.service.addEnemy(0, 80, ennemi)
-            client.service.addEnemy(1, 80, ennemi)
+            client.service.addEnemy(0, 40, ennemi)
+            client.service.addEnemy(1, 40, ennemi)
         
         # Enregistrement du service SOAP
         self.soap = client.service

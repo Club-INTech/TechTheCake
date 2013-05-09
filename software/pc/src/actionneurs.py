@@ -17,7 +17,7 @@ class Actionneurs :
             self.serie.communiquer("capteurs_actionneurs",["cadeau",60],0)
             self.actionneur_cadeaux_actif = False
         elif angle == "moyen":
-            self.serie.communiquer("capteurs_actionneurs",["cadeau",85],0)
+            self.serie.communiquer("capteurs_actionneurs",["cadeau",80],0)
             self.actionneur_cadeaux_actif = True
         elif angle == "haut":
             self.serie.communiquer("capteurs_actionneurs",["cadeau",120],0)
@@ -58,9 +58,9 @@ class Actionneurs :
     def actionneurs_ascenseur(self, avant, position):
         if position == "ferme_completement":
             if avant:
-                self.serie.communiquer("capteurs_actionneurs",["asc_av",185],0)
+                self.serie.communiquer("capteurs_actionneurs",["asc_av",175],0)
             else:
-                self.serie.communiquer("capteurs_actionneurs",["asc_arr",180],0)
+                self.serie.communiquer("capteurs_actionneurs",["asc_arr",175],0)
         elif position == "ferme":
             if avant:
                 self.serie.communiquer("capteurs_actionneurs",["asc_av",155],0)

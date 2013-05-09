@@ -268,8 +268,8 @@ class ThreadLaser(AbstractThread):
 
         log.debug("Lancement du thread des lasers")
 
-        # Attente du démarrage du match et qu'au moins une balise réponde (vérifier la condition!)
-        while not laser.serie.serie_prete() and (not timer.match_demarre or laser.verifier_balises_connectes() == 0):
+        # Attente du démarrage du match et qu'au moins une balise réponde
+        while not laser.serie.serie_prete() or not timer.match_demarre or laser.verifier_balises_connectes() == 0:
             if AbstractThread.stop_threads:
                 log.debug("Stoppage du thread laser")
                 return None
@@ -277,14 +277,17 @@ class ThreadLaser(AbstractThread):
             
         # Allumage des lasers
         laser.allumer()
-            
+
+        # Attente de la vitesse stable
+        sleep(3)
+
         # Liste des balises non prises en compte
         for balise in laser.balises_ignorees():
             log.warning("balise n°" + str(balise["id"]) + " ignorée pendant le match, pas de réponses aux ping")
 
         # Vérification de la cohérence des données des balises
         laser.verifier_coherence_balise()
-        
+
         # Liste des balises prises en compte
         balises = laser.balises_actives()
         
