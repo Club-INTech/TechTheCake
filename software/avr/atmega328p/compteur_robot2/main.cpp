@@ -11,7 +11,7 @@ static int8_t mb2 = 0;
 
 int main( void ){
 	
-    _delay_ms(10);
+    _delay_ms(100);
     // Interruptions
     sei();
     

@@ -23,6 +23,7 @@ class ThreadPosition(AbstractThread):
     def run(self):
         log = self.container.get_service("log")
         robot = self.container.get_service("robot")
+        serie = self.container.get_service("serie")
         timer = self.container.get_service("threads.timer")
         config = self.container.get_service("config")
         if config["simulation_table"]:
@@ -33,7 +34,7 @@ class ThreadPosition(AbstractThread):
         #le reste du code attend une première mise à jour des coordonnées
         robot_pret = False
         
-        while not robot_pret:
+        while not robot_pret and not serie.serie_prete():
             if AbstractThread.stop_threads:
                 log.debug("Stoppage du thread de mise à jour")
                 return None
@@ -82,7 +83,8 @@ class ThreadCapteurs(AbstractThread):
         timer = self.container.get_service("threads.timer")
 
         log.debug("Lancement du thread de capteurs")
-
+        # attente de la série
+        sleep(1)
         # Attente du début de match
         while not timer.match_demarre:
             if AbstractThread.stop_threads:
@@ -144,11 +146,14 @@ class ThreadTimer(AbstractThread):
         self.fin_match = False
         self.mutex = Mutex()
         self.compte_rebours = True
+        self.date_debut = time()
 
     def initialisation(self):
         """
         Boucle qui attend le début du match et qui modifie alors la variable timer.match_demarre
         """
+        while not self.serie.serie_prete():
+            sleep(.5)
         while not self.capteurs.demarrage_match() and not self.match_demarre:
             if AbstractThread.stop_threads:
                 self.log.debug("Stoppage du thread timer")
@@ -177,6 +182,7 @@ class ThreadTimer(AbstractThread):
         self.table = self.container.get_service("table")
         self.capteurs = self.container.get_service("capteurs")
         self.son = self.container.get_service("son")
+        self.serie = self.container.get_service("serie")
         
         self.log.debug("Lancement du thread timer")
         self.initialisation()
@@ -262,8 +268,8 @@ class ThreadLaser(AbstractThread):
 
         log.debug("Lancement du thread des lasers")
 
-        # Attente du démarrage du match et qu'au moins une balise réponde
-        while not timer.match_demarre or laser.verifier_balises_connectes() == 0:
+        # Attente du démarrage du match et qu'au moins une balise réponde (vérifier la condition!)
+        while not laser.serie.serie_prete() and (not timer.match_demarre or laser.verifier_balises_connectes() == 0):
             if AbstractThread.stop_threads:
                 log.debug("Stoppage du thread laser")
                 return None

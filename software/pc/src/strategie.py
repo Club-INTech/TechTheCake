@@ -27,7 +27,10 @@ class Strategie:
         """
         Boucle qui gère la stratégie, en testant les différents scripts et en exécutant le plus avantageux
         """
-        self.log.debug("stratégie en attente du jumper...")
+        if "capteurs_actionneurs" in self.config["cartes_simulation"]:
+            premier_tour = True
+        else:
+            premier_tour = False
 
         while not self.timer.get_fin_match():
 
@@ -43,6 +46,8 @@ class Strategie:
                 sleep(0.1)
                 continue
             
+            self.date_actuelle = time()
+
             # Notation des scripts
             self.log.debug("\t\t\t|interet\t|ennemi\t\t|echecs\t\t|timing("+str(int(time()-self.timer.get_date_debut()))+")\t|malus")
             for script in self.scripts:
@@ -56,11 +61,10 @@ class Strategie:
 
             # Choix du script avec la meilleure note
             (script_a_faire, version_a_faire) = max(notes, key=notes.get)  
-#                script_a_faire = "ScriptBougies"
-#                version_a_faire = 0
+#            script_a_faire = "ScriptCadeaux"
+#            version_a_faire = 0
             self.log.debug("Stratégie ordonne: ({0}, version n°{1}, entrée en {2})".format(script_a_faire, version_a_faire, self.scripts[script_a_faire].point_entree(version_a_faire)))
             
-            input()
             """
             #ajout d'obstacles pour les verres d'entrées, sauf si on execute un script de récupération des verres
             if not isinstance(self.scripts[script_a_faire], ScriptRecupererVerres):
@@ -73,13 +77,14 @@ class Strategie:
                     sleep(0.1)
                     continue
             """
-
-            premier_tour = False
+            if not self.timer.match_demarre:
+                self.log.debug("stratégie en attente du jumper...")
             while not self.timer.match_demarre:
                 premier_tour = True
                 sleep(.5)
 
             if premier_tour:
+                premier_tour = False
                 self.son.jouer("debut")
                 self.log.debug("stratégie lancée")
                 
@@ -87,6 +92,8 @@ class Strategie:
                     self.robot.set_vitesse_translation("entre_scripts")
                     self.robot.set_vitesse_rotation("entre_scripts")
                     self.robot.avancer(300, retenter_si_blocage = False, sans_lever_exception = True)
+                    self.robot.altitude_ascenseur(True, "bas")
+                    self.robot.altitude_ascenseur(False, "bas")
                 except:
                     pass
             
@@ -152,7 +159,7 @@ class Strategie:
 
         distance_ennemi = self._distance_ennemi(self.scripts[script].point_entree(version))
         score = self.scripts[script].score()
-        poids = self.scripts[script].poids()
+        poids = self.scripts[script].poids(self.date_actuelle)
         
         # Echecs précédents sur le même script
         if (script, version) in self.echecs:
@@ -179,6 +186,7 @@ class Strategie:
         #str(self.scripts[script].point_entree(version))
         self.log.debug(str(script)[-15:]+", "+str(version)+" :\t|"+str('\t\t|'.join(str(x) for x in note)))
         self.log.debug("\t\t"+str(score)+" points en "+str(round(duree_script,2))+" sec.")
+        self.log.debug(str(sum(note)))
         return sum(note)
 
     def _distance_ennemi(self, point_entree):

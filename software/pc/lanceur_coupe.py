@@ -22,7 +22,7 @@ print("Case départ du robot principal:\t\t", config["case_depart_principal"])
 print("Phases finales:\t\t\t\t", config["phases_finales"])
 print("L'ennemi fait toutes les bougies:\t", config["ennemi_fait_toutes_bougies"])
 
-input()
+input("\n\tVérification humaine requise pour continuer.")
 
 #on renseigne au robot sa position
 depart = Point(1350,400*(config["case_depart_principal"]-0.5))
@@ -39,12 +39,15 @@ else:
 #Toujours mettre un sleep après avoir affecté les variables robot.x ou robot.y (?)
 time.sleep(1)
 
+# Recalage si série
+#if "capteurs_actionneurs" in config["cartes_serie"]:
 robot.initialiser_actionneurs()
 robot.recaler()
 
 # Lancement du match si les capteurs sont simulés
 if "capteurs_actionneurs" in config["cartes_simulation"]:
     timer.match_demarre = True
+    
 
 strategie.boucle_strategie()
 
