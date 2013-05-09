@@ -3,6 +3,7 @@ from mutex import Mutex
 from outils_maths.point import Point
 import math
 import copy
+import sys
 
 class Obstacle:
     
@@ -213,6 +214,12 @@ class Table:
         """
         Indique la couleur des bougies, avec le format du programme Android
         """
+
+        # On écrase la valeur de l'android si on a entré manuellement une valeur et que l'android donne au moins cinq "?"
+        if len(sys.argv) >= 4 and len([i for i in list(code) if i == "?"]) >= 3:
+            self.log.warning("Résultats android écrasés par la saisie manuelle")
+            code = sys.argv[3]
+
         conversionIndice = [0, 2, 4, 5, 7, 9, 1, 3, 6, 8]
 
         if self.config["phases_finales"]:

@@ -387,38 +387,18 @@ class ThreadCouleurBougies(AbstractThread):
             if config["ennemi_fait_ses_bougies"]:
                 log.warning("Aucune réponse de l'appli android. On fait toutes les bougies car l'ennemi fait les siennes.")
             else:
-                log.warning("Aucune réponse de l'appli android. Abandon des bougies.")
+                log.warning("Aucune réponse de l'appli android. Abandon des bougies.")                
+                table.definir_couleurs_bougies("??????????")
                 # Exactement, on ne supprime pas le script mais on lui met un malus
-                scripts["ScriptBougies"].malus = -10
+                if config["phases_finales"]:
+                    scripts["ScriptBougies"].malus = -20
             couleur_bougies = table.COULEUR_BOUGIE_BLEU if config["couleur"]=="bleu" else table.COULEUR_BOUGIE_ROUGE
             for i in range (20):
                 table.bougies[i]["couleur"] = couleur_bougies
             #le script tiendra compte de ce comportement dans le décompte des points
             if "ScriptBougies" in scripts:
                 scripts["ScriptBougies"].en_aveugle = True
-        else:
-            # Ouverture de la socket
-            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            try:
-                client_socket.settimeout(config["timeout_android"])
-                client_socket.connect((config["ip_android"], 8080))
-                client_socket.send(bytes(config["couleur"][0]+"\n", 'UTF-8'))
-                rcv = str(client_socket.recv(11),"utf-8").replace("\n","")
-                table.definir_couleurs_bougies(rcv)
-                log.debug("Résultats android: " + str(rcv))
-            except:
-                # Si on n'a pas d'information de l'appli android, il vaut mieux stratégiquement ne pas faire les bougies, sauf s'il faut toutes les faire. En effet, si on fait toutes les bougies, la différence des points ne changera pas. Et comme on manque de temps pour tout faire, autant ne pas les faire.
-                log.warning("Aucune réponse de l'appli android. On fera toutes les bougies.")
-                # Exactement, on ne supprime pas le script mais on lui met un malus (seulement en phases finales, sinon on cherche les points)
-                if config["phases_finales"]:
-                    scripts["ScriptBougies"].malus = -20
-                couleur_bougies = table.COULEUR_BOUGIE_BLEU if config["couleur"]=="bleu" else table.COULEUR_BOUGIE_ROUGE
-                for i in range (20):
-                    table.bougies[i]["couleur"] = couleur_bougies
-                #le script tiendra compte de ce comportement dans le décompte des points
-                if "ScriptBougies" in scripts:
-                    scripts["ScriptBougies"].en_aveugle = True
-            finally:
-                client_socket.close()
+        finally:
+            client_socket.close()
 
         log.debug("Fin du thread de détection des couleurs des bougies")
