@@ -224,6 +224,9 @@ class ProtocoleVirtuelLaser:
             return ["ping"]
         except Exception:
             return ["NO_RESPONSE"]
+            
+    def ping_all(self):
+        return 2
         
     def value(self, id_balise):
         position_reelle = self.simulateur.getEnemyPositionFromRobot(id_balise)
