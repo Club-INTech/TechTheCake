@@ -810,7 +810,7 @@ class ScriptDeposerVerres(Script):
         # Ne pas oublier de déposer nos verres si on en a
         if not (self.robotVrai.places_disponibles(True) == self.config["nb_max_verre"] and self.robotVrai.places_disponibles(False) == self.config["nb_max_verre"]):
             #on calcule ici une valuation supplémentaire en fonction de l'avancée du match
-            return 0.9347 * math.exp(0.053*t) - 20
+            return 0.9347 * math.exp(0.053*t) #- 20
         else:
             return 0
             
