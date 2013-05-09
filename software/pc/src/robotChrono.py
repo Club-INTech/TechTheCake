@@ -72,19 +72,19 @@ class RobotInterface(metaclass=abc.ABCMeta):
         if vitesse == "entre_scripts":
             return 140#120
         elif vitesse == "recherche_verre":
-            return 70
+            return 100#70
         elif vitesse == "depot_verre":
-            return 60
+            return 90#60
         elif vitesse == "proche_gateau":
             return 100
         elif vitesse == "arc_de_cercle":
-            return 38
+            return 50#38
         elif vitesse == "prudence_reglette":
-            return 70
+            return 90#70
         elif vitesse == "cadeaux":
             return 110
         elif vitesse == "recal_faible":
-            return 60
+            return 90#60
         elif vitesse == "recal_forte":
             return 120
         else:
