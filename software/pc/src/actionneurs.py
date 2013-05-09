@@ -23,17 +23,14 @@ class Actionneurs :
             self.serie.communiquer("capteurs_actionneurs",["cadeau",120],0)
             self.actionneur_cadeaux_actif = True
 
-    def gonfler_ballon(self) :
-        self.serie.communiquer("capteurs_actionneurs",["dist",self.config["delai_distributeur"]], 0)
+    def gonfler_ballon(self, pwm = True) :
+        if(pwm) :
+            for i in range(self.config["ballon_iteration"]) :
+                self.serie.communiquer("capteurs_actionneurs",["dist",self.config["ballon_delai_pwm"]], 0)
+                sleep(self.config["ballon_sleep"])
+        else :
+            self.serie.communiquer("capteurs_actionneurs",["dist",self.config["ballon_delai_unique"]], 0)
         self.log.debug("Gonflage du ballon")
-        
-    def gonfler_ballonPWM(self) :
-        self.config["delai_distributeur"] = 10
-        for i = 0 in range(5) :
-            gonfler_ballon()
-            sleep(0.15)
-            
-            
 
     def actionneurs_bougie(self, en_haut, angle):
         if en_haut:
