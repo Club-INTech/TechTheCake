@@ -685,14 +685,22 @@ class Robot(RobotInterface):
         self.actionneurs.actionneurs_bougie(True, "bas")        
         self.actionneurs.actionneurs_bougie(False, "bas")        
         self.actionneurs.actionneur_cadeau("bas")
+        
+        #recalage de la hauteur de l'ascenceur : il faut "ferme" pour coulisser
+        self.actionneurs_ascenseur(True, "ferme")
+        self.actionneurs_ascenseur(False, "ferme")
+        sleep(0.2)
+        self.altitude_ascenseur(False, "bas")
+        self.altitude_ascenseur(True, "bas")
+        
+        # le temps que l'ascenseur détecte le blocage
+        sleep(3)
+        
+        self.altitude_ascenseur(False, "haut")
+        self.altitude_ascenseur(True, "haut")
+        sleep(0.2)
         self.actionneurs_ascenseur(True, "ferme_completement")
         self.actionneurs_ascenseur(False, "ferme_completement")
-        self.altitude_ascenseur(True, "bas")
-        self.altitude_ascenseur(False, "bas")
-        # le temps que l'ascenseur détecte le blocage
-        sleep(5)
-        self.altitude_ascenseur(True, "haut")
-        self.altitude_ascenseur(False, "haut")
         self.log.debug("Initialisation terminée")
 
     def recaler(self):
