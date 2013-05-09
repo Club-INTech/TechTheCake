@@ -56,8 +56,9 @@ class Laser:
         """
         Ping une balise
         """
-        ping = self.serie.communiquer("laser", ["ping", str(id_balise)], 1)
-        return ping != ["NO_RESPONSE"]
+        ping = self.serie.communiquer("laser", ["ping_all"], len(self.balises))
+        return ping[id_balise] != "aucune réponse"
+#        return ping != ["NO_RESPONSE"]
         
     def frequence_moteur(self):
         """
@@ -127,31 +128,27 @@ class Laser:
             valeurs = []
             ecart_type = 0.
             n = 0
-            
             for i in range(essais):
                 reponse = self.serie.communiquer("laser", ["value", balise["id"]], 2)
-                if type(reponse) is list:
+                if not (reponse is None or "NO_RESPONSE" in reponse or "OLD_VALUE" in reponse or "UNVISIBLE" in reponse):
                     angle = float(reponse[1])
                     n += 1
                     moyenne += angle
                     valeurs.append(angle)
-                    
-            # La moitié des essais n'ont pas renvoyé de valeurs
-            if n < essais / 2:
-                return False
-                
+                                    
             # Calcul de la moyenne
-            moyenne /= float(n)
-            
-            # Calcul de l'écart type
-            for v in valeurs:
-                ecart_type += (v - moyenne) ** 2
-            ecart_type /= float(n)
+            if n > 0:
+                moyenne /= float(n)
+                
+                # Calcul de l'écart type
+                for v in valeurs:
+                    ecart_type += (v - moyenne) ** 2
+                ecart_type /= float(n)
             
             # Vérification de la cohérence
-            if ecart_type > 1:
-                self.log.warning("balise n°{0} ignorée pendant le match, valeurs renvoyées incohérentes (angle moyen = {1}, écart-type = {2})".format(balise["id"], moyenne, ecart_type))
+            if n < essais / 2 or ecart_type > 1:
+                self.log.warning("balise n°{0} ignorée pendant le match, valeurs renvoyées incohérentes (valeurs reçues = {1} / {2}, angle moyen = {3}, écart-type = {4})".format(balise["id"], n, essais, moyenne, ecart_type))
                 self.balises[balise["id"]]["active"] = False
             else:
-                self.log.debug("la balise n°{0} renvoie des valeurs cohérentes (angle moyen = {1}, écart-type = {2})".format(balise["id"], moyenne, ecart_type))
+                self.log.debug("balise n°{0} renvoie des valeurs cohérentes (valeurs reçues = {1} / {2}, angle moyen = {3}, écart-type = {4})".format(balise["id"], n, essais, moyenne, ecart_type))
         

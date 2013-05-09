@@ -86,7 +86,7 @@ class RobotInterface(metaclass=abc.ABCMeta):
         elif vitesse == "recal_faible":
             return 60
         elif vitesse == "recal_forte":
-            return 100
+            return 120
         else:
             raise Exception("string de vitesse translation inconnu ! (cf RobotInterface.conventions_vitesse_translation)")
         
