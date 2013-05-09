@@ -544,8 +544,11 @@ class TableSimulation(Table):
             self.simulateur.drawVector(ennemi.position.x, ennemi.position.y, ennemi.position.x + vitesse.vx, ennemi.position.y + vitesse.vy, "black", "vitesse_laser")
         
     def _supprimer_obstacle(self, i):
-        if not self.desactiver_dessin:
-            self.simulateur.clearEntity("obstacle_capteur_"+str(self.obstacles_capteurs[i].id))
+        try:
+            if not self.desactiver_dessin:
+                self.simulateur.clearEntity("obstacle_capteur_"+str(self.obstacles_capteurs[i].id))
+        except:
+            pass
         Table._supprimer_obstacle(self, i)
         
     def _supprimer_ennemi(self, i):
