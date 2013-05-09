@@ -26,6 +26,14 @@ class Actionneurs :
     def gonfler_ballon(self) :
         self.serie.communiquer("capteurs_actionneurs",["dist",self.config["delai_distributeur"]], 0)
         self.log.debug("Gonflage du ballon")
+        
+    def gonfler_ballonPWM(self) :
+        self.config["delai_distributeur"] = 10
+        for i = 0 in range(5) :
+            gonfler_ballon()
+            sleep(0.15)
+            
+            
 
     def actionneurs_bougie(self, en_haut, angle):
         if en_haut:
