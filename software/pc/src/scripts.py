@@ -326,6 +326,7 @@ class ScriptBougies(Script):
             return 4 * len([element for element in self.table.bougies_restantes(self.couleur_a_traiter)])
     
     def poids(self, t):
+        return -500 #Equivaut à une désactivation du script
         return self.malus
 
 class ScriptCadeaux(Script):
