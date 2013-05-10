@@ -19,12 +19,9 @@ import assemblage
 import mutex
 import read_ini
 import deplacements
-import serie 
 import serieReelle
-import serieSimulation
 import log
 import hooks
-import simulateur
 
 #modules spécifiques pour le robot secondaire
 import robot2.robot as robot
@@ -32,6 +29,10 @@ import robot2.capteurs as capteurs
 import robot2.actionneurs as actionneurs
 import robot2.comportement as comportement
 import robot2.threads as threads
+import robot2.com2principal as com2principal
+import robot2.serie as serie
+import robot2.serieSimulation as serieSimulation
+import robot2.simulateur as simulateur
 
 class Container:
     """
@@ -143,10 +144,12 @@ class Container:
         #enregistrement du service hookGenerator
         self.assembler.register("hookGenerator", hooks.HookGenerator, requires=["config","log"])
         
+        #enregistrement du service de communication avec le robot principal
+        self.assembler.register("com2principal", com2principal.Com2principal, requires=["log", "config"])
+        
         #enregistrement du service timer
-        self.assembler.register("threads.timer", threads.ThreadTimer, requires=["log","config","robot","capteurs"])
+        self.assembler.register("threads.timer", threads.ThreadTimer, requires=["log","config","robot","com2principal"])
         self.assembler.register("threads.position", threads.ThreadPosition, requires=["container"])
-        self.assembler.register("threads.capteurs", threads.ThreadCapteurs, requires=["container"])
         
         #enregistrement du service de comportement du robot secondaire
         self.assembler.register("comportement", comportement.Comportement, requires=["threads.timer", "config", "log", "robot"])
@@ -160,7 +163,6 @@ class Container:
             
             self.get_service("threads.timer").start()
             self.get_service("threads.position").start()
-            self.get_service("threads.capteurs").start()
             
             #attente d'une première mise à jour pour la suite
             robot = self.get_service("robot")
@@ -181,11 +183,6 @@ class Container:
         if position.is_alive():
             position.join()
          
-        #attente de la fin du thread capteurs
-        capteurs = self.get_service("threads.capteurs")
-        if capteurs.is_alive():
-            capteurs.join()
-            
         #attente de la fin du thread timer
         timer = self.get_service("threads.timer")
         if timer.is_alive():
@@ -199,4 +196,3 @@ class Container:
         self.assembler.reset()
         self._chargement_service()
         self.start_threads()
-        
