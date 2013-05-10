@@ -18,8 +18,8 @@ timer = container.get_service("threads.timer")
 time.sleep(2)
 if config["couleur"] == "bleu":
     robot.orientation = 0
-    robot.x = -1373
-    robot.y = 1450
+    robot.x = -1377
+    robot.y = 1429
 else:
     robot.orientation = math.pi
     robot.x = 1377
@@ -32,6 +32,7 @@ robot.set_vitesse_rotation("entre_scripts")
 robot.avancer(300)
 
 time.sleep(2)
+input()
 
 #strategie.boucle_strategie()
     
@@ -45,9 +46,8 @@ rechercheChemin.prepare_environnement_pour_visilibity()
 #scripts["ScriptRecupererVerresZoneBleu"].versions()
 #scripts["ScriptRecupererVerresZoneBleu"].agit(0)
 
-#table.definir_couleurs_bougies("brbrbrbrbr")
-scripts["ScriptBougies"].versions()
-scripts["ScriptBougies"].agit(0)
+#scripts["ScriptBougies"].versions()
+#scripts["ScriptBougies"].agit(0)
 
-#scripts["ScriptCadeaux"].versions()
-#scripts["ScriptCadeaux"].agit(0)
+scripts["ScriptCadeaux"].versions()
+scripts["ScriptCadeaux"].agit(0)

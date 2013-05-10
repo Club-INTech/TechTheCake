@@ -80,11 +80,11 @@ class RobotInterface(metaclass=abc.ABCMeta):
         elif vitesse == "prudence_reglette":
             return 90#70
         elif vitesse == "arc_de_cercle":
-            return 48#38
+            return 56#48
         elif vitesse == "arc_de_cercle_moyen":
-            return 51#38
+            return 63#51
         elif vitesse == "arc_de_cercle_fort":
-            return 54#38
+            return 72#54
         elif vitesse == "cadeaux":
             return 87
         elif vitesse == "recal_faible":
@@ -107,7 +107,8 @@ class RobotInterface(metaclass=abc.ABCMeta):
         elif vitesse == "proche_gateau":
             return 140
         elif vitesse == "arc_de_cercle":
-            return int(max(118-0.21*(rayon-478), 30))
+            #return int(max(118-0.21*(rayon-478), 30))
+            return int(max(132-0.19*(rayon-478), 30))
         elif vitesse == "fin_arc":
             return 50
         elif vitesse == "cadeaux":
