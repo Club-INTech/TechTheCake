@@ -16,11 +16,12 @@ while not robot.pret:
     
 time.sleep(1)
 
-robot.orientation = math.pi
+
+robot.orientation = 0
 #robot.x = 1377
 #robot.y = 945
-robot.x = 1000
-robot.y = 600
+robot.x = -1220
+robot.y = 1300
 
 
 robot.deplacements.set_vitesse_rotation(120)

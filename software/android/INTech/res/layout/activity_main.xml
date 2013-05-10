@@ -76,16 +76,15 @@
         android:text="Tester la caméra"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    <ToggleButton
-        android:id="@+id/toggleSocketButton"
+    <Button
+        android:id="@+id/openSocketButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="5dp"
-        android:onClick="toggleSocket"
+        android:onClick="openSocket"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textOff="Activer le serveur"
-        android:textOn="Désactiver le serveur" />
+        android:text="Lancer le serveur" />
     
     <ToggleButton
         android:id="@+id/toggleWifiButton"

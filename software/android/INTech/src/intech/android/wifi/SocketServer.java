@@ -1,5 +1,6 @@
 package intech.android.wifi;
 
+import intech.android.CameraPreviewActivity;
 import intech.android.MainActivity;
 
 import java.io.BufferedReader;
@@ -65,10 +66,10 @@ public class SocketServer extends AsyncTask<Void, Integer, Void> {
 						output.println(results);
 						
 						// Affichage à l'écran des infos
-						Message infoMessage = messageHandler.obtainMessage(
-								MainActivity.MESSAGE_DISPLAY_RESULT,
-								"Résultats: " + results);
-						messageHandler.sendMessage(infoMessage);
+//						Message infoMessage = messageHandler.obtainMessage(
+//								CameraPreviewActivity.MESSAGE_DISPLAY_RESULT,
+//								"Résultats: " + results);
+//						messageHandler.sendMessage(infoMessage);
 					}
 				} catch (IOException e) {
 					Log.w(TAG, "Erreur socket: " + e.getMessage());
@@ -85,12 +86,6 @@ public class SocketServer extends AsyncTask<Void, Integer, Void> {
 		try {
 			// Création du serveur
 			server = new ServerSocket(port);
-
-			// Affichage à l'écran des infos
-			Message infoMessage = messageHandler.obtainMessage(
-					MainActivity.MESSAGE_UPDATE_SERVER_STATUS,
-					"Attente de connexion... Port " + String.valueOf(port));
-			messageHandler.sendMessage(infoMessage);
 
 			// Traitement des demandes
 			while (isServerEnabled) {
@@ -114,12 +109,13 @@ public class SocketServer extends AsyncTask<Void, Integer, Void> {
 		BufferedReader input = new BufferedReader(reader);
 
 		// Lecture de la couleur du robot
-		String color = input.readLine();
+		String request = input.readLine();
+		char color = request.charAt(request.length() - 1);
 		Log.i(TAG, "Couleur du robot: " + color);
 
 		// Lancement de l'analyse dans le thread UI
 		Message startMessage = messageHandler.obtainMessage(
-				MainActivity.MESSAGE_START_CAMERA, color);
+				CameraPreviewActivity.MESSAGE_TAKE_PICTURE, String.valueOf(color));
 		messageHandler.sendMessage(startMessage);
 	}
 

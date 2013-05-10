@@ -35,7 +35,7 @@ class Actionneurs :
     def actionneurs_bougie(self, en_haut, angle):
         if en_haut:
             if angle == "bas":
-                self.serie.communiquer("capteurs_actionneurs",["haut",240],0)
+                self.serie.communiquer("capteurs_actionneurs",["haut",247],0)
                 self.actionneur_bougies_actif = False
             elif angle == "moyen":
                 self.serie.communiquer("capteurs_actionneurs",["haut",180],0)
@@ -45,7 +45,7 @@ class Actionneurs :
                 self.actionneur_bougies_actif = True
         else:
             if angle == "bas":
-                self.serie.communiquer("capteurs_actionneurs",["bas",240],0)
+                self.serie.communiquer("capteurs_actionneurs",["bas",250],0)
                 self.actionneur_bougies_actif = False
             elif angle == "moyen":
                 self.serie.communiquer("capteurs_actionneurs",["bas",180],0)

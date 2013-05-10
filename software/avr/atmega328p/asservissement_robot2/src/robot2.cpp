@@ -10,15 +10,15 @@ Robot::Robot() :
 			,angle_origine_(0.0)
 			,etat_rot_(true)
 			,etat_tra_(true)
-			,translation(0.1,0,0.0)//0.75,2.5,0.0)
-			,rotation(0,0,0.0)//1.2,3.5,0.0)
+			,translation(0.9,0,0.0)//0.75,2.5,0.0)
+			,rotation(0.5,0,0.0)//1.2,3.5,0.0)
 {
 	serial_t_::init();
 	TimerCounter_t::init();
 	serial_t_::change_baudrate(9600);
     serial_t_::activer_acquittement(true);
 	
-	translation.valeur_bridage(120);
+	translation.valeur_bridage(100);
 	rotation.valeur_bridage   (100);
 	changer_orientation(PI);
 

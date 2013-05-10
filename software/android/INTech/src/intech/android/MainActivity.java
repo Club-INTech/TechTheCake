@@ -42,37 +42,8 @@ public class MainActivity extends Activity {
 		
 		// Empecher le verrouillage de l'écran
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-		// Callback en cas de demande d'analyse par socket
-		Handler socketRequestHandler = new Handler() {
-			@Override
-			public void handleMessage(Message message) {
-				if (message.what == MESSAGE_START_CAMERA) {
-					String color = (String) message.obj;
-					int id = (color.equals("r")) ? R.id.radioRed
-							: R.id.radioBlue;
-					RadioButton button = (RadioButton) findViewById(id);
-					button.setChecked(true);
-					TextView results = (TextView) findViewById(R.id.textResultsView);
-					results.setVisibility(View.INVISIBLE);
-					startCameraPreview(true);
-				}
-				else if (message.what == MESSAGE_UPDATE_SERVER_STATUS) {
-					TextView status = (TextView) findViewById(R.id.textServerStatus);
-					status.setText((String) message.obj);
-				}
-				else if (message.what == MESSAGE_DISPLAY_RESULT) {
-					TextView results = (TextView) findViewById(R.id.textResultsView);
-					results.setText((String) message.obj);
-					results.setVisibility(View.VISIBLE);
-				}
-
-			}
-		};
-
-		// Lancement du serveur en écoute des demandes
-		SocketServerManager.getInstance().setMessageOutHandler(
-				socketRequestHandler);
+		
+		SocketServerManager.getInstance().stopListeningSocket();
 	}
 
 	@Override
@@ -103,7 +74,7 @@ public class MainActivity extends Activity {
 		}
 	};
 	
-	private char getColor() {
+	private char getRequestedColor() {
 		RadioButton button = (RadioButton) findViewById(R.id.radioBlue);
 		return (button.isChecked()) ? 'b' : 'r';
 	}
@@ -114,18 +85,8 @@ public class MainActivity extends Activity {
 		return true;
 	}
 
-	public void toggleSocket(View v) {
-		// Récupération de l'état du serveur
-		ToggleButton button = (ToggleButton) findViewById(R.id.toggleSocketButton);
-		boolean serverStatus = button.isChecked();
-
-		if (serverStatus) {
-			Log.d(TAG, "Activation de la socket");
-			SocketServerManager.getInstance().startListeningSocket();
-		} else {
-			Log.d(TAG, "Désactivation de la socket");
-			SocketServerManager.getInstance().stopListeningSocket();
-		}
+	public void openSocket(View v) {
+		startCameraPreview(true);
 	}
 	
 	public void toggleWifi(View v) {
@@ -154,10 +115,10 @@ public class MainActivity extends Activity {
 		startCameraPreview(false);
 	}
 
-	public void startCameraPreview(boolean socketMode) {
+	public void startCameraPreview(boolean openSocket) {
 		Intent intent = new Intent(this, CameraPreviewActivity.class);
-		intent.putExtra("socket_mode", socketMode);
-		intent.putExtra("color", getColor());
+		intent.putExtra("open_socket", openSocket);
+		intent.putExtra("color", getRequestedColor());
 		startActivity(intent);
 	}
 

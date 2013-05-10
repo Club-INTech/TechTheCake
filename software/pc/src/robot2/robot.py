@@ -287,7 +287,7 @@ class Robot:
             self.deplacements.avancer(distance)
     
     def _detecter_collisions(self):
-        if self.capteurs.adverse_devant():
+        if self.capteurs.adverse_devant(self.x, self.y, self.orientation):
             self.log.warning("ennemi détecté")
             raise ExceptionCollision
     
@@ -463,11 +463,11 @@ class Robot:
         
         #initialisation de la coordonnée x et de l'orientation
         if self.config["couleur"] == "bleu":
-            self.x = -self.config["table_x"]/2. + self.config["R2_largeur_robot"]/2.
-            self.orientation = 0.0+self.config["R2_epsilon_angle"]
+            self.x = -self.config["table_x"]/2. + self.config["r2_epaisseur_arriere"]/2.
+            self.orientation = 0.0+self.config["r2_epsilon_angle"]
         else:
-            self.x = self.config["table_x"]/2. - self.config["R2_largeur_robot"]/2.
-            self.orientation = math.pi+self.config["R2_epsilon_angle"]
+            self.x = self.config["table_x"]/2. - self.config["r2_epaisseur_arriere"]/2.
+            self.orientation = math.pi+self.config["r2_epsilon_angle"]
 
         # Ce sleep est nécessaire. En effet, la mise à jour de self.x et de self.y n'est pas immédiate (on passe par la carte d'asserv et tout) et sans sleep la mise à jour se fait pendant l'appel d'avancer, ce qui la fait bugger. Plus exactement, avancer transforme une distance en un point en se basant sur l'ancienne position (la mise à jour n'étant pas encore effectuée), puis va_au_point retransforme ce point en distance, mais cette fois en basant sur la position du robot mise à jour, ce qui fait que la distance obtenue au final n'est pas celle donnée au départ. Normalement, ce problème n'arrive que quand on modifie robot.x et robot.y, c'est-à-dire dans la méthode recaler, là où un sleep n'est pas trop ennuyeux
         sleep(1)
@@ -502,9 +502,9 @@ class Robot:
         
         #initialisation de la coordonnée y et de l'orientation
         if cote_bas:
-            self.y = self.config["R2_largeur_robot"]/2.
+            self.y = self.config["r2_epaisseur_arriere"]/2.
         else:
-            self.y = self.config["table_y"]-self.config["R2_largeur_robot"]/2.
+            self.y = self.config["table_y"]-self.config["r2_epaisseur_arriere"]/2.
         
         #nécessaire, cf plus haut
         sleep(1)
@@ -529,11 +529,11 @@ class Robot:
         self.avancer(-300, retenter_si_blocage = False, sans_lever_exception = True)
         
         if self.config["couleur"] == "bleu":
-            self.orientation = 0.0+self.config["R2_epsilon_angle"]
-            self.x = -self.config["table_x"]/2. + self.config["R2_largeur_robot"]/2.
+            self.orientation = 0.0+self.config["r2_epsilon_angle"]
+            self.x = -self.config["table_x"]/2. + self.config["r2_epaisseur_arriere"]/2.
         else:
-            self.orientation = math.pi+self.config["R2_epsilon_angle"]
-            self.x = self.config["table_x"]/2. - self.config["R2_largeur_robot"]/2.
+            self.orientation = math.pi+self.config["r2_epsilon_angle"]
+            self.x = self.config["table_x"]/2. - self.config["r2_epaisseur_arriere"]/2.
 
         # nécessaire, cf plus haut
         sleep(1)
