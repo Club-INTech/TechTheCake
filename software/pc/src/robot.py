@@ -910,7 +910,10 @@ class Robot(RobotInterface):
         else:
             self.deplacements.avancer(40)
         sleep(.2)
-        self.altitude_ascenseur(avant, "bas")
+        if self.places_disponibles(avant) == 1:
+            self.altitude_ascenseur(avant, "plein")
+        else:
+            self.altitude_ascenseur(avant, "bas")
         sleep(.2)
         if avant:
             self.deplacements.avancer(80)
