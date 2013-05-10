@@ -10,6 +10,15 @@ class Actionneurs :
         
     def actionneur_balai(self, position) :
         if position == "ouvert":
-            self.serie.communiquer("capteurs_actionneurs",["balai",100],0)
-        elif position == "ferme":
-            self.serie.communiquer("capteurs_actionneurs",["balai",0],0)
+            self.serie.communiquer("capteurs_actionneurs",["gauche",100],0)
+            self.serie.communiquer("capteurs_actionneurs",["droit",100],0)
+        else:
+            self.serie.communiquer("capteurs_actionneurs",["gauche",0],0)
+            self.serie.communiquer("capteurs_actionneurs",["droit",0],0)
+
+    def actionneur_balai(self, position) :
+        if position == "ouvert":
+            self.serie.communiquer("capteurs_actionneurs",["casse",100],0)
+        else:
+            self.serie.communiquer("capteurs_actionneurs",["casse",0],0)
+            

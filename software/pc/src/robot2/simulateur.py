@@ -26,10 +26,11 @@ class Simulateur:
             
         # Définition du robot secondaire
         client.service.defineRobot({"list":[
-            {"float":[-60.,-25.]},
-            {"float":[-10.,120.]},
-            {"float":[10.,120.]},
-            {"float":[60.,-25.]},
+            {"float":[-113,-25.]},
+            {"float":[-113,45.]},
+            {"float":[0.,70.]},
+            {"float":[113,45.]},
+            {"float":[113,-25.]},
             ]},couleur)
             
         # Definition des zones des capteurs

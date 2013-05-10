@@ -95,7 +95,13 @@ class ProtocoleVirtuelCapteursActionneurs:
         #capteurs infrarouges
         return [self._valeur_capteur(1)]
         
-    def balai(self,*useless) :
+    def gauche(self,angle) :
+        return []
+        
+    def droit(self,angle) :
+        return []
+        
+    def casse(self,angle) :
         return []
         
     def _valeur_capteur(self, id):

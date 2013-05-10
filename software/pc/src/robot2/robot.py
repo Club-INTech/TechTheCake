@@ -287,7 +287,7 @@ class Robot:
             self.deplacements.avancer(distance)
     
     def _detecter_collisions(self):
-        if self.capteurs.adverse_devant():
+        if self.capteurs.adverse_devant(self.x, self.y, self.orientation):
             self.log.warning("ennemi détecté")
             raise ExceptionCollision
     

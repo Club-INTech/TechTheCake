@@ -145,14 +145,14 @@ class Container:
         self.assembler.register("hookGenerator", hooks.HookGenerator, requires=["config","log"])
         
         #enregistrement du service de communication avec le robot principal
-        self.assembler.register("com2principal", com2principal.Com2principal, requires=["log", "config"])
+        self.assembler.register("com2principal", com2principal.Com2principal, requires=["config", "log", "config"])
         
         #enregistrement du service timer
         self.assembler.register("threads.timer", threads.ThreadTimer, requires=["log","config","robot","com2principal"])
         self.assembler.register("threads.position", threads.ThreadPosition, requires=["container"])
         
         #enregistrement du service de comportement du robot secondaire
-        self.assembler.register("comportement", comportement.Comportement, requires=["threads.timer", "config", "log", "robot"])
+        self.assembler.register("comportement", comportement.Comportement, requires=["threads.timer", "robot", "com2principal", "config", "log"])
         
     def start_threads(self):
         """
