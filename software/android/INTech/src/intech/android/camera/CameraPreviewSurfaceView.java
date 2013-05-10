@@ -1,13 +1,20 @@
 package intech.android.camera;
 
+import intech.android.MainActivity;
+import intech.android.wifi.WifiChangeTask;
+
 import java.util.List;
 
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.hardware.Camera;
 import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.Size;
+import android.net.wifi.WifiManager;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -20,9 +27,10 @@ public class CameraPreviewSurfaceView extends SurfaceView implements
 	private Camera mCamera;
 	private boolean isPreviewRunning = false;
 	private boolean autoPicture;
+	private int delayAutofocus;
 	private Camera.PictureCallback pictureReadyCallBack;
 
-	public CameraPreviewSurfaceView(Context context) {
+	public CameraPreviewSurfaceView(Context context, int delay) {
 		super(context);
 		// Install a SurfaceHolder.Callback so we get notified when the
 		// underlying surface is created and destroyed.
@@ -30,6 +38,7 @@ public class CameraPreviewSurfaceView extends SurfaceView implements
 		mHolder.addCallback(this);
 		// deprecated setting, but required on Android versions prior to 3.0
 		mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+		delayAutofocus = delay;
 	}
 	
 	public void setPictureReadyCallBack(Camera.PictureCallback callback) {
@@ -39,6 +48,10 @@ public class CameraPreviewSurfaceView extends SurfaceView implements
 	public void setTakePictureWhenFocusReady(boolean auto) {
 		autoPicture = auto;
 	}
+	
+	public void autoFocus() {
+		mCamera.autoFocus(focusReadyCallback);
+	}
 
 	public void surfaceCreated(SurfaceHolder holder) {
 		try {
@@ -47,7 +60,7 @@ public class CameraPreviewSurfaceView extends SurfaceView implements
 			Log.d(TAG, e.getMessage());
 			return;
 		}
-
+		
 		Parameters parameters = mCamera.getParameters();
 
 		parameters.setRotation(90);
@@ -61,11 +74,12 @@ public class CameraPreviewSurfaceView extends SurfaceView implements
 
 		mCamera.setParameters(parameters);
 		mCamera.setDisplayOrientation(90);
-
+					
 		try {
+			
 			mCamera.setPreviewDisplay(holder);
 			mCamera.startPreview();
-			mCamera.autoFocus(focusReadyCallback);
+			
 		} catch (Throwable ignored) {
 			Log.e(TAG, "set preview error.", ignored);
 		}

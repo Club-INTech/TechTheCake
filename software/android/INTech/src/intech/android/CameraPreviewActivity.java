@@ -1,6 +1,7 @@
 package intech.android;
 
 import intech.android.camera.CameraPreviewSurfaceView;
+import intech.android.wifi.SocketServerManager;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -13,17 +14,28 @@ import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.RadioButton;
+import android.widget.TextView;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore.Files.FileColumns;
 
 public class CameraPreviewActivity extends Activity {
 
-	private final String TAG = "INTech";
+	private final String TAG = "INTech-CameraPreview";
+	public static int MESSAGE_UPDATE_SERVER_STATUS = 1;
+	public static int MESSAGE_TAKE_PICTURE = 2;
+	private char color;
+	private boolean openSocket;
+	private boolean isFocused = false;
 	private CameraPreviewSurfaceView cameraPreview;
 	
 	@Override
@@ -33,21 +45,60 @@ public class CameraPreviewActivity extends Activity {
 		setContentView(R.layout.activity_camera_preview);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		
-		// Prend la photo tout seul quand le focus est terminé en mode socket
-		boolean autoPicture = getIntent().getExtras().getBoolean("socket_mode");
-
+		SharedPreferences preferences = PreferenceManager
+				.getDefaultSharedPreferences(this);
+		
+		// Indique la couleur à détecter
+		color = getIntent().getExtras().getChar("color");
+		
+		// Indique si l'application doit ouvrir une socket
+		openSocket = getIntent().getExtras().getBoolean("open_socket");
+		
+		if (openSocket) {
+			Log.d(TAG, "Activation de la socket");
+			SocketServerManager.getInstance().setMessageOutHandler(socketRequestHandler);
+			SocketServerManager.getInstance().stopListeningSocket();
+			SocketServerManager.getInstance().startListeningSocket();
+		}
+		
 		// Récupération de la caméra
-		cameraPreview = new CameraPreviewSurfaceView(this);
+		int delayAutofocus = Integer.valueOf(preferences.getString("autofocus_delay", "3000"));
+		cameraPreview = new CameraPreviewSurfaceView(this, delayAutofocus);
 		cameraPreview.setPictureReadyCallBack(pictureReadyCallback);
-		cameraPreview.setTakePictureWhenFocusReady(autoPicture);
+		cameraPreview.setTakePictureWhenFocusReady(false);
 		
 		// Affichage de la caméra
 		FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
 		preview.addView(cameraPreview);
 	}
+	
+	Handler socketRequestHandler = new Handler() {
+		@Override
+		public void handleMessage(Message message) {
+			if (message.what == MESSAGE_TAKE_PICTURE) {
+				if (message.obj == null) {
+					Log.d(TAG, "Demande de prise de photo incorrecte");
+					return;
+				}
+				
+				// Enregistrement de la couleur demandée
+				String request = (String) message.obj;
+				color = request.charAt(0);
+				Log.d(TAG, "Demande de prise de photo pour la couleur " + color);
+				
+				// Prise de la photo
+				cameraPreview.takePicture();
+			}
+		}
+	};
 
 	public void takePicture(View view) {
-		cameraPreview.takePicture();
+		if (!isFocused) {
+			cameraPreview.autoFocus();
+			if (!openSocket) isFocused = true;
+		} else {
+			if (!openSocket) cameraPreview.takePicture();
+		}
 	}
 
 	private PictureCallback pictureReadyCallback = new PictureCallback() {
@@ -78,8 +129,8 @@ public class CameraPreviewActivity extends Activity {
 
 				Intent intent = new Intent(CameraPreviewActivity.this, DisplayImageActivity.class);
 				intent.putExtra("image_path", captureFile.getAbsolutePath());
-				intent.putExtra("socket_mode", getIntent().getExtras().getBoolean("socket_mode"));
-				intent.putExtra("color", getIntent().getExtras().getChar("color"));
+				intent.putExtra("socket_mode", getIntent().getExtras().getBoolean("open_socket"));
+				intent.putExtra("color", color);
 				startActivityForResult(intent, 0);
 
 			} catch (FileNotFoundException e) {

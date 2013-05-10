@@ -1,9 +1,11 @@
 package intech.android.wifi;
 
 import android.os.Handler;
+import android.util.Log;
 
 public final class SocketServerManager {
 	
+	private final String TAG = "INTech-SocketManager";
 	private static volatile SocketServerManager instance = null;
 	private Handler handler;
 	private SocketServer server;
@@ -29,7 +31,12 @@ public final class SocketServerManager {
 	}
 	
 	public void stopListeningSocket() {
-		if (server != null) server.stop();
+		if (server != null) {
+			server.stop();
+			Log.d(TAG, "fermeture de la socket");
+		} else {
+			Log.d(TAG, "aucune socket à fermer");
+		}
 	}
 
 }
