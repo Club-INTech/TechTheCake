@@ -19,6 +19,7 @@ static int32_t codeuse2 = 0;
 
 int main()
 {
+	_delay_ms(100);
 	setup();
 	
     Robot & robot = Robot::Instance();
@@ -40,9 +41,6 @@ ISR(TIMER1_OVF_vect, ISR_NOBLOCK){
     
     robot.mesure_distance(codeuse1 + codeuse2);
     robot.mesure_angle(codeuse1 - codeuse2);
-	Serial<0>::print(codeuse1);
-	Serial<0>::print(codeuse2);
-	Serial<0>::print("#");
 
 	//mise à jour du pwm envoyé aux moteurs pour l'asservissement
 	robot.asservir();
@@ -93,4 +91,9 @@ void setup()
 	cbi(DDRD,DDD3); // Signal A moteur Droit
 	cbi(DDRC,DDC0); // Signal B moteur Gauche
 	cbi(DDRC,DDC1); // Signal B moteur Droit
+	sbi(PORTD,PORTD2);
+	sbi(PORTD,PORTD3);
+	sbi(PORTC,PORTC0);
+	sbi(PORTC,PORTC1);
+
 }
