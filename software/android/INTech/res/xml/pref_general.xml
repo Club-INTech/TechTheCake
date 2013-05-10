@@ -103,5 +103,13 @@
             android:numeric="integer"
             android:title="Surface maximale" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="Prise de photo" >
+        <EditTextPreference
+            android:defaultValue="3000"
+            android:key="autofocus_delay"
+            android:maxLength="5"
+            android:numeric="integer"
+            android:title="Temps avant autofocus" />
+    </PreferenceCategory>
 
 </PreferenceScreen>
